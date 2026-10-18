@@ -218,11 +218,9 @@ router.post('/views/register', async (req, res) => {
       [challenge.user_id]
     );
 
-    // Fire the reward engine after the count moved, deliberately NOT awaited:
-    // a milestone grant must never delay the profile's view counter response,
-    // and the engine is non-throwing by design.
+    // The view count moved. Milestones are reached and claimed manually by the user
+    // from their dashboard Rewards section.
     const newViews = updated.rows[0]?.views || 0;
-    grantViewRewards(challenge.user_id).catch((err) => console.warn('[rewards] trigger failed:', err.message));
 
     return res.json({ counted: true, views: newViews });
   } catch (err) {

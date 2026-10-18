@@ -139,6 +139,82 @@ export async function grantViewRewards(userId) {
   }
 }
 
+export async function claimMilestoneReward(userId, targetViews = null) {
+  const { rows } = await query(
+    'SELECT id, username, views, tier, premium_until, rewarded_milestones FROM users WHERE id = $1',
+    [userId]
+  );
+  const user = rows[0];
+  if (!user) throw new Error('User not found');
+  const settings = await loadRewardSettings();
+  if (!settings.enabled) throw new Error('View rewards are currently paused by site administration');
+
+  const lifetimeViews = Number(user.views) || 0;
+  const awarded = (user.rewarded_milestones || []).map(Number);
+
+  let milestone = null;
+  if (targetViews != null) {
+    const v = parseInt(targetViews, 10);
+    milestone = settings.milestones.find((m) => m.views === v);
+    if (!milestone) throw new Error('Milestone not found');
+    if (lifetimeViews < milestone.views) {
+      throw new Error(`You need ${milestone.views.toLocaleString()} views to claim this reward (currently ${lifetimeViews.toLocaleString()})`);
+    }
+    if (awarded.includes(milestone.views)) {
+      throw new Error('This milestone reward has already been claimed');
+    }
+  } else {
+    milestone = settings.milestones.find((m) => lifetimeViews >= m.views && !awarded.includes(m.views));
+    if (!milestone) throw new Error('No unclaimed milestone rewards available right now');
+  }
+
+  const stillRunning = user.premium_until && new Date(user.premium_until) > new Date()
+    ? new Date(user.premium_until).getTime()
+    : Date.now();
+  const until = new Date(stillRunning + milestone.premium_days * 86_400_000);
+
+  const updatedMilestones = storedMilestones(awarded, milestone);
+  const updateRes = await query(
+    `UPDATE users
+        SET tier = CASE WHEN tier = 'admin' THEN 'admin' ELSE 'premium' END,
+            premium_until = $2,
+            rewarded_milestones = $3
+      WHERE id = $1
+  RETURNING *`,
+    [userId, until, updatedMilestones]
+  );
+
+  await logSystemEvent({
+    actor: { id: userId, username: user.username },
+    action: 'rewards.claim',
+    targetType: 'user',
+    targetId: userId,
+    detail: {
+      milestone_views: milestone.views,
+      premium_days: milestone.premium_days,
+      premium_until: until.toISOString(),
+      lifetime_views: lifetimeViews,
+    },
+  }).catch(() => {});
+
+  try {
+    const { sendNotifications } = await import('./notifications.js');
+    await sendNotifications([userId], {
+      title: '🎉 Milestone Reward Claimed!',
+      message: `You claimed ${milestone.premium_days} days of Premium for reaching ${milestone.views.toLocaleString()} views!`,
+      type: 'reward',
+    });
+  } catch (notifErr) {
+    console.warn('[rewards] notification dispatch failed:', notifErr.message);
+  }
+
+  return {
+    milestone,
+    user: updateRes.rows[0],
+    premium_until: until,
+  };
+}
+
 function storedMilestones(awarded, hit) {
   const all = [...new Set([
     ...(awarded || []).map(Number),
@@ -152,3 +228,4 @@ async function markMilestones(userId, milestones) {
   const all = [...new Set((milestones || []).map(Number))].sort((a, b) => a - b);
   await query('UPDATE users SET rewarded_milestones = $2 WHERE id = $1', [userId, all]);
 }
+

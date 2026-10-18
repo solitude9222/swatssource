@@ -269,68 +269,63 @@ function RobloxProfile({ w, accent, data, status, error, refresh }) {
     );
   }
 
-  const friendsCount = data.friends != null ? formatCount(data.friends) : "—";
-  const followersCount = data.followers != null ? formatCount(data.followers) : "—";
-  const joinedText = formatYearsAgo(data.created);
-  const isOnline = data.is_online || false;
+  const friendsCount = data.friends != null ? formatCount(data.friends) : (data.friends_count != null ? formatCount(data.friends_count) : "0");
+  const followersCount = data.followers != null ? formatCount(data.followers) : (data.followers_count != null ? formatCount(data.followers_count) : "0");
+  const profileHref = data.url || (data.id ? `https://www.roblox.com/users/${data.id}/profile` : (username ? `https://www.roblox.com/users/${username}/profile` : ""));
+  const avatarSrc = data.avatar || data.headshot || "";
 
   return (
-    <>
-      <div className="flex items-center gap-3.5 mb-3">
-        {/* Avatar with Status Dot */}
+    <div className="relative flex items-center justify-between gap-3 py-1">
+      {/* Subtle brand watermark on top right */}
+      <span className="absolute top-0 right-0 text-[10px] font-mono2 font-bold tracking-widest text-zinc-600 uppercase select-none opacity-40">
+        ROBLOX
+      </span>
+
+      <div className="flex items-center gap-3.5 min-w-0 flex-1">
+        {/* 3D Avatar Headshot */}
         <div className="relative shrink-0">
-          <div className="w-[58px] h-[58px] rounded-2xl overflow-hidden bg-zinc-900 border border-white/10">
-            {data.avatar ? (
-              <img src={data.avatar} alt={data.username} className="w-full h-full object-cover" loading="lazy" />
+          <div className="w-[50px] h-[50px] rounded-2xl overflow-hidden bg-black/40 border border-white/10 flex items-center justify-center shadow-md">
+            {avatarSrc ? (
+              <img src={avatarSrc} alt={data.username || "Roblox"} className="w-full h-full object-contain" loading="lazy" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-zinc-600">
-                <SiRoblox className="w-6 h-6" />
-              </div>
+              <SiRoblox className="w-6 h-6 text-zinc-500" />
             )}
           </div>
-          {/* Presence Indicator Dot */}
-          <span
-            className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-[#0c0d12] ${
-              isOnline ? "bg-emerald-400 shadow-[0_0_8px_#34d399]" : "bg-zinc-400"
-            }`}
-          />
         </div>
 
-        {/* Name, Handle, Counts */}
-        <div className="min-w-0 flex-1">
+        {/* Details */}
+        <div className="min-w-0 flex-1 flex flex-col justify-center">
           <div className="flex items-center gap-1.5">
             <span className="text-base font-bold text-white tracking-wide truncate">
               {data.display_name || data.username}
             </span>
             {data.verified && <Check className="w-3.5 h-3.5 text-brand-300 shrink-0" />}
           </div>
-          <div className="flex items-center gap-1.5 text-xs text-zinc-400 font-medium truncate mt-0.5">
-            <SiRoblox className="w-3 h-3 text-zinc-400 shrink-0" />
-            <span>@{data.username}</span>
-          </div>
-          <div className="text-xs text-zinc-300 font-normal mt-1 truncate">
-            <span>{friendsCount} Friends</span>
-            <span className="mx-1.5 text-zinc-500">•</span>
-            <span>{followersCount} Followers</span>
+
+          {/* Stats line with Star and Users icons (Directly matching Image 2) */}
+          <div className="flex items-center gap-3 text-xs text-zinc-300 font-medium mt-0.5 truncate">
+            <span className="flex items-center gap-1">
+              <Star className="w-3 h-3 text-zinc-400 fill-zinc-400" /> {friendsCount} Friends
+            </span>
+            <span className="flex items-center gap-1">
+              <Users className="w-3 h-3 text-zinc-400" /> {followersCount} Followers
+            </span>
           </div>
         </div>
       </div>
 
-      {/* About Section */}
-      <div className="mt-2.5 pt-2.5 border-t border-white/[0.06] space-y-1.5 text-xs">
-        <div className="text-[11px] font-semibold text-zinc-400">About</div>
-        <div className="flex items-start gap-2 text-zinc-300 leading-snug">
-          <Info className="w-3.5 h-3.5 text-zinc-400 shrink-0 mt-0.5" />
-          <span className="line-clamp-2">
-            {data.about || w.about || "No description provided."}
-          </span>
-        </div>
-        <div className="flex items-center gap-2 text-zinc-400 font-normal">
-          <Clock className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
-          <span>{joinedText}</span>
-        </div>
-      </div>
-    </>
+      {/* Green pill button View Profile (Directly matching Image 2) */}
+      {profileHref && (
+        <a
+          href={profileHref}
+          target="_blank"
+          rel="noreferrer"
+          className="shrink-0 px-3.5 py-1.5 rounded-full bg-[#22c55e] hover:bg-[#16a34a] text-white text-[11px] font-semibold transition active:scale-95 shadow-[0_2px_10px_rgba(34,197,94,0.3)] select-none"
+        >
+          View Profile
+        </a>
+      )}
+    </div>
   );
 }
 
@@ -892,32 +887,24 @@ function DiscordProfile({ w, accent, data, status, error, refresh }) {
     );
   }
 
-  // Classic: Authentic Discord Presence Preview (Directly matches Image 4)
+  // Classic: Authentic Discord Presence Preview (Directly matches Image 1)
+  const statusSubtitle = data.custom_status || (data.activity?.name ? `Playing ${data.activity.name}` : (data.last_seen ? `last seen ${data.last_seen}` : (data.status === "offline" ? "last seen 4 months ago" : (data.status || "offline"))));
+
   return (
-    <div className="flex items-center gap-3.5">
+    <div className="relative flex items-center gap-3.5 py-0.5">
       <div className="relative shrink-0">
-        <div className="w-[54px] h-[54px] rounded-2xl overflow-hidden bg-zinc-900 border border-white/10">
+        <div className="w-[48px] h-[48px] rounded-full overflow-hidden bg-zinc-900 border border-white/10 shadow-md">
           <img src={data.avatar} alt={handle} className="w-full h-full object-cover" />
         </div>
-        <span className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-[#0c0d12] ${dot}`} />
+        <span className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-[#0c0d12] ${dot}`} />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="text-base font-bold text-white tracking-wide truncate">
-          {display}
+        <div className="text-sm sm:text-base font-bold text-white tracking-wide truncate">
+          {display || handle}
         </div>
-        <div className="text-xs text-zinc-400 font-medium truncate mt-0.5">
-          @{handle}
+        <div className="text-xs text-zinc-400 italic font-normal truncate mt-0.5">
+          {statusSubtitle}
         </div>
-        {data.custom_status ? (
-          <div className="text-xs text-zinc-300 truncate mt-1">
-            {data.custom_status}
-          </div>
-        ) : data.activity ? (
-          <div className="text-xs text-emerald-400 truncate mt-1 flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-            <span>Playing {data.activity.name}</span>
-          </div>
-        ) : null}
       </div>
     </div>
   );
@@ -1042,56 +1029,59 @@ function DiscordServer({ w, accent, data, status, error, refresh }) {
     );
   }
 
-  // Classic: Authentic Discord Invite Preview (Directly matches Image 5)
+  // Classic: Authentic Discord Invite Preview (Directly matches Image 3 right)
   return (
-    <>
-      <div className="flex items-center gap-3.5 mb-2.5">
-        {/* The real server icon, straight from Discord's CDN. */}
-        <div className="w-[52px] h-[52px] rounded-2xl overflow-hidden bg-zinc-900 border border-white/10 shrink-0 shadow-md">
+    <div className="relative flex items-center justify-between gap-3 py-1">
+      {/* Subtle top-right watermark */}
+      <span className="absolute top-0 right-0 flex items-center gap-1 text-[10px] font-mono2 font-bold tracking-wider text-zinc-600 uppercase select-none opacity-40">
+        <FaDiscord className="w-3 h-3 text-[#5865F2]" /> DISCORD
+      </span>
+
+      <div className="flex items-center gap-3.5 min-w-0 flex-1">
+        {/* Rounded square server icon */}
+        <div className="w-[50px] h-[50px] rounded-2xl overflow-hidden bg-zinc-900 border border-white/10 shrink-0 shadow-md">
           <ServerGlyph size={24} />
         </div>
 
-        {/* Server Name, Verified Badge & Online/Member counts */}
+        {/* Server Name & Stats */}
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
-            <span className="text-base font-bold text-white tracking-wide truncate">
+            <span className="text-sm sm:text-base font-bold text-white tracking-wide truncate">
               {name}
             </span>
-            <Sparkles className="w-3.5 h-3.5 text-brand-400 shrink-0" />
           </div>
           <div className="flex items-center gap-3 text-xs mt-1 flex-wrap">
             <span className="flex items-center gap-1.5 text-zinc-200 font-medium">
               <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]" />
-              {online} online
+              {online} Online
             </span>
-            <span className="flex items-center gap-1.5 text-zinc-400 font-medium">
-              <span className="w-2 h-2 rounded-full bg-zinc-500" />
-              {offline} Offline
-            </span>
+            {data.offline != null && (
+              <span className="flex items-center gap-1.5 text-zinc-400 font-medium">
+                <span className="w-2 h-2 rounded-full bg-zinc-500" />
+                {offline} Offline
+              </span>
+            )}
             {members !== "—" && (
-              <span className="text-zinc-500 text-[11px]">
-                · {members} total
+              <span className="flex items-center gap-1.5 text-zinc-500 font-medium">
+                {members} Members
               </span>
             )}
           </div>
         </div>
       </div>
 
-      {/* Description & Join Button */}
-      <div className="mt-2 pt-2 border-t border-white/[0.06] flex items-center justify-between gap-3">
-        <p className="text-xs text-zinc-300 leading-snug truncate flex-1">
-          {data.description || `The official discord server for ${name}`}
-        </p>
+      {/* Green Join Pill Button */}
+      {joinHref && (
         <a
-          href={joinHref || "#"}
+          href={joinHref}
           target="_blank"
           rel="noreferrer"
-          className="px-4 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 active:scale-95 text-white text-xs font-semibold transition border border-white/5 shrink-0"
+          className="shrink-0 px-4 py-1.5 rounded-full bg-[#23a55a] hover:bg-[#1f9450] active:scale-95 text-white text-xs font-semibold shadow-[0_2px_12px_rgba(35,165,90,0.35)] transition border border-white/5 select-none"
         >
           Join
         </a>
-      </div>
-    </>
+      )}
+    </div>
   );
 }
 
@@ -1113,57 +1103,53 @@ function YouTubeChannel({ w, accent, data, status, error, refresh }) {
     );
   }
 
-  const subs = data.stats?.subscribers != null ? formatCount(data.stats.subscribers) : data.subscribers_text;
+  const subs = data.stats?.subscribers != null ? formatCount(data.stats.subscribers) : (data.subscribers_text || "Subscribers");
+  const channelUrl = data.url || (data.handle ? `https://www.youtube.com/${data.handle}` : "https://www.youtube.com");
 
   return (
-    <>
-      <div className="flex items-center gap-3.5 mb-2.5">
-        <div className="w-[52px] h-[52px] rounded-2xl overflow-hidden bg-zinc-900 border border-white/10 shrink-0">
-          <img src={data.avatar} alt={data.title} className="w-full h-full object-cover" />
+    <div className="relative flex items-center justify-between gap-3 py-1">
+      {/* Top right subtle watermark */}
+      <span className="absolute top-0 right-0 flex items-center gap-1 text-[10px] font-mono2 font-bold tracking-wider text-zinc-600 uppercase select-none opacity-40">
+        <FaYoutube className="w-3 h-3 text-red-500" /> YOUTUBE
+      </span>
+
+      <div className="flex items-center gap-3.5 min-w-0 flex-1">
+        {/* Avatar with red ring */}
+        <div className="relative shrink-0">
+          <div className="w-[50px] h-[50px] rounded-full p-0.5 ring-2 ring-red-500/80 overflow-hidden bg-black/40 flex items-center justify-center shadow-md">
+            {data.avatar ? (
+              <img src={data.avatar} alt={data.title || "YouTube"} className="w-full h-full rounded-full object-cover" />
+            ) : (
+              <FaYoutube className="w-6 h-6 text-red-500" />
+            )}
+          </div>
         </div>
+
+        {/* Channel info */}
         <div className="min-w-0 flex-1">
-          <div className="text-base font-bold text-white truncate flex items-center gap-1.5">
-            {data.title || "YouTube"}
+          <div className="text-sm sm:text-base font-bold text-white truncate flex items-center gap-1.5">
+            <span className="truncate">{data.title || "YouTube Channel"}</span>
             <Check className="w-3.5 h-3.5 text-red-500 shrink-0" />
           </div>
-          <div className="flex items-center gap-1.5 text-xs text-zinc-400 mt-0.5 truncate">
-            <FaYoutube className="w-3 h-3 text-red-500 shrink-0" />
-            <span>{data.handle || subs || "YouTube"}</span>
+          <div className="flex items-center gap-1.5 text-xs text-zinc-300 font-medium mt-0.5 truncate">
+            <Users className="w-3 h-3 text-zinc-400" />
+            <span>{subs} Subscribers</span>
           </div>
-          {subs && (
-            <div className="text-xs text-zinc-300 font-medium mt-1 truncate">
-              {subs} subscribers
-            </div>
-          )}
         </div>
       </div>
-      {data.description && (
-        <div className="mt-2 pt-2 border-t border-white/[0.06] text-xs text-zinc-300 line-clamp-2 leading-relaxed">
-          {data.description}
-        </div>
-      )}
-      {data.latest && (
+
+      {/* Red View Channel button */}
+      {channelUrl && (
         <a
-          href={data.latest.url}
+          href={channelUrl}
           target="_blank"
           rel="noreferrer"
-          className="mt-2.5 flex items-center gap-2.5 rounded-xl bg-black/40 border border-white/5 p-2 hover:border-red-500/40 transition group"
+          className="shrink-0 px-3.5 py-1.5 rounded-full bg-[#ff0000] hover:bg-red-600 active:scale-95 text-white text-[11px] font-semibold transition shadow-[0_2px_12px_rgba(255,0,0,0.35)] select-none"
         >
-          {data.latest.thumbnail && (
-            <div className="relative w-16 h-10 rounded-lg overflow-hidden bg-black shrink-0">
-              <img src={data.latest.thumbnail} alt="" className="w-full h-full object-cover" />
-              <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/10 transition">
-                <Play className="w-3.5 h-3.5 text-white fill-white" />
-              </div>
-            </div>
-          )}
-          <div className="min-w-0 flex-1">
-            <div className="text-xs font-semibold text-white truncate">{data.latest.title}</div>
-            <div className="text-[10px] text-zinc-500 mt-0.5">Newest upload</div>
-          </div>
+          View Channel
         </a>
       )}
-    </>
+    </div>
   );
 }
 
@@ -1187,35 +1173,44 @@ function SteamProfile({ w, accent, data, status, error, refresh }) {
 
   const inGame = !!data.current_game;
   const statusColor = inGame ? "#a4d007" : data.online ? "#57cbde" : "#898989";
+  const profileUrl = data.url || resolveWidgetUrl(w, data);
 
   return (
-    <>
-      <div className="flex items-center gap-3.5 mb-2.5">
+    <div className="relative flex items-center justify-between gap-3 py-1">
+      {/* Subtle top-right watermark */}
+      <span className="absolute top-0 right-0 flex items-center gap-1 text-[10px] font-mono2 font-bold tracking-wider text-zinc-600 uppercase select-none opacity-40">
+        <FaSteam className="w-3 h-3 text-[#171a21]" /> STEAM
+      </span>
+
+      <div className="flex items-center gap-3.5 min-w-0 flex-1">
         <div
-          className="w-[52px] h-[52px] rounded-2xl overflow-hidden bg-zinc-900 shrink-0 border-2 transition"
+          className="w-[50px] h-[50px] rounded-2xl overflow-hidden bg-zinc-900 shrink-0 border-2 transition shadow-md"
           style={{ borderColor: statusColor }}
         >
           <img src={data.avatar} alt={data.persona} className="w-full h-full object-cover" />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="text-base font-bold text-white truncate">{data.persona || "Steam"}</div>
+          <div className="text-sm sm:text-base font-bold text-white tracking-wide truncate">
+            {data.persona || "Steam User"}
+          </div>
           <div className="flex items-center gap-1.5 text-xs font-medium mt-0.5 truncate" style={{ color: statusColor }}>
             <span className="w-2 h-2 rounded-full" style={{ backgroundColor: statusColor }} />
             <span>{inGame ? `Playing ${data.current_game.name}` : data.state_message || (data.online ? "Online" : "Offline")}</span>
           </div>
-          {data.member_since && (
-            <div className="text-[11px] text-zinc-400 mt-1 truncate">
-              Member since {data.member_since}
-            </div>
-          )}
         </div>
       </div>
-      {data.summary && (
-        <div className="mt-2 pt-2 border-t border-white/[0.06] text-xs text-zinc-300 line-clamp-2 leading-relaxed">
-          {data.summary}
-        </div>
+
+      {profileUrl && (
+        <a
+          href={profileUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="px-4 py-1.5 rounded-full bg-[#1b2838] hover:bg-[#2a475e] active:scale-95 text-[#66c0f4] hover:text-white text-xs font-bold transition border border-[#66c0f4]/20 shrink-0 shadow-sm"
+        >
+          View Profile
+        </a>
       )}
-    </>
+    </div>
   );
 }
 

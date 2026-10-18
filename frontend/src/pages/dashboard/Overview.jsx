@@ -140,6 +140,23 @@ export default function Overview() {
     return () => { alive = false; };
   }, [user.username, user.views]);
 
+  const [claiming, setClaiming] = useState(false);
+  const handleClaim = async (m) => {
+    if (!m) return;
+    setClaiming(true);
+    try {
+      const { data } = await api.post("/me/rewards/claim", { views: m.views });
+      toast.success(data.message || `🎉 Claimed ${m.premium_days} days of Premium!`);
+      if (data.user) setUser(data.user);
+      const res = await api.get("/me/rewards");
+      setRewards(res.data);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Could not claim reward");
+    } finally {
+      setClaiming(false);
+    }
+  };
+
   const rank = placement?.rank ? `#${placement.rank}` : "—";
 
   const p = user.profile || {};
@@ -309,31 +326,60 @@ export default function Overview() {
               <p className="mt-3 text-xs leading-relaxed text-zinc-500">
                 View rewards are paused right now. Your views still count toward the leaderboard.
               </p>
-            ) : rewards.next ? (
-              <>
-                <div className="mt-3 font-display text-2xl font-black text-zinc-50">
-                  {rewards.next.premium_days}d <span className="text-sm font-semibold text-zinc-400">Premium</span>
-                </div>
-                <p className="mt-1 text-xs text-zinc-500">
-                  at {rewards.next.views.toLocaleString()} views — {(rewards.remaining || 0).toLocaleString()} to go
+            ) : (() => {
+              const claimable = (rewards.milestones || []).filter((m) => (Number(rewards.views || 0) >= m.views) && !m.claimed);
+              if (claimable.length > 0) {
+                const cur = claimable[0];
+                return (
+                  <div className="mt-3 p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-200">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-white">
+                      <Sparkles className="h-4 w-4 text-emerald-400" />
+                      <span>Reward Unlocked! ({cur.views.toLocaleString()} views)</span>
+                    </div>
+                    <div className="mt-1 text-[11px] text-zinc-300 leading-snug">
+                      You reached a new milestone and unlocked <strong>{cur.premium_days} days of Premium</strong>! Click below to claim your reward.
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleClaim(cur)}
+                      disabled={claiming}
+                      className="mt-3 w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-bold text-xs shadow-[0_0_20px_rgba(34,197,94,0.35)] hover:brightness-110 active:scale-95 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                    >
+                      {claiming ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Gift className="h-3.5 w-3.5" />}
+                      Claim {cur.premium_days} Days Premium
+                    </button>
+                  </div>
+                );
+              }
+              if (rewards.next) {
+                return (
+                  <>
+                    <div className="mt-3 font-display text-2xl font-black text-zinc-50">
+                      {rewards.next.premium_days}d <span className="text-sm font-semibold text-zinc-400">Premium</span>
+                    </div>
+                    <p className="mt-1 text-xs text-zinc-500">
+                      at {rewards.next.views.toLocaleString()} views — {(rewards.remaining || 0).toLocaleString()} to go
+                    </p>
+                    <div className="mt-3 h-2 overflow-hidden rounded-full bg-black/40">
+                      <motion.div
+                        className="h-full rounded-full bg-gradient-to-r from-brand-500 to-brand-300"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${Math.min(100, rewards.next.progress)}%` }}
+                        transition={{ duration: 0.8, ease: EASE }}
+                      />
+                    </div>
+                    <p className="mt-auto pt-3 text-[11px] text-zinc-500">
+                      {rewards.claimed.length} of {rewards.milestones.length} milestones claimed.
+                    </p>
+                  </>
+                );
+              }
+              return (
+                <p className="mt-3 text-xs text-emerald-300">
+                  Every milestone is claimed on this account.
                 </p>
-                <div className="mt-3 h-2 overflow-hidden rounded-full bg-black/40">
-                  <motion.div
-                    className="h-full rounded-full bg-gradient-to-r from-brand-500 to-brand-300"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${Math.min(100, rewards.next.progress)}%` }}
-                    transition={{ duration: 0.8, ease: EASE }}
-                  />
-                </div>
-                <p className="mt-auto pt-3 text-[11px] text-zinc-500">
-                  {rewards.claimed.length} of {rewards.milestones.length} milestones claimed.
-                </p>
-              </>
-            ) : (
-              <p className="mt-3 text-xs text-emerald-300">
-                Every milestone is claimed on this account.
-              </p>
-            )}
+              );
+            })()}
           </div>
         </Reveal>
       </div>

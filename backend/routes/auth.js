@@ -138,13 +138,13 @@ router.post('/register', async (req, res) => {
       return res.status(403).json({ detail: 'Account registration is currently disabled by site administration' });
     }
 
-    // Discord-first sign-up: when the admin requires Discord there is no password
-    // account to create, so this route refuses and points at OAuth instead of
-    // letting someone build a second, unlinked account.
-    if (genSettings.discord_required === true) {
+    // Discord-first sign-up: when the admin requires Discord, password sign-ups
+    // without an invite code are redirected to Discord. If the visitor holds an
+    // invite code, they are permitted to register with username & password.
+    if (genSettings.discord_required === true && !invite_code) {
       return res.status(403).json({
         code: 'discord_required',
-        detail: 'Sign up with Discord — this site requires a linked Discord account to register.',
+        detail: 'Sign up with Discord — this site requires a linked Discord account to register, or an invite code.',
       });
     }
 
@@ -563,39 +563,25 @@ router.post('/switch/:id', requireAuth, async (req, res) => {
 
 // GET /api/auth/discord/login
 router.get('/discord/login', async (req, res) => {
-  const { mode = 'login' } = req.query;
+  const { mode = 'login', invite_code = '' } = req.query;
   const clientId = process.env.DISCORD_CLIENT_ID;
   if (!clientId || clientId === 'undefined') {
     return res.status(400).json({ detail: 'Discord OAuth is not configured on the server (missing DISCORD_CLIENT_ID environment variable)' });
   }
-  // One implementation for every OAuth callback URL: it repairs the pasted
-  // scheme/slashes in DISCORD_REDIRECT_URI, and falls back to this request's own
-  // origin. Hand-rolled `${req.protocol}://${req.get('host')}` here is what let
-  // this route and the Spotify one drift apart.
   const redirectUri = encodeURIComponent(
     oauthRedirectUrl(req, 'DISCORD_REDIRECT_URI', '/api/auth/discord/callback')
   );
   const scope = encodeURIComponent('identify email guilds guilds.members.read');
-  // The query's `token` parameter is ignored on purpose: a token in the
-  // authorize URL leaks it to Discord's logs and history. A link intent is
-  // staged server-side under a nonce instead, from the session the request
-  // already carries (Bearer or cookie).
-  // `link` connects Discord to the signed-in account; `pair` adds the OTHER
-  // Discord account as a switchable pair. Both are staged server-side under a
-  // nonce, so neither needs (or leaks) a token in the authorize URL.
   let staged = {};
   if (mode === 'link' || mode === 'pair') {
     const nonce = stageLink(req, mode);
-    // No session means there is no account to attach the identity to. Letting
-    // the round trip continue would quietly turn "add an account" into "sign in
-    // as the other account" — the exact mix-up pairing exists to prevent — so it
-    // stops here instead.
     if (!nonce) {
       return res.status(401).json({ detail: 'Sign in again before adding another account' });
     }
     staged = mode === 'link' ? { link: true, nonce } : { pair: true, nonce };
   }
-  const state = encodeURIComponent(JSON.stringify({ mode, ...staged }));
+  const cleanInvite = invite_code ? String(invite_code).trim().toUpperCase() : '';
+  const state = encodeURIComponent(JSON.stringify({ mode, ...(cleanInvite ? { invite_code: cleanInvite } : {}), ...staged }));
 
   const url = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${state}`;
   return res.json({ url });
@@ -828,20 +814,49 @@ router.get('/discord/callback', async (req, res) => {
           tracks: [],
         };
 
+        let inviteTier = 'free';
+        let inviteUsed = null;
+        let inviteBadges = [];
+        let premiumDays = null;
+        if (parsedState?.invite_code) {
+          const invCode = String(parsedState.invite_code).trim().toUpperCase();
+          const invCheck = await query('SELECT * FROM invite_codes WHERE code = $1', [invCode]);
+          if (invCheck.rows.length > 0) {
+            const inv = invCheck.rows[0];
+            if (inv.max_uses === null || inv.uses < inv.max_uses) {
+              inviteUsed = invCode;
+              const granted = inv.tier || 'free';
+              if (['free', 'premium'].includes(granted)) inviteTier = granted;
+              if (Array.isArray(inv.badges)) inviteBadges = inv.badges;
+              const days = parseInt(inv.premium_days, 10);
+              if (granted === 'premium' && Number.isFinite(days) && days >= 1) {
+                premiumDays = Math.min(days, 365);
+              }
+              await query('UPDATE invite_codes SET uses = uses + 1 WHERE code = $1', [inviteUsed]);
+            }
+          }
+        }
+
         const ins = await query(`
-          INSERT INTO users (email, username, display_name, role, tier, discord, profile)
-          VALUES ($1, $2, $3, 'user', 'free', $4, $5)
+          INSERT INTO users (email, username, display_name, role, tier, discord, profile, invite_code_used, premium_until)
+          VALUES ($1, $2, $3, 'user', $4, $5, $6, $7, $8)
           RETURNING *
         `, [
           dUser.email ? dUser.email.toLowerCase() : `${dUser.id}@discord.swats.bio`,
           candidate,
           dUser.global_name || dUser.username,
+          inviteTier,
           JSON.stringify(discordPayload),
           JSON.stringify(initialProfile),
+          inviteUsed,
+          premiumDays ? new Date(Date.now() + premiumDays * 86_400_000) : null,
         ]);
         user = ins.rows[0];
         created = true;
         const badges = await computeAutoBadges(user);
+        if (inviteBadges.length) {
+          for (const bid of inviteBadges) if (!badges.includes(bid)) badges.push(bid);
+        }
         if (badges.length > 0) {
           const upd = await query('UPDATE users SET badges = $1 WHERE id = $2 RETURNING *', [badges, user.id]);
           user = upd.rows[0];

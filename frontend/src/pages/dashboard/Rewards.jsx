@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Crown, Eye, Gift, Loader2, Lock, Sparkles, Trophy } from "lucide-react";
+import { Crown, Eye, Gift, Loader2, Lock, Sparkles, Trophy, Check } from "lucide-react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
+import { toast } from "@/lib/notify";
 
 const EASE = [0.16, 1, 0.3, 1];
 
@@ -21,9 +22,26 @@ const Card = ({ children, className = "", delay = 0 }) => (
 const fmt = (n) => Number(n || 0).toLocaleString();
 
 export default function Rewards() {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
+  const [claimingId, setClaimingId] = useState(null);
+
+  const handleClaim = async (m) => {
+    if (!m) return;
+    setClaimingId(m.views);
+    try {
+      const { data: res } = await api.post("/me/rewards/claim", { views: m.views });
+      toast.success(res.message || `🎉 Claimed ${m.premium_days} days of Premium!`);
+      if (res.user) setUser(res.user);
+      const updated = await api.get("/me/rewards");
+      setData(updated.data);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Could not claim reward");
+    } finally {
+      setClaimingId(null);
+    }
+  };
 
   useEffect(() => {
     let alive = true;
@@ -187,11 +205,25 @@ export default function Rewards() {
                       />
                     </div>
                   </div>
-                  <span className={`shrink-0 font-mono2 text-[10px] uppercase tracking-wider ${
-                    m.claimed ? "text-emerald-300" : reached ? "text-brand-200" : "text-zinc-500"
-                  }`}>
-                    {m.claimed ? "Claimed" : reached ? "Unclaimed" : `${Math.min(100, m.progress)}%`}
-                  </span>
+                  {m.claimed ? (
+                    <span className="shrink-0 flex items-center gap-1 font-mono2 text-[10px] uppercase tracking-wider text-emerald-300">
+                      <Check className="w-3.5 h-3.5" /> Claimed
+                    </span>
+                  ) : reached ? (
+                    <button
+                      type="button"
+                      disabled={claimingId === m.views}
+                      onClick={() => handleClaim(m)}
+                      className="shrink-0 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-bold text-xs shadow-[0_0_15px_rgba(34,197,94,0.4)] hover:brightness-110 active:scale-95 transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                    >
+                      {claimingId === m.views ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                      Claim {m.premium_days}d
+                    </button>
+                  ) : (
+                    <span className="shrink-0 font-mono2 text-[10px] uppercase tracking-wider text-zinc-500">
+                      {Math.min(100, m.progress)}%
+                    </span>
+                  )}
                 </li>
               );
             })}

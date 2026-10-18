@@ -6,7 +6,7 @@ import { startSetup, completeSetup, disable as disableTwoFactor } from '../twoFa
 import { rankForUser } from '../ranks.js';
 import { sanitizeBadgeGrants } from '../badges.js';
 import { upcomingEvents } from '../eventBadges.js';
-import { loadRewardSettings } from '../rewards.js';
+import { loadRewardSettings, claimMilestoneReward } from '../rewards.js';
 
 const router = express.Router();
 
@@ -487,6 +487,23 @@ router.get('/rewards', requireAuth, async (req, res) => {
   } catch (err) {
     console.error('Rewards read error:', err.message);
     return res.status(500).json({ detail: 'Failed to load rewards' });
+  }
+});
+
+// POST /api/me/rewards/claim — manually claim an unlocked view milestone reward
+router.post('/rewards/claim', requireAuth, async (req, res) => {
+  try {
+    const { views } = req.body || {};
+    const result = await claimMilestoneReward(req.user.id, views);
+    return res.json({
+      ok: true,
+      message: `🎉 Claimed ${result.milestone.premium_days} days of Premium!`,
+      milestone: result.milestone,
+      user: formatUser(result.user),
+      premium_until: result.premium_until,
+    });
+  } catch (err) {
+    return res.status(400).json({ detail: err.message || 'Could not claim reward' });
   }
 });
 

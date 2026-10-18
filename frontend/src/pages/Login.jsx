@@ -37,8 +37,9 @@ export default function Login({ initialMode = "login" }) {
   // someone who has no second factor.
   const [totpCode, setTotpCode] = useState("");
   const [needsTotp, setNeedsTotp] = useState(false);
-  // What the site currently allows. `discord_required` hides the password forms
-  // entirely rather than letting someone fill them in and eat a 403.
+  const [customAuth, setCustomAuth] = useState(false);
+  // What the site currently allows. `discord_required` highlights Discord first
+  // but still permits invite code registration and manual password entry.
   const [config, setConfig] = useState(null);
 
   useEffect(() => {
@@ -52,13 +53,19 @@ export default function Login({ initialMode = "login" }) {
   const discordOnly = !!config?.discord_required;
 
   const claim = params.get("claim");
+  const inviteParam = params.get("invite") || params.get("code");
   useEffect(() => {
     if (params.get("discord") === "error") toast.error("Discord sign-in failed. Try again.");
     if (claim) { setMode("register"); setForm((f) => ({ ...f, username: claim })); }
+    if (inviteParam) {
+      setMode("register");
+      setCustomAuth(true);
+      setForm((f) => ({ ...f, invite: inviteParam.trim().toUpperCase() }));
+    }
     if (params.get("mode") === "register" || params.get("register") === "true") {
       setMode("register");
     }
-  }, [claim, params]);
+  }, [claim, inviteParam, params]);
 
   useEffect(() => {
     const isRegistering = mode === "register" || params.get("mode") === "register" || initialMode === "register";
@@ -71,13 +78,22 @@ export default function Login({ initialMode = "login" }) {
 
   const discordAuth = async () => {
     try {
-      const { data } = await api.get(`/auth/discord/login`, { params: { mode: "login" } });
+      const { data } = await api.get(`/auth/discord/login`, {
+        params: {
+          mode: "login",
+          ...(form.invite?.trim() ? { invite_code: form.invite.trim().toUpperCase() } : {}),
+        },
+      });
       if (data && data.url) {
         window.location.href = data.url;
       } else {
         toast.error("Discord login is not available right now");
       }
     } catch (err) {
+      const msg = err.response?.data?.detail || "Could not start Discord sign-in";
+      toast.error(msg);
+    }
+  };
       const msg = err.response?.data?.detail || "Could not start Discord sign-in";
       toast.error(msg);
     }
@@ -161,19 +177,27 @@ export default function Login({ initialMode = "login" }) {
         </button>
 
         {discordOnly && (
-          <p className="mt-4 text-center text-xs leading-relaxed text-zinc-400" data-testid="discord-required-note">
-            This site signs in with Discord only. Already have an account from before? Use the same email address —
-            your account is linked automatically, nothing on your page is affected.
-          </p>
+          <div className="mt-4 space-y-2 text-center" data-testid="discord-required-note">
+            <p className="text-xs leading-relaxed text-zinc-400">
+              Sign in with Discord to continue. Already have an account or invite code?
+            </p>
+            <button
+              type="button"
+              onClick={() => setCustomAuth(!customAuth)}
+              className="text-xs font-semibold text-brand-300 hover:text-brand-200 transition underline underline-offset-4"
+            >
+              {customAuth ? "Hide credentials form" : "Use username, password or invite code →"}
+            </button>
+          </div>
         )}
 
-        {!discordOnly && (
+        {(!discordOnly || customAuth) && (
           <div className="flex items-center gap-3 my-6">
             <div className="h-px flex-1 bg-white/10" /><span className="text-xs text-zinc-600 font-mono2">OR</span><div className="h-px flex-1 bg-white/10" />
           </div>
         )}
 
-        {discordOnly ? null : mode === "login" ? (
+        {(!discordOnly || customAuth) && (mode === "login" ? (
           <form onSubmit={handleLogin} className="space-y-3">
             <Field icon={Mail} data-testid="login-identifier" placeholder="Username or email" value={form.identifier} onChange={set("identifier")} />
             <div className="relative">
@@ -215,13 +239,11 @@ export default function Login({ initialMode = "login" }) {
             <Field icon={Ticket} data-testid="register-invite" placeholder="Invite code (optional)" value={form.invite} onChange={set("invite")} />
             <button data-testid="register-submit" type="submit" className="w-full py-3 rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 text-white text-sm font-semibold hover:brightness-110 transition">Continue</button>
           </form>
-        )}
+        ))}
 
-        {!discordOnly && (
-          <button data-testid="toggle-auth-mode" onClick={() => setMode(mode === "login" ? "register" : "login")} className="mt-5 w-full text-center text-sm text-zinc-500 hover:text-zinc-200 transition">
-            {mode === "login" ? "No account? Register" : "Already have an account? Login"}
-          </button>
-        )}
+        <button data-testid="toggle-auth-mode" onClick={() => { setMode(mode === "login" ? "register" : "login"); if (discordOnly) setCustomAuth(true); }} className="mt-5 w-full text-center text-sm text-zinc-500 hover:text-zinc-200 transition">
+          {mode === "login" ? "No account? Register" : "Already have an account? Login"}
+        </button>
       </div>
 
       {showPremium && (
