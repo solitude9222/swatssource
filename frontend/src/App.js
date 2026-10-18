@@ -19,6 +19,7 @@ const DevlogFeed = lazy(() => import("@/pages/Devlogs"));
 const Explore = lazy(() => import("@/pages/Explore"));
 const Docs = lazy(() => import("@/pages/Docs"));
 const Ranked = lazy(() => import("@/pages/Ranked"));
+const Marketplace = lazy(() => import("@/pages/Marketplace"));
 
 // Route-level code splitting. The dashboard (and its two variants) is the bulk
 // of the bundle and is never needed before login, so each page is fetched on
@@ -34,6 +35,7 @@ const Templates = lazy(() => import("@/pages/dashboard/Templates"));
 const Settings = lazy(() => import("@/pages/dashboard/Settings"));
 const Stats = lazy(() => import("@/pages/dashboard/Stats"));
 const Rewards = lazy(() => import("@/pages/dashboard/Rewards"));
+const Shop = lazy(() => import("@/pages/dashboard/Shop"));
 const UserManager = lazy(() => import("@/pages/dashboard/UserManager"));
 const InviteCodes = lazy(() => import("@/pages/dashboard/InviteCodes"));
 const SiteSettings = lazy(() => import("@/pages/dashboard/SiteSettings"));
@@ -144,6 +146,8 @@ function App() {
               <Route path="/!/compare" element={<Navigate to="/!/home" replace />} />
               <Route path="/compare" element={<Navigate to="/" replace />} />
               <Route path="/!/auth/discord" element={<DiscordCallback />} />
+              <Route path="/!/marketplace" element={<Marketplace />} />
+              <Route path="/marketplace" element={<Navigate to="/!/marketplace" replace />} />
               {/* Public devlog / changelog. */}
               <Route path="/!/explore" element={<Explore />} />
               <Route path="/explore" element={<Explore />} />
@@ -172,6 +176,7 @@ function App() {
                 <Route path="widgets" element={<Widgets />} />
                 <Route path="settings" element={<Settings />} />
                 <Route path="templates" element={<Templates />} />
+                <Route path="shop" element={<Shop />} />
                 <Route path="leaderboard" element={<Leaderboard />} />
                 {/* The build log — the dashboard's own devlog feed, separate
                     from the public changelog at /!/devlogs. */}

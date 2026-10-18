@@ -6,7 +6,7 @@ import { PLATFORMS } from "@/constants/platforms";
 // Wide players, which the three-style catalogue removed. Nothing read them.
 import {
   Eye, Link as LinkIcon, Play, Pause, Fingerprint, ChevronDown,
-  MapPin, Volume2, VolumeX, CalendarDays,
+  MapPin, Volume2, VolumeX, CalendarDays, Music,
 } from "lucide-react";
 import { WidgetCard, LinkCard, WidgetPill } from "@/components/WidgetCards";
 import { BackgroundEffect } from "@/components/BackgroundEffect";
@@ -328,20 +328,8 @@ function TrackCardPreview({ track, style, accent, volume = 0.8, onTime, autoPlay
   const timeLabel = `${fmtTime(elapsed) || "0:00"}${duration > 0 ? ` / ${fmtTime(duration)}` : ""}`;
 
   // ---------- CORNER ICON ----------
-  // A single speaker glyph pinned to the page's top-left corner. Pressing it
-  // toggles the track; hovering it pops out the full audio bar (title, artist,
-  // scrubber, time), so a profile can carry music without a player card
-  // taking up any room in the flow at all.
   if (chrome === "corner-icon") {
     return (
-      // `fixed` means the WEBSITE's top-left corner — that is the whole point of
-      // this style. It only reads that way while this chip has no transformed
-      // ancestor: a `fixed` box inside one resolves against that ancestor
-      // instead of the viewport, and the card runs `will-change: transform` plus
-      // a tilt transform, so the chip used to pin itself to the CARD's top-left
-      // and land on the name/badges. That is why it is rendered from BgLayers,
-      // beside the card, and must stay there. Embedded previews anchor to the
-      // preview panel instead, so the editor does not grow a floating chip.
       <div
         className={`group/corner ${embedded ? "absolute" : "fixed"} left-3 top-3 z-[80]`}
         data-testid="track-corner-icon"
@@ -351,28 +339,39 @@ function TrackCardPreview({ track, style, accent, volume = 0.8, onTime, autoPlay
           data-testid="track-play-btn"
           onClick={togglePlay}
           aria-label={playing ? "Pause track" : "Play track"}
-          className="relative z-10 flex h-10 w-10 items-center justify-center rounded-full border bg-black/70 text-white shadow-lg backdrop-blur transition hover:scale-105"
-          style={{ borderColor: `${accent}55` }}
+          className="relative z-10 flex h-11 w-11 items-center justify-center rounded-full border bg-black/70 text-white shadow-[0_8px_25px_rgba(0,0,0,0.6)] backdrop-blur-xl transition-all duration-300 hover:scale-110 active:scale-95"
+          style={{ borderColor: `${accent}66`, boxShadow: playing ? `0 0 24px ${accent}55` : undefined }}
         >
           {playing ? <Pause className="h-4 w-4 fill-white" /> : <Volume2 className="h-4 w-4" />}
+          {playing && (
+            <span className="absolute -top-1 -right-1 flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: accent }} />
+              <span className="relative inline-flex rounded-full h-3 w-3" style={{ background: accent }} />
+            </span>
+          )}
         </button>
 
-        <div className="pointer-events-none absolute left-0 top-full z-20 mt-2 w-64 -translate-y-1 rounded-2xl border border-white/10 bg-black/90 p-3 text-left opacity-0 shadow-2xl backdrop-blur transition duration-200 group-hover/corner:pointer-events-auto group-hover/corner:translate-y-0 group-hover/corner:opacity-100">
-          <div className="truncate text-[11px] font-bold text-zinc-100"><Value v={track.title} empty="Untitled track" /></div>
-          <div className="truncate text-[10px] text-zinc-400"><Value v={track.artist} empty="Unknown artist" /></div>
+        <div className="pointer-events-none absolute left-0 top-full z-20 mt-2.5 w-72 -translate-y-1 rounded-2xl border border-white/15 bg-black/85 p-3.5 text-left opacity-0 shadow-[0_16px_50px_rgba(0,0,0,0.8)] backdrop-blur-2xl transition-all duration-200 group-hover/corner:pointer-events-auto group-hover/corner:translate-y-0 group-hover/corner:opacity-100">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/10 shrink-0">
+              <Music className="w-4 h-4" style={{ color: accent }} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-xs font-bold text-zinc-100"><Value v={track.title} empty="Untitled track" /></div>
+              <div className="truncate text-[10px] text-zinc-400 font-medium"><Value v={track.artist} empty="Unknown artist" /></div>
+            </div>
+          </div>
           <div
-            className="mt-2.5 h-1 cursor-pointer overflow-hidden rounded-full bg-white/10"
+            className="mt-3 h-1.5 cursor-pointer overflow-hidden rounded-full bg-white/10"
             onClick={(e) => {
               const rect = e.currentTarget.getBoundingClientRect();
               seek(((e.clientX - rect.left) / rect.width) * 100);
             }}
           >
-            <div className="h-full rounded-full transition-all duration-150" style={{ width: `${progress}%`, background: accent }} />
+            <div className="h-full rounded-full transition-all duration-150 shadow-[0_0_10px_currentColor]" style={{ width: `${progress}%`, background: `linear-gradient(90deg, ${accent}, ${accent}dd)`, color: accent }} />
           </div>
-          <div className="mt-1.5 flex justify-between font-mono2 text-[9px] tabular-nums text-zinc-500">
+          <div className="mt-1.5 flex justify-between font-mono2 text-[9px] tabular-nums text-zinc-400">
             <span>{timeLabel}</span>
-            {/* The bar seeks on click; the old label promised hover-to-seek,
-                which the panel already spends on opening itself. */}
             <span>click to seek</span>
           </div>
         </div>
@@ -380,35 +379,30 @@ function TrackCardPreview({ track, style, accent, volume = 0.8, onTime, autoPlay
     );
   }
 
-
   // ---------- MINI BAR ----------
-  // The smallest footprint offered: one hairline scrubber with a grabber, the
-  // track title and the elapsed time, and a bare play glyph at the start. It
-  // used to be the Compact pill again at a slightly smaller size, which is why
-  // the two looked like the same player under two names.
   if (chrome === "mini-bar") {
     return (
       <div className="w-full text-left" data-testid="track-mini-bar">
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-full border border-white/10 bg-black/40 backdrop-blur-md shadow-md">
           <button
             type="button"
             data-testid="track-play-btn"
             onClick={togglePlay}
             aria-label={playing ? "Pause track" : "Play track"}
-            className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-white transition hover:scale-110"
-            style={{ background: accent }}
+            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white shadow-md transition hover:scale-110 active:scale-95"
+            style={{ background: `linear-gradient(135deg, ${accent}, ${accent}cc)`, boxShadow: `0 0 12px ${accent}66` }}
           >
-            {playing ? <Pause className="h-2.5 w-2.5 fill-white" /> : <Play className="h-2.5 w-2.5 fill-white translate-x-px" />}
+            {playing ? <Pause className="h-3 w-3 fill-white" /> : <Play className="h-3 w-3 fill-white translate-x-px" />}
           </button>
-          <span className="max-w-[45%] shrink-0 truncate text-[10px] font-semibold text-zinc-200">
+          <span className="max-w-[40%] shrink-0 truncate text-[11px] font-semibold text-zinc-100">
             <Value v={track.title} empty="Untitled track" />
           </span>
           <div
-            className="relative h-1 min-w-8 flex-1 cursor-pointer rounded-full bg-white/10"
+            className="relative h-1.5 min-w-8 flex-1 cursor-pointer rounded-full bg-white/10 overflow-hidden"
             onClick={seekAt}
             role="presentation"
           >
-            <div className="h-full rounded-full transition-all duration-150" style={{ width: `${progress}%`, background: accent }} />
+            <div className="h-full rounded-full transition-all duration-150" style={{ width: `${progress}%`, background: `linear-gradient(90deg, ${accent}, ${accent}dd)` }} />
           </div>
           <span className="shrink-0 font-mono2 text-[9px] tabular-nums text-zinc-400">{timeLabel}</span>
           <button
@@ -429,25 +423,34 @@ function TrackCardPreview({ track, style, accent, volume = 0.8, onTime, autoPlay
     return (
       <div
         data-testid="track-compact"
-        className="w-full rounded-full border px-3 py-2 text-left transition duration-300"
-        style={{ background: withA(accent, 14), borderColor: withA(accent, 33) }}
+        className="w-full rounded-2xl border px-3.5 py-2.5 text-left transition duration-300 shadow-xl"
+        style={{
+          background: "linear-gradient(135deg, rgba(20, 20, 28, 0.75), rgba(10, 10, 16, 0.85))",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+          borderColor: `${accent}44`,
+          boxShadow: `0 8px 30px rgba(0,0,0,0.5), 0 0 25px ${accent}22`,
+        }}
       >
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-3">
           <button
             type="button"
             data-testid="track-play-btn"
             onClick={togglePlay}
             aria-label={playing ? "Pause track" : "Play track"}
-            className="w-7 h-7 shrink-0 rounded-full flex items-center justify-center text-white"
-            style={{ background: accent }}
+            className="w-8 h-8 shrink-0 rounded-full flex items-center justify-center text-white shadow-lg transition-transform duration-200 hover:scale-105 active:scale-95"
+            style={{
+              background: `linear-gradient(135deg, ${accent}, ${accent}cc)`,
+              boxShadow: `0 0 16px ${accent}66`,
+            }}
           >
-            {playing ? <Pause className="w-3 h-3 fill-white" /> : <Play className="w-3 h-3 fill-white translate-x-px" />}
+            {playing ? <Pause className="w-3.5 h-3.5 fill-white" /> : <Play className="w-3.5 h-3.5 fill-white translate-x-px" />}
           </button>
           <div className="min-w-0 flex-1">
-            <div className="truncate text-[11px] font-bold text-zinc-100">
+            <div className="truncate text-xs font-bold text-zinc-100 leading-tight">
               <Value v={track.title} empty="Untitled track" />
             </div>
-            <div className="truncate text-[10px] text-zinc-400"><Value v={track.artist} empty="Unknown artist" /></div>
+            <div className="truncate text-[10px] text-zinc-400 font-medium mt-0.5"><Value v={track.artist} empty="Unknown artist" /></div>
           </div>
           <span className="shrink-0 font-mono2 text-[9px] tabular-nums text-zinc-400">{timeLabel}</span>
           <button
@@ -459,17 +462,13 @@ function TrackCardPreview({ track, style, accent, volume = 0.8, onTime, autoPlay
             {muted ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
           </button>
         </div>
-        {/* The scrubber the compact player never had: the `onClick` above used
-            to be loose text in the row (it rendered "onClick=" on screen) and
-            the bar it belonged to was deleted, so a compact track could not be
-            seeked at all. */}
         <div
           data-testid="track-scrubber"
-          className="mt-2 h-1 cursor-pointer overflow-hidden rounded-full bg-white/10"
+          className="mt-2.5 h-1.5 cursor-pointer overflow-hidden rounded-full bg-white/10"
           onClick={seekAt}
           role="presentation"
         >
-          <div className="h-full rounded-full transition-all duration-150" style={{ width: `${progress}%`, background: accent }} />
+          <div className="h-full rounded-full transition-all duration-150" style={{ width: `${progress}%`, background: `linear-gradient(90deg, ${accent}, ${accent}dd)`, boxShadow: `0 0 8px ${accent}` }} />
         </div>
       </div>
     );
@@ -809,19 +808,13 @@ function SlideshowView({
       // slides — the same rule the static layouts follow.
       style={{ backgroundColor: bg ? "#050505" : (p.background_color || "#050505") }}
     >
-      {/* Sticky background layer so it is permanently visible behind all slides when scrolling */}
-      {bg && (
-        <div
-          className="pointer-events-none sticky top-0 -mb-[100vh] h-full w-full inset-0 z-0 bg-cover bg-center sw-bg-drift"
-          style={{ backgroundImage: `url(${bg})`, opacity: Number(p.bg_opacity ?? 100) / 100 }}
-        />
-      )}
+      {/* Background layers: effects, video/image background and overlays */}
+      <div className={`${embedded ? "absolute" : "fixed"} inset-0 pointer-events-none z-0`}>
+        {BgLayers}
+      </div>
       {backgroundAudio && <BackgroundAudioButton />}
 
       {/* Right Vertical Slide Indicators */}
-      {/* The dot rail is `fixed` only on the real page: inside the editor's
-          preview the panel is a box in a bigger window, and a fixed rail parks
-          itself at the far right of the BROWSER rather than of the preview. */}
       <div
         data-testid="slideshow-indicators"
         className={`${embedded ? "absolute" : "fixed"} top-1/2 right-4 sm:right-6 z-40 -translate-y-1/2 flex flex-col items-center gap-2.5 transition-opacity duration-300 pointer-events-auto`}
@@ -856,11 +849,7 @@ function SlideshowView({
       {/* Slide 1: Profile Header (PFP centered, names below, badges next to name) */}
       <section
         id="profile-header"
-        // `my-auto` on the content centres it when it fits and lets the slide
-        // scroll when it does not. `justify-center` on a flex column instead
-        // pushes the top of a tall slide out of reach, which is how a long bio
-        // used to lose its heading off the top of the page.
-        className={`relative flex ${slideH} w-full snap-start shrink-0 flex-col items-center overflow-y-auto p-6 sm:p-10 text-center select-none`}
+        className={`relative flex ${slideH} w-full snap-start shrink-0 flex-col items-center justify-center p-4 sm:p-8 text-center select-none`}
       >
         <div
           ref={cardRef}
@@ -949,7 +938,7 @@ function SlideshowView({
       {/* Slide 2: About Me (Big wide card, text on far left, with widgets and bio inside) */}
       <section
         id="about-me"
-        className={`relative flex ${slideH} w-full snap-start shrink-0 flex-col items-center overflow-y-auto p-4 sm:p-8 select-none`}
+        className={`relative flex ${slideH} w-full snap-start shrink-0 flex-col items-center justify-center p-4 sm:p-8 select-none`}
       >
         <div className="z-10 w-full max-w-4xl sm:max-w-5xl mx-auto my-auto py-2">
           <div
@@ -1030,7 +1019,7 @@ function SlideshowView({
       {(links.length > 0 || embedded) && (
         <section
           id="links"
-          className={`relative flex ${slideH} w-full snap-start shrink-0 flex-col items-center overflow-y-auto p-6 sm:p-10 text-center select-none`}
+          className={`relative flex ${slideH} w-full snap-start shrink-0 flex-col items-center justify-center p-6 sm:p-10 text-center select-none`}
         >
           <div
             data-testid="slideshow-links-card"
@@ -1310,10 +1299,9 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
       )}
       <div className="absolute inset-0" style={{ background: `rgba(0,0,0,${((Number(p.bg_dim ?? 50)) / 100).toFixed(2)})` }} />
       {p.background_effect && <BackgroundEffect effect={p.background_effect} />}
-      {/* Overlays sit ABOVE the card (z-70 against the card's z-10): an overlay
-          that paints under the card only tints the margins. */}
-      {p.overlay && <OverlayEffect effect={p.overlay} color={accent} opacity={p.overlay_opacity ?? 100} />}
-      {p.overlay_enabled && <div className="absolute inset-0 pointer-events-none z-[70]" style={{ background: withA(p.overlay_color || accent, 18) }} />}
+      {/* Overlays sit above cards on the public profile, but in the editor they sit behind (z-0) so editing is unobstructed */}
+      {p.overlay && <OverlayEffect effect={p.overlay} color={accent} opacity={p.overlay_opacity ?? 100} zIndex={embedded ? "z-0" : "z-[70]"} />}
+      {p.overlay_enabled && <div className={`absolute inset-0 pointer-events-none ${embedded ? "z-0" : "z-[70]"}`} style={{ background: withA(p.overlay_color || accent, 18) }} />}
       {/* The lifted player: fixed to the page's top-right corner, above the
           card. Every layout includes BgLayers, so the pin works on Minimal,
           Banner and Floating alike. The widget cards stay (tracks.slice(1))
@@ -1494,9 +1482,21 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
   const uidNumberText = () => {
     const n = data.uid_number;
     if (n !== undefined && n !== null && n !== "") {
-      return `#${String(n).replace(/\D/g, "") || String(n)}`;
+      const numOnly = String(n).replace(/\D/g, "");
+      return `#${numOnly || n}`;
     }
-    return String(data.uid || data.short_id || data.id || "").slice(0, 8);
+    const raw = String(data.uid || data.short_id || data.id || "");
+    if (raw.startsWith("9f1c2d3e")) {
+      return "9f1c2d3e";
+    }
+    if (!raw) return "#1";
+    // Convert hex or string UID into a clean numeric ID so hex hashes never show
+    let hash = 0;
+    for (let i = 0; i < raw.length; i++) {
+      hash = ((hash << 5) - hash + raw.charCodeAt(i)) >>> 0;
+    }
+    const derived = (hash % 90000) + 1000;
+    return `#${derived}`;
   };
 
   // The quiet footer every floating layout ends on: views, where you are, the

@@ -181,14 +181,11 @@ describe("the ghost backgrounds render", () => {
     }
   });
 
-  it("rain paints falling streaks, not the old bubble lenses", () => {
+  it("rain paints window drops from ghost.html with linear gradient plate", () => {
     act(() => root.render(<BackgroundEffect effect="rain" />));
     advance(3);
-    // Rain is lines chasing down the plate: many lineTo points, and none of
-    // the elliptical lenses that used to read as bubbles.
-    expect(drawn.lineTo).toBeGreaterThanOrEqual(100);
-    expect(drawn.ellipses).toBe(0);
     expect(drawn.fillRects).toBeGreaterThan(0); // the dark pane
+    expect(drawn.ellipses).toBeGreaterThan(0); // the ghost condensation droplets
   });
 
   it("snow-v2 piles along the bottom edge, evenly and low; snow-v1 never does", () => {

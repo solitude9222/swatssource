@@ -326,35 +326,9 @@ export default function Templates() {
         </div>
       )}
 
-      {/* Search and Category Filters */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-1">
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
-          {[
-            { id: "all", label: "All Themes" },
-            { id: "cyber", label: "⚡ Cyber & Neon" },
-            { id: "aesthetic", label: "🌸 Y2K Aesthetic" },
-            { id: "dark", label: "🌙 Dark & Velvet" },
-            { id: "retro", label: "🌅 Retro Wave" },
-          ].map((cat) => {
-            const active = categoryFilter === cat.id;
-            return (
-              <button
-                key={cat.id}
-                type="button"
-                onClick={() => setCategoryFilter(cat.id)}
-                className={`whitespace-nowrap px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
-                  active
-                    ? "bg-brand-500/20 text-brand-200 border border-brand-500/40 shadow-[0_0_12px_rgba(164, 141, 244,0.2)]"
-                    : "bg-white/[0.03] text-zinc-400 border border-white/5 hover:bg-white/[0.06] hover:text-zinc-200"
-                }`}
-              >
-                {cat.label}
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="relative min-w-[200px] sm:w-64">
+      {/* Search Bar */}
+      <div className="flex items-center justify-between gap-3 pt-1">
+        <div className="relative w-full max-w-sm">
           <input
             type="text"
             placeholder="Search templates..."

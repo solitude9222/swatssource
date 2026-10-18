@@ -712,21 +712,20 @@ it("renders the overlay through the right painter and fades it with the slider",
   expect(rain.getAttribute("data-effect")).toBe("rain");
   expect(rain.style.opacity).toBe("0.4");
 
-  const dotters = withOverlay("dotters", 100);
-  expect(dotters.getAttribute("data-testid")).toBe("overlay-canvas");
-  expect(dotters.getAttribute("data-effect")).toBe("dotters");
+  const snow = withOverlay("snow", 100);
+  expect(snow.getAttribute("data-testid")).toBe("overlay-canvas");
+  expect(snow.getAttribute("data-effect")).toBe("snow");
   // 100% is the authored look, so nothing is overridden.
-  expect(dotters.style.opacity).toBe("");
+  expect(snow.style.opacity).toBe("");
 
   const grain = withOverlay("grain", 25);
   expect(grain.getAttribute("data-testid")).toBe("overlay-canvas");
   expect(grain.getAttribute("data-effect")).toBe("grain");
   expect(grain.style.opacity).toBe("0.25");
 
-  // A legacy overlay resolves the same way: dots still shows up as dotters, and
-  // a removed one renders nothing at all.
-  const dots = withOverlay("dots", 100);
-  expect(dots.getAttribute("data-effect")).toBe("dotters");
+  // Removed overlays render nothing at all.
+  expect(withOverlay("dotters", 100)).toBeNull();
+  expect(withOverlay("dots", 100)).toBeNull();
   expect(withOverlay("noise", 30)).toBeNull();
 
   // No overlay selected means no layer at all, whatever the slider says.

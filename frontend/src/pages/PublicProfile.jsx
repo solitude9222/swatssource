@@ -108,6 +108,7 @@ export default function PublicProfile() {
         el.muted = false;
         el.play().catch(() => {});
       }
+      window.dispatchEvent(new CustomEvent("swats:user-entered"));
       window.removeEventListener("pointerdown", kick);
       window.removeEventListener("keydown", kick);
       window.removeEventListener("touchstart", kick);
@@ -156,16 +157,8 @@ export default function PublicProfile() {
         if (p && typeof p.catch === "function") p.catch(() => {});
       } catch (_) {}
     }
-    // Dispatch custom event for immediate unmuted playback:
+    // Dispatch custom event for immediate unmuted playback of profile preview track:
     window.dispatchEvent(new CustomEvent("swats:user-entered"));
-
-    // Also trigger track audio play:
-    const playBtn = document.querySelector('[data-testid="track-play-btn"]');
-    if (playBtn) playBtn.click();
-    setTimeout(() => {
-      const playBtn2 = document.querySelector('[data-testid="track-play-btn"]');
-      if (playBtn2) playBtn2.click();
-    }, 40);
   };
 
   useEffect(() => {
@@ -196,7 +189,7 @@ export default function PublicProfile() {
   if (notFound) {
     return (
       <div className="min-h-screen sw-page-bg flex flex-col items-center justify-center text-center px-4" data-testid="public-notfound">
-        <img src="/logo.png" alt="swats.bio" className="w-16 h-16 rounded-2xl mb-4 object-contain shadow-[0_0_30px_rgba(164, 141, 244,0.4)]" />
+        <img src="/logo.png" alt="swats.bio" className="w-16 h-16 rounded-2xl mb-4 object-contain shadow-[0_0_30px_rgba(164,141,244,0.4)]" />
         <div className="font-display text-5xl font-black text-zinc-100">404</div>
         <p className="mt-3 text-zinc-400">swats.bio/{alias} isn't claimed yet.</p>
         <Link to={`/!/login?claim=${alias}`} className="mt-6 px-5 py-2.5 rounded-full bg-gradient-to-r from-brand-500 to-brand-600 text-white text-sm font-semibold hover:brightness-110 transition">Claim this name</Link>
@@ -204,6 +197,11 @@ export default function PublicProfile() {
     );
   }
   if (!data) return <div className="min-h-screen sw-page-bg" />;
+
+  const entryGlow = p.entry_glow_color || p.accent_color || "#A48DF4";
+  const entryTextColor = p.entry_color || "#f4f4f5";
+  const entryBg = p.entry_bg_color || "rgba(255, 255, 255, 0.08)";
+  const entryFont = p.entry_font || "inherit";
 
   return (
     <div
@@ -221,52 +219,55 @@ export default function PublicProfile() {
           data-testid="entry-gate"
           className={`fixed inset-0 z-[100] flex items-center justify-center transition-all duration-500 ${pinActive ? "" : "cursor-pointer"}`}
           style={{
-            backgroundColor: `rgba(6, 6, 8, ${(p.entry_dim ?? 95) / 100})`,
+            backgroundColor: p.entry_backdrop_color || `rgba(6, 6, 8, ${(p.entry_dim ?? 95) / 100})`,
             backdropFilter: `blur(${p.entry_blur || "16px"})`,
             WebkitBackdropFilter: `blur(${p.entry_blur || "16px"})`,
           }}
           onClick={pinActive ? undefined : handleEnter}
         >
-          {p.entry_style === "text" ? (
-            <div className="flex flex-col items-center gap-2 text-center p-4">
-              <div className="text-zinc-200 font-mono2 text-sm uppercase tracking-widest hover:text-white transition-colors drop-shadow-[0_0_15px_rgba(164, 141, 244,0.7)]">
+          {p.entry_style === "image" ? (
+            <div className="flex flex-col items-center gap-3 text-center p-4">
+              {p.entry_image ? (
+                <img
+                  src={fileUrl(p.entry_image)}
+                  alt="Click to enter"
+                  className="max-w-[220px] max-h-[220px] object-contain drop-shadow-[0_0_25px_rgba(255,255,255,0.25)] hover:scale-105 transition-transform duration-300"
+                  style={{
+                    filter: `drop-shadow(0 0 20px ${entryGlow}88)`,
+                  }}
+                />
+              ) : (
+                <div
+                  className="w-24 h-24 rounded-2xl border border-white/20 flex items-center justify-center text-zinc-400 bg-white/5 hover:scale-105 transition-transform"
+                  style={{ boxShadow: `0 0 30px ${entryGlow}44` }}
+                >
+                  <img src="/logo.png" alt="" className="w-12 h-12 object-contain" />
+                </div>
+              )}
+              <div
+                className="text-xs font-semibold tracking-wider hover:brightness-110 transition drop-shadow-[0_0_12px_rgba(255,255,255,0.5)]"
+                style={{ fontFamily: entryFont, color: entryTextColor }}
+              >
                 {p.entry_text || "Click to enter"}
               </div>
               {p.entry_subtext && (
-                <div className="text-[11px] font-mono2 text-zinc-500 uppercase tracking-wider">{p.entry_subtext}</div>
+                <div className="text-[11px] font-mono2 text-zinc-400 uppercase tracking-wider">{p.entry_subtext}</div>
               )}
             </div>
-          ) : p.entry_style === "terminal" ? (
-            <div className="flex flex-col items-center gap-3 text-center p-4">
-              <div className="flex items-center gap-2.5 rounded-xl border border-emerald-500/40 bg-emerald-950/30 px-5 py-3 font-mono2 text-xs font-bold uppercase tracking-widest text-emerald-300 shadow-[0_0_25px_rgba(16,185,129,0.3)] hover:scale-105 transition-transform">
-                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
-                <span>{p.entry_text || "> [CLICK_TO_DECRYPT_PROFILE]"}</span>
+          ) : p.entry_style === "text" ? (
+            <div className="flex flex-col items-center gap-2.5 text-center p-4">
+              <div
+                className="font-bold text-lg sm:text-2xl tracking-widest uppercase hover:scale-105 transition-transform duration-300 cursor-pointer"
+                style={{
+                  fontFamily: entryFont,
+                  color: entryTextColor,
+                  textShadow: `0 0 24px ${entryGlow}`,
+                }}
+              >
+                {p.entry_text || "Click to enter"}
               </div>
               {p.entry_subtext && (
-                <div className="font-mono2 text-[10px] text-zinc-500 tracking-wider">{p.entry_subtext}</div>
-              )}
-            </div>
-          ) : p.entry_style === "glitch" ? (
-            <div className="flex flex-col items-center gap-3 text-center p-4">
-              <div className="relative rounded-2xl border border-cyan-400/40 bg-black/70 px-7 py-3.5 font-mono2 text-xs font-bold uppercase tracking-widest text-cyan-200 shadow-[0_0_30px_rgba(0,240,255,0.3)] hover:scale-105 transition-all">
-                <span className="relative z-10">{p.entry_text || "ACCESS // SYSTEM"}</span>
-                <span className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-r from-cyan-500/20 to-pink-500/20 opacity-60 blur-sm" />
-              </div>
-              {p.entry_subtext && (
-                <div className="font-mono2 text-[10px] text-zinc-400 tracking-wider">{p.entry_subtext}</div>
-              )}
-            </div>
-          ) : p.entry_style === "pulse" ? (
-            <div className="flex flex-col items-center gap-4 text-center p-4">
-              <div className="relative flex items-center justify-center">
-                <span className="pointer-events-none absolute h-20 w-20 rounded-full border border-brand-400/40 animate-ping" />
-                <span className="pointer-events-none absolute h-28 w-28 rounded-full border border-brand-400/20 animate-pulse" />
-                <div className="relative rounded-full border border-brand-400/60 bg-brand-500/25 px-7 py-3.5 text-sm font-semibold text-brand-100 shadow-[0_0_35px_rgba(164, 141, 244,0.5)] backdrop-blur hover:scale-105 transition-transform">
-                  {p.entry_text || "Click to Listen & Enter"}
-                </div>
-              </div>
-              {p.entry_subtext && (
-                <div className="text-xs text-zinc-400 font-medium">{p.entry_subtext}</div>
+                <div className="text-[11px] font-mono2 text-zinc-400 uppercase tracking-wider">{p.entry_subtext}</div>
               )}
             </div>
           ) : p.entry_style === "codelock" ? (
@@ -289,10 +290,21 @@ export default function PublicProfile() {
               )}
             </div>
           ) : (
-            <div className="flex flex-col items-center gap-2.5 text-center p-4">
-              <div className={`px-6 py-3 rounded-full border border-white/15 bg-white/5 text-zinc-200 text-sm font-semibold shadow-[0_0_30px_rgba(255,255,255,0.06)] hover:bg-white/10 transition-all hover:scale-105 ${p.entry_anim !== false ? "animate-pulse" : ""}`}>
+            /* button / default */
+            <div className="flex flex-col items-center gap-3 text-center p-4">
+              <button
+                type="button"
+                className={`px-8 py-3.5 rounded-full border text-sm sm:text-base font-semibold shadow-2xl hover:scale-105 hover:brightness-110 active:scale-95 transition-all duration-200 cursor-pointer ${p.entry_anim !== false ? "animate-pulse" : ""}`}
+                style={{
+                  fontFamily: entryFont,
+                  backgroundColor: entryBg,
+                  color: entryTextColor,
+                  borderColor: p.entry_border_color || `${entryGlow}55`,
+                  boxShadow: `0 0 35px ${entryGlow}44`,
+                }}
+              >
                 {p.entry_text || "Click to enter"}
-              </div>
+              </button>
               {p.entry_subtext && (
                 <div className="text-xs text-zinc-400">{p.entry_subtext}</div>
               )}

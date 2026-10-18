@@ -12,7 +12,7 @@ import {
   LayoutDashboard, Paintbrush, Link2, Award, LayoutGrid, Settings, LayoutTemplate,
   Trophy, BarChart3, Users, Ticket, SlidersHorizontal, LineChart, LogOut,
   ExternalLink, Crown,  ChevronDown, Sparkles, BellRing, Newspaper, ShieldCheck, Plus,
-  ScrollText, Loader2, Gift,
+  ScrollText, Loader2, Gift, ShoppingBag,
 } from "lucide-react";
 import PremiumPlansModal from "@/components/PremiumPlansModal";
 import DevlogFeedModal from "@/components/DevlogFeedModal";
@@ -53,13 +53,10 @@ const NAV_GROUPS = [
     id: "insights",
     label: "Insights",
     tabs: [
+      { to: "/!/dashboard/shop", label: "Shop", icon: ShoppingBag, testid: "tab-shop" },
       { to: "/!/dashboard/rewards", label: "Rewards", icon: Gift, testid: "tab-rewards" },
       { to: "/!/dashboard/leaderboard", label: "Leaderboard", icon: Trophy, testid: "tab-leaderboard" },
       { to: "/!/dashboard/templates", label: "Templates", icon: LayoutTemplate, testid: "tab-templates" },
-      // The build log is deliberately NOT a page in this strip. It opens as a
-      // popup from the sidebar, so the feed is read in place instead of handing
-      // someone to the public changelog — a page written for visitors, not for
-      // a person mid-edit. /!/dashboard/devlogs still resolves for bookmarks.
     ],
   },
 ];
@@ -126,7 +123,7 @@ const TabLink = ({ t }) => (
     end={t.end}
     data-testid={t.testid}
     className={({ isActive }) =>
-      `group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-brand-500/60 ${
+      `group relative flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs font-medium outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-brand-500/60 ${
         isActive ? "text-brand-100" : "text-zinc-400 hover:text-zinc-100"
       }`
     }
@@ -137,13 +134,13 @@ const TabLink = ({ t }) => (
           <motion.span
             layoutId="dash-nav-active"
             transition={spring}
-            className="absolute inset-0 rounded-xl border border-brand-400/25 bg-brand-500/15"
+            className="absolute inset-0 rounded-lg border border-brand-400/25 bg-brand-500/15"
           />
         ) : (
-          <span className="absolute inset-0 rounded-xl bg-white/0 transition-colors duration-200 group-hover:bg-white/[0.04]" />
+          <span className="absolute inset-0 rounded-lg bg-white/0 transition-colors duration-200 group-hover:bg-white/[0.04]" />
         )}
         <t.icon
-          className={`relative z-10 w-4 h-4 shrink-0 transition-transform duration-200 ${
+          className={`relative z-10 w-3.5 h-3.5 shrink-0 transition-transform duration-200 ${
             isActive ? "scale-110" : "group-hover:scale-105"
           }`}
         />
@@ -165,20 +162,20 @@ const TabLink = ({ t }) => (
    sidebar can never lose your route. */
 function NavGroup({ group, open, onToggle, containsActive }) {
   return (
-    <div className="mb-2">
+    <div className="mb-0.5">
       <button
         type="button"
         onClick={onToggle}
         aria-expanded={open}
         data-testid={`navgroup-${group.id}`}
-        className="group flex w-full items-center gap-2 rounded-xl px-3.5 py-2 text-left outline-none transition-colors duration-200 hover:bg-white/[0.03] focus-visible:ring-2 focus-visible:ring-brand-500/50"
+        className="group flex w-full items-center gap-2 rounded-lg px-2.5 py-1 text-left outline-none transition-colors duration-200 hover:bg-white/[0.03] focus-visible:ring-2 focus-visible:ring-brand-500/50"
       >
         <span className="font-mono2 text-[10px] font-semibold uppercase tracking-wider text-zinc-500 transition-colors duration-200 group-hover:text-zinc-300">
           {group.label}
         </span>
         {containsActive && !open && <span className="h-1 w-1 rounded-full bg-brand-400" />}
         <ChevronDown
-          className={`ml-auto h-3.5 w-3.5 shrink-0 text-zinc-600 transition-transform duration-300 ${
+          className={`ml-auto h-3 w-3 shrink-0 text-zinc-600 transition-transform duration-300 ${
             open ? "rotate-0" : "-rotate-90"
           }`}
         />
@@ -190,10 +187,10 @@ function NavGroup({ group, open, onToggle, containsActive }) {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
             className="overflow-hidden"
           >
-            <div className="space-y-1 pt-1">
+            <div className="space-y-0.5 pt-0.5">
               {group.tabs.map((t) => (
                 <TabLink key={t.to} t={t} />
               ))}
@@ -220,22 +217,21 @@ function CommunityCard() {
       target="_blank"
       rel="noreferrer"
       data-testid="discord-card"
-      className="group mt-4 block rounded-2xl border border-white/[0.06] bg-gradient-to-br from-brand-500/[0.12] to-white/[0.02] p-4 transition-colors duration-200 hover:border-brand-400/30"
+      className="group block rounded-xl border border-white/[0.06] bg-gradient-to-br from-brand-500/[0.12] to-white/[0.02] p-2.5 transition-colors duration-200 hover:border-brand-400/30"
     >
-      <div className="flex items-center gap-2.5">
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/[0.08] border border-white/10 transition-transform duration-300 group-hover:scale-105">
-          <FaDiscord className="h-4 w-4 text-white" />
+      <div className="flex items-center gap-2">
+        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-white/[0.08] border border-white/10 transition-transform duration-300 group-hover:scale-105">
+          <FaDiscord className="h-3.5 w-3.5 text-white" />
         </span>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <div className="truncate text-xs font-bold text-zinc-100">Join our Discord</div>
-          <div className="truncate font-mono2 text-[10px] text-zinc-500">discord.gg/a9uwptuepD</div>
         </div>
-        <ExternalLink className="ml-auto h-3.5 w-3.5 shrink-0 text-zinc-600 transition-colors duration-200 group-hover:text-brand-300" />
+        <ExternalLink className="h-3 w-3 shrink-0 text-zinc-500 transition-colors duration-200 group-hover:text-brand-300" />
       </div>
       {stats && Number.isFinite(stats.bio_links) && (
-        <div className="mt-3 flex items-center gap-1.5 text-[10px] text-zinc-400">
+        <div className="mt-1.5 flex items-center gap-1.5 text-[9px] text-zinc-400">
           <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400" />
-          {stats.bio_links.toLocaleString()} profiles · {Number(stats.total_views || 0).toLocaleString()} views
+          {stats.bio_links.toLocaleString()} bios · {Number(stats.total_views || 0).toLocaleString()} views
         </div>
       )}
     </a>
@@ -245,8 +241,8 @@ function CommunityCard() {
 function UserCard({ user, onLogout }) {
   const initial = (user.display_name || user.username || "?")[0]?.toUpperCase();
   return (
-    <div className="mt-4 flex items-center gap-3 rounded-2xl border border-white/[0.06] bg-white/[0.03] p-3">
-      <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full bg-zinc-800 text-sm ring-1 ring-white/10">
+    <div className="mt-2 flex items-center gap-2.5 rounded-xl border border-white/[0.06] bg-white/[0.03] p-2">
+      <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-zinc-800 text-xs ring-1 ring-white/10">
         {user.profile?.avatar_url ? (
           <img src={fileUrl(user.profile.avatar_url)} alt="" className="h-full w-full object-cover" />
         ) : (
@@ -254,10 +250,10 @@ function UserCard({ user, onLogout }) {
         )}
       </div>
       <div className="min-w-0 flex-1">
-        <div className="truncate text-sm font-semibold text-zinc-100">{user.display_name || user.username}</div>
-        <div className="truncate font-mono2 text-[11px] text-zinc-500">
+        <div className="truncate text-xs font-semibold text-zinc-100">{user.display_name || user.username}</div>
+        <div className="truncate font-mono2 text-[10px] text-zinc-500">
           @{user.username}
-          {Number.isFinite(user.uid_number) && <span className="text-zinc-600"> · UID {user.uid_number}</span>}
+          {Number.isFinite(user.uid_number) && <span className="text-zinc-600"> · #{user.uid_number} <span className="sr-only">UID {user.uid_number}</span></span>}
         </div>
       </div>
       <button
@@ -266,9 +262,9 @@ function UserCard({ user, onLogout }) {
         data-testid="logout-btn"
         title="Log out"
         aria-label="Log out"
-        className="group shrink-0 rounded-xl p-2 text-zinc-500 outline-none transition-colors duration-200 hover:bg-red-500/10 hover:text-red-300 focus-visible:ring-2 focus-visible:ring-red-500/40"
+        className="group shrink-0 rounded-lg p-1.5 text-zinc-500 outline-none transition-colors duration-200 hover:bg-red-500/10 hover:text-red-300 focus-visible:ring-2 focus-visible:ring-red-500/40 cursor-pointer"
       >
-        <LogOut className="h-4 w-4" />
+        <LogOut className="h-3.5 w-3.5" />
       </button>
     </div>
   );
@@ -599,14 +595,14 @@ export default function DashboardLayout() {
        to near-black at the bottom, so the rounded panels have something to sit on. */
     <div className="dash-font flex min-h-screen sw-page-bg text-zinc-100">
       {/* Sidebar */}
-      <aside className="sticky top-0 hidden h-screen w-72 shrink-0 flex-col border-r border-white/[0.06] bg-gradient-to-b from-white/[0.05] via-white/[0.012] to-black/40 p-5 lg:flex">
-        <div className="px-2 py-2">
-          <Logo />
+      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-white/[0.06] bg-gradient-to-b from-white/[0.05] via-white/[0.012] to-black/40 p-3 sm:p-3.5 lg:flex">
+        <div className="px-1.5 py-1">
+          <Logo size="text-base" />
         </div>
 
         <UserCard user={user} onLogout={handleLogout} />
 
-        <nav className="mt-6 flex-1 overflow-y-auto pr-1">
+        <nav className="mt-2.5 flex-1 overflow-y-auto pr-0.5 space-y-0.5 scrollbar-none">
           {groups.map((group) => {
             // Admin is a single destination rather than a foldable category, and it
             // stays lit for its whole subtree (end:false), so arriving on
@@ -626,48 +622,40 @@ export default function DashboardLayout() {
             );
           })}
 
-          {/* Standalone destinations that are not part of a category.
-
-              Premium and Devlog open popups rather than leaving the dashboard.
-              Premium used to load /!/pricing — the marketing page, written for
-              people who do not have an account — and Devlog loaded /!/devlogs,
-              the public changelog. Someone inside their own dashboard wants the
-              plans and the build notes where they are, so both are buttons now. */}
-          <div className="mt-2 space-y-1 border-t border-white/5 pt-3">
+          <div className="mt-1.5 space-y-0.5 border-t border-white/5 pt-1.5">
             <button
               type="button"
               onClick={() => setPopup("premium")}
               data-testid="premium-link"
-              className="group relative flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-left text-sm font-medium text-zinc-400 outline-none transition-colors duration-200 hover:bg-white/[0.04] hover:text-zinc-100 focus-visible:ring-2 focus-visible:ring-brand-500/50"
+              className="group relative flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left text-xs font-medium text-zinc-400 outline-none transition-colors duration-200 hover:bg-white/[0.04] hover:text-zinc-100 focus-visible:ring-2 focus-visible:ring-brand-500/50 cursor-pointer"
             >
-              <Sparkles className="h-4 w-4 shrink-0 text-brand-400/80 transition-transform duration-200 group-hover:scale-110" />
+              <Sparkles className="h-3.5 w-3.5 shrink-0 text-brand-400/80 transition-transform duration-200 group-hover:scale-110" />
               <span className="truncate">Premium</span>
-              <Crown className="ml-auto h-3.5 w-3.5 shrink-0 text-brand-400/70" />
+              <Crown className="ml-auto h-3 w-3 shrink-0 text-brand-400/70" />
             </button>
             <button
               type="button"
               onClick={() => setPopup("devlog")}
               data-testid="devlog-link"
-              className="group relative flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-left text-sm font-medium text-zinc-400 outline-none transition-colors duration-200 hover:bg-white/[0.04] hover:text-zinc-100 focus-visible:ring-2 focus-visible:ring-brand-500/50"
+              className="group relative flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left text-xs font-medium text-zinc-400 outline-none transition-colors duration-200 hover:bg-white/[0.04] hover:text-zinc-100 focus-visible:ring-2 focus-visible:ring-brand-500/50 cursor-pointer"
             >
-              <Newspaper className="h-4 w-4 shrink-0 transition-transform duration-200 group-hover:scale-110" />
+              <Newspaper className="h-3.5 w-3.5 shrink-0 transition-transform duration-200 group-hover:scale-110" />
               <span className="truncate">Devlog</span>
-              <span className="ml-auto shrink-0 font-mono2 text-[10px] text-zinc-600">what's new</span>
+              <span className="ml-auto shrink-0 font-mono2 text-[9px] text-zinc-600">what's new</span>
             </button>
             <Link
               to={`/${user.username}`}
               target="_blank"
               data-testid="view-public-btn"
-              className="group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-zinc-400 outline-none transition-colors duration-200 hover:bg-white/[0.04] hover:text-zinc-100 focus-visible:ring-2 focus-visible:ring-brand-500/50"
+              className="group relative flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-zinc-400 outline-none transition-colors duration-200 hover:bg-white/[0.04] hover:text-zinc-100 focus-visible:ring-2 focus-visible:ring-brand-500/50"
             >
-              <ExternalLink className="h-4 w-4 shrink-0 transition-transform duration-200 group-hover:scale-110" />
+              <ExternalLink className="h-3.5 w-3.5 shrink-0 transition-transform duration-200 group-hover:scale-110" />
               <span className="truncate">View profile</span>
-              <span className="ml-auto shrink-0 font-mono2 text-[10px] text-zinc-600">swats.bio/{user.username}</span>
             </Link>
           </div>
         </nav>
 
-        <div className="mt-4 border-t border-white/5 pt-4">
+        <div className="mt-2 border-t border-white/5 pt-2">
           <CommunityCard />
         </div>
       </aside>

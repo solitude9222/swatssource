@@ -16,9 +16,9 @@ export const Logo = ({ size = "text-lg" }) => (
 // because it is the thing people come back for after their first visit.
 const NAV = [
   { label: "Home", to: "/!/home" },
+  { label: "Marketplace", to: "/!/marketplace" },
   { label: "Explore", to: "/!/explore" },
   { label: "Ranked", to: "/!/ranked" },
-  { label: "Legal", to: "/!/legal" },
   { label: "Pricing", to: "/!/pricing" },
 ];
 

@@ -329,18 +329,18 @@ resize();
 const NM=$('.name'),NT=NM.textContent,ch='!<>-_/[]{}=+*^?#$%',
 TE=['none','typewriter','shake','rainbow','white sparkle','morph','shimmer in','shimmer out','shine','glow','glitch','flames','scramble','flicker','flip','loading','green sparkle','rainbow sparkle','blackout','bleeding','neon aurora','reactive'];
 let gen=0,lk=null;
-const loop=(f,ms)=>{const g=gen;(function r(){if(g!=gen)return;setTimeout(r,f()||ms)})()};
+const textLoop=(f,ms)=>{const g=gen;(function r(){if(g!=gen)return;setTimeout(r,f()||ms)})()};
 const spawn=(cls,css,life)=>{const e=document.createElement('i');e.className=cls;e.style.cssText=css;NM.append(e);setTimeout(()=>e.remove(),life)};
 const letters=()=>{NM.innerHTML=[...NT].map((c,i)=>`<span style="--i:${i}">${c}</span>`).join('')};
 function setText(n){gen++;if(lk){removeEventListener('pointermove',lk);lk=null}
 NM.className='name t-'+n.replace(/ /g,'');NM.style.cssText='';NM.textContent=NT;NM.dataset.text=NT;
-if(n=='typewriter'){let i=0,d=0;loop(()=>{NM.textContent=NT.slice(0,i)||'\u200b';if(!d){if(i<NT.length){i++;return 130}d=1;return 1500}if(i>0){i--;return 70}d=0;return 400},100)}
-else if(/sparkle/.test(n)){const col=n[0]=='w'?()=>'#fff':n[0]=='g'?()=>R()<.5?'#4dff88':'#b6ffd0':()=>`hsl(${R()*360|0},100%,70%)`;loop(()=>{spawn('sp',`left:${R()*100}%;top:${R()*100}%;background:${col()}`,900);return 90},90)}
-else if(n=='flames')loop(()=>{spawn('em',`left:${R()*100}%;top:35%;--dx:${(R()-.5)*14}px`,1100);return 70},70);
-else if(n=='bleeding')loop(()=>{spawn('dr',`left:${8+R()*84}%;top:80%`,2300);return 600+R()*900},600);
-else if(n=='morph'){const w=[NT,'phantom','spirit','nobody'];let i=0;loop(()=>{NM.style.filter='blur(9px)';NM.style.opacity=.2;setTimeout(()=>{NM.textContent=w[i=++i%w.length];NM.style.filter='';NM.style.opacity=''},350);return 2200},0)}
-else if(n=='scramble'){let f=0,N=NT.length*3;loop(()=>{if(f>N){NM.textContent=NT;if(++f>N+40)f=0;return 45}let o='';for(let j=0;j<NT.length;j++)o+=j<f/3?NT[j]:ch[R()*ch.length|0];NM.textContent=o;f++;return 45},45)}
-else if(n=='loading'){let k=0;loop(()=>{NM.textContent=NT+'.'.repeat(k)+'\u2007'.repeat(3-k);k=(k+1)%4;return 450},450)}
+if(n=='typewriter'){let i=0,d=0;textLoop(()=>{NM.textContent=NT.slice(0,i)||'\u200b';if(!d){if(i<NT.length){i++;return 130}d=1;return 1500}if(i>0){i--;return 70}d=0;return 400},100)}
+else if(/sparkle/.test(n)){const col=n[0]=='w'?()=>'#fff':n[0]=='g'?()=>R()<.5?'#4dff88':'#b6ffd0':()=>`hsl(${R()*360|0},100%,70%)`;textLoop(()=>{spawn('sp',`left:${R()*100}%;top:${R()*100}%;background:${col()}`,900);return 90},90)}
+else if(n=='flames')textLoop(()=>{spawn('em',`left:${R()*100}%;top:35%;--dx:${(R()-.5)*14}px`,1100);return 70},70);
+else if(n=='bleeding')textLoop(()=>{spawn('dr',`left:${8+R()*84}%;top:80%`,2300);return 600+R()*900},600);
+else if(n=='morph'){const w=[NT,'phantom','spirit','nobody'];let i=0;textLoop(()=>{NM.style.filter='blur(9px)';NM.style.opacity=.2;setTimeout(()=>{NM.textContent=w[i=++i%w.length];NM.style.filter='';NM.style.opacity=''},350);return 2200},0)}
+else if(n=='scramble'){let f=0,N=NT.length*3;textLoop(()=>{if(f>N){NM.textContent=NT;if(++f>N+40)f=0;return 45}let o='';for(let j=0;j<NT.length;j++)o+=j<f/3?NT[j]:ch[R()*ch.length|0];NM.textContent=o;f++;return 45},45)}
+else if(n=='loading'){let k=0;textLoop(()=>{NM.textContent=NT+'.'.repeat(k)+'\u2007'.repeat(3-k);k=(k+1)%4;return 450},450)}
 else if(n=='flip')letters();
 else if(n=='reactive'){letters();const sp=[...NM.children];lk=e=>{for(const s of sp){const r=s.getBoundingClientRect(),k=1-Math.min(1,Math.hypot(e.clientX-(r.left+r.width/2),e.clientY-(r.top+r.height/2))/140);s.style.transform=`translateY(${-k*10}px) scale(${1+k*.45})`;s.style.textShadow=`0 0 ${k*20}px rgba(255,255,255,${k})`}};addEventListener('pointermove',lk)}}
 P.insertAdjacentHTML('beforeend','<h4>text</h4>');const td=document.createElement('div');P.append(td);

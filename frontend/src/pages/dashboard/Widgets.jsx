@@ -986,7 +986,88 @@ export default function Widgets() {
                   <div className="grid grid-cols-2 gap-4">
                     <ColorPicker label="Widget Color" value={color} onChange={(v) => patchActiveWidget({ color: v })} />
                     <ColorPicker label="Widget Glow" value={glow || "#000000"} onChange={(v) => patchActiveWidget({ glow: `${v}80` })} />
+                    <ColorPicker label="Background Tint" value={activeModal.widget.card_bg_color || "#0c0d12"} onChange={(v) => patchActiveWidget({ card_bg_color: v })} />
+                    <ColorPicker label="Border Color" value={activeModal.widget.card_border_color || "#ffffff"} onChange={(v) => patchActiveWidget({ card_border_color: v })} />
                   </div>
+
+                  <div className="space-y-3 rounded-2xl border border-white/10 bg-white/[0.02] p-3.5">
+                    <div>
+                      <div className="mb-1.5 flex items-center justify-between text-xs font-semibold text-zinc-300">
+                        <span>Fill Alpha (Transparency)</span>
+                        <span className="font-mono2 text-brand-400">{activeModal.widget.card_fill_alpha ?? 85}%</span>
+                      </div>
+                      <Slider
+                        min={0}
+                        max={100}
+                        step={1}
+                        value={[activeModal.widget.card_fill_alpha ?? 85]}
+                        onValueChange={([v]) => patchActiveWidget({ card_fill_alpha: v })}
+                        className="[&_[role=slider]]:border-brand-400/60 [&_[role=slider]]:bg-brand-500 [&_.absolute]:bg-brand-500"
+                        aria-label="Fill alpha slider"
+                      />
+                    </div>
+
+                    <div>
+                      <div className="mb-1.5 flex items-center justify-between text-xs font-semibold text-zinc-300">
+                        <span>Outline Alpha (Border Opacity)</span>
+                        <span className="font-mono2 text-brand-400">{activeModal.widget.card_outline_alpha ?? 30}%</span>
+                      </div>
+                      <Slider
+                        min={0}
+                        max={100}
+                        step={1}
+                        value={[activeModal.widget.card_outline_alpha ?? 30]}
+                        onValueChange={([v]) => patchActiveWidget({ card_outline_alpha: v })}
+                        className="[&_[role=slider]]:border-brand-400/60 [&_[role=slider]]:bg-brand-500 [&_.absolute]:bg-brand-500"
+                        aria-label="Outline alpha slider"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Open Button Style Selection */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-semibold text-zinc-300">Open Action Style</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { id: "icon", label: "Icon Only", desc: "Top-right popout icon" },
+                        { id: "button", label: "Button Only", desc: "Action button inside card" },
+                        { id: "click", label: "Click on Card", desc: "Entire widget is clickable" },
+                      ].map((s) => {
+                        const active = (activeModal.widget.open_style || "button") === s.id;
+                        return (
+                          <button
+                            key={s.id}
+                            type="button"
+                            onClick={() => patchActiveWidget({ open_style: s.id })}
+                            className={`p-2.5 rounded-xl border text-left transition cursor-pointer ${
+                              active
+                                ? "bg-brand-500/20 border-brand-500/60 text-brand-200"
+                                : "border-white/10 text-zinc-400 hover:bg-white/5"
+                            }`}
+                          >
+                            <div className="text-xs font-bold leading-tight">{s.label}</div>
+                            <div className="text-[10px] text-zinc-500 mt-1 leading-snug">{s.desc}</div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Popup Toggle */}
+                  <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.02] p-3.5 text-xs text-zinc-300">
+                    <span>
+                      <span className="block font-semibold">Popup Preview Modal</span>
+                      <span className="block text-[11px] text-zinc-500">
+                        When pressed, displays a mini preview modal with blurred background
+                      </span>
+                    </span>
+                    <Switch
+                      data-testid="widget-popup-toggle"
+                      className="h-5 w-9 shrink-0 rounded-full border border-white/15 transition-colors duration-200 data-[state=checked]:border-brand-400/60 data-[state=checked]:bg-brand-500 data-[state=unchecked]:bg-white/10"
+                      checked={!!activeModal.widget.popup_toggle}
+                      onCheckedChange={(v) => patchActiveWidget({ popup_toggle: v })}
+                    />
+                  </label>
 
                   <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.02] p-3.5 text-xs text-zinc-300">
                     <span>

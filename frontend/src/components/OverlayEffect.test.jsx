@@ -79,7 +79,7 @@ const step = (n) => {
     for (let i = 0; i < n; i += 1) {
       const cb = pending.shift();
       clock += 1000 / 60;
-      cb(clock);
+      if (typeof cb === "function") cb(clock);
     }
   });
 };
@@ -187,7 +187,7 @@ it("moves the particles between frames", () => {
 });
 
 it("stops the loop when the overlay goes away", () => {
-  const { el, root } = mount({ effect: "dotters" });
+  const { el, root } = mount({ effect: "snow" });
   step(2);
   act(() => root.unmount());
   expect(cancelled.length).toBeGreaterThan(0);
@@ -210,16 +210,17 @@ it("fades below the Editor's 100% transparency and stays full at default", () =>
   }
 });
 
-it("legacy ids resolve: dots becomes dotters, frost-bite becomes grain", () => {
-  expect(resolveOverlay("dots")).toBe("dotters");
+it("legacy ids resolve: dots is removed, frost-bite becomes grain", () => {
+  expect(resolveOverlay("dots")).toBe("");
+  expect(resolveOverlay("dotters")).toBe("");
   expect(resolveOverlay("frost-bite")).toBe("grain");
   expect(resolveOverlay("snow")).toBe("snow");
   expect(resolveOverlay("rain")).toBe("rain");
   expect(resolveOverlay("noise")).toBe("");
   expect(resolveOverlay("embers")).toBe("");
 
-  const { el, root } = mount({ effect: "dots" });
-  expect(el.querySelector('[data-testid="overlay-canvas"]').getAttribute("data-effect")).toBe("dotters");
+  const { el, root } = mount({ effect: "frost-bite" });
+  expect(el.querySelector('[data-testid="overlay-canvas"]').getAttribute("data-effect")).toBe("grain");
   act(() => root.unmount());
   el.remove();
 

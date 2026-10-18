@@ -76,48 +76,79 @@ const mkbolt = (W, H) => {
 };
 
 /* ----------------------------------------------------- background painters -- */
-/* E.rain = "rain": dark plate under actual falling rain — slanted streaks
-   chasing down the plate, with the faint splash bloom where drops land. The
-   first version drew stationary elliptical lenses that read as bubbles
-   covering the page; rain read as a shower, not a wall of glass beads. */
+/* E.rain: window rain taken EXACTLY from ghost.html. Glass water droplets with
+   refraction rims and trickling drip trails down the plate. */
 const rain = (W, H) => {
-  const mk = () => ({
-    x: R() * (W + 120) - 60,
-    y: R() * H,
-    len: 12 + R() * 22,
-    v: 9 + R() * 9,
-  });
-  const D = [...Array(170)].map(mk);
+  const mk = () => ({ x: R() * W, y: R() * H, r: 2 + R() * 5, v: 0, y0: 0, tr: 0 });
+  const D = [...Array(110)].map(mk);
   return (c) => {
     const g = c.createLinearGradient(0, 0, 0, H);
     g.addColorStop(0, '#0b0e13');
     g.addColorStop(1, '#05070a');
     c.fillStyle = g;
     c.fillRect(0, 0, W, H);
-    // Two passes: the streaks, one batched path so hundreds of drops are one
-    // stroke instead of hundreds of canvas state changes.
-    c.strokeStyle = 'rgba(196,214,240,.42)';
-    c.lineWidth = 1.1;
-    c.lineCap = 'round';
-    c.beginPath();
-    for (const d of D) {
-      d.y += d.v;
-      d.x -= d.v * 0.14;
-      if (d.y > H + d.len) Object.assign(d, mk(), { y: -d.len - 4 });
-      c.moveTo(d.x, d.y);
-      c.lineTo(d.x - d.len * 0.14, d.y - d.len);
+    if (R() < 0.04) {
+      const d = D[(R() * D.length) | 0];
+      if (!d.v && !d.tmp && d.r > 3) {
+        d.v = 0.3;
+        d.y0 = d.y;
+      }
     }
-    c.stroke();
-    // The splash puff where the heaviest drops hit the floor of the card.
-    for (let i = 0; i < 5; i++) if (R() < 0.35) {
-      const sx = R() * W;
-      const sy = H - R() * 6;
-      const r = 2 + R() * 4;
+    for (let i = 0; i < D.length; i++) {
+      const d = D[i];
+      if (d.tmp && --d.life < 0) {
+        D.splice(i--, 1);
+        continue;
+      }
+      if (d.v) {
+        d.v = Math.min(d.v + 0.04, 2.6);
+        if (R() < 0.03) d.v = 0.3;
+        d.y += d.v;
+        d.tr += d.v;
+        if (d.tr > 14) {
+          d.tr = 0;
+          d.r *= 0.93;
+          D.push({
+            x: d.x + (R() - 0.5) * 1.5,
+            y: d.y - 8,
+            r: 0.8 + R() * 1.4,
+            v: 0,
+            y0: 0,
+            tr: 0,
+            tmp: 1,
+            life: 500 + R() * 400,
+          });
+        }
+        c.strokeStyle = 'rgba(255,255,255,.05)';
+        c.lineWidth = d.r * 0.5;
+        c.beginPath();
+        c.moveTo(d.x, d.y0);
+        c.lineTo(d.x, d.y);
+        c.stroke();
+        if (d.y > H + 10 || d.r < 2.2) {
+          D[i] = mk();
+          continue;
+        }
+      }
+      const w = d.r;
+      const h = d.r * 1.25;
       c.beginPath();
-      c.arc(sx, sy, r, 0, PI);
-      c.strokeStyle = 'rgba(196,214,240,.18)';
+      c.ellipse(d.x, d.y, w, h, 0, 0, 7);
+      c.fillStyle = 'rgba(0,0,0,.28)';
+      c.fill();
+      c.strokeStyle = 'rgba(255,255,255,.16)';
       c.lineWidth = 1;
       c.stroke();
+      if (w > 1.8) {
+        c.beginPath();
+        c.ellipse(d.x, d.y + h * 0.2, w * 0.65, h * 0.6, 0, 0.3, PI - 0.3);
+        c.strokeStyle = 'rgba(255,255,255,.22)';
+        c.stroke();
+      }
+      c.beginPath();
+      c.arc(d.x - w * 0.3, d.y - h * 0.4, Math.max(0.6, w * 0.2), 0, 7);
+      c.fillStyle = 'rgba(255,255,255,.75)';
+      c.fill();
     }
   };
 };
@@ -647,10 +678,10 @@ const pointerRef = () => ({ current: { x: -99, y: -99 } });
 
 export const GHOST_BG_IDS = [
   'rain', 'snow-v1', 'snow-v2', 'shooting-stars', 'thunder', 'constellation', 'galaxy',
-  'rain-fall', 'love-fall', 'bleeding', 'tv', 'snow-flake', 'frosted',
+  'love-fall', 'bleeding', 'tv', 'snow-flake', 'frosted',
 ];
 
-export const GHOST_OVERLAY_IDS = ['snow', 'rain', 'vhs', 'grain', 'spotlight', 'dotters'];
+export const GHOST_OVERLAY_IDS = ['snow', 'rain', 'vhs', 'grain', 'spotlight'];
 
 export function createGhostBgPainter(id, w, h, pointer = pointerRef()) {
   switch (id) {
@@ -667,7 +698,6 @@ export function createGhostBgPainter(id, w, h, pointer = pointerRef()) {
     case 'thunder': return thunder(w, h);
     case 'constellation': return constellation(w, h);
     case 'galaxy': return galaxy(w, h);
-    case 'rain-fall': return rainFall(w, h);
     case 'love-fall': return hearts(w, h, 40, 14);
     case 'bleeding': return bleeding(w, h);
     case 'tv': return tv(w, h);
@@ -698,7 +728,6 @@ export function createGhostOverlayPainter(id, w, h, pointer = pointerRef()) {
     case 'vhs': return vhs(w, h, 1, 1);
     case 'grain': return grain(w, h);
     case 'spotlight': return spotOverlay(w, h, pointer);
-    case 'dotters': return dots(w, h);
     default:
       void pointer;
       return null;

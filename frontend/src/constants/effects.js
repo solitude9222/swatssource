@@ -48,7 +48,6 @@ export const OVERLAYS = [
   { id: "vhs", label: "VHS", premium: true },
   { id: "grain", label: "Grain", premium: true },
   { id: "spotlight", label: "Spotlight", premium: true },
-  { id: "dotters", label: "Dotters", premium: true },
 ];
 
 export const CURSOR_EFFECTS = [
@@ -91,7 +90,6 @@ export const BACKGROUND_EFFECTS = [
   { id: "thunder", label: "Thunder", premium: false },
   { id: "constellation", label: "Constellation", premium: true },
   { id: "galaxy", label: "Galaxy", premium: true },
-  { id: "rain-fall", label: "Rain Fall", premium: true },
   { id: "love-fall", label: "Love Fall", premium: true },
   { id: "bleeding", label: "Bleeding", premium: true },
   { id: "tv", label: "TV", premium: true },
@@ -106,10 +104,10 @@ export const BACKGROUND_EFFECTS = [
 export const REMOVED_EFFECTS = [
   // backgrounds that no longer exist
   "window-rain", "cash-fall", "heart-fall", "vhs-tape", "cherry", "matrix", "aurora",
-  "fireflies", "stars", "neon-wave",
+  "fireflies", "stars", "neon-wave", "rain-fall",
   // overlays that no longer exist
   "noise", "retro", "scanlines", "vignette", "sparkle", "embers", "hearts",
-  "snow-flakes", "frost-bite",
+  "snow-flakes", "frost-bite", "dotters",
   // cursor
   "smooth-flow", "rainbow", "falling-particles", "falling-snow", "trailing",
   "spotlight", "fire", "matrix", "neon-glow", "laser", "bubbles", "confetti",
@@ -117,6 +115,7 @@ export const REMOVED_EFFECTS = [
 
 const LEGACY_BG_IDS = {
   "window-rain": "rain",
+  "rain-fall": "rain",
   "vhs-tape": "tv",
   "heart-fall": "love-fall",
   "snow-v1": "snow-v1",
@@ -125,8 +124,9 @@ const LEGACY_BG_IDS = {
   "stars": "shooting-stars",
 };
 const LEGACY_OVERLAY_IDS = {
-  dots: "dotters",
-  stars: "dotters",
+  dots: "",
+  dotters: "",
+  stars: "",
   "frost-bite": "grain",
 };
 

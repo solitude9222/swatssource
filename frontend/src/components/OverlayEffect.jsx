@@ -15,7 +15,7 @@ import { resolveOverlay } from "@/constants/effects";
    pointer-events-none keeps everything underneath clickable.
    --------------------------------------------------------------------------- */
 
-export function OverlayEffect({ effect, color, opacity }) {
+export function OverlayEffect({ effect, color, opacity, zIndex, className = "" }) {
   const canvasRef = useRef(null);
   const id = resolveOverlay(effect);
   void color;
@@ -94,12 +94,14 @@ export function OverlayEffect({ effect, color, opacity }) {
   const alpha = Number.isFinite(raw) ? Math.max(0, Math.min(100, raw)) / 100 : 1;
   const layerStyle = alpha === 1 ? undefined : { opacity: alpha };
 
+  const z = zIndex !== undefined ? zIndex : "z-[70]";
+
   return (
     <canvas
       ref={canvasRef}
       data-testid="overlay-canvas"
       data-effect={id}
-      className="absolute inset-0 w-full h-full pointer-events-none z-[70]"
+      className={`absolute inset-0 w-full h-full pointer-events-none ${z} ${className}`}
       style={layerStyle}
     />
   );
