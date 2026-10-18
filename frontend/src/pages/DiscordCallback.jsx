@@ -75,7 +75,7 @@ export default function DiscordCallback() {
       // refresh() asks /auth/me, which is also the check that a cookie session
       // really landed before we navigate into a dashboard that needs one.
       refresh().then((user) => {
-        if (!user && cookieSession) {
+        if (!user) {
           navigate("/!/login?discord=error");
           return;
         }

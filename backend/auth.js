@@ -39,11 +39,7 @@ export function signToken(user) {
    body and nothing changes. */
 export const SESSION_COOKIE = 'swats_token';
 
-/* Cookie sessions are the DEFAULT now: the token never has to exist anywhere
-   JavaScript can read it, because the browser is only ever holding an HttpOnly
-   cookie. An old deployment that still hands the token to its scripts opts out
-   explicitly with SESSION_COOKIE=0. */
-export const cookieSessionsEnabled = () => process.env.SESSION_COOKIE !== '0';
+export const cookieSessionsEnabled = () => process.env.SESSION_COOKIE === '1';
 
 /* Same origin means `Lax` is enough; a frontend on a different host than the API
    needs `None` (plus Secure) for the cookie to be sent on its XHRs. */

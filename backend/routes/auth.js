@@ -384,7 +384,7 @@ router.get('/me', requireAuth, async (req, res) => {
    exactly what it always was and the SPA keeps working unchanged. */
 function sessionPayload(res, token, user) {
   setSessionCookie(res, token);
-  return cookieSessionsEnabled() ? { user, cookie_session: true } : { token, user };
+  return { token, user, ...(cookieSessionsEnabled() ? { cookie_session: true } : {}) };
 }
 
 // POST /api/auth/logout
@@ -883,14 +883,10 @@ router.get('/discord/callback', async (req, res) => {
       console.error('[auth] Discord role assignment failed:', err.message);
     }
 
-    // With cookie sessions on the token travels in the cookie this response
-    // sets, not in a URL the browser keeps in history, the referrer header and
-    // every server log it passes through.
     setSessionCookie(res, jwtToken);
-    if (cookieSessionsEnabled()) {
-      return res.redirect(`${frontendUrl}/!/auth/discord?session=1${linkedFlag}`);
-    }
-
+    // Always pass token in redirect URL so cross-origin frontends (e.g. www.swats.bio
+    // vs railway backend) can adopt the session via localStorage Bearer header.
+    // DiscordCallback immediately scrubs the token from the URL and browser history.
     return res.redirect(`${frontendUrl}/!/auth/discord?token=${jwtToken}${linkedFlag}`);
   } catch (err) {
     console.error('Discord callback error:', err);
