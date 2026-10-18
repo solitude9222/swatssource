@@ -219,41 +219,47 @@ export default function RankCard() {
           )}
         </div>
 
-        <div className="flex shrink-0 items-center gap-2">
-          <span
-            className="grid h-9 w-9 place-items-center rounded-full"
-            style={{ background: `${rank.color}22`, boxShadow: `inset 0 0 0 1px ${rank.color}55` }}
-          >
-            <TrendingUp className="h-4 w-4" style={{ color: rank.color }} />
-          </span>
+        <div className="flex shrink-0 items-center gap-2.5">
+          {data?.badge && data.badge !== "rank_rookie" ? (
+            <BadgeChip id={data.badge} size={34} glow glowColor={rank.color} />
+          ) : (
+            <span
+              className="grid h-9 w-9 place-items-center rounded-full"
+              style={{ background: `${rank.color}22`, boxShadow: `inset 0 0 0 1px ${rank.color}55` }}
+            >
+              <TrendingUp className="h-4 w-4" style={{ color: rank.color }} />
+            </span>
+          )}
           <div className="text-right">
             <div
-              className="font-display text-lg font-extrabold leading-none"
+              className="font-display text-lg font-extrabold leading-none flex items-center justify-end gap-1.5"
               style={{ color: rank.color }}
               data-testid="rank-name"
             >
-              {rank.name}
+              <span>{data?.stage?.stageName || rank.name}</span>
             </div>
-            <div className="font-mono2 text-[10px] uppercase tracking-wider text-zinc-500" data-testid="rank-xp">
-              {data ? `${Number(data.xp || 0).toLocaleString()} XP` : "—"}
+            <div className="font-mono2 text-[10px] uppercase tracking-wider text-zinc-500 mt-1" data-testid="rank-xp">
+              {data ? `${Number(data.views || 0).toLocaleString()} Views · ${Number(data.xp || 0).toLocaleString()} XP` : "—"}
             </div>
           </div>
         </div>
       </div>
 
       <div className="mt-4">
-        <Bar percent={data?.percent || 0} color={rank.color} />
+        <Bar percent={data?.stagePercent !== undefined ? data.stagePercent : (data?.percent || 0)} color={rank.color} />
         <div className="mt-2 flex items-baseline justify-between gap-3 text-[11px]">
           <span className="text-zinc-500" data-testid="rank-progress-label">
             {!data
               ? " "
-              : next
-                ? `${data.percent}% to ${next.name}`
-                : "Top rank reached"}
+              : data.nextStage
+                ? `${data.stagePercent}% to ${data.nextStage.stageName}`
+                : next
+                  ? `${data.percent}% to ${next.name}`
+                  : "Top rank reached"}
           </span>
           {data && (
             <span className="font-mono2 text-zinc-400" data-testid="rank-to-next">
-              {next ? `${Number(data.toNext || 0).toLocaleString()} XP to go` : "—"}
+              {data.nextStage ? `${Number(data.viewsToNextStage || 0).toLocaleString()} views to go` : next ? `${Number(data.toNext || 0).toLocaleString()} XP to go` : "—"}
             </span>
           )}
         </div>

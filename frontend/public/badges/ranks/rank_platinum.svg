@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" fill="none">
+  <defs>
+    <linearGradient id="plat_shield" x1="4" y1="2" x2="44" y2="46" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#a5f3fc"/>
+      <stop offset="35%" stop-color="#06b6d4"/>
+      <stop offset="100%" stop-color="#083344"/>
+    </linearGradient>
+    <linearGradient id="plat_gem" x1="16" y1="12" x2="32" y2="36" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="60%" stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#0e7490"/>
+    </linearGradient>
+    <filter id="plat_glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4.5" flood-color="#06b6d4" flood-opacity="0.85"/>
+    </filter>
+  </defs>
+  <!-- Geometric Crystal Crest -->
+  <path d="M24 2 L42 12 V24 C42 34.5 33.5 43 24 46 C14.5 43 6 34.5 6 24 V12 Z" fill="url(#plat_shield)" filter="url(#plat_glow)" stroke="#cffafe" stroke-width="1.8" stroke-linejoin="round"/>
+  <!-- Facet Overlay -->
+  <polygon points="24,6 38,15 24,24 10,15" fill="#e0f2fe" opacity="0.35"/>
+  <polygon points="24,24 38,15 38,24 24,42 10,24 10,15" fill="#0891b2" opacity="0.45"/>
+  <!-- Central Crystal Diamond -->
+  <polygon points="24,12 33,23 24,35 15,23" fill="url(#plat_gem)" stroke="#ffffff" stroke-width="1.2"/>
+  <polygon points="24,15 30,23 24,31 18,23" fill="#ffffff" opacity="0.8"/>
+</svg>

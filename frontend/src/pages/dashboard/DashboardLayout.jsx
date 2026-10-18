@@ -71,6 +71,7 @@ const NAV_GROUPS = [
    the mobile chips can render it with the ordinary link components. */
 const ADMIN_SECTIONS = [
   { to: "/!/dashboard/admin", end: true, label: "Overview", icon: ShieldCheck, testid: "tab-admin-overview" },
+  { to: "/!/dashboard/admin/ranked", label: "Ranked", icon: Trophy, testid: "tab-admin-ranked" },
   // The old Bot tab lives inside Users now: the roster endpoint carries the
   // Discord half of every account, so one page owns both jobs.
   { to: "/!/dashboard/admin/users", label: "Users", icon: Users, testid: "tab-admin-users" },

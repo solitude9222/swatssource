@@ -2,6 +2,7 @@ import express from 'express';
 import { query, memberNumber } from '../db.js';
 import { BADGE_CATALOG } from '../badges.js';
 import { eventBadgeCatalog, upcomingEvents } from '../eventBadges.js';
+import { loadRankedSettings, computeRankDetails, flattenStages } from '../rankedSettings.js';
 
 const router = express.Router();
 
@@ -175,32 +176,61 @@ router.get('/stats', async (req, res) => {
   }
 });
 
-// GET /ranked — leaderboard ranked by real profile views (the engagement metric
-// swats actually tracks). Score currently equals validated views; interactions
-// fold in here once per-profile interaction counts exist.
+// GET /ranked — leaderboard ranked by real profile views with full stages and badges
 router.get('/ranked', async (req, res) => {
   try {
     const limit = Math.min(parseInt(req.query.limit, 10) || 50, 100);
+    const rankedConfig = await loadRankedSettings();
     const { rows } = await query(
       `SELECT id, username, display_name, tier, views, badges, profile, created_at
        FROM users ORDER BY views DESC, created_at ASC LIMIT $1`,
       [limit],
     );
-    const list = rows.map((u, i) => ({
-      rank: i + 1,
-      id: u.id,
-      username: u.username,
-      display_name: u.display_name || u.username,
-      avatar: u.profile?.avatar_url || '',
-      tier: u.tier,
-      views: u.views || 0,
-      score: u.views || 0,
-      verified: (u.badges || []).includes('verified'),
-      badges: (u.badges || []).slice(0, 5),
-    }));
+    const list = rows.map((u, i) => {
+      const details = computeRankDetails(u, rankedConfig);
+      return {
+        rank: i + 1,
+        id: u.id,
+        username: u.username,
+        display_name: u.display_name || u.username,
+        avatar: u.profile?.avatar_url || '',
+        banner: u.profile?.background_url || u.profile?.banner_url || '',
+        bio: u.profile?.bio || '',
+        tier: u.tier,
+        views: u.views || 0,
+        score: u.views || 0,
+        stage: details.stage,
+        rank_tier: details.rank,
+        rank_badge: details.badge,
+        stageProgress: details.stageProgress,
+        stagePercent: details.stagePercent,
+        verified: (u.badges || []).includes('verified'),
+        badges: (u.badges || []).slice(0, 8),
+      };
+    });
     return res.json(list);
   } catch (err) {
     return res.json([]);
+  }
+});
+
+// GET /api/ranked/tiers — returns all configured ranked tiers, stages, and badges
+router.get('/ranked/tiers', async (req, res) => {
+  try {
+    const config = await loadRankedSettings();
+    return res.json({
+      enabled: config.enabled !== false,
+      count_metric: config.count_metric || 'views',
+      tiers: config.tiers,
+      stages: flattenStages(config.tiers),
+    });
+  } catch (err) {
+    return res.json({
+      enabled: true,
+      count_metric: 'views',
+      tiers: [],
+      stages: [],
+    });
   }
 });
 

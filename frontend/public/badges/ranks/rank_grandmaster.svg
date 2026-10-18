@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" fill="none">
+  <defs>
+    <linearGradient id="gm_fire" x1="4" y1="2" x2="44" y2="46" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#fff1f2"/>
+      <stop offset="25%" stop-color="#f43f5e"/>
+      <stop offset="65%" stop-color="#e11d48"/>
+      <stop offset="100%" stop-color="#4c0519"/>
+    </linearGradient>
+    <linearGradient id="gm_core" x1="12" y1="8" x2="36" y2="38" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="35%" stop-color="#fb7185"/>
+      <stop offset="100%" stop-color="#be123c"/>
+    </linearGradient>
+    <filter id="gm_glow" x="-35%" y="-35%" width="170%" height="170%">
+      <feDropShadow dx="0" dy="2" stdDeviation="6" flood-color="#f43f5e" flood-opacity="1"/>
+    </filter>
+  </defs>
+  <!-- Dragon / Phoenix Winged Grandmaster Crest -->
+  <path d="M24 1 L39 7 L45 18 C45 33 34 43.5 24 47 C14 43.5 3 33 3 18 L9 7 Z" fill="url(#gm_fire)" filter="url(#gm_glow)" stroke="#ffe4e6" stroke-width="2" stroke-linejoin="round"/>
+  <!-- Winged Blazing Heart -->
+  <path d="M8 18 C14 16 18 22 24 20 C30 22 34 16 40 18 C38 28 32 37 24 41 C16 37 10 28 8 18 Z" fill="url(#gm_core)" stroke="#ffffff" stroke-width="1.2"/>
+  <polygon points="24,10 28,19 37,21 30,27 32,36 24,31 16,36 18,27 11,21 20,19" fill="#ffffff" filter="drop-shadow(0 0 3px #fff)"/>
+  <circle cx="24" cy="24" r="3" fill="#ffe4e6"/>
+</svg>

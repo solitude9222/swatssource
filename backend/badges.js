@@ -1,6 +1,7 @@
 import { query } from './db.js';
 import { earnedEventBadges, EVENTS } from './eventBadges.js';
 import { loadBotSettings } from './discordBot.js';
+import { loadRankedSettings, computeRankDetails, ALL_RANK_BADGE_IDS } from './rankedSettings.js';
 
 export const BADGE_CATALOG = [
   { id: 'og', name: 'OG', desc: 'First 10 users on swats.bio', type: 'auto' },
@@ -15,6 +16,14 @@ export const BADGE_CATALOG = [
   { id: 'premium', name: 'Premium', desc: 'Supporter with unlocked premium perks', type: 'auto' },
   { id: 'donater', name: 'Donater', desc: 'Contributed to platform development fund', type: 'auto' },
   { id: 'partner', name: 'Partner', desc: 'Official platform partner', type: 'mod' },
+  { id: 'rank_bronze', name: 'Bronze Rank', desc: 'Reached the Bronze ranked tier', type: 'auto' },
+  { id: 'rank_silver', name: 'Silver Rank', desc: 'Reached the Silver ranked tier', type: 'auto' },
+  { id: 'rank_gold', name: 'Gold Rank', desc: 'Reached the Gold ranked tier', type: 'auto' },
+  { id: 'rank_platinum', name: 'Platinum Rank', desc: 'Reached the Platinum ranked tier', type: 'auto' },
+  { id: 'rank_diamond', name: 'Diamond Rank', desc: 'Reached the Diamond ranked tier', type: 'auto' },
+  { id: 'rank_master', name: 'Master Rank', desc: 'Reached the Master ranked tier', type: 'auto' },
+  { id: 'rank_grandmaster', name: 'Grandmaster Rank', desc: 'Reached the Grandmaster ranked tier', type: 'auto' },
+  { id: 'rank_legend', name: 'Legend Rank', desc: 'Reached the Legend apex ranked tier', type: 'auto' },
 ];
 
 /* Badges that something OTHER than the account itself may hand out: an admin
@@ -175,6 +184,23 @@ export async function computeAutoBadges(user, now = new Date()) {
      badge from 2026 is still worn in 2030. */
   for (const earned of earnedEventBadges(now, Array.from(currentBadges))) {
     currentBadges.add(earned.id);
+  }
+
+  // Ranked badge: higher the rank, the exclusive rank badge they wear
+  try {
+    const rankedConfig = await loadRankedSettings();
+    if (rankedConfig.auto_grant_badges !== false) {
+      const details = computeRankDetails(user, rankedConfig, now);
+      // Remove lower rank badges so only their active/highest tier badge is displayed
+      for (const rId of ALL_RANK_BADGE_IDS) {
+        currentBadges.delete(rId);
+      }
+      if (details?.badge && details.badge !== 'rank_rookie') {
+        currentBadges.add(details.badge);
+      }
+    }
+  } catch (err) {
+    // If settings unreadable, continue gracefully
   }
 
   return Array.from(currentBadges);

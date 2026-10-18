@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" fill="none">
+  <defs>
+    <linearGradient id="gold_shield" x1="6" y1="4" x2="42" y2="44" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#fff275"/>
+      <stop offset="35%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#78350f"/>
+    </linearGradient>
+    <linearGradient id="gold_core" x1="12" y1="10" x2="36" y2="38" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+    <filter id="gold_glow" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#f59e0b" flood-opacity="0.8"/>
+    </filter>
+  </defs>
+  <path d="M24 3 L41 9.5 V23 C41 33.5 32.5 42 24 45 C15.5 42 7 33.5 7 23 V9.5 Z" fill="url(#gold_shield)" filter="url(#gold_glow)" stroke="#fef08a" stroke-width="1.8" stroke-linejoin="round"/>
+  <path d="M24 7 L37 12.5 V23 C37 31.5 30 38.5 24 41.5 C18 38.5 11 31.5 11 23 V12.5 Z" fill="url(#gold_core)"/>
+  <!-- Winged Chevron Star -->
+  <path d="M24 13 L28 22 L37 23 L30 30 L32 39 L24 34 L16 39 L18 30 L11 23 L20 22 Z" fill="#ffffff" filter="drop-shadow(0 0 2px rgba(255,255,255,0.8))"/>
+  <polygon points="24,19 26,24 31,25 27,29 28,34 24,31 20,34 21,29 17,25 22,24" fill="#fef08a"/>
+</svg>

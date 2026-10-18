@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" fill="none">
+  <defs>
+    <linearGradient id="master_crest" x1="4" y1="2" x2="44" y2="46" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#fce7f3"/>
+      <stop offset="35%" stop-color="#ec4899"/>
+      <stop offset="75%" stop-color="#be185d"/>
+      <stop offset="100%" stop-color="#500724"/>
+    </linearGradient>
+    <linearGradient id="ruby_gem" x1="14" y1="12" x2="34" y2="36" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="50%" stop-color="#f472b6"/>
+      <stop offset="100%" stop-color="#db2777"/>
+    </linearGradient>
+    <filter id="master_glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="2" stdDeviation="5.5" flood-color="#ec4899" flood-opacity="0.95"/>
+    </filter>
+  </defs>
+  <!-- Crowned Master Crest -->
+  <path d="M24 2 L38 9 L44 20 C44 33 34 42.5 24 46 C14 42.5 4 33 4 20 L10 9 Z" fill="url(#master_crest)" filter="url(#master_glow)" stroke="#fbcfe8" stroke-width="2" stroke-linejoin="round"/>
+  <!-- Crown / Spikes -->
+  <path d="M12 15 L18 20 L24 11 L30 20 L36 15 L32 29 L16 29 Z" fill="url(#ruby_gem)" stroke="#ffffff" stroke-width="1.2"/>
+  <polygon points="24,18 29,27 24,36 19,27" fill="#ffffff" stroke="#db2777" stroke-width="0.8"/>
+  <circle cx="24" cy="27" r="2.5" fill="#f43f5e"/>
+</svg>

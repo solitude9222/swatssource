@@ -8,6 +8,7 @@ import {
   ShieldCheck, Users, Ticket, BellRing, Newspaper, SlidersHorizontal, LineChart,
   ChevronRight, Crown, Eye, UserCheck, Loader2, Link2Off, ScrollText,
   Activity, Server, Database, Zap, RefreshCw, AlertTriangle, Download, Send, CheckCircle2,
+  Trophy,
 } from "lucide-react";
 
 /* The admin hub.
@@ -19,6 +20,12 @@ import {
  * cards exist for orientation, not as a second navigation system.
  */
 const SECTIONS = [
+  {
+    to: "/!/dashboard/admin/ranked",
+    icon: Trophy,
+    title: "Ranked System",
+    body: "Tiers, stages, view requirements, rank badges, user overrides and mass recalculation.",
+  },
   {
     to: "/!/dashboard/admin/users",
     icon: Users,

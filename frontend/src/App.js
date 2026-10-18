@@ -46,6 +46,7 @@ const Notices = lazy(() => import("@/pages/dashboard/Notices"));
 const AdminDevlogs = lazy(() => import("@/pages/dashboard/Devlogs"));
 const DashboardDevlog = lazy(() => import("@/pages/dashboard/Devlog"));
 const AdminHub = lazy(() => import("@/pages/dashboard/Admin"));
+const RankedManager = lazy(() => import("@/pages/dashboard/RankedManager"));
 
 import { api, API } from "@/lib/api";
 import { TitleManager } from "@/components/TitleManager";
@@ -185,6 +186,7 @@ function App() {
                 <Route path="rewards" element={<Rewards />} />
                 {/* Admin: one entry point, its pages as the section's own tabs. */}
                 <Route path="admin" element={<RequireAdmin><AdminHub /></RequireAdmin>} />
+                <Route path="admin/ranked" element={<RequireAdmin><RankedManager /></RequireAdmin>} />
                 {/* The Bot tab is the Users tab now: the roster endpoint carries the
                     Discord half of every account, so one page owns both jobs. The
                     old URL resolves to it instead of falling dead. */}

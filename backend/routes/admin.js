@@ -20,6 +20,14 @@ import { loadRewardSettings, sanitizeMilestones } from '../rewards.js';
 // "who changed this, to what, and when" — see auditLog.js for the rules.
 import { logAudit, auditFilters, auditWhere, formatAuditEvent } from '../auditLog.js';
 import {
+  loadRankedSettings,
+  saveRankedSettings,
+  computeRankDetails,
+  flattenStages,
+  DEFAULT_RANK_TIERS,
+  ALL_RANK_BADGE_IDS,
+} from '../rankedSettings.js';
+import {
   loadBotSettings,
   saveBotSettings,
   applyAuthRoles,
@@ -1474,6 +1482,166 @@ router.get('/analytics', async (req, res) => {
     });
   } catch (err) {
     return res.status(500).json({ detail: 'Failed to load analytics' });
+  }
+});
+
+// ========================
+// 6. RANKED SYSTEM MANAGER
+// ========================
+router.get('/ranked/settings', async (req, res) => {
+  try {
+    const settings = await loadRankedSettings();
+    return res.json(settings);
+  } catch (err) {
+    return res.status(500).json({ detail: 'Failed to load ranked settings' });
+  }
+});
+
+router.put('/ranked/settings', requireOwner, async (req, res) => {
+  try {
+    const before = await loadRankedSettings();
+    const updated = await saveRankedSettings(req.body || {});
+    await logAudit({
+      req,
+      action: 'ranked.settings_update',
+      targetType: 'system',
+      targetId: 'ranked_settings',
+      details: { before, after: updated },
+    });
+    return res.json(updated);
+  } catch (err) {
+    return res.status(500).json({ detail: 'Failed to save ranked settings' });
+  }
+});
+
+router.get('/ranked/overview', async (req, res) => {
+  try {
+    const config = await loadRankedSettings();
+    const { rows } = await query(`
+      SELECT id, username, display_name, tier, views, badges, profile, created_at
+      FROM users
+      ORDER BY views DESC, created_at ASC
+    `);
+
+    const breakdown = {};
+    for (const t of config.tiers) {
+      breakdown[t.id] = { name: t.name, count: 0, color: t.color, badge: t.badge };
+    }
+
+    const users = rows.map((u, i) => {
+      const details = computeRankDetails(u, config);
+      if (breakdown[details.rank.id]) {
+        breakdown[details.rank.id].count += 1;
+      }
+      return {
+        rank: i + 1,
+        id: u.id,
+        username: u.username,
+        display_name: u.display_name || u.username,
+        avatar: u.profile?.avatar_url || '',
+        views: u.views || 0,
+        stage: details.stage,
+        rank_tier: details.rank,
+        rank_badge: details.badge,
+        stagePercent: details.stagePercent,
+        badges: u.badges || [],
+      };
+    });
+
+    return res.json({
+      totalUsers: rows.length,
+      breakdown,
+      topUsers: users.slice(0, 50),
+      tiers: config.tiers,
+      stages: flattenStages(config.tiers),
+    });
+  } catch (err) {
+    return res.status(500).json({ detail: 'Failed to load ranked overview' });
+  }
+});
+
+router.post('/ranked/recalculate', requireOwner, async (req, res) => {
+  try {
+    const config = await loadRankedSettings();
+    const { rows } = await query('SELECT id, views, badges, profile, tier FROM users');
+    let updatedCount = 0;
+
+    for (const u of rows) {
+      const details = computeRankDetails(u, config);
+      const current = new Set(Array.isArray(u.badges) ? u.badges : []);
+      // Remove all rank badges
+      for (const rId of ALL_RANK_BADGE_IDS) {
+        current.delete(rId);
+      }
+      // Add newly earned rank badge if above rookie
+      if (details.badge && details.badge !== 'rank_rookie') {
+        current.add(details.badge);
+      }
+      const newBadges = Array.from(current);
+      await query('UPDATE users SET badges = $1 WHERE id = $2', [newBadges, u.id]);
+      updatedCount += 1;
+    }
+
+    await logAudit({
+      req,
+      action: 'ranked.recalculate_all',
+      targetType: 'system',
+      targetId: 'all_users',
+      details: { usersProcessed: updatedCount },
+    });
+
+    return res.json({ ok: true, count: updatedCount });
+  } catch (err) {
+    return res.status(500).json({ detail: 'Failed to recalculate ranks' });
+  }
+});
+
+router.post('/ranked/override', requireOwner, async (req, res) => {
+  try {
+    const { user_id, bonus_views, set_views } = req.body;
+    if (!user_id) {
+      return res.status(400).json({ detail: 'user_id is required' });
+    }
+
+    const { rows } = await query('SELECT id, username, views, badges, profile, tier FROM users WHERE id = $1', [user_id]);
+    if (!rows.length) {
+      return res.status(404).json({ detail: 'User not found' });
+    }
+
+    const targetUser = rows[0];
+    let newViews = targetUser.views || 0;
+    if (typeof set_views === 'number' && Number.isFinite(set_views)) {
+      newViews = Math.max(0, Math.round(set_views));
+    } else if (typeof bonus_views === 'number' && Number.isFinite(bonus_views)) {
+      newViews = Math.max(0, newViews + Math.round(bonus_views));
+    }
+
+    const config = await loadRankedSettings();
+    const details = computeRankDetails({ ...targetUser, views: newViews }, config);
+    const badgesSet = new Set(Array.isArray(targetUser.badges) ? targetUser.badges : []);
+    for (const rId of ALL_RANK_BADGE_IDS) badgesSet.delete(rId);
+    if (details.badge && details.badge !== 'rank_rookie') badgesSet.add(details.badge);
+
+    const updatedBadges = Array.from(badgesSet);
+    await query('UPDATE users SET views = $1, badges = $2 WHERE id = $3', [newViews, updatedBadges, user_id]);
+
+    await logAudit({
+      req,
+      action: 'ranked.user_override',
+      targetType: 'user',
+      targetId: user_id,
+      details: { username: targetUser.username, oldViews: targetUser.views, newViews, rank: details.stage.stageName },
+    });
+
+    return res.json({
+      ok: true,
+      views: newViews,
+      stage: details.stage,
+      rank: details.rank,
+      badges: updatedBadges,
+    });
+  } catch (err) {
+    return res.status(500).json({ detail: 'Failed to override user rank' });
   }
 });
 

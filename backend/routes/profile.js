@@ -7,6 +7,7 @@ import { rankForUser } from '../ranks.js';
 import { sanitizeBadgeGrants } from '../badges.js';
 import { upcomingEvents } from '../eventBadges.js';
 import { loadRewardSettings, claimMilestoneReward } from '../rewards.js';
+import { loadRankedSettings, computeRankDetails } from '../rankedSettings.js';
 
 const router = express.Router();
 
@@ -581,10 +582,19 @@ router.get('/leaderboard', requireAuth, async (req, res) => {
    The event calendar rides along too, so the box can say when the next
    seasonal badge opens without a second request. */
 router.get('/rank', requireAuth, async (req, res) => {
-  const summary = rankForUser(req.user);
+  const rankedConfig = await loadRankedSettings();
+  const summary = computeRankDetails(req.user, rankedConfig);
   return res.json({
     rank: summary.rank,
+    stage: summary.stage,
     next: summary.next,
+    nextStage: summary.nextStage,
+    views: summary.views,
+    viewsIntoStage: summary.viewsIntoStage,
+    viewsToNextStage: summary.viewsToNextStage,
+    stageProgress: summary.stageProgress,
+    stagePercent: summary.stagePercent,
+    badge: summary.badge,
     xp: summary.xp,
     intoRank: summary.intoRank,
     span: summary.span,
@@ -593,6 +603,7 @@ router.get('/rank', requireAuth, async (req, res) => {
     badges: req.user.badges || [],
     equipped_badges: req.user.equipped_badges || [],
     events: upcomingEvents(),
+    allStages: summary.allStages,
   });
 });
 
