@@ -94,10 +94,6 @@ export default function Login({ initialMode = "login" }) {
       toast.error(msg);
     }
   };
-      const msg = err.response?.data?.detail || "Could not start Discord sign-in";
-      toast.error(msg);
-    }
-  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
