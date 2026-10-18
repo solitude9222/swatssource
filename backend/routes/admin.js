@@ -2,7 +2,17 @@ import express from 'express';
 import axios from 'axios';
 import crypto from 'crypto';
 import { query } from '../db.js';
-import { requireAdmin, formatUser } from '../auth.js';
+import { requireAdmin, requireOwner, formatUser } from '../auth.js';
+
+function maskEmail(email) {
+  if (!email || typeof email !== 'string') return '••••••••';
+  const parts = email.split('@');
+  if (parts.length < 2) return '••••••••';
+  const name = parts[0];
+  const domain = parts[1];
+  const maskedName = name.length > 2 ? `${name[0]}••••${name[name.length - 1]}` : '••••';
+  return `${maskedName}@${domain}`;
+}
 import { computeAutoBadges, sanitizeBadgeGrants, syncRoleBadges } from '../badges.js';
 import { AUDIENCES, resolveRecipients, countAudience, sendNotifications } from '../notifications.js';
 import { loadRewardSettings, sanitizeMilestones } from '../rewards.js';
@@ -548,7 +558,12 @@ router.get('/users', async (req, res) => {
     queryText += ` ORDER BY created_at DESC LIMIT ${limit}`;
     const { rows } = await query(queryText, params);
 
-    return res.json(rows.map(formatUser));
+    const isOwner = req.user.is_owner || req.user.role === 'owner';
+    return res.json(rows.map((u) => {
+      const formatted = formatUser(u);
+      if (!isOwner) formatted.email = maskEmail(formatted.email);
+      return formatted;
+    }));
   } catch (err) {
     console.error('Admin users query error:', err);
     return res.status(500).json({ detail: 'Failed to fetch users' });
@@ -557,6 +572,7 @@ router.get('/users', async (req, res) => {
 
 router.put('/users/:id', async (req, res) => {
   try {
+    const isOwner = req.user?.is_owner || req.user?.role === 'owner';
     const { role, tier, badges, is_owner, username } = req.body;
     const userId = req.params.id;
 
@@ -567,6 +583,22 @@ router.put('/users/:id', async (req, res) => {
 
     const current = rows[0];
 
+    // Non-owner admins cannot assign roles, grant premium/tiers, change ownership, or rename other users
+    if (!isOwner) {
+      if (role !== undefined && role !== current.role) {
+        return res.status(403).json({ detail: 'Only the site owner can assign roles' });
+      }
+      if (tier !== undefined && tier !== current.tier) {
+        return res.status(403).json({ detail: 'Only the site owner can grant premium or change tiers' });
+      }
+      if (is_owner !== undefined && !!is_owner !== !!current.is_owner) {
+        return res.status(403).json({ detail: 'Only the site owner can modify ownership status' });
+      }
+      if (username !== undefined && String(username).trim().toLowerCase() !== String(current.username).toLowerCase()) {
+        return res.status(403).json({ detail: 'Only the site owner can rename other accounts' });
+      }
+    }
+
     // ADMIN USERNAME OVERRIDE — the admin's edit modal can set anyone's
     // handle. Deliberately the only rule that applies is UNIQUENESS: none of
     // the self-serve username rules (reserved words, cooldown, length) are
@@ -574,7 +606,7 @@ router.put('/users/:id', async (req, res) => {
     // can set whatever name the situation calls for, gibberish included. The
     // one thing an override must never do is collide with an existing handle.
     let newUsername = current.username;
-    if (username !== undefined) {
+    if (username !== undefined && isOwner) {
       const cleaned = String(username).trim().toLowerCase();
       if (!/^[a-z0-9_.]{1,30}$/.test(cleaned)) {
         return res.status(400).json({ detail: 'Username may use letters, numbers, _ and . (1-30 chars)' });
@@ -646,10 +678,9 @@ router.put('/users/:id', async (req, res) => {
 // ========================
 // 2b. VIEW CHANGER
 // ========================
-// Correct a profile's view count by hand. `mode` is set | add | reset, so an
-// admin can fix a bad number, give a friend a boost, or wipe a spam-inflated
-// count. Clamped to the column's range and never below zero.
-router.put('/users/:id/views', async (req, res) => {
+// Correct a profile's view count by hand. Mode is set | add | reset.
+// Only the site owner can modify view counts.
+router.put('/users/:id/views', requireOwner, async (req, res) => {
   try {
     const userId = req.params.id;
     const mode = ['set', 'add', 'reset'].includes(req.body?.mode) ? req.body.mode : 'set';
@@ -688,7 +719,7 @@ router.put('/users/:id/views', async (req, res) => {
   }
 });
 
-router.delete('/users/:id', async (req, res) => {
+router.delete('/users/:id', requireOwner, async (req, res) => {
   try {
     const userId = req.params.id;
     if (userId === req.user.id) {
@@ -905,7 +936,7 @@ router.put('/site', async (req, res) => {
 // owner. Admins have no reason to see someone else's API key.
 const EMPTY_DISCORD = { linked: false, id: null, username: null, avatar: null, booster: false, member: false };
 
-const rosterEntry = (row) => {
+const rosterEntry = (row, isOwner = true) => {
   const d = row.discord || {};
   const keys = row.integrations || {};
   const providers = [];
@@ -921,7 +952,7 @@ const rosterEntry = (row) => {
     id: row.id,
     username: row.username,
     display_name: row.display_name || row.username,
-    email: row.email,
+    email: isOwner ? row.email : maskEmail(row.email),
     role: row.role || 'user',
     tier: row.role === 'admin' || row.is_owner ? 'premium' : (row.tier || 'free'),
     is_owner: !!row.is_owner,
@@ -1001,8 +1032,9 @@ router.get('/discord/roster', async (req, res) => {
       FROM users
     `);
 
+    const isOwner = req.user.is_owner || req.user.role === 'owner';
     return res.json({
-      users: rows.map(rosterEntry),
+      users: rows.map((r) => rosterEntry(r, isOwner)),
       page: { limit, offset, sort: ROSTER_ORDERS[req.query.sort] ? req.query.sort : 'linked', returned: rows.length },
       stats: {
         ...(totals.rows[0] || {}),
@@ -1016,11 +1048,8 @@ router.get('/discord/roster', async (req, res) => {
   }
 });
 
-// Detach Discord from an account. Used when someone signed in with the wrong
-// account and needs to re-link, or when the link is stale. The stored object is
-// reset (not just flagged) so the OAuth callback can no longer match this row by
-// its old Discord id, and the auto-granted booster badge is removed with it.
-router.post('/discord/:id/unlink', async (req, res) => {
+// Detach Discord from an account. Restricted to site owner.
+router.post('/discord/:id/unlink', requireOwner, async (req, res) => {
   try {
     const { rows } = await query('SELECT * FROM users WHERE id = $1', [req.params.id]);
     if (!rows[0]) return res.status(404).json({ detail: 'User not found' });

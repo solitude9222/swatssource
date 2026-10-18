@@ -82,39 +82,47 @@ const withA = (hex, a = 100) => {
 // ("Frosted and stuff") read like they did nothing. A strict `=== true` check
 // means: the modern toggle still overrides the presets while it is on, and a
 // legacy numeric flag falls through to the preset the profile wears.
-const ADVANCED_OVERRIDE = (p) => p.advanced_mode === true;
-
 function cardStyles(p) {
   const accent = p.accent_color || "#A48DF4";
   const base = { card: {}, pill: {}, view: {} };
-  switch (ADVANCED_OVERRIDE(p) ? "classic" : p.card_style) {
+  const style = p.card_style || "classic";
+  switch (style) {
     case "frosted":
-      // A white sheen that falls away toward the bottom, saturation kept up so
-      // blurred art glass reads glass, and a hairline top light inside the rim
-      // — the flat 6% white slab read as a grey box.
       base.card = {
-        background: `linear-gradient(165deg, rgba(255,255,255,${((p.card_fill_alpha ?? 6) / 100 + 0.04).toFixed(3)}), rgba(255,255,255,${((p.card_fill_alpha ?? 6) / 100).toFixed(3)}))`,
-        backdropFilter: "blur(22px) saturate(150%)",
-        WebkitBackdropFilter: "blur(22px) saturate(150%)",
-        border: "1px solid rgba(255,255,255,0.16)",
+        background: `linear-gradient(165deg, rgba(255,255,255,${((p.card_fill_alpha ?? 10) / 100 + 0.04).toFixed(3)}), rgba(255,255,255,${((p.card_fill_alpha ?? 10) / 100).toFixed(3)}))`,
+        backdropFilter: `blur(${p.card_blur ?? 25}px) saturate(150%)`,
+        WebkitBackdropFilter: `blur(${p.card_blur ?? 25}px) saturate(150%)`,
+        border: `1px solid rgba(255,255,255,${((p.card_outline_alpha ?? 20) / 100).toFixed(2)})`,
         boxShadow: "inset 0 1px 0 rgba(255,255,255,0.12)",
       };
       break;
     case "frosted-soft":
       base.card = {
-        background: `linear-gradient(165deg, rgba(255,255,255,${((p.card_fill_alpha ?? 4) / 100 + 0.02).toFixed(3)}), rgba(255,255,255,${((p.card_fill_alpha ?? 4) / 100).toFixed(3)}))`,
-        backdropFilter: "blur(14px) saturate(125%)",
-        WebkitBackdropFilter: "blur(14px) saturate(125%)",
-        border: "1px solid rgba(255,255,255,0.10)",
+        background: `linear-gradient(165deg, rgba(255,255,255,${((p.card_fill_alpha ?? 6) / 100 + 0.02).toFixed(3)}), rgba(255,255,255,${((p.card_fill_alpha ?? 6) / 100).toFixed(3)}))`,
+        backdropFilter: `blur(${p.card_blur ?? 14}px) saturate(125%)`,
+        WebkitBackdropFilter: `blur(${p.card_blur ?? 14}px) saturate(125%)`,
+        border: `1px solid rgba(255,255,255,${((p.card_outline_alpha ?? 10) / 100).toFixed(2)})`,
         boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)",
       };
       break;
     case "outlined":
-      base.card = { background: "transparent", border: `1.5px solid ${accent}` }; break;
+      base.card = {
+        background: withA(p.card_fill_color || "#000000", p.card_fill_alpha ?? 0),
+        backdropFilter: p.card_blur ? `blur(${p.card_blur}px)` : "none",
+        border: `1.5px solid ${withA(p.card_outline_color || accent, p.card_outline_alpha ?? 100)}`,
+      };
+      break;
     case "aurora":
-      base.card = { background: "rgba(15,16,21,0.65)", border: `1px solid ${accent}55`, boxShadow: `0 0 50px ${accent}55, inset 0 0 40px ${accent}22` }; break;
+      base.card = {
+        background: withA(p.card_fill_color || "#0f1015", p.card_fill_alpha ?? 65),
+        backdropFilter: `blur(${p.card_blur ?? 20}px)`,
+        border: `1px solid ${withA(p.card_outline_color || accent, p.card_outline_alpha ?? 45)}`,
+        boxShadow: `0 0 50px ${withA(p.card_glow_color || accent, 35)}, inset 0 0 40px ${withA(p.card_glow_color || accent, 15)}`,
+      };
+      break;
     case "transparent":
-      base.card = { background: "transparent", border: "none" }; break;
+      base.card = { background: "transparent", border: "none" };
+      break;
     default:
       base.card = {
         background: withA(p.card_fill_color || "#131316", p.card_fill_alpha ?? 78),
@@ -122,9 +130,7 @@ function cardStyles(p) {
         border: `1px solid ${withA(p.card_outline_color || accent, p.card_outline_alpha ?? 33)}`,
       };
   }
-  // The corner radius used to live behind the Advanced sliders only, so every
-  // preset was locked to 24px. It reads the saved value now and shares one
-  // default, exactly like the fill and outline above.
+  // The corner radius reads the saved value and shares one default
   if (base.card.borderRadius === undefined) base.card.borderRadius = `${p.card_radius ?? 24}px`;
   if (p.card_background === false || p.card_bg_enabled === false) {
     base.card = { background: "transparent", border: "none", boxShadow: "none", backdropFilter: "none", borderRadius: base.card.borderRadius };
@@ -879,8 +885,13 @@ function SlideshowView({
               </div>
             </div>
 
-            {/* Names below avatar, with badges next to name */}
+            {/* Names below avatar, with badges positioned according to badge_placement */}
             <div className="flex flex-col items-center text-center gap-1.5">
+              {p.badge_placement === "above_name" && (
+                <div data-block="badges" className="inline-flex items-center justify-center leading-none mb-1">
+                  <Badges showName={true} />
+                </div>
+              )}
               <div className="flex flex-wrap items-center justify-center gap-1.5">
                 <div data-block="name" className="min-w-0 inline-flex items-center">
                   <FxText
@@ -894,9 +905,11 @@ function SlideshowView({
                     }}
                   />
                 </div>
-                <div data-block="badges" className="inline-flex items-center self-center leading-none">
-                  <Badges showName={true} />
-                </div>
+                {(p.badge_placement === "next_to_name" || !p.badge_placement || !["above_name", "below_name", "card_top_right", "card_bottom"].includes(p.badge_placement)) && (
+                  <div data-block="badges" className="inline-flex items-center self-center leading-none">
+                    <Badges showName={true} />
+                  </div>
+                )}
               </div>
               <FxText
                 id={p.use_name_effect_on_alias ? p.name_effect || "" : ""}
@@ -904,6 +917,11 @@ function SlideshowView({
                 className="text-xs sm:text-sm font-medium"
                 style={{ color: aliasColor, fontFamily: p.name_font || "Inter" }}
               />
+              {p.badge_placement === "below_name" && (
+                <div data-block="badges" className="inline-flex items-center justify-center leading-none mt-1">
+                  <Badges showName={true} />
+                </div>
+              )}
             </div>
 
             {/* Views, location, and UID chip */}
@@ -1596,35 +1614,47 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
   const iconLinks = links.filter((l) => linkMode(l) === "icon");
   const cardLinks = links.filter((l) => linkMode(l) === "card");
 
-  const NameRow = ({ size = "text-xl sm:text-2xl", center = false, className = "" }) => (
-    <>
-      <div
-        data-block="name"
-        className={`flex flex-wrap items-center gap-1.5 ${center ? "justify-center" : ""} ${className}`}
-      >
+  const NameRow = ({ size = "text-xl sm:text-2xl", center = false, className = "" }) => {
+    const placement = p.badge_placement || p.badge_position || "next_to_name";
+    return (
+      <>
+        {placement === "above_name" && (
+          <div data-block="badges" className={`inline-flex items-center leading-none mb-1.5 ${center ? "justify-center" : ""}`}>
+            <Badges />
+          </div>
+        )}
+        <div
+          data-block="name"
+          className={`flex flex-wrap items-center gap-1.5 ${center ? "justify-center" : ""} ${className}`}
+        >
+          <FxText
+            id={p.name_effect || ""}
+            text={data.display_name || data.username}
+            className={`font-black tracking-tight ${size}`}
+            style={{
+              color: nameColor,
+              fontFamily: p.display_font || "Unbounded",
+              ...(p.name_glow === false ? null : { textShadow: `0 0 20px ${accent}bb` }),
+            }}
+          />
+          {(placement === "next_to_name" || !["above_name", "below_name", "card_top_right", "card_bottom"].includes(placement)) && (
+            <span data-block="badges" className="inline-flex items-center self-center leading-none"><Badges /></span>
+          )}
+        </div>
         <FxText
-          id={p.name_effect || ""}
-          text={data.display_name || data.username}
-          className={`font-black tracking-tight ${size}`}
-          style={{
-            color: nameColor,
-            fontFamily: p.display_font || "Unbounded",
-            ...(p.name_glow === false ? null : { textShadow: `0 0 20px ${accent}bb` }),
-          }}
+          id={p.use_name_effect_on_alias ? p.name_effect || "" : ""}
+          text={`@${data.username}`}
+          className="block text-xs font-medium"
+          style={{ color: aliasColor, fontFamily: p.name_font || "Inter" }}
         />
-        {/* `self-center leading-none`: the badge row is centred on the name's
-            own line box rather than on its own line-height, so the two always
-            sit on the same axis. */}
-        <span data-block="badges" className="inline-flex items-center self-center leading-none"><Badges /></span>
-      </div>
-      <FxText
-        id={p.use_name_effect_on_alias ? p.name_effect || "" : ""}
-        text={`@${data.username}`}
-        className="block text-xs font-medium"
-        style={{ color: aliasColor, fontFamily: p.name_font || "Inter" }}
-      />
-    </>
-  );
+        {placement === "below_name" && (
+          <div data-block="badges" className={`inline-flex items-center leading-none mt-1.5 ${center ? "justify-center" : ""}`}>
+            <Badges />
+          </div>
+        )}
+      </>
+    );
+  };
 
   // The bio's own text size, as a percentage of the card's default (100). An
   // inline size is what makes it independent of the class, so the owner's
@@ -1754,6 +1784,11 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
             className="p-5 sm:p-6 text-left relative overflow-visible transition duration-300"
             style={cardSurface({ boxShadow: cardShadow() })}
           >
+            {p.badge_placement === "card_top_right" && (
+              <div data-block="badges" className="absolute top-4 right-4 z-20 inline-flex items-center leading-none">
+                <Badges />
+              </div>
+            )}
             <div className="flex items-center gap-5 sm:gap-6">
               <div className="shrink-0">
                 <AvatarBlock size={120} />
@@ -1767,6 +1802,12 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
             <BioBlock className="mt-4" />
             <LinksBlock links={cardLinks} align="left" className="mt-4" />
             <WidgetsBlock className="mt-4" />
+
+            {p.badge_placement === "card_bottom" && (
+              <div data-block="badges" className="mt-4 pt-3 border-t border-white/5 flex items-center justify-center leading-none w-full">
+                <Badges />
+              </div>
+            )}
 
             <div className="mt-5 flex items-center justify-start">
               <MetaLine align="left" />

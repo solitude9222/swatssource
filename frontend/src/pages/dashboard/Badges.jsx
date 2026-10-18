@@ -64,6 +64,7 @@ export default function Badges() {
     overlay: user?.profile?.badge_overlay === true,
     overlay_color: user?.profile?.badge_overlay_color || "#A48DF4",
     overlay_strength: user?.profile?.badge_overlay_strength ?? 60,
+    badge_placement: user?.profile?.badge_placement || "next_to_name",
   });
 
   // Whether the badges show on the card at all.
@@ -180,6 +181,22 @@ export default function Badges() {
     }
   };
 
+  const handlePlacementChange = async (placement) => {
+    if (gate.guard("changing badge placement")) return;
+    setPaintSettings((prev) => ({ ...prev, badge_placement: placement }));
+    try {
+      const updatedProfile = {
+        ...user.profile,
+        badge_placement: placement,
+      };
+      const { data } = await api.put("/me/profile", updatedProfile);
+      setUser(data);
+      toast.success("Badge placement updated!");
+    } catch {
+      toast.error("Failed to update badge placement");
+    }
+  };
+
   /* The whole of badge styling: the glow, and the colour over the art. A save
      also clears the keys the old customiser wrote, so a profile cannot keep
      carrying a plate, a tint or a per-badge override that nothing reads. */
@@ -194,6 +211,7 @@ export default function Badges() {
         badge_overlay: paintSettings.overlay,
         badge_overlay_color: paintSettings.overlay_color,
         badge_overlay_strength: paintSettings.overlay_strength,
+        badge_placement: paintSettings.badge_placement || "next_to_name",
         show_badges: showBadges,
         // Retired: plates, the old fixed wash, recolouring, thickness, size,
         // one-pill, row overlap, and per-badge overrides.
@@ -351,6 +369,48 @@ export default function Badges() {
         ) : (
           <p className="py-6 text-center text-[11px] text-zinc-500">Equip a badge to see it here.</p>
         )}
+
+        {/* Badge Positioning / Placement */}
+        <div className="mt-4 pt-4 border-t border-white/5 space-y-2">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-xs font-semibold text-zinc-300">Badge Placement on Profile Card</span>
+            <span className="text-[11px] text-brand-300 font-mono2">
+              {{
+                next_to_name: "Next to Name",
+                below_name: "Below Name & Handle",
+                above_name: "Above Name",
+                card_bottom: "Bottom of Card",
+                card_top_right: "Top Right of Card",
+              }[paintSettings.badge_placement] || "Next to Name"}
+            </span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+            {[
+              { id: "next_to_name", label: "Next to Name" },
+              { id: "below_name", label: "Below Name" },
+              { id: "above_name", label: "Above Name" },
+              { id: "card_top_right", label: "Top Right" },
+              { id: "card_bottom", label: "Bottom" },
+            ].map(({ id, label }) => {
+              const active = (paintSettings.badge_placement || "next_to_name") === id;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  data-testid={`badge-pos-${id}`}
+                  onClick={() => handlePlacementChange(id)}
+                  className={`px-3 py-2 rounded-xl text-xs font-semibold transition border ${
+                    active
+                      ? "bg-brand-500/20 text-brand-200 border-brand-500/50 shadow-[0_0_12px_rgba(164,141,244,0.25)]"
+                      : "bg-white/[0.03] text-zinc-400 border-white/10 hover:bg-white/[0.06] hover:text-zinc-200"
+                  }`}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
       {/* Equipped order — drag a badge to reposition it on the card */}
@@ -577,6 +637,47 @@ export default function Badges() {
                   underneath stays readable. Nothing is drawn behind it — the overlay only ever paints the badge's
                   own pixels.
                 </p>
+              </div>
+
+              {/* Badge Placement */}
+              <div className="space-y-1.5 pt-1">
+                <div className="flex items-center justify-between text-xs font-semibold text-zinc-300">
+                  <span>Badge Placement</span>
+                  <span className="font-mono2 text-brand-400">
+                    {{
+                      next_to_name: "Next to Name",
+                      below_name: "Below Name",
+                      above_name: "Above Name",
+                      card_bottom: "Bottom of Card",
+                      card_top_right: "Top Right",
+                    }[paintSettings.badge_placement] || "Next to Name"}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 pt-1 sm:grid-cols-3">
+                  {[
+                    { id: "next_to_name", label: "Next to Name" },
+                    { id: "below_name", label: "Below Name" },
+                    { id: "above_name", label: "Above Name" },
+                    { id: "card_top_right", label: "Top Right" },
+                    { id: "card_bottom", label: "Bottom" },
+                  ].map(({ id, label }) => {
+                    const active = (paintSettings.badge_placement || "next_to_name") === id;
+                    return (
+                      <button
+                        key={id}
+                        type="button"
+                        onClick={() => setPaintSettings({ ...paintSettings, badge_placement: id })}
+                        className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition border ${
+                          active
+                            ? "bg-brand-500/20 text-brand-200 border-brand-500/50"
+                            : "bg-white/[0.03] text-zinc-400 border-white/10 hover:bg-white/[0.06]"
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               <label className="flex cursor-pointer items-center justify-between text-xs text-zinc-300">

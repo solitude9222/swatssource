@@ -77,6 +77,7 @@ const Stat = ({ icon: Icon, label, value, hint, testid }) => (
 
 export default function Admin() {
   const { user } = useAuth();
+  const isOwner = user?.is_owner || user?.role === "owner";
   const [analytics, setAnalytics] = useState(null);
   const [roster, setRoster] = useState(null);
   const [notifications, setNotifications] = useState(null);
@@ -87,6 +88,10 @@ export default function Admin() {
   const [broadcastTitle, setBroadcastTitle] = useState("");
   const [broadcastBody, setBroadcastBody] = useState("");
   const [sendingBroadcast, setSendingBroadcast] = useState(false);
+
+  const visibleSections = isOwner
+    ? SECTIONS
+    : SECTIONS.filter((s) => s.to.includes("users") || s.to.includes("analytics"));
 
   useEffect(() => {
     let alive = true;
@@ -287,14 +292,16 @@ export default function Admin() {
             {flushingCache ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5 text-amber-400" />}
             Purge Cache
           </button>
-          <button
-            type="button"
-            onClick={() => setQuickBroadcastModal(true)}
-            className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-200 text-xs font-semibold flex items-center gap-1.5 transition"
-          >
-            <Send className="w-3.5 h-3.5 text-brand-300" />
-            Quick Broadcast
-          </button>
+          {isOwner && (
+            <button
+              type="button"
+              onClick={() => setQuickBroadcastModal(true)}
+              className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-200 text-xs font-semibold flex items-center gap-1.5 transition"
+            >
+              <Send className="w-3.5 h-3.5 text-brand-300" />
+              Quick Broadcast
+            </button>
+          )}
           <button
             type="button"
             onClick={exportTelemetry}
@@ -306,9 +313,9 @@ export default function Admin() {
         </div>
       </div>
 
-      {/* Main Section Navigation Cards (Must maintain exact 7 cards and data-testid prefix) */}
+      {/* Main Section Navigation Cards */}
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {SECTIONS.map(({ to, icon: Icon, title, body }) => (
+        {visibleSections.map(({ to, icon: Icon, title, body }) => (
           <Link
             key={to}
             to={to}
@@ -334,8 +341,8 @@ export default function Admin() {
         ))}
       </div>
 
-      {/* Recent Platform Operations Feed */}
-      {auditStream.length > 0 && (
+      {/* Recent Platform Operations Feed (Owner only) */}
+      {isOwner && auditStream.length > 0 && (
         <div className="glass rounded-3xl p-5 border border-white/10 space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">

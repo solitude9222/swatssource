@@ -96,6 +96,14 @@ const RequireAdmin = ({ children }) => {
   return children;
 };
 
+const RequireOwner = ({ children }) => {
+  const { user } = useAuth();
+  if (user === null) return null;
+  if (user === false) return <Navigate to="/!/login" replace />;
+  if (!user.is_owner && user.role !== "owner") return <Navigate to="/!/dashboard/admin" replace />;
+  return children;
+};
+
 /* Shown while an on-demand page chunk loads. Deliberately quiet — it appears
    for a few hundred milliseconds at most on a warm connection. */
 const RouteFallback = () => (
@@ -177,12 +185,12 @@ function App() {
                     old URL resolves to it instead of falling dead. */}
                 <Route path="admin/bot" element={<Navigate to="/!/dashboard/admin/users" replace />} />
                 <Route path="admin/users" element={<RequireAdmin><UserManager /></RequireAdmin>} />
-                <Route path="admin/invites" element={<RequireAdmin><InviteCodes /></RequireAdmin>} />
-                <Route path="admin/notify" element={<RequireAdmin><Notices /></RequireAdmin>} />
-                <Route path="admin/devlogs" element={<RequireAdmin><AdminDevlogs /></RequireAdmin>} />
-                <Route path="admin/site" element={<RequireAdmin><SiteSettings /></RequireAdmin>} />
+                <Route path="admin/invites" element={<RequireOwner><InviteCodes /></RequireOwner>} />
+                <Route path="admin/notify" element={<RequireOwner><Notices /></RequireOwner>} />
+                <Route path="admin/devlogs" element={<RequireOwner><AdminDevlogs /></RequireOwner>} />
+                <Route path="admin/site" element={<RequireOwner><SiteSettings /></RequireOwner>} />
                 <Route path="admin/analytics" element={<RequireAdmin><Analytics /></RequireAdmin>} />
-                <Route path="admin/audit" element={<RequireAdmin><AuditLog /></RequireAdmin>} />
+                <Route path="admin/audit" element={<RequireOwner><AuditLog /></RequireOwner>} />
 
                 {/* The old flat admin URLs, kept resolving for bookmarks and links. */}
                 <Route path="bot" element={<Navigate to="/!/dashboard/admin/users" replace />} />

@@ -40,6 +40,71 @@ const SUBTABS = [
   { id: "entry", label: "Entry Screen" },
 ];
 
+export const CARD_STYLE_PRESETS = {
+  classic: {
+    card_style: "classic",
+    card_fill_color: "#131316",
+    card_fill_alpha: 78,
+    card_blur: 20,
+    card_outline_alpha: 33,
+    card_radius: 24,
+    card_background: true,
+    card_glow: true,
+  },
+  frosted: {
+    card_style: "frosted",
+    card_fill_color: "#ffffff",
+    card_fill_alpha: 10,
+    card_blur: 25,
+    card_outline_alpha: 20,
+    card_outline_color: "#ffffff",
+    card_radius: 24,
+    card_background: true,
+    card_glow: false,
+  },
+  "frosted-soft": {
+    card_style: "frosted-soft",
+    card_fill_color: "#ffffff",
+    card_fill_alpha: 6,
+    card_blur: 14,
+    card_outline_alpha: 10,
+    card_outline_color: "#ffffff",
+    card_radius: 24,
+    card_background: true,
+    card_glow: false,
+  },
+  outlined: {
+    card_style: "outlined",
+    card_fill_color: "#000000",
+    card_fill_alpha: 0,
+    card_blur: 0,
+    card_outline_alpha: 100,
+    card_radius: 24,
+    card_background: true,
+    card_glow: false,
+  },
+  aurora: {
+    card_style: "aurora",
+    card_fill_color: "#0f1015",
+    card_fill_alpha: 65,
+    card_blur: 20,
+    card_outline_alpha: 45,
+    card_radius: 24,
+    card_background: true,
+    card_glow: true,
+  },
+  transparent: {
+    card_style: "transparent",
+    card_fill_color: "#000000",
+    card_fill_alpha: 0,
+    card_blur: 0,
+    card_outline_alpha: 0,
+    card_radius: 24,
+    card_background: false,
+    card_glow: false,
+  },
+};
+
 
 
 /* A searchable font picker: each option renders in its own family, free fonts
@@ -794,6 +859,16 @@ export default function Editor() {
   const set = (k, v) => setP((prev) => ({ ...prev, [k]: v }));
   const accentColor = p.accent_color || "#A48DF4";
 
+  const handleCardStylePreset = (styleId) => {
+    const preset = CARD_STYLE_PRESETS[styleId] || { card_style: styleId };
+    setP((prev) => ({
+      ...prev,
+      ...preset,
+      card_outline_color: preset.card_outline_color || prev.card_outline_color || accentColor,
+      card_glow_color: preset.card_glow_color || prev.card_glow_color || accentColor,
+    }));
+  };
+
   // Per-effect tuning lives in profile.fx_tuning keyed by effect id, so it is
   // saved with everything else and read back by FxText via FxTuningProvider.
   const fxTuning = p.fx_tuning || {};
@@ -1333,7 +1408,7 @@ export default function Editor() {
                   testid="cardstyle"
                   cols={3}
                   value={p.card_style || ""}
-                  onChange={(v) => set("card_style", v)}
+                  onChange={(v) => handleCardStylePreset(v)}
                   options={[
                     { id: "classic", label: "Classic" },
                     { id: "frosted", label: "Frosted" },
@@ -1489,6 +1564,22 @@ export default function Editor() {
                     ) : null}
                   </div>
                 </div>
+              </Section>
+
+              <Section title="Badge Placement" hint="Position of badges on your profile card">
+                <ChipGrid
+                  testid="badge-placement"
+                  cols={3}
+                  value={p.badge_placement || "next_to_name"}
+                  onChange={(v) => set("badge_placement", v)}
+                  options={[
+                    { id: "next_to_name", label: "Next to Name" },
+                    { id: "below_name", label: "Below Name" },
+                    { id: "above_name", label: "Above Name" },
+                    { id: "card_top_right", label: "Top Right" },
+                    { id: "card_bottom", label: "Bottom of Card" },
+                  ]}
+                />
               </Section>
 
 

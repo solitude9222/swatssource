@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
+import { useAuth } from "@/context/AuthContext";
 import { api } from "@/lib/api";
 import { toast } from "@/lib/notify";
 import {
@@ -140,6 +141,8 @@ const DiscordCell = ({ u }) => (
 );
 
 export default function UserManager() {
+  const { user } = useAuth();
+  const isOwner = user?.is_owner || user?.role === "owner";
   const [users, setUsers] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -183,17 +186,20 @@ export default function UserManager() {
   const saveUser = async (u) => {
     setBusy(true);
     try {
-      const { data } = await api.put(`/admin/users/${u.id}`, {
-        role: u.role,
-        tier: u.tier,
-        is_owner: u.is_owner,
-        badges: u.badges,
-        // The username override: whatever the admin typed, if it differs. The
-        // backend enforces one rule only — nobody else may already own it.
-        ...(u.username && u.username.trim().toLowerCase() !== u._orig_username
-          ? { username: u.username.trim().toLowerCase() }
-          : {}),
-      });
+      const payload = isOwner
+        ? {
+            role: u.role,
+            tier: u.tier,
+            is_owner: u.is_owner,
+            badges: u.badges,
+            ...(u.username && u.username.trim().toLowerCase() !== u._orig_username
+              ? { username: u.username.trim().toLowerCase() }
+              : {}),
+          }
+        : {
+            badges: u.badges,
+          };
+      const { data } = await api.put(`/admin/users/${u.id}`, payload);
       setUsers(users.map((x) => (x.id === data.id ? { ...x, ...data } : x)));
       setEditingUser(null);
       toast.success("User updated successfully");
@@ -510,13 +516,11 @@ export default function UserManager() {
         }
       />
 
-      {/* Bot Manager — the live Discord half that used to be its own tab, now
-          with role mapping (verified/OG/member/booster + custom rules), a
-          presence switch and apply-to-all. */}
-      <BotManager />
+      {/* Bot Manager — visible to Owner only */}
+      {isOwner && <BotManager />}
 
-      {/* Bulk bar — appears once anything is selected. */}
-      {selected.size > 0 && (
+      {/* Bulk bar — appears once anything is selected, Owner only */}
+      {isOwner && selected.size > 0 && (
         <div className="glass flex flex-wrap items-center gap-2 rounded-2xl px-4 py-3" data-testid="bulk-bar">
           <span className="text-xs font-semibold text-zinc-200">{selected.size} selected</span>
           <button
@@ -661,7 +665,16 @@ export default function UserManager() {
                               </span>
                             )}
                           </div>
-                          <div className="text-xs text-zinc-500 truncate">{u.email}</div>
+                          <div
+                            className={`text-xs truncate ${
+                              isOwner
+                                ? "text-zinc-500"
+                                : "text-zinc-600 filter blur-[4px] select-none pointer-events-none"
+                            }`}
+                            title={isOwner ? u.email : "Email hidden for privacy"}
+                          >
+                            {u.email || "—"}
+                          </div>
                         </div>
                       </div>
                     </td>
@@ -696,6 +709,15 @@ export default function UserManager() {
                     </td>
                     <td className="px-5 py-3.5 text-right">
                       <div className="flex items-center justify-end gap-1.5">
+                        <a
+                          href={`/${u.username}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="rounded-lg bg-white/5 p-2 text-zinc-300 transition hover:bg-white/10"
+                          title="View public profile"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                        </a>
                         <button
                           type="button"
                           onClick={() => refreshUser(u)}
@@ -706,15 +728,6 @@ export default function UserManager() {
                           <RefreshCw className="w-3.5 h-3.5" />
                         </button>
                         <button
-                          type="button"
-                          onClick={() => unlinkUser(u)}
-                          disabled={!u.discord_linked}
-                          className="rounded-lg bg-white/5 p-2 text-amber-300 transition hover:bg-amber-500/15 disabled:opacity-40"
-                          title="Unlink Discord"
-                        >
-                          <Link2Off className="w-3.5 h-3.5" />
-                        </button>
-                        <button
                           onClick={() => openEditor(u)}
                           className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white transition"
                           title="Edit User"
@@ -722,14 +735,27 @@ export default function UserManager() {
                         >
                           <Edit className="w-3.5 h-3.5" />
                         </button>
-                        <button
-                          onClick={() => deleteUser(u)}
-                          className="p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-200 transition"
-                          title="Delete User"
-                          aria-label={`Delete ${u.username}`}
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                        {isOwner && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => unlinkUser(u)}
+                              disabled={!u.discord_linked}
+                              className="rounded-lg bg-white/5 p-2 text-amber-300 transition hover:bg-amber-500/15 disabled:opacity-40"
+                              title="Unlink Discord"
+                            >
+                              <Link2Off className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => deleteUser(u)}
+                              className="p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-200 transition"
+                              title="Delete User"
+                              aria-label={`Delete ${u.username}`}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -771,75 +797,90 @@ export default function UserManager() {
             </div>
 
             {/* Role assignment — a clear, described picker instead of a bare select */}
-            <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Assigned role</div>
-                <span className="font-mono2 text-[10px] text-zinc-500">what this account can do</span>
-              </div>
-              <div className="grid sm:grid-cols-2 gap-2.5">
-                {ROLES.map((r) => {
-                  const active = editingUser.role === r.id && !editingUser.is_owner;
-                  return (
-                    <button
-                      key={r.id}
-                      type="button"
-                      onClick={() => setEditingUser({ ...editingUser, role: r.id, is_owner: false })}
-                      className={`text-left rounded-xl border p-3 transition ${active ? "border-brand-500/50 bg-brand-500/15" : "border-white/10 hover:bg-white/[0.04]"}`}
-                    >
-                      <div className="flex items-center gap-2 font-semibold text-sm" style={{ color: r.tint }}>
-                        <r.Icon className="w-4 h-4" /> {r.label}
-                        {active && <Check className="w-3.5 h-3.5 ml-auto" />}
-                      </div>
-                      <div className="mt-1 text-[11px] leading-snug text-zinc-500">{r.description}</div>
-                    </button>
-                  );
-                })}
-              </div>
+            {isOwner ? (
+              <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Assigned role</div>
+                  <span className="font-mono2 text-[10px] text-zinc-500">what this account can do</span>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-2.5">
+                  {ROLES.map((r) => {
+                    const active = editingUser.role === r.id && !editingUser.is_owner;
+                    return (
+                      <button
+                        key={r.id}
+                        type="button"
+                        onClick={() => setEditingUser({ ...editingUser, role: r.id, is_owner: false })}
+                        className={`text-left rounded-xl border p-3 transition ${active ? "border-brand-500/50 bg-brand-500/15" : "border-white/10 hover:bg-white/[0.04]"}`}
+                      >
+                        <div className="flex items-center gap-2 font-semibold text-sm" style={{ color: r.tint }}>
+                          <r.Icon className="w-4 h-4" /> {r.label}
+                          {active && <Check className="w-3.5 h-3.5 ml-auto" />}
+                        </div>
+                        <div className="mt-1 text-[11px] leading-snug text-zinc-500">{r.description}</div>
+                      </button>
+                    );
+                  })}
+                </div>
 
-              <button
-                type="button"
-                aria-pressed={!!editingUser.is_owner}
-                onClick={() => setEditingUser({ ...editingUser, is_owner: !editingUser.is_owner })}
-                className={`w-full flex items-center justify-between rounded-xl border p-3 transition ${editingUser.is_owner ? "border-amber-400/50 bg-amber-400/10" : "border-white/10 hover:bg-white/[0.04]"}`}
-              >
-                <span className="flex items-center gap-2 text-sm font-semibold" style={{ color: OWNER_TINT }}>
-                  <Crown className="w-4 h-4" /> Owner
-                </span>
-                <span className={`text-[11px] font-mono2 ${editingUser.is_owner ? "text-amber-300" : "text-zinc-500"}`}>
-                  {editingUser.is_owner ? "enabled" : "disabled"}
-                </span>
-              </button>
-            </div>
+                <button
+                  type="button"
+                  aria-pressed={!!editingUser.is_owner}
+                  onClick={() => setEditingUser({ ...editingUser, is_owner: !editingUser.is_owner })}
+                  className={`w-full flex items-center justify-between rounded-xl border p-3 transition ${editingUser.is_owner ? "border-amber-400/50 bg-amber-400/10" : "border-white/10 hover:bg-white/[0.04]"}`}
+                >
+                  <span className="flex items-center gap-2 text-sm font-semibold" style={{ color: OWNER_TINT }}>
+                    <Crown className="w-4 h-4" /> Owner
+                  </span>
+                  <span className={`text-[11px] font-mono2 ${editingUser.is_owner ? "text-amber-300" : "text-zinc-500"}`}>
+                    {editingUser.is_owner ? "enabled" : "disabled"}
+                  </span>
+                </button>
+              </div>
+            ) : (
+              <div className="rounded-xl border border-white/10 bg-white/[0.02] p-3 text-xs text-zinc-400 flex items-center justify-between">
+                <span>Account Role: <strong className="text-zinc-200 capitalize">{editingUser.is_owner ? "Owner" : (editingUser.role || "user")}</strong></span>
+                <span className="text-[11px] text-zinc-500">Only the owner can reassign roles or tiers</span>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="text-xs text-zinc-400 block mb-1">Account Tier</label>
-                <SmartSelect
-                  testid="user-tier-select"
-                  ariaLabel="Account tier"
-                  value={editingUser.tier}
-                  onChange={(tier) => setEditingUser({ ...editingUser, tier })}
-                  options={[
-                    { value: "free", label: "Free" },
-                    { value: "premium", label: "Premium" },
-                    { value: "admin", label: "Admin" },
-                  ]}
-                />
-              </div>
+              {isOwner ? (
+                <div>
+                  <label className="text-xs text-zinc-400 block mb-1">Account Tier</label>
+                  <SmartSelect
+                    testid="user-tier-select"
+                    ariaLabel="Account tier"
+                    value={editingUser.tier}
+                    onChange={(tier) => setEditingUser({ ...editingUser, tier })}
+                    options={[
+                      { value: "free", label: "Free" },
+                      { value: "premium", label: "Premium" },
+                      { value: "admin", label: "Admin" },
+                    ]}
+                  />
+                </div>
+              ) : (
+                <div>
+                  <label className="text-xs text-zinc-400 block mb-1">Account Tier</label>
+                  <div className="rounded-xl border border-white/10 bg-white/[0.04] px-3.5 py-2 text-sm text-zinc-200 capitalize">
+                    {editingUser.tier || "free"}
+                  </div>
+                </div>
+              )}
 
-              {/* The admin username override. Only one rule binds an admin here:
-                  the handle must be free — no reserved list, no cooldown, no
-                  self-serve format beyond the chars the URL can carry. */}
-              <div>
-                <label className="text-xs text-zinc-400 block mb-1">Username (admin override)</label>
-                <input
-                  data-testid="user-username-input"
-                  value={editingUser.username || ""}
-                  onChange={(e) => setEditingUser({ ...editingUser, username: e.target.value })}
-                  className="w-full rounded-xl bg-white/[0.04] border border-white/10 px-3.5 py-2 text-sm font-mono2 text-zinc-100 outline-none focus:border-brand-500/50 transition"
-                />
-                <p className="mt-1 text-[10px] text-zinc-500">swats.bio/{editingUser.username} — saved only if free</p>
-              </div>
+              {isOwner && (
+                <div>
+                  <label className="text-xs text-zinc-400 block mb-1">Username (admin override)</label>
+                  <input
+                    data-testid="user-username-input"
+                    value={editingUser.username || ""}
+                    onChange={(e) => setEditingUser({ ...editingUser, username: e.target.value })}
+                    className="w-full rounded-xl bg-white/[0.04] border border-white/10 px-3.5 py-2 text-sm font-mono2 text-zinc-100 outline-none focus:border-brand-500/50 transition"
+                  />
+                  <p className="mt-1 text-[10px] text-zinc-500">swats.bio/{editingUser.username} — saved only if free</p>
+                </div>
+              )}
 
               <div>
                 <label className="text-xs text-zinc-400 block mb-1">Current views</label>
@@ -865,52 +906,54 @@ export default function UserManager() {
               </div>
             </div>
 
-            {/* View changer */}
-            <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
-                  <Eye className="w-3.5 h-3.5" /> View changer
+            {/* View changer (Owner only) */}
+            {isOwner && (
+              <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
+                    <Eye className="w-3.5 h-3.5" /> View changer
+                  </div>
+                  <span className="font-mono2 text-[10px] text-zinc-500">
+                    views are otherwise counted on real visits only
+                  </span>
                 </div>
-                <span className="font-mono2 text-[10px] text-zinc-500">
-                  views are otherwise counted on real visits only
-                </span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <input
+                    type="number"
+                    min="0"
+                    inputMode="numeric"
+                    value={viewsDraft}
+                    onChange={(e) => setViewsDraft(e.target.value)}
+                    placeholder="0"
+                    className="w-32 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-zinc-100 outline-none transition-colors duration-200 focus:border-brand-500/50"
+                  />
+                  <button
+                    type="button"
+                    disabled={viewsBusy !== null}
+                    onClick={() => changeViews("set")}
+                    className="px-3.5 py-2 rounded-xl bg-brand-500/20 border border-brand-500/40 text-brand-200 text-xs font-semibold hover:bg-brand-500/30 transition flex items-center gap-1.5 disabled:opacity-50"
+                  >
+                    {viewsBusy === "set" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Equal className="w-3.5 h-3.5" />} Set
+                  </button>
+                  <button
+                    type="button"
+                    disabled={viewsBusy !== null}
+                    onClick={() => changeViews("add")}
+                    className="px-3.5 py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-200 text-xs font-semibold hover:bg-emerald-500/25 transition flex items-center gap-1.5 disabled:opacity-50"
+                  >
+                    {viewsBusy === "add" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />} Add
+                  </button>
+                  <button
+                    type="button"
+                    disabled={viewsBusy !== null}
+                    onClick={() => changeViews("reset")}
+                    className="px-3.5 py-2 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-xs font-semibold hover:bg-red-500/20 transition flex items-center gap-1.5 disabled:opacity-50"
+                  >
+                    {viewsBusy === "reset" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RotateCcw className="w-3.5 h-3.5" />} Reset
+                  </button>
+                </div>
               </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <input
-                  type="number"
-                  min="0"
-                  inputMode="numeric"
-                  value={viewsDraft}
-                  onChange={(e) => setViewsDraft(e.target.value)}
-                  placeholder="0"
-                  className="w-32 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-zinc-100 outline-none transition-colors duration-200 focus:border-brand-500/50"
-                />
-                <button
-                  type="button"
-                  disabled={viewsBusy !== null}
-                  onClick={() => changeViews("set")}
-                  className="px-3.5 py-2 rounded-xl bg-brand-500/20 border border-brand-500/40 text-brand-200 text-xs font-semibold hover:bg-brand-500/30 transition flex items-center gap-1.5 disabled:opacity-50"
-                >
-                  {viewsBusy === "set" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Equal className="w-3.5 h-3.5" />} Set
-                </button>
-                <button
-                  type="button"
-                  disabled={viewsBusy !== null}
-                  onClick={() => changeViews("add")}
-                  className="px-3.5 py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-200 text-xs font-semibold hover:bg-emerald-500/25 transition flex items-center gap-1.5 disabled:opacity-50"
-                >
-                  {viewsBusy === "add" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />} Add
-                </button>
-                <button
-                  type="button"
-                  disabled={viewsBusy !== null}
-                  onClick={() => changeViews("reset")}
-                  className="px-3.5 py-2 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-xs font-semibold hover:bg-red-500/20 transition flex items-center gap-1.5 disabled:opacity-50"
-                >
-                  {viewsBusy === "reset" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RotateCcw className="w-3.5 h-3.5" />} Reset
-                </button>
-              </div>
-            </div>
+            )}
 
             <div>
               <label className="text-xs text-zinc-400 block mb-2">Granted Badges</label>

@@ -251,3 +251,12 @@ export async function requireAdmin(req, res, next) {
     next();
   });
 }
+
+export async function requireOwner(req, res, next) {
+  requireAuth(req, res, () => {
+    if (!req.user.is_owner && req.user.role !== 'owner') {
+      return res.status(403).json({ detail: 'Owner privileges required. Only the site owner can perform this action.' });
+    }
+    next();
+  });
+}

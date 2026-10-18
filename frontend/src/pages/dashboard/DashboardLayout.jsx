@@ -581,11 +581,16 @@ export default function DashboardLayout() {
 
   if (!user || user === false) return null;
 
-  const isAdmin = user.role === "admin";
-  const groups = isAdmin ? [...NAV_GROUPS, ADMIN_GROUP] : NAV_GROUPS;
+  const isAdmin = user.role === "admin" || user.is_owner;
+  const isOwner = user.is_owner || user.role === "owner";
+  const adminTabs = isOwner
+    ? ADMIN_SECTIONS
+    : ADMIN_SECTIONS.filter((s) => s.to === "/!/dashboard/admin" || s.to.includes("users") || s.to.includes("analytics"));
+  const effectiveAdminGroup = { ...ADMIN_GROUP, tabs: adminTabs };
+  const groups = isAdmin ? [...NAV_GROUPS, effectiveAdminGroup] : NAV_GROUPS;
   const activeGroup = groupFor(pathname);
   const activeTab = tabFor(pathname);
-  const strip = activeGroup?.tabs || [];
+  const strip = activeGroup?.id === "admin" ? adminTabs : (activeGroup?.tabs || []);
 
   const handleLogout = () => { logout(); navigate("/"); };
 

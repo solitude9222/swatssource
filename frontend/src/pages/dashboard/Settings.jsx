@@ -273,6 +273,12 @@ export default function Settings() {
                 {savingUser ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Save Handle
               </button>
             </div>
+            {(user?.role === "admin" || user?.is_owner || user?.role === "owner") && (
+              <p className="text-[11px] font-mono2 text-brand-300 flex items-center gap-1.5 pt-1">
+                <Sparkles className="w-3.5 h-3.5 text-brand-400 shrink-0" />
+                Staff privilege: Unlimited instant handle changes (no 48h cooldown)
+              </p>
+            )}
           </div>
 
           {/* Account Credentials */}
