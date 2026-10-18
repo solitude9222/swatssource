@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { WidgetCard } from "@/components/WidgetCards";
-import { Sparkles, Radio, Zap, ShieldCheck } from "lucide-react";
+import { Sparkles } from "lucide-react";
 
 // The same accounts the site demonstrates with, rendered through the real
 // widget components and the real backend proxy — no screenshots, no typed-out
@@ -10,27 +10,22 @@ const WIDGETS = [
   {
     accent: "#1DB954",
     w: { type: "spotify", title: "Spotify", url: "https://open.spotify.com/track/3P61wVXNlCuTa7zSnTN3Zv" },
-    tag: "Streaming Live",
   },
   {
     accent: "#ff5500",
     w: { type: "soundcloud", title: "SoundCloud", url: "https://soundcloud.com/bondages" },
-    tag: "High Fidelity",
   },
   {
     accent: "#ff0050",
     w: { type: "tiktok", title: "TikTok", url: "https://www.tiktok.com/@koniwtfs" },
-    tag: "Creator Sync",
   },
   {
     accent: "#5865F2",
     w: { type: "discord", subtype: "profile", title: "Discord", user_id: "1546745348020772915" },
-    tag: "Rich Presence",
   },
   {
     accent: "#5865F2",
     w: { type: "discord", subtype: "server", title: "swats.bio", invite_url: "https://discord.gg/a9uwptuepD" },
-    tag: "Community Hub",
   },
 ];
 
@@ -38,7 +33,7 @@ const WIDGETS = [
 // on machines with reduced motion, where the pointer response is skipped).
 const BASE_TILT = { x: 12, y: 8 };
 
-const Tilt = ({ children, index, accent = "#A48DF4", tag }) => {
+const Tilt = ({ children, index, accent = "#A48DF4" }) => {
   const tiltRef = useRef(null);
   const glareRef = useRef(null);
   const reduce = useReducedMotion();
@@ -102,15 +97,6 @@ const Tilt = ({ children, index, accent = "#A48DF4", tag }) => {
 
           <div style={{ transform: "translateZ(34px)" }} className="relative z-10">
             {children}
-            {tag && (
-              <div className="mt-2.5 flex items-center justify-between px-2 font-mono2 text-[10px] text-zinc-500 uppercase tracking-wider">
-                <span className="flex items-center gap-1.5 text-zinc-400">
-                  <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ backgroundColor: accent }} />
-                  {tag}
-                </span>
-                <span className="text-zinc-600">3D Tilt Active</span>
-              </div>
-            )}
           </div>
         </div>
       </motion.div>
@@ -137,27 +123,9 @@ export const WidgetShowcase = () => (
       <h2 className="font-display text-3xl font-black text-zinc-50 sm:text-4xl tracking-tight">
         The widgets your page actually renders
       </h2>
-      <p className="mt-3 text-sm text-zinc-400 leading-relaxed">
-        Live data straight from Discord, Spotify, SoundCloud and TikTok through our ultra-fast proxy.
-        Move your pointer over any card to experience full 3D interactive tilt physics with specular light reflections.
+      <p className="mt-3 text-sm text-zinc-400 leading-relaxed max-w-lg mx-auto">
+        Live data directly from Spotify, SoundCloud, TikTok, and Discord. Real-time media feeds that live right on your profile.
       </p>
-
-      {/* Feature pills */}
-      <div className="mt-6 flex flex-wrap items-center justify-center gap-2.5">
-        {[
-          { label: "Real-Time WebSocket Sync", icon: Radio },
-          { label: "Full 3D Tilt Physics", icon: Zap },
-          { label: "Zero-Latency Proxy", icon: ShieldCheck },
-        ].map((f) => (
-          <span
-            key={f.label}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.02] px-3 py-1.5 text-[11px] font-medium text-zinc-300 backdrop-blur"
-          >
-            <f.icon className="h-3.5 w-3.5 text-brand-400" />
-            {f.label}
-          </span>
-        ))}
-      </div>
     </div>
 
     <div
@@ -170,7 +138,6 @@ export const WidgetShowcase = () => (
           key={`${item.w.type}-${item.w.subtype || item.w.url || item.w.user_id}`}
           index={i}
           accent={item.accent}
-          tag={item.tag}
         >
           <div
             className="h-full rounded-2xl transition-shadow duration-300 group-hover:shadow-[0_15px_35px_rgba(0,0,0,0.6)]"
