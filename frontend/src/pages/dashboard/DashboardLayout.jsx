@@ -12,7 +12,7 @@ import {
   LayoutDashboard, Paintbrush, Link2, Award, LayoutGrid, Settings, LayoutTemplate,
   Trophy, BarChart3, Users, Ticket, SlidersHorizontal, LineChart, LogOut,
   ExternalLink, Crown,  ChevronDown, Sparkles, BellRing, Newspaper, ShieldCheck, Plus,
-  ScrollText, Loader2, Gift, ShoppingBag,
+  ScrollText, Loader2, Gift, ShoppingBag, Store,
 } from "lucide-react";
 import PremiumPlansModal from "@/components/PremiumPlansModal";
 import DevlogFeedModal from "@/components/DevlogFeedModal";
@@ -53,7 +53,7 @@ const NAV_GROUPS = [
     id: "insights",
     label: "Insights",
     tabs: [
-      { to: "/!/dashboard/shop", label: "Shop", icon: ShoppingBag, testid: "tab-shop" },
+      { to: "/!/dashboard/shop", label: "Marketplace", icon: Store, testid: "tab-shop" },
       { to: "/!/dashboard/rewards", label: "Rewards", icon: Gift, testid: "tab-rewards" },
       { to: "/!/dashboard/leaderboard", label: "Leaderboard", icon: Trophy, testid: "tab-leaderboard" },
       { to: "/!/dashboard/templates", label: "Templates", icon: LayoutTemplate, testid: "tab-templates" },

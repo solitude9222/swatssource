@@ -178,6 +178,7 @@ function App() {
                 <Route path="settings" element={<Settings />} />
                 <Route path="templates" element={<Templates />} />
                 <Route path="shop" element={<Shop />} />
+                <Route path="marketplace" element={<Shop />} />
                 <Route path="leaderboard" element={<Leaderboard />} />
                 {/* The build log — the dashboard's own devlog feed, separate
                     from the public changelog at /!/devlogs. */}
