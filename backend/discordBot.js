@@ -544,7 +544,8 @@ async function identify() {
         ws.close(4000);
         break;
       case 9: // Invalid session — pause, then resume fresh
-        setTimeout(() => reconnect(), 5_000);
+        ws.close(4000);
+        scheduleReconnect();
         break;
       case 1: // Heartbeat request while we are between timers
         if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ op: 1, d: null }));
