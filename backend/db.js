@@ -243,8 +243,10 @@ export async function initDb() {
         user_id UUID REFERENCES users(id) ON DELETE CASCADE,
         visitor_hash TEXT NOT NULL,
         bucket BIGINT NOT NULL,
+        device_type TEXT NOT NULL DEFAULT 'desktop' CHECK (device_type IN ('desktop', 'mobile', 'tablet')),
         viewed_at TIMESTAMPTZ DEFAULT NOW()
       );
+      ALTER TABLE profile_views ADD COLUMN IF NOT EXISTS device_type TEXT NOT NULL DEFAULT 'desktop';
 
       -- Short-lived, single-use challenges issued before a view is registered.
       CREATE TABLE IF NOT EXISTS view_challenges (

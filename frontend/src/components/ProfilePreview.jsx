@@ -899,7 +899,10 @@ function SlideshowView({
       style={{ backgroundColor: bg ? "#050505" : (p.background_color || "#050505") }}
     >
       {/* Background layers: effects, video/image background and overlays */}
-      <div className={`${embedded ? "absolute" : "fixed"} inset-0 pointer-events-none z-0`}>
+      {/* Keep this wrapper out of a lower stacking context: the profile's
+          decorative backgrounds remain behind the card by paint order, while
+          the overlay canvas can honor its own z-index above profile content. */}
+      <div className={`${embedded ? "absolute" : "fixed"} inset-0 pointer-events-none`}>
         {BgLayers}
       </div>
       {backgroundAudio && <BackgroundAudioButton />}

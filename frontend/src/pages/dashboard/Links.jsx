@@ -30,7 +30,7 @@ const ALL_MAP = Object.fromEntries(PLATFORM_PRESETS.map((p) => [p.id, p]));
 // social link never means opening a dropdown.
 const QUICK_PRESETS = [
   "discord", "tiktok", "instagram", "youtube", "twitch",
-  "spotify", "x", "roblox", "github", "website",
+  "spotify", "x", "roblox", "github", "website", "paypal", "bitcoin", "ethereum", "solana",
 ];
 
 // A per-platform hint so the add flow explains what it wants.
@@ -42,6 +42,10 @@ const URL_PLACEHOLDER = {
   twitch: "https://twitch.tv/yourchannel",
   spotify: "https://open.spotify.com/user/...",
   x: "https://x.com/yourhandle",
+  paypal: "https://paypal.me/yourname",
+  bitcoin: "Bitcoin public address (for example bc1…)",
+  ethereum: "Ethereum public address (0x…)",
+  solana: "Solana public address",
   roblox: "https://roblox.com/users/123456/profile",
   github: "https://github.com/yourhandle",
   steam: "https://steamcommunity.com/id/yourhandle",
@@ -50,6 +54,27 @@ const URL_PLACEHOLDER = {
   product: "https://yourstore.com/product",
 };
 const placeholderFor = (id) => URL_PLACEHOLDER[id] || "https://...";
+const linkValidationError = (link) => {
+  const value = String(link.url || link.username || "").trim();
+  if (!value) return "Enter a public URL, username, or wallet address.";
+  if (["bitcoin", "ethereum", "solana"].includes(link.platform)) {
+    if (/https?:\/\//i.test(value)) {
+      try { const url = new URL(value); return url.protocol === "https:" ? "" : "Use an HTTPS public explorer or wallet link."; }
+      catch { return "Enter a valid HTTPS public link."; }
+    }
+    if (link.platform === "ethereum" && !/^0x[a-fA-F0-9]{40}$/.test(value)) return "Enter a 42-character public Ethereum address or HTTPS link.";
+    if (link.platform === "bitcoin" && !/^(bc1[ac-hj-np-z02-9]{11,71}|[13][a-km-zA-HJ-NP-Z1-9]{25,34})$/.test(value)) return "Enter a valid Bitcoin public address or HTTPS link.";
+    if (link.platform === "solana" && !/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(value)) return "Enter a valid Solana public address or HTTPS link.";
+    return "";
+  }
+  if (link.platform === "paypal") {
+    if (/^[A-Za-z0-9._-]{2,64}$/.test(value)) return "";
+    try { const url = new URL(value); return url.protocol === "https:" && ["paypal.me", "www.paypal.com", "paypal.com"].includes(url.hostname.toLowerCase()) ? "" : "Use a public PayPal.me or paypal.com link."; }
+    catch { return "Enter a PayPal username or public PayPal link."; }
+  }
+  try { const url = new URL(/^https?:\/\//i.test(value) ? value : `https://${value}`); return url.protocol === "https:" || url.protocol === "http:" ? "" : "Enter a valid web link."; }
+  catch { return "Enter a valid web link or platform username."; }
+};
 
 // The global defaults. Anything a link leaves unset inherits from here, so the
 // profile-wide "Global Styles" panel genuinely changes every link that follows
@@ -121,6 +146,7 @@ export default function Links() {
   const [showGlobalModal, setShowGlobalModal] = useState(false);
   const [platformQuery, setPlatformQuery] = useState("");
   const [dragIndex, setDragIndex] = useState(null);
+  const [modalError, setModalError] = useState("");
 
   const dirty = draftSignature(links, globals) !== savedSignature;
 
@@ -133,6 +159,7 @@ export default function Links() {
   const openAddLinkModal = (platform = "website") => {
     const meta = ALL_MAP[platform] || {};
     setPlatformQuery("");
+    setModalError("");
     setActiveModal({
       isNew: true,
       index: links.length,
@@ -151,6 +178,7 @@ export default function Links() {
 
   const openEditLinkModal = (i) => {
     setPlatformQuery("");
+    setModalError("");
     setActiveModal({ isNew: false, index: i, link: { ...links[i] } });
   };
 
@@ -198,6 +226,9 @@ export default function Links() {
 
   const saveModalLink = () => {
     if (!activeModal) return;
+    const validationError = linkValidationError(activeModal.link);
+    if (validationError) { setModalError(validationError); return; }
+    setModalError("");
     const { isNew, index, link } = activeModal;
     if (isNew) {
       setLinks([...links, link]);
@@ -573,18 +604,19 @@ export default function Links() {
                   />
                 </div>
 
-                <div>
-                  <label className="mb-1.5 block text-xs font-semibold text-zinc-300">URL / Handle</label>
+                <div>                    <label className="mb-1.5 block text-xs font-semibold text-zinc-300">{["bitcoin", "ethereum", "solana"].includes(activeModal.link.platform) ? "Public wallet address or explorer link" : activeModal.link.platform === "paypal" ? "Public PayPal link or username" : "URL / Handle"}</label>
                   <input
                     data-testid="link-url-input"
                     type="text"
                     value={activeModal.link.url || ""}
-                    onChange={(e) => patchLink({ url: e.target.value })}
+                    onChange={(e) => { patchLink({ url: e.target.value }); setModalError(""); }}
                     placeholder={placeholderFor(activeModal.link.platform)}
                     className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-3.5 py-2.5 text-xs text-zinc-100 outline-none transition-colors duration-200 focus:border-brand-500/50"
                   />
                 </div>
 
+                {modalError && <p role="alert" className="rounded-xl border border-rose-400/25 bg-rose-400/5 px-3.5 py-2.5 text-xs text-rose-200">{modalError}</p>}
+                {activeModal.link.platform.startsWith("crypto_") || ["bitcoin", "ethereum", "solana"].includes(activeModal.link.platform) ? <p className="rounded-xl border border-amber-400/15 bg-amber-400/5 px-3.5 py-2.5 text-[11px] leading-relaxed text-amber-100">Only enter a public wallet address or public explorer URL. Never enter a private key, recovery phrase, or wallet password.</p> : null}
                 {/* Display style */}
                 <div className="space-y-4 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
                   <div className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Display style</div>

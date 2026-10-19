@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import { motion } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import { api, setToken } from "@/lib/api";
@@ -9,7 +10,7 @@ import { FaDiscord } from "react-icons/fa6";
 import {
   AtSign, Award, Check, ChevronRight, Crown, Eye, Gift, Image as ImageIcon,
   LayoutTemplate, Loader2, Pencil, Settings, ShieldCheck, Sparkles, UserRound,
-  Copy, ExternalLink, Globe,
+  Copy, ExternalLink, Globe, Link2,
 } from "lucide-react";
 import { actionLabel } from "@/constants/audit";
 
@@ -121,6 +122,8 @@ export default function Overview() {
   const [placement, setPlacement] = useState(null);
   const [rewards, setRewards] = useState(null);
   const [activity, setActivity] = useState(null);
+  const [analyticsRange, setAnalyticsRange] = useState("7d");
+  const [activityError, setActivityError] = useState("");
 
   useEffect(() => {
     api.get("/me/leaderboard")
@@ -132,13 +135,20 @@ export default function Overview() {
   // rows — never a made-up counter.
   useEffect(() => {
     let alive = true;
-    Promise.allSettled([api.get("/me/rewards"), api.get("/me/activity")]).then(([r, a]) => {
-      if (!alive) return;
-      if (r.status === "fulfilled") setRewards(r.value.data);
-      if (a.status === "fulfilled") setActivity(a.value.data);
-    });
+    api.get("/me/rewards")
+      .then(({ data }) => { if (alive) setRewards(data); })
+      .catch(() => {});
     return () => { alive = false; };
   }, [user.username, user.views]);
+
+  useEffect(() => {
+    let alive = true;
+    setActivityError("");
+    api.get("/me/activity", { params: { range: analyticsRange } })
+      .then(({ data }) => { if (alive) setActivity(data); })
+      .catch(() => { if (alive) setActivityError("Profile analytics are temporarily unavailable."); });
+    return () => { alive = false; };
+  }, [user.username, user.views, analyticsRange]);
 
   const [claiming, setClaiming] = useState(false);
   const handleClaim = async (m) => {
@@ -165,16 +175,17 @@ export default function Overview() {
   const equipped = user.equipped_badges || [];
 
   const checklist = [
-    { icon: UserRound, label: "Upload an avatar", done: !!p.avatar_url, to: "/!/dashboard/editor" },
-    { icon: ImageIcon, label: "Add a background", done: !!p.background_url, to: "/!/dashboard/editor" },
-    { icon: AtSign, label: "Write your bio", done: !!p.bio, to: "/!/dashboard/editor" },
-    { icon: Award, label: "Unlock a badge", done: ownedBadges.length > 0, to: "/!/dashboard/badges" },
-    { icon: Eye, label: "Reach 10 profile views", done: (user.views || 0) >= 10, to: "/!/dashboard/stats" },
-    { icon: FaDiscord, label: "Link Discord account", done: !!user.discord?.linked, to: "/!/dashboard" },
+    { icon: UserRound, label: "Upload an avatar", done: !!p.avatar_url, to: "/!/dashboard/editor?section=media" },
+    { icon: ImageIcon, label: "Choose a background", done: !!p.background_url || !!p.background_color, to: "/!/dashboard/editor?section=media" },
+    { icon: AtSign, label: "Add a description", done: !!String(p.bio || "").trim(), to: "/!/dashboard/editor?section=media" },
+    { icon: FaDiscord, label: "Connect a Discord account", done: !!user.discord?.linked, to: "/!/dashboard/settings" },
+    { icon: Link2, label: "Add social links", done: links.some((link) => link?.enabled !== false && link?.url), to: "/!/dashboard/links" },
+    { icon: Eye, label: "Reach 10 profile views", done: Number(user.views || 0) >= 10, to: "/!/dashboard/stats" },
   ];
   const doneCount = checklist.filter((c) => c.done).length;
   const pct = Math.round((doneCount / checklist.length) * 100);
 
+  const aliasAvailability = user.username ? "Claimed" : "Unavailable";
   const linkDiscord = async () => {
     try {
       const token = localStorage.getItem("swats_token");
@@ -229,7 +240,7 @@ export default function Overview() {
   return (
     <div className="space-y-6" data-testid="overview-page">
       {/* The facts, one quiet strip: profile, tier, views, badges, rank. */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
         <StatChip
           icon={AtSign}
           label="Profile"
@@ -246,7 +257,9 @@ export default function Overview() {
           to="/!/dashboard/badges"
           testid="stat-badges"
         />
-        <StatChip icon={ShieldCheck} label="Rank" value={rank} to="/!/dashboard/leaderboard" testid="stat-rank" />
+        <StatChip icon={ShieldCheck} label="Account rank" value={rank} to="/!/dashboard/leaderboard" testid="stat-rank" />
+        <StatChip icon={AtSign} label="Alias status" value={aliasAvailability} to="/!/dashboard/settings" testid="stat-alias" />
+        <StatChip icon={UserRound} label="User ID" value={user.uid_number ? `#${user.uid_number}` : "—"} testid="stat-user-id" />
       </div>
 
       {/* Rewards and activity: the two things the strip above cannot say.
@@ -255,41 +268,27 @@ export default function Overview() {
       <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <Reveal>
           <div className="rounded-3xl glass p-5" data-testid="overview-activity">
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="flex items-center gap-2 font-display text-base font-bold text-zinc-100">
-                <Eye className="h-4 w-4 text-brand-300" /> Recent activity
+                <Eye className="h-4 w-4 text-brand-300" /> Profile statistics
               </h2>
-              <Link to="/!/dashboard/stats" className="font-mono2 text-[10px] uppercase tracking-wider text-zinc-500 transition hover:text-brand-300">
-                View stats
+              <Link to="/!/dashboard/stats" data-testid="analytics-view-more" className="font-mono2 text-[10px] uppercase tracking-wider text-zinc-500 transition hover:text-brand-300">
+                View analytics
               </Link>
             </div>
-
-            {!activity ? (
-              <div className="mt-4 h-24 animate-pulse rounded-2xl bg-white/[0.03]" />
+            <div className="mt-3 flex flex-wrap items-center gap-1.5" aria-label="Analytics time range">
+              {[['24h','24 hours'],['3d','3 days'],['7d','7 days'],['30d','30 days'],['all','All time']].map(([value,label]) => <button key={value} type="button" aria-pressed={analyticsRange === value} onClick={() => setAnalyticsRange(value)} className={`rounded-lg border px-2.5 py-1.5 text-[10px] font-semibold transition ${analyticsRange === value ? "border-brand-400/40 bg-brand-500/15 text-brand-100" : "border-white/10 text-zinc-400 hover:text-white"}`}>{label}</button>)}
+            </div>
+            {activityError ? <p className="mt-4 rounded-xl border border-amber-400/20 bg-amber-400/5 p-3 text-xs text-amber-200">{activityError}</p> : !activity ? (
+              <div className="mt-4 h-36 animate-pulse rounded-2xl bg-white/[0.03]" />
             ) : (
               <>
-                <div className="mt-4 flex items-end gap-1.5" data-testid="activity-bars">
-                  {(activity.days || []).length === 0 ? (
-                    <p className="text-xs text-zinc-500">No validated views in the last 14 days.</p>
-                  ) : (
-                    (activity.days || []).map((d) => {
-                      const peak = Math.max(...activity.days.map((x) => Number(x.views) || 0), 1);
-                      const h = Math.max(6, Math.round((Number(d.views) / peak) * 56));
-                      return (
-                        <span
-                          key={d.day}
-                          title={`${d.views} view${Number(d.views) === 1 ? "" : "s"} on ${d.day}`}
-                          className="flex-1 rounded-t bg-gradient-to-t from-brand-600/40 to-brand-400 transition-all hover:from-brand-500 hover:to-brand-300"
-                          style={{ height: h }}
-                        />
-                      );
-                    })
-                  )}
-                </div>
+                {(activity.days || []).length === 0 ? <div className="mt-4 flex h-36 items-center justify-center rounded-2xl border border-dashed border-white/10 text-center text-xs text-zinc-500">No validated profile views in this period yet. Share your profile to start collecting analytics.</div> : <div className="mt-4 h-36" data-testid="activity-chart"><ResponsiveContainer width="100%" height="100%"><AreaChart data={activity.days}><defs><linearGradient id="overviewViews" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#ec4899" stopOpacity={0.36}/><stop offset="100%" stopColor="#ec4899" stopOpacity={0}/></linearGradient></defs><XAxis dataKey="day" hide/><Tooltip contentStyle={{ background: "#18141a", border: "1px solid #ffffff18", borderRadius: 12 }} labelFormatter={(label) => fmtDay(label)} /><Area type="monotone" dataKey="views" stroke="#ec4899" fill="url(#overviewViews)" strokeWidth={2} /></AreaChart></ResponsiveContainer></div>}
                 <div className="mt-2 flex items-center justify-between font-mono2 text-[10px] text-zinc-500">
-                  <span>{activity.total_last_14 || 0} views · 14 days</span>
-                  <span>{fmtDay((activity.days || [])[0]?.day)}</span>
+                  <span>{Number(activity.total || 0).toLocaleString()} views · {analyticsRange === "all" ? "all time" : analyticsRange}</span>
+                  <span>{activity.week_change ? `${activity.week_change.delta >= 0 ? "+" : ""}${activity.week_change.delta} vs previous week` : ""}</span>
                 </div>
+                <div className="mt-3 flex flex-wrap gap-2" data-testid="device-breakdown">{(activity.devices || []).length ? activity.devices.map((device) => <span key={device.device} className="rounded-lg border border-white/10 bg-white/[0.03] px-2.5 py-1.5 text-[10px] text-zinc-400">{device.device}: {device.views}</span>) : <span className="text-[10px] text-zinc-600">Device breakdown appears when views are recorded.</span>}</div>
 
                 <ul className="mt-4 space-y-1.5 border-t border-white/5 pt-3">
                   {(activity.events || []).length === 0 ? (
@@ -409,7 +408,7 @@ export default function Overview() {
           action={
             <Link
               to="/!/dashboard/editor"
-              data-testid="analytics-view-more"
+              data-testid="open-editor-link"
               className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-1.5 text-xs font-semibold text-zinc-200 outline-none transition-colors duration-200 hover:border-brand-400/30 hover:bg-brand-500/10 hover:text-white focus-visible:ring-2 focus-visible:ring-brand-500/50"
             >
               Open the editor <ChevronRight className="h-3.5 w-3.5" />
@@ -488,7 +487,8 @@ export default function Overview() {
                     testid="qa-username"
                     onClick={() => navigate("/!/dashboard/settings")}
                   />
-                  <QuickAction icon={LayoutTemplate} label="Customize" testid="qa-layout" onClick={() => navigate("/!/dashboard/templates")} />
+                  <QuickAction icon={LayoutTemplate} label="Customize" testid="qa-layout" onClick={() => navigate("/!/dashboard/editor?section=card")} />
+                  <QuickAction icon={ExternalLink} label="Setup guide" testid="qa-docs" onClick={() => navigate("/!/docs")} />
                   <QuickAction icon={Settings} label="Settings" testid="qa-settings" onClick={() => navigate("/!/dashboard/settings")} />
                 </div>
               </div>

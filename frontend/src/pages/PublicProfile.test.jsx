@@ -5,7 +5,7 @@ import { act } from "react";
 // so the component can mount outside a <BrowserRouter>.
 jest.mock("react-router-dom", () => ({
   useParams: () => ({ alias: "tester" }),
-  Link: ({ children, ...rest }) => <a {...rest}>{children}</a>,
+  Link: ({ children, to, ...rest }) => <a href={typeof to === "string" ? to : undefined} {...rest}>{children}</a>,
 }));
 
 // The component must import fileUrl itself; mocking the module still leaves an
@@ -190,17 +190,15 @@ it("ignores the retired 18+ flag and shows the profile straight away", async () 
   expect(container.textContent).toContain("hello world");
 });
 
-it("keeps the footer nudge by default", async () => {
+it("shows the branded Made in swats.bio attribution with a home link", async () => {
   await mount();
-  // The footer is the short logotype pill: logo + "swats", not the long
-  // "made with swats.bio" string it used to render, and it hugs its own content
-  // (no stretched glass bar across the bottom of the page).
-  expect(container.textContent).toContain("swats");
   const pill = container.querySelector('[data-testid="profile-footer-pill"]');
   expect(pill).toBeTruthy();
-  expect(pill.className).toContain("w-auto");
-  expect(pill.className).toContain("text-[10px]");
-  expect(pill.className).not.toContain("px-3");
+  expect(pill.textContent.trim()).toBe("Made in swats.bio");
+  expect(pill.getAttribute("href")).toBe("/!/home");
+  expect(pill.className).toContain("bg-gradient-to-r");
+  expect(pill.className).toContain("px-5");
+  expect(pill.querySelector("img")).toBeTruthy();
 });
 
 it("hides the footer nudge when the owner has paid for that", async () => {

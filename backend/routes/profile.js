@@ -512,14 +512,31 @@ router.post('/rewards/claim', requireAuth, async (req, res) => {
 // last validated views per day plus the account's own audit events.
 router.get('/activity', requireAuth, async (req, res) => {
   try {
-    const [daily, events] = await Promise.all([
+    const allowedRanges = new Set(['24h', '3d', '7d', '30d', 'all']);
+    const range = allowedRanges.has(req.query.range) ? req.query.range : '7d';
+    const rangeIntervals = { '24h': '24 hours', '3d': '3 days', '7d': '7 days', '30d': '30 days' };
+    const rangeSql = range === 'all' ? "'-infinity'::timestamptz" : `NOW() - INTERVAL '${rangeIntervals[range]}'`;
+    const [daily, devices, comparisons, events] = await Promise.all([
       query(
         `SELECT to_char(date_trunc('day', viewed_at), 'YYYY-MM-DD') AS day, COUNT(*)::int AS views
            FROM profile_views
-          WHERE user_id = $1 AND viewed_at > NOW() - INTERVAL '14 days'
+          WHERE user_id = $1 AND viewed_at >= ${rangeSql}
           GROUP BY 1 ORDER BY 1`,
         [req.user.id]
-      ).catch(() => ({ rows: [] })),
+      ),
+      query(
+        `SELECT device_type, COUNT(*)::int AS views
+           FROM profile_views
+          WHERE user_id = $1 AND viewed_at >= ${rangeSql}
+          GROUP BY device_type`,
+        [req.user.id]
+      ),
+      query(
+        `SELECT COUNT(*) FILTER (WHERE viewed_at >= NOW() - INTERVAL '7 days')::int AS current_week,
+                COUNT(*) FILTER (WHERE viewed_at >= NOW() - INTERVAL '14 days' AND viewed_at < NOW() - INTERVAL '7 days')::int AS previous_week
+           FROM profile_views WHERE user_id = $1`,
+        [req.user.id]
+      ),
       query(
         `SELECT action, detail, created_at
            FROM audit_events
@@ -530,9 +547,15 @@ router.get('/activity', requireAuth, async (req, res) => {
       ).catch(() => ({ rows: [] })),
     ]);
     const total = daily.rows.reduce((sum, d) => sum + Number(d.views || 0), 0);
+    const currentWeek = Number(comparisons.rows[0]?.current_week || 0);
+    const previousWeek = Number(comparisons.rows[0]?.previous_week || 0);
     return res.json({
+      range,
       days: daily.rows,
+      total,
       total_last_14: total,
+      devices: devices.rows.map((row) => ({ device: row.device_type, views: Number(row.views || 0) })),
+      week_change: { current: currentWeek, previous: previousWeek, delta: currentWeek - previousWeek, percent: previousWeek ? Math.round(((currentWeek - previousWeek) / previousWeek) * 100) : null },
       events: events.rows.map((e) => ({
         action: e.action,
         detail: e.detail || {},

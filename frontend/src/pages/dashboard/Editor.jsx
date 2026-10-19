@@ -1,4 +1,5 @@
 import { memo, useMemo, useState, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { PremiumGate } from "@/components/ui-shared/PremiumGate";
 import { api, fileUrl } from "@/lib/api";
@@ -39,6 +40,31 @@ const SUBTABS = [
   { id: "card", label: "Card Layout & Style" },
   { id: "entry", label: "Entry Screen" },
 ];
+const SECTION_SUBTAB = { card: "card", effects: "effects", media: "profile", entry: "entry" };
+
+function SharedWidgetCardPanel({ profile, onChange }) {
+  const [previewKind, setPreviewKind] = useState("discord");
+  const style = {
+    borderWidth: Number(profile.widget_card_border_width ?? 1),
+    borderOpacity: Number(profile.widget_card_border_opacity ?? 24),
+    borderColor: profile.widget_card_border_color || "#ffffff",
+    backgroundColor: profile.widget_card_background_color || "#121218",
+    backgroundOpacity: Number(profile.widget_card_background_opacity ?? 82),
+    blur: Number(profile.widget_card_background_blur ?? 10),
+  };
+  const update = (key, value) => onChange({ ...profile, [key]: value });
+  return <Section title="Shared widget card appearance" hint="One profile-wide style for supported widgets">
+    <p className="mb-4 text-xs leading-relaxed text-zinc-500">These inherited values style every widget card. Image-backed widgets keep their artwork; background color is used only when no image background is present.</p>
+    <div className="grid gap-4 sm:grid-cols-2">
+      {[{ key: "widget_card_border_width", label: "Border width", value: style.borderWidth, max: 6, suffix: "px" }, { key: "widget_card_border_opacity", label: "Border opacity", value: style.borderOpacity, max: 100, suffix: "%" }, { key: "widget_card_background_opacity", label: "Background opacity", value: style.backgroundOpacity, max: 100, suffix: "%" }, { key: "widget_card_background_blur", label: "Background blur", value: style.blur, max: 30, suffix: "px" }].map((field) => <SliderRow key={field.key} testid={field.key} label={field.label} value={field.value} min={0} max={field.max} suffix={field.suffix} onChange={(value) => update(field.key, value)} />)}
+      <ColorPicker label="Border color" value={style.borderColor} onChange={(value) => update("widget_card_border_color", value)} />
+      <ColorPicker label="Background color" value={style.backgroundColor} onChange={(value) => update("widget_card_background_color", value)} />
+    </div>
+    <div className="mt-5 flex flex-wrap items-center gap-2"><span className="mr-2 text-xs font-semibold text-zinc-400">Preview:</span>{[["discord","Discord"],["spotify","Audio"],["github","Creator"]].map(([id,label]) => <button key={id} type="button" aria-pressed={previewKind === id} onClick={() => setPreviewKind(id)} className={`rounded-lg border px-3 py-1.5 text-[11px] ${previewKind === id ? "border-brand-400/40 bg-brand-500/15 text-brand-100" : "border-white/10 text-zinc-400"}`}>{label}</button>)}</div>
+    <div data-testid="widget-card-shared-preview" className="mt-3 rounded-2xl p-4 transition-colors" style={{ border: `${style.borderWidth}px solid ${style.borderColor}${Math.round(style.borderOpacity * 2.55).toString(16).padStart(2,"0")}`, backgroundColor: `${style.backgroundColor}${Math.round(style.backgroundOpacity * 2.55).toString(16).padStart(2,"0")}`, backdropFilter: `blur(${style.blur}px)` }}><div className="flex items-center gap-3"><span className="grid h-9 w-9 place-items-center rounded-xl bg-white/10 text-brand-300">{previewKind === "discord" ? "D" : previewKind === "spotify" ? "♫" : "GH"}</span><div className="min-w-0"><div className="truncate text-sm font-semibold text-white">{previewKind === "discord" ? "Community server" : previewKind === "spotify" ? "Now playing" : "Creator profile"}</div><div className="text-xs text-zinc-400">Shared widget styling preview</div></div></div></div>
+    <button type="button" onClick={() => onChange({ ...profile, widget_card_border_width: 1, widget_card_border_opacity: 24, widget_card_border_color: "#ffffff", widget_card_background_color: "#121218", widget_card_background_opacity: 82, widget_card_background_blur: 10 })} className="mt-3 rounded-lg border border-white/10 px-3 py-2 text-xs text-zinc-300 hover:bg-white/5">Reset shared style</button>
+  </Section>;
+}
 
 export const CARD_STYLE_PRESETS = {
   classic: {
@@ -815,7 +841,17 @@ export default function Editor() {
   const [premiumFeature, setPremiumFeature] = useState(null);
   const askPremium = (feature) => () => setPremiumFeature(feature);
   const gate = useEditGate();
-  const [sub, setSub] = useState("profile");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const sectionParam = searchParams.get("section");
+  const [sub, setSubState] = useState(() => SECTION_SUBTAB[sectionParam] || "profile");
+  const setSub = (id) => {
+    setSubState(id);
+    const section = id === "card" ? "card" : id === "effects" ? "effects" : id === "entry" ? "entry" : "media";
+    setSearchParams({ section }, { replace: true });
+  };
+  useEffect(() => {
+    setSubState(SECTION_SUBTAB[sectionParam] || "profile");
+  }, [sectionParam]);
   const [showDecoModal, setShowDecoModal] = useState(false);
   // The one panel every hover label and every footer-line setting lives in.
   const [showTipPanel, setShowTipPanel] = useState(false);
@@ -1370,6 +1406,7 @@ export default function Editor() {
 
           {sub === "card" && (
             <>
+              <SharedWidgetCardPanel profile={p} onChange={setP} />
               <Section title="Layout Mode" hint="Every layout renders differently">
                 <LayoutPicker 
                   value={p.layout} 

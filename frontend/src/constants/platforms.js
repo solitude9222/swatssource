@@ -6,7 +6,7 @@ import {
 } from "react-icons/fa6";
 import {
   SiValorant, SiEpicgames, SiKick, SiNetflix, SiRiotgames, SiRoblox,
-  SiApplemusic, SiCashapp, SiCrunchyroll, SiWise, SiOsu
+  SiApplemusic, SiCashapp, SiCrunchyroll, SiWise, SiOsu, SiBitcoin, SiEthereum, SiSolana
 } from "react-icons/si";
 
 // 30+ supported platforms
@@ -30,6 +30,9 @@ export const PLATFORMS = [
   { id: "applemusic", name: "Apple Music", Icon: SiApplemusic, color: "#FA57C1" },
   { id: "apple", name: "Apple", Icon: FaApple, color: "#f5f5f5" },
   { id: "paypal", name: "PayPal", Icon: FaPaypal, color: "#00457C" },
+  { id: "bitcoin", name: "Bitcoin", Icon: SiBitcoin, color: "#F7931A" },
+  { id: "ethereum", name: "Ethereum", Icon: SiEthereum, color: "#627EEA" },
+  { id: "solana", name: "Solana", Icon: SiSolana, color: "#9945FF" },
   { id: "cashapp", name: "CashApp", Icon: SiCashapp, color: "#00D632" },
   { id: "linkedin", name: "LinkedIn", Icon: FaLinkedin, color: "#0A66C2" },
   { id: "behance", name: "Behance", Icon: FaBehance, color: "#1769ff" },

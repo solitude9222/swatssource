@@ -142,7 +142,7 @@ const renderAt = (path, element) => {
         <Routes>
           {/* The page under test renders as the index child of the shell at
               whatever path it was handed, so a new page needs no new route. */}
-          <Route path={path} element={<DashboardLayout />}>
+          <Route path={path.split("?")[0]} element={<DashboardLayout />}>
             <Route index element={element} />
           </Route>
           <Route path="/!/pricing" element={<div>pricing page</div>} />
@@ -943,8 +943,7 @@ describe("avatar decoration catalogue picker", () => {
 });
 describe("editor entry screen", () => {
   const openEntry = () => {
-    renderAt("/!/dashboard/editor", <Editor />);
-    click(subtab("entry"));
+    renderAt("/!/dashboard/editor?section=entry", <Editor />);
     click(container.querySelector('[data-testid="entry-enable"]'));
   };
 
@@ -1030,6 +1029,12 @@ describe("links page", () => {
   it("saves the draft links to the profile", async () => {
     renderAt("/!/dashboard", <Links />);
     click(container.querySelector('[data-testid="link-preset-tiktok"]'));
+    const urlInput = container.querySelector('[data-testid="link-url-input"]');
+    act(() => {
+      const valueSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set;
+      valueSetter.call(urlInput, "https://www.tiktok.com/@tester");
+      urlInput.dispatchEvent(new Event("input", { bubbles: true }));
+    });
     click(container.querySelector('[data-testid="link-modal-apply"]'));
 
     await act(async () => {

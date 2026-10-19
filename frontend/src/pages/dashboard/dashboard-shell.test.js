@@ -121,28 +121,29 @@ describe("reworked dashboard shell", () => {
   it("renders dropdown categories whose header is a real toggle", async () => {
     await renderDashboard();
 
-    const account = container.querySelector('[data-testid="navgroup-account"]');
+    const overview = container.querySelector('[data-testid="tab-overview"]');
     const customization = container.querySelector('[data-testid="navgroup-customization"]');
-    const insights = container.querySelector('[data-testid="navgroup-insights"]');
-    expect(account).toBeTruthy();
+    expect(overview).toBeTruthy();
+    expect(overview.textContent).toContain("Overview");
     expect(customization).toBeTruthy();
-    expect(insights).toBeTruthy();
 
-    // Expanded by default, and folding one flips its aria state.
-    expect(insights.getAttribute("aria-expanded")).toBe("true");
-    click(insights);
-    expect(insights.getAttribute("aria-expanded")).toBe("false");
+    // The expandable customization group exposes the required named destinations.
+    expect(customization.getAttribute("aria-expanded")).toBe("true");
+    for (const id of ["tab-badges", "tab-card-layout", "tab-links", "tab-widgets", "tab-effects-media", "tab-entry-screen"]) {
+      expect(container.querySelector(`[data-testid="${id}"]`)).toBeTruthy();
+    }
+    click(customization);
+    expect(customization.getAttribute("aria-expanded")).toBe("false");
   });
 
-  it("shows the active category as the title and its pages as a tab strip", async () => {
+  it("shows the active category title and keeps the requested destinations grouped", async () => {
     await renderDashboard();
 
-    expect(container.querySelector("h1").textContent).toBe("Account");
-    // The reference strip: the pages of the Account category.
+    expect(container.querySelector("h1").textContent).toBe("Main");
     expect(container.querySelector('[data-testid="tab-overview"]')).toBeTruthy();
-    expect(container.querySelector('[data-testid="tab-stats"]')).toBeTruthy();
-    expect(container.querySelector('[data-testid="tab-badges"]')).toBeTruthy();
-    expect(container.querySelector('[data-testid="tab-settings"]')).toBeTruthy();
+    for (const id of ["tab-shop", "tab-leaderboard", "tab-templates", "tab-settings"]) {
+      expect(container.querySelector(`[data-testid="${id}"]`)).toBeTruthy();
+    }
 
     // Sidebar extras from the reference: the Discord card. The language
     // dropdown is gone — switching it did nothing but toast the choice.
@@ -174,6 +175,7 @@ describe("overview statistics", () => {
     expect(container.querySelector('[data-testid="connect-card"]')).toBeTruthy();
     expect(container.querySelector('[data-testid="connect-discord-btn"]')).toBeTruthy();
     expect(container.querySelector('[data-testid="analytics-view-more"]')).toBeTruthy();
+    expect(container.querySelector('[data-testid="device-breakdown"]')).toBeTruthy();
 
     // Account quick actions.
     for (const id of ["qa-username", "qa-layout", "qa-settings"]) {
@@ -188,11 +190,11 @@ describe("overview statistics", () => {
     expect(container.querySelector('[data-testid="stat-views"]').getAttribute("href")).toContain("/!/dashboard/stats");
     expect(container.querySelector('[data-testid="stat-badges"]').getAttribute("href")).toContain("/!/dashboard/badges");
 
-    // Clicking a chip opens nothing: the old modal zoo (alias, uid, views, tier,
-    // badges, layout) is retired with the clutter it made.
-    const before = document.querySelectorAll('[data-testid^="modal-"]').length;
-    click(container.querySelector('[data-testid="stat-username"]'));
-    expect(document.querySelectorAll('[data-testid^="modal-"]').length).toBe(before);
+    // Stat chips are links, not buttons that open hidden dialogs.
+    const username = container.querySelector('[data-testid="stat-username"]');
+    expect(username.tagName).toBe("A");
+    expect(username.getAttribute("href")).toBe("/tester");
+    expect(document.querySelectorAll('[data-testid^="modal-"]').length).toBe(0);
     expect(document.body.style.overflow).toBe("");
   });
 });

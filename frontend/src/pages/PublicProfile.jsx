@@ -335,11 +335,9 @@ export default function PublicProfile() {
       )}
 
       {p.hide_footer !== true && (
-        // A small pill, not a bar: logo and logotype only, hugging their own
-        // content instead of stretching a glass bar across the bottom of the
-        // page.
-        <Link to="/!/home" className="fixed bottom-3 left-1/2 -translate-x-1/2 z-20 inline-flex w-auto items-center gap-1 rounded-full border border-white/10 bg-black/45 px-2 py-1 text-[10px] font-medium leading-none text-zinc-400 backdrop-blur transition-colors hover:text-zinc-100" data-testid="profile-footer-pill" title="made in swats">
-          <img src="/logo.png" alt="swats.bio" className="h-3 w-3 rounded-sm object-contain" /> swats
+        <Link to="/!/home" className="fixed bottom-4 left-1/2 z-20 inline-flex w-auto max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center gap-2.5 rounded-full border border-pink-200/25 bg-gradient-to-r from-white/95 via-white/90 to-pink-50/95 px-5 py-3 text-[10px] font-semibold tracking-tight text-pink-700 shadow-[0_8px_30px_rgba(236,72,153,0.2)] backdrop-blur-xl transition duration-200 hover:-translate-y-0.5 hover:border-pink-300/60 hover:shadow-[0_12px_36px_rgba(236,72,153,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-400" data-testid="profile-footer-pill" title="Made in swats.bio">
+          <img src="/logo.png" alt="" className="h-5 w-5 shrink-0 rounded-md object-contain" />
+          <span className="truncate">Made in swats.bio</span>
         </Link>
       )}
     </div>
