@@ -90,7 +90,7 @@ export function SmartSelect({
   const pad = size === "sm" ? "px-2.5 py-1.5 text-[11px]" : "px-3 py-2 text-sm";
 
   return (
-    <div ref={rootRef} className={`relative ${className}`} data-testid={testid}>
+    <div ref={rootRef} className={`relative ${open ? "z-[99]" : "z-auto"} ${className}`} data-testid={testid}>
       <button
         type="button"
         disabled={disabled}
@@ -113,7 +113,7 @@ export function SmartSelect({
         <ul
           role="listbox"
           aria-label={ariaLabel}
-          className={`absolute z-50 mt-1.5 max-h-64 min-w-full overflow-y-auto rounded-xl border border-white/10 bg-[#0A0A0D]/98 p-1 shadow-[0_20px_60px_rgba(0,0,0,0.85)] backdrop-blur-xl animate-in fade-in zoom-in-95 duration-100 ${
+          className={`absolute z-[100] mt-1.5 max-h-64 min-w-full overflow-y-auto rounded-xl border border-white/10 bg-[#0A0A0D]/98 p-1 shadow-[0_20px_60px_rgba(0,0,0,0.85)] backdrop-blur-xl animate-in fade-in zoom-in-95 duration-100 ${
             align === "right" ? "right-0" : "left-0"
           }`}
         >

@@ -156,6 +156,7 @@ function TrackCardPreview({ track, style, accent, volume = 0.8, onTime, autoPlay
   const [duration, setDuration] = useState(0);
   // The visitor's own mute, on top of the owner's saved default volume. It
   // rides in session state only: every page load starts from the owner's dial.
+  const [visitorVolume, setVisitorVolume] = useState(volume);
   const [muted, setMuted] = useState(false);
   const audioRef = useRef(null);
   const hasAutoPlayed = useRef(false);
@@ -164,18 +165,26 @@ function TrackCardPreview({ track, style, accent, volume = 0.8, onTime, autoPlay
   const cover = fileUrl(track.cover) || fileUrl(track.artwork) || "";
   const audioSrc = fileUrl(track.url) || fileUrl(track.audio_url) || "";
 
-  // The dashboard's "Default volume" slider persists track_volume, but the
-  // profile never read it back, so the setting had no effect. The visitor's
-  // mute sits on top of it: zero beats every other volume decision.
-  // Both switches, so the visitor's mute and the autoplay fallback cannot
-  // disagree: a track started muted by the browser is unmuted by this same
-  // effect the moment the visitor (or the first gesture) clears the mute.
+  useEffect(() => {
+    setVisitorVolume(volume);
+  }, [volume]);
+
   useEffect(() => {
     const el = audioRef.current;
     if (!el) return;
-    el.volume = muted ? 0 : volume;
+    el.volume = muted ? 0 : visitorVolume;
     el.muted = muted;
-  }, [volume, muted]);
+  }, [visitorVolume, muted]);
+
+  const handleVolumeChange = (newVol) => {
+    const clamped = Math.max(0, Math.min(1, newVol));
+    setVisitorVolume(clamped);
+    if (clamped > 0 && muted) setMuted(false);
+    if (audioRef.current) {
+      audioRef.current.volume = clamped;
+      if (clamped > 0) audioRef.current.muted = false;
+    }
+  };
 
   // Release the audio element when the card goes away.
   useEffect(
@@ -374,6 +383,39 @@ function TrackCardPreview({ track, style, accent, volume = 0.8, onTime, autoPlay
             <span>{timeLabel}</span>
             <span>click to seek</span>
           </div>
+          <div className="mt-2.5 flex items-center justify-between gap-2 border-t border-white/10 pt-2">
+            <button
+              type="button"
+              onClick={() => setMuted((m) => !m)}
+              aria-label={muted ? "Unmute track" : "Mute track"}
+              className="flex items-center gap-1.5 text-[10px] text-zinc-400 hover:text-zinc-200 transition"
+            >
+              {muted || visitorVolume === 0 ? <VolumeX className="h-3 w-3" /> : <Volume2 className="h-3 w-3" />}
+              <span>{muted ? "Muted" : `${Math.round(visitorVolume * 100)}%`}</span>
+            </button>
+            <div
+              data-testid="audio-volume-slider"
+              role="slider"
+              aria-label="Track volume"
+              aria-valuenow={muted ? 0 : Math.round(visitorVolume * 100)}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              className="relative h-1.5 w-24 cursor-pointer rounded-full bg-white/10 overflow-hidden"
+              onClick={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+                handleVolumeChange(pct);
+              }}
+            >
+              <div
+                className="h-full rounded-full transition-all duration-75"
+                style={{
+                  width: `${(muted ? 0 : visitorVolume) * 100}%`,
+                  background: `linear-gradient(90deg, ${accent}, ${accent}dd)`,
+                }}
+              />
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -405,14 +447,38 @@ function TrackCardPreview({ track, style, accent, volume = 0.8, onTime, autoPlay
             <div className="h-full rounded-full transition-all duration-150" style={{ width: `${progress}%`, background: `linear-gradient(90deg, ${accent}, ${accent}dd)` }} />
           </div>
           <span className="shrink-0 font-mono2 text-[9px] tabular-nums text-zinc-400">{timeLabel}</span>
-          <button
-            type="button"
-            onClick={() => setMuted((m) => !m)}
-            aria-label={muted ? "Unmute track" : "Mute track"}
-            className="shrink-0 text-zinc-400 transition hover:text-white"
-          >
-            {muted ? <VolumeX className="h-3 w-3" /> : <Volume2 className="h-3 w-3" />}
-          </button>
+          <div className="flex items-center gap-1.5 shrink-0 group/vol">
+            <button
+              type="button"
+              onClick={() => setMuted((m) => !m)}
+              aria-label={muted ? "Unmute track" : "Mute track"}
+              className="shrink-0 text-zinc-400 transition hover:text-white"
+            >
+              {muted || visitorVolume === 0 ? <VolumeX className="h-3 w-3" /> : <Volume2 className="h-3 w-3" />}
+            </button>
+            <div
+              data-testid="audio-volume-slider"
+              role="slider"
+              aria-label="Track volume"
+              aria-valuenow={muted ? 0 : Math.round(visitorVolume * 100)}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              className="relative h-1.5 w-12 sm:w-16 cursor-pointer rounded-full bg-white/10 overflow-hidden"
+              onClick={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+                handleVolumeChange(pct);
+              }}
+            >
+              <div
+                className="h-full rounded-full transition-all duration-75"
+                style={{
+                  width: `${(muted ? 0 : visitorVolume) * 100}%`,
+                  background: `linear-gradient(90deg, ${accent}, ${accent}dd)`,
+                }}
+              />
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -453,14 +519,38 @@ function TrackCardPreview({ track, style, accent, volume = 0.8, onTime, autoPlay
             <div className="truncate text-[10px] text-zinc-400 font-medium mt-0.5"><Value v={track.artist} empty="Unknown artist" /></div>
           </div>
           <span className="shrink-0 font-mono2 text-[9px] tabular-nums text-zinc-400">{timeLabel}</span>
-          <button
-            type="button"
-            onClick={() => setMuted((m) => !m)}
-            aria-label={muted ? "Unmute track" : "Mute track"}
-            className="shrink-0 text-zinc-400 transition hover:text-white"
-          >
-            {muted ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
-          </button>
+          <div className="flex items-center gap-1.5 shrink-0 group/vol">
+            <button
+              type="button"
+              onClick={() => setMuted((m) => !m)}
+              aria-label={muted ? "Unmute track" : "Mute track"}
+              className="shrink-0 text-zinc-400 transition hover:text-white"
+            >
+              {muted || visitorVolume === 0 ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
+            </button>
+            <div
+              data-testid="audio-volume-slider"
+              role="slider"
+              aria-label="Track volume"
+              aria-valuenow={muted ? 0 : Math.round(visitorVolume * 100)}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              className="relative h-1.5 w-14 sm:w-16 cursor-pointer rounded-full bg-white/10 overflow-hidden"
+              onClick={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+                handleVolumeChange(pct);
+              }}
+            >
+              <div
+                className="h-full rounded-full transition-all duration-75"
+                style={{
+                  width: `${(muted ? 0 : visitorVolume) * 100}%`,
+                  background: `linear-gradient(90deg, ${accent}, ${accent}dd)`,
+                }}
+              />
+            </div>
+          </div>
         </div>
         <div
           data-testid="track-scrubber"

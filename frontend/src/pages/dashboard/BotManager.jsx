@@ -3,7 +3,7 @@ import { api } from "@/lib/api";
 import { toast } from "@/lib/notify";
 import {
   Bot, ChevronDown, ChevronUp, RefreshCw, Save, Loader2, Plus, Trash2,
-  Zap, Power, CircleDot, UserPlus,
+  Zap, Power, CircleDot, UserPlus, ShieldCheck, Hash,
 } from "lucide-react";
 import { FaDiscord as FaDiscordIcon } from "react-icons/fa6";
 import { SmartSelect } from "@/components/ui-shared/SmartSelect";
@@ -85,6 +85,29 @@ function RolePicker({ label, hint, value, onChange, roles, disabled, testid }) {
           {selected.member_count ?? "?"} member(s) hold this role
         </div>
       )}
+    </div>
+  );
+}
+
+function ChannelPicker({ label, hint, value, onChange, channels, disabled, testid }) {
+  const options = [
+    { value: "", label: "— none (disabled) —" },
+    ...channels.map((c) => ({ value: c.id, label: `#${c.name}` })),
+  ];
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-3.5">
+      <div className="mb-2 flex items-baseline justify-between gap-2">
+        <span className="text-xs font-semibold text-zinc-200">{label}</span>
+        {hint && <span className="font-mono2 text-[10px] text-zinc-500">{hint}</span>}
+      </div>
+      <SmartSelect
+        testid={testid}
+        ariaLabel={label}
+        value={value || ""}
+        onChange={(v) => onChange(v || null)}
+        options={options}
+        disabled={disabled}
+      />
     </div>
   );
 }
@@ -230,6 +253,7 @@ export default function BotManager() {
   const configured = panel.configured;
   const presence = panel.presence || {};
   const roles = panel.roles || [];
+  const channels = panel.channels || [];
   const d = draft || {};
   const settings = d.presence || { status: "online", custom_status: "" };
 
@@ -448,6 +472,134 @@ export default function BotManager() {
                 Listening for joins and Nitro changes now.
               </p>
             )}
+          </div>
+
+          {/* AutoMod & Channel Enforcement */}
+          <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-4 space-y-4" data-testid="bot-automod">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+                <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" /> AutoMod &amp; Channel Enforcement
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={d.automod_enabled !== false}
+                disabled={!configured || saving}
+                onClick={() => setDraft({ ...d, automod_enabled: d.automod_enabled === false })}
+                data-testid="bot-automod-toggle"
+                className={`relative h-6 w-11 shrink-0 rounded-full transition disabled:opacity-40 ${
+                  d.automod_enabled !== false ? "bg-brand-500" : "bg-white/15"
+                }`}
+              >
+                <span
+                  className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${
+                    d.automod_enabled !== false ? "left-[1.375rem]" : "left-0.5"
+                  }`}
+                />
+              </button>
+            </div>
+
+            <p className="text-[11px] leading-relaxed text-zinc-500">
+              Configure automated channel moderation, show-off validation, and logging channels.
+            </p>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <ChannelPicker
+                label="Show-off channel"
+                hint="only valid swats.bio/<user> links allowed"
+                value={d.showoff_channel_id}
+                onChange={(v) => setDraft({ ...d, showoff_channel_id: v })}
+                channels={channels}
+                disabled={!configured || saving || d.automod_enabled === false}
+                testid="showoff-channel-select"
+              />
+              <ChannelPicker
+                label="Mod log channel"
+                hint="automod actions & violations posted here"
+                value={d.mod_log_channel_id}
+                onChange={(v) => setDraft({ ...d, mod_log_channel_id: v })}
+                channels={channels}
+                disabled={!configured || saving || d.automod_enabled === false}
+                testid="mod-log-channel-select"
+              />
+            </div>
+
+            <div className="space-y-2.5 pt-1">
+              <div className="flex items-center justify-between gap-3 p-2.5 rounded-xl border border-white/5 bg-white/[0.01]">
+                <div>
+                  <div className="text-xs font-semibold text-zinc-200">Delete Invalid Show-off Messages</div>
+                  <div className="text-[10px] text-zinc-500">
+                    Immediately deletes messages not starting with a valid, registered user's swats.bio link.
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={d.automod_delete_invalid_showoff !== false}
+                  disabled={!configured || saving || d.automod_enabled === false || !d.showoff_channel_id}
+                  onClick={() => setDraft({ ...d, automod_delete_invalid_showoff: d.automod_delete_invalid_showoff === false })}
+                  className={`relative h-5 w-9 shrink-0 rounded-full transition disabled:opacity-40 ${
+                    d.automod_delete_invalid_showoff !== false ? "bg-emerald-500" : "bg-white/15"
+                  }`}
+                >
+                  <span
+                    className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all ${
+                      d.automod_delete_invalid_showoff !== false ? "left-[1.125rem]" : "left-0.5"
+                    }`}
+                  />
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between gap-3 p-2.5 rounded-xl border border-white/5 bg-white/[0.01]">
+                <div>
+                  <div className="text-xs font-semibold text-zinc-200">Anti-Invite Filter</div>
+                  <div className="text-[10px] text-zinc-500">
+                    Deletes unauthorized Discord invite links across server channels and logs the incident.
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={!!d.automod_anti_invite}
+                  disabled={!configured || saving || d.automod_enabled === false}
+                  onClick={() => setDraft({ ...d, automod_anti_invite: !d.automod_anti_invite })}
+                  className={`relative h-5 w-9 shrink-0 rounded-full transition disabled:opacity-40 ${
+                    d.automod_anti_invite ? "bg-emerald-500" : "bg-white/15"
+                  }`}
+                >
+                  <span
+                    className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all ${
+                      d.automod_anti_invite ? "left-[1.125rem]" : "left-0.5"
+                    }`}
+                  />
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between gap-3 p-2.5 rounded-xl border border-white/5 bg-white/[0.01]">
+                <div>
+                  <div className="text-xs font-semibold text-zinc-200">Anti-Scam &amp; Phishing Filter</div>
+                  <div className="text-[10px] text-zinc-500">
+                    Removes fake nitro, steam gift and credential harvesting links instantly.
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={d.automod_anti_scam !== false}
+                  disabled={!configured || saving || d.automod_enabled === false}
+                  onClick={() => setDraft({ ...d, automod_anti_scam: d.automod_anti_scam === false })}
+                  className={`relative h-5 w-9 shrink-0 rounded-full transition disabled:opacity-40 ${
+                    d.automod_anti_scam !== false ? "bg-emerald-500" : "bg-white/15"
+                  }`}
+                >
+                  <span
+                    className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all ${
+                      d.automod_anti_scam !== false ? "left-[1.125rem]" : "left-0.5"
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Actions */}

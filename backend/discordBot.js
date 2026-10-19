@@ -54,6 +54,13 @@ export const DEFAULT_BOT_SETTINGS = {
   // (DISCORD_MEMBER_INTENT=1); see memberEventsState().
   auto_roles_on_join: true,
   presence: { status: 'online', custom_status: 'swats.bio' },
+  // Channel & AutoMod settings
+  showoff_channel_id: null,
+  mod_log_channel_id: null,
+  automod_enabled: true,
+  automod_delete_invalid_showoff: true,
+  automod_anti_invite: false,
+  automod_anti_scam: true,
 };
 
 // Site settings rows carry other features' values too, so only this feature's
@@ -304,6 +311,115 @@ export async function getGuildRoles() {
   return data.filter((r) => !r.managed && r.name !== '@everyone');
 }
 
+export async function getGuildChannels() {
+  if (!botConfigured()) return [];
+  try {
+    const { data } = await rest.get(`/guilds/${guildId()}/channels`, withBot());
+    return (data || [])
+      .filter((c) => c.type === 0 || c.type === 5)
+      .sort((a, b) => (a.position || 0) - (b.position || 0))
+      .map((c) => ({
+        id: c.id,
+        name: c.name,
+        type: c.type,
+        position: c.position,
+      }));
+  } catch (err) {
+    console.warn('[discordBot] failed to fetch guild channels:', err.message);
+    return [];
+  }
+}
+
+export function parseShowoffUsername(content) {
+  const match = String(content || '').trim().match(/^(?:https?:\/\/)?(?:www\.)?swats\.bio\/([a-zA-Z0-9_.-]+)/i);
+  if (!match) return null;
+  const username = match[1].toLowerCase();
+  const reserved = ['dashboard', 'login', 'register', 'marketplace', 'api', 'admin', 'me', 'docs', 'shop'];
+  if (reserved.includes(username)) return null;
+  return username;
+}
+
+export async function handleIncomingMessage(msg) {
+  if (!msg || !msg.channel_id || msg.author?.bot) return;
+
+  const settings = await loadBotSettings();
+  if (settings.automod_enabled === false) return;
+
+  const channelId = String(msg.channel_id);
+  const content = String(msg.content || '').trim();
+  const authorId = msg.author?.id;
+
+  // 1. Show-off channel enforcement:
+  // Only messages that begin with swats.bio/<username> for existing registered users are allowed.
+  if (settings.showoff_channel_id && channelId === String(settings.showoff_channel_id)) {
+    const candidateUser = parseShowoffUsername(content);
+    let isValid = false;
+    let reason = 'Message does not begin with https://swats.bio/<username>';
+
+    if (candidateUser) {
+      try {
+        const { rows } = await query('SELECT id, username FROM users WHERE LOWER(username) = $1 LIMIT 1', [candidateUser]);
+        if (rows.length > 0) {
+          isValid = true;
+        } else {
+          reason = `User @${candidateUser} does not exist on swats.bio`;
+        }
+      } catch (dbErr) {
+        console.warn('[discordBot] DB lookup error in showoff validation:', dbErr.message);
+      }
+    }
+
+    if (!isValid) {
+      if (settings.automod_delete_invalid_showoff !== false) {
+        try {
+          await rest.delete(`/channels/${channelId}/messages/${msg.id}`, withBot());
+        } catch (delErr) {
+          console.warn('[discordBot] Failed to delete invalid show-off message:', delErr.message);
+        }
+      }
+
+      if (settings.mod_log_channel_id) {
+        const snippet = content.length > 200 ? content.slice(0, 200) + '…' : content;
+        const logMsg = `🛡️ **[AutoMod - Show-off Channel]** Removed invalid message from <@${authorId}> in <#${channelId}>.\n**Reason:** ${reason}\n**Message:** \`${snippet.replace(/`/g, "'")}\``;
+        await sendBotMessage(settings.mod_log_channel_id, logMsg);
+      }
+      return;
+    }
+  }
+
+  // 2. Anti-Invite filter
+  if (settings.automod_anti_invite && settings.mod_log_channel_id) {
+    if (/(?:discord\.gg|discord\.com\/invite)\/[a-zA-Z0-9]+/i.test(content)) {
+      try {
+        await rest.delete(`/channels/${channelId}/messages/${msg.id}`, withBot());
+        await sendBotMessage(
+          settings.mod_log_channel_id,
+          `🛡️ **[AutoMod - Anti-Invite]** Removed unauthorized invite link from <@${authorId}> in <#${channelId}>.`
+        );
+      } catch (err) {
+        console.warn('[discordBot] anti-invite delete failed:', err.message);
+      }
+      return;
+    }
+  }
+
+  // 3. Anti-Scam filter
+  if (settings.automod_anti_scam && settings.mod_log_channel_id) {
+    const isScam = /(?:free nitro|discord-nitro|steam-nitro|gift-nitro|airdrop)/i.test(content) && /https?:\/\//i.test(content);
+    if (isScam) {
+      try {
+        await rest.delete(`/channels/${channelId}/messages/${msg.id}`, withBot());
+        await sendBotMessage(
+          settings.mod_log_channel_id,
+          `🛡️ **[AutoMod - Anti-Scam]** Removed suspected phishing/scam link from <@${authorId}> in <#${channelId}>.`
+        );
+      } catch (err) {
+        console.warn('[discordBot] anti-scam delete failed:', err.message);
+      }
+    }
+  }
+}
+
 export async function getBotIdentity() {
   const { data } = await rest.get('/users/@me', withBot());
   return data;
@@ -356,18 +472,26 @@ let closingDown = false;     // set on process shutdown so we stop reconnecting
    remembered for the life of the process, and the panel reports which state the
    bot is actually in rather than claiming auto-roles are live. */
 const GUILD_MEMBERS_INTENT = 1 << 1;
+const GUILD_MESSAGES_INTENT = 1 << 9;
+const MESSAGE_CONTENT_INTENT = 1 << 15;
 
 // 'off' (not requested) | 'requested' | 'ready' | 'refused'
 let memberEventsState = process.env.DISCORD_MEMBER_INTENT === '1' ? 'requested' : 'off';
 let intentRefused = false;
+let messageContentRefused = false;
 
 export const memberEventsEnabled = () => memberEventsState === 'requested' || memberEventsState === 'ready';
 
-// The intents this session asks for. 0 is enough for presence; the member bit is
-// added only when the deployment opted in.
+// The intents this session asks for.
 function gatewayIntents() {
-  if (intentRefused || memberEventsState === 'off') return 0;
-  return GUILD_MEMBERS_INTENT;
+  let intents = GUILD_MESSAGES_INTENT;
+  if (!intentRefused && memberEventsState !== 'off') {
+    intents |= GUILD_MEMBERS_INTENT;
+  }
+  if (!messageContentRefused) {
+    intents |= MESSAGE_CONTENT_INTENT;
+  }
+  return intents;
 }
 
 function presencePayload(settings) {
@@ -466,6 +590,15 @@ function handleDispatch(pkt) {
     if (memberEventsState === 'requested') memberEventsState = 'ready';
     return;
   }
+
+  // Handle incoming channel messages (Show-off enforcement and automod)
+  if (type === 'MESSAGE_CREATE') {
+    const msg = pkt.d || {};
+    if (msg.author?.bot) return;
+    handleIncomingMessage(msg).catch((err) => console.warn('[discordBot] automod error:', err.message));
+    return;
+  }
+
   if (!memberEventsState || memberEventsState === 'off' || memberEventsState === 'refused') return;
 
   if (type === 'GUILD_MEMBER_ADD') {

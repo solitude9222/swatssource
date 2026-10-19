@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import {
   Sparkles, ArrowRight, Store, ShieldCheck, Lock, UserCheck, Zap,
-  BadgeCheck, MessageSquare, Plus, CheckCircle2,
+  BadgeCheck, MessageSquare, Plus, CheckCircle2, Clock,
 } from "lucide-react";
 import { Navbar } from "@/components/landing/Navbar";
 import { Footer } from "@/components/landing/Footer";
@@ -23,10 +23,10 @@ export default function Marketplace() {
 
       <main className="relative z-10 flex-1 max-w-5xl mx-auto px-4 py-28 sm:py-36 space-y-12">
         <div className="max-w-3xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-4 py-1.5 text-xs font-semibold text-emerald-300 mb-6 backdrop-blur">
-            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-            <ShieldCheck className="h-4 w-4 text-emerald-400" />
-            <span>Staff-Verified Escrow &amp; E2EE Active</span>
+          <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-amber-500/10 px-4 py-1.5 text-xs font-semibold text-amber-300 mb-6 backdrop-blur">
+            <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
+            <Clock className="w-4 h-4 text-amber-400" />
+            <span>COMING SOON — IN ACTIVE DEVELOPMENT</span>
           </div>
 
           <h1 className="font-display text-4xl sm:text-6xl font-black text-zinc-50 tracking-tight leading-tight">

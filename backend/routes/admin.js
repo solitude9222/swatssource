@@ -34,6 +34,7 @@ import {
   addMemberRole,
   removeMemberRole,
   getGuildRoles,
+  getGuildChannels,
   getBotIdentity,
   getGuildInfo,
   botPresenceStatus,
@@ -156,13 +157,15 @@ router.get('/bot/panel', async (req, res) => {
       // No bot token/guild: the panel still renders so an admin can see what
       // would live here, but the dropdowns carry no roles to pick.
       response.roles = [];
+      response.channels = [];
       response.bot_user = null;
       response.guild = null;
       return res.json(response);
     }
 
-    const [roles, botUser, guild] = await Promise.all([
+    const [roles, channels, botUser, guild] = await Promise.all([
       getGuildRoles().catch(() => []),
+      getGuildChannels().catch(() => []),
       getBotIdentity().catch(() => null),
       getGuildInfo().catch(() => null),
     ]);
@@ -175,6 +178,12 @@ router.get('/bot/panel', async (req, res) => {
         color: r.color,          // int — frontend renders as hex
         position: r.position,
         member_count: r.count || null,
+      })),
+      channels: (channels || []).map((c) => ({
+        id: c.id,
+        name: c.name,
+        type: c.type,
+        position: c.position,
       })),
       bot_user: botUser
         ? { id: botUser.id, username: botUser.username, avatar: botUser.avatar }
@@ -196,13 +205,28 @@ router.put('/bot/panel', async (req, res) => {
     const body = req.body || {};
     const patch = {};
 
-    for (const field of ['verified_role_id', 'og_role_id', 'member_role_id', 'booster_role_id']) {
+    for (const field of [
+      'verified_role_id', 'og_role_id', 'member_role_id', 'booster_role_id',
+      'showoff_channel_id', 'mod_log_channel_id'
+    ]) {
       if (body[field] !== undefined) {
         const v = body[field];
         if (v !== null && (typeof v !== 'string' || !SNOWFLAKE.test(v))) {
-          return res.status(400).json({ detail: `${field} is not a valid role id` });
+          return res.status(400).json({ detail: `${field} is not a valid snowflake id` });
         }
         patch[field] = v || null;
+      }
+    }
+
+    for (const boolField of [
+      'automod_enabled', 'automod_delete_invalid_showoff',
+      'automod_anti_invite', 'automod_anti_scam'
+    ]) {
+      if (body[boolField] !== undefined) {
+        if (typeof body[boolField] !== 'boolean') {
+          return res.status(400).json({ detail: `${boolField} must be a boolean` });
+        }
+        patch[boolField] = body[boolField];
       }
     }
 

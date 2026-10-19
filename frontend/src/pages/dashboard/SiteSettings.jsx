@@ -407,60 +407,6 @@ export default function SiteSettings() {
               </div>
             </div>
           </div>
-
-          {/* Profile Customization Governance */}
-          <div className="glass rounded-3xl p-5 sm:p-6 space-y-5 shadow-[0_10px_30px_rgba(0,0,0,0.3)]">
-            <div className="flex items-center gap-2 text-zinc-100 font-bold text-sm uppercase tracking-wider font-mono2">
-              <Sparkles className="w-4 h-4 text-purple-400" /> Profile Customization Rules
-            </div>
-
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <div className="text-sm font-semibold text-zinc-100">Allow Custom Animated Cursors</div>
-                <div className="text-xs text-zinc-400 mt-0.5">Permit members to upload custom animated GIF / PNG cursors on public bios</div>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer shrink-0">
-                <input
-                  type="checkbox"
-                  checked={settings.allow_custom_cursors !== false}
-                  onChange={(e) => setSettings({ ...settings, allow_custom_cursors: e.target.checked })}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
-              </label>
-            </div>
-
-            <div className="h-px bg-white/5" />
-
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <div className="text-sm font-semibold text-zinc-100">Allow Third-Party Music & Widget Embeds</div>
-                <div className="text-xs text-zinc-400 mt-0.5">Permit members to embed Spotify, SoundCloud, YouTube and Discord live cards</div>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer shrink-0">
-                <input
-                  type="checkbox"
-                  checked={settings.allow_embeds !== false}
-                  onChange={(e) => setSettings({ ...settings, allow_embeds: e.target.checked })}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
-              </label>
-            </div>
-
-            <div className="h-px bg-white/5" />
-
-            <div>
-              <label className="text-xs font-semibold text-zinc-300 block mb-1.5">Default SEO Title Template</label>
-              <input
-                type="text"
-                placeholder="swats.bio — personal links & bio pages"
-                value={settings.default_meta_title || ""}
-                onChange={(e) => setSettings({ ...settings, default_meta_title: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-xs font-mono2 text-zinc-100 placeholder-zinc-500 outline-none focus:border-brand-500/50 transition"
-              />
-            </div>
-          </div>
         </div>
 
         {/* RIGHT COLUMN: View Rewards, Broadcast Announcements, System Health */}
@@ -584,21 +530,6 @@ export default function SiteSettings() {
                       className="w-full px-3 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-zinc-100 outline-none focus:border-brand-500/50 resize-none"
                     />
                   </div>
-
-                  {/* Live Notification Preview */}
-                  <div className="rounded-xl border border-brand-500/20 bg-brand-500/[0.04] p-3 space-y-1">
-                    <div className="flex items-center justify-between text-[10px] font-mono2 text-brand-400 uppercase">
-                      <span>Live Notification Toast Preview</span>
-                      <span className="text-zinc-500">just now</span>
-                    </div>
-                    <div className="text-xs font-bold text-zinc-100 flex items-center gap-1.5">
-                      <Trophy className="w-3.5 h-3.5 text-amber-300" />
-                      <span>{rewards.notification_title || "🎉 Milestone Unlocked!"}</span>
-                    </div>
-                    <p className="text-[11px] text-zinc-300 leading-snug">
-                      {previewToastMessage}
-                    </p>
-                  </div>
                 </div>
               </div>
             )}
@@ -640,7 +571,7 @@ export default function SiteSettings() {
           </div>
 
           {/* Platform Data Migration: Export & Import Info */}
-          <div className="glass rounded-3xl p-5 space-y-4 shadow-[0_10px_30px_rgba(0,0,0,0.3)] border border-white/5 relative overflow-hidden">
+          <div className="glass rounded-3xl p-5 space-y-4 shadow-[0_10px_30px_rgba(0,0,0,0.3)] border border-white/5 relative">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-brand-400">
@@ -657,15 +588,6 @@ export default function SiteSettings() {
                     Export or import all user accounts, password hashes, profiles, views, and site configs.
                   </p>
                 </div>
-              </div>
-            </div>
-
-            <div className="p-3 rounded-2xl bg-white/[0.02] border border-white/5 text-xs text-zinc-300 space-y-2">
-              <div className="flex items-start gap-2">
-                <Database className="w-4 h-4 text-brand-400 shrink-0 mt-0.5" />
-                <p className="text-[11px] text-zinc-400 leading-relaxed">
-                  Moving database or hosting providers? <span className="text-zinc-200 font-medium">Export Info</span> downloads a complete JSON bundle with user credentials, profile themes, widgets, and analytics. <span className="text-zinc-200 font-medium">Import Info</span> lets you restore or migrate onto a new backend instantly.
-                </p>
               </div>
             </div>
 
@@ -762,38 +684,6 @@ export default function SiteSettings() {
                 <span>Import Info</span>
               </button>
             </div>
-          </div>
-
-          {/* Server Telemetry & Status card - ensures right side is full and purposeful */}
-          <div className="glass rounded-3xl p-5 space-y-3.5 shadow-[0_10px_30px_rgba(0,0,0,0.3)]">
-            <div className="flex items-center justify-between">
-              <div className="text-xs font-bold uppercase tracking-wider text-zinc-300 font-mono2 flex items-center gap-2">
-                <Activity className="w-4 h-4 text-emerald-400" /> System Telemetry & Engine
-              </div>
-              <span className="flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" /> Live
-              </span>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="rounded-xl border border-white/5 bg-white/[0.02] p-2.5">
-                <div className="text-zinc-500 text-[10px] flex items-center gap-1">
-                  <Server className="w-3 h-3" /> Core Engine
-                </div>
-                <div className="font-semibold text-zinc-200 mt-1 font-mono2">v2.6.4 Stable</div>
-              </div>
-
-              <div className="rounded-xl border border-white/5 bg-white/[0.02] p-2.5">
-                <div className="text-zinc-500 text-[10px] flex items-center gap-1">
-                  <Database className="w-3 h-3" /> Storage Pool
-                </div>
-                <div className="font-semibold text-emerald-300 mt-1 font-mono2">Connected (Postgres)</div>
-              </div>
-            </div>
-
-            <p className="text-[11px] text-zinc-500 leading-snug">
-              All settings are updated atomically across all worker processes upon saving.
-            </p>
           </div>
         </div>
       </div>

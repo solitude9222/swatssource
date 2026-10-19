@@ -185,3 +185,21 @@ test('botConfigured follows the two env vars together', () => {
     if (had.guild === undefined) delete process.env.DISCORD_GUILD_ID; else process.env.DISCORD_GUILD_ID = had.guild;
   }
 });
+
+test('parseShowoffUsername parses valid swats.bio links and rejects invalid formats', () => {
+  assert.equal(mod.parseShowoffUsername('https://swats.bio/cooluser'), 'cooluser');
+  assert.equal(mod.parseShowoffUsername('http://swats.bio/swats check out my page!'), 'swats');
+  assert.equal(mod.parseShowoffUsername('swats.bio/alice'), 'alice');
+  assert.equal(mod.parseShowoffUsername('https://www.swats.bio/bob_123'), 'bob_123');
+
+  // Reserved paths are not valid user bios
+  assert.equal(mod.parseShowoffUsername('https://swats.bio/dashboard'), null);
+  assert.equal(mod.parseShowoffUsername('https://swats.bio/login'), null);
+  assert.equal(mod.parseShowoffUsername('https://swats.bio/api'), null);
+
+  // Must begin with swats.bio
+  assert.equal(mod.parseShowoffUsername('Hey check this out https://swats.bio/swats'), null);
+  assert.equal(mod.parseShowoffUsername('https://google.com/swats'), null);
+  assert.equal(mod.parseShowoffUsername('just text without link'), null);
+});
+
