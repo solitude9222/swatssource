@@ -16,14 +16,14 @@ export const BADGE_CATALOG = [
   { id: 'premium', name: 'Premium', desc: 'Supporter with unlocked premium perks', type: 'auto' },
   { id: 'donater', name: 'Donater', desc: 'Contributed to platform development fund', type: 'auto' },
   { id: 'partner', name: 'Partner', desc: 'Official platform partner', type: 'mod' },
-  { id: 'rank_bronze', name: 'Bronze Rank', desc: 'Reached the Bronze ranked tier', type: 'auto' },
-  { id: 'rank_silver', name: 'Silver Rank', desc: 'Reached the Silver ranked tier', type: 'auto' },
-  { id: 'rank_gold', name: 'Gold Rank', desc: 'Reached the Gold ranked tier', type: 'auto' },
-  { id: 'rank_platinum', name: 'Platinum Rank', desc: 'Reached the Platinum ranked tier', type: 'auto' },
-  { id: 'rank_diamond', name: 'Diamond Rank', desc: 'Reached the Diamond ranked tier', type: 'auto' },
-  { id: 'rank_master', name: 'Master Rank', desc: 'Reached the Master ranked tier', type: 'auto' },
-  { id: 'rank_grandmaster', name: 'Grandmaster Rank', desc: 'Reached the Grandmaster ranked tier', type: 'auto' },
-  { id: 'rank_legend', name: 'Legend Rank', desc: 'Reached the Legend apex ranked tier', type: 'auto' },
+  { id: 'rank_bronze', name: 'Bronze Rank', desc: 'Reached the Bronze ranked tier', type: 'mod' },
+  { id: 'rank_silver', name: 'Silver Rank', desc: 'Reached the Silver ranked tier', type: 'mod' },
+  { id: 'rank_gold', name: 'Gold Rank', desc: 'Reached the Gold ranked tier', type: 'mod' },
+  { id: 'rank_platinum', name: 'Platinum Rank', desc: 'Reached the Platinum ranked tier', type: 'mod' },
+  { id: 'rank_diamond', name: 'Diamond Rank', desc: 'Reached the Diamond ranked tier', type: 'mod' },
+  { id: 'rank_master', name: 'Master Rank', desc: 'Reached the Master ranked tier', type: 'mod' },
+  { id: 'rank_grandmaster', name: 'Grandmaster Rank', desc: 'Reached the Grandmaster ranked tier', type: 'mod' },
+  { id: 'rank_legend', name: 'Legend Rank', desc: 'Reached the Legend apex ranked tier', type: 'mod' },
 ];
 
 /* Badges that something OTHER than the account itself may hand out: an admin
@@ -33,6 +33,7 @@ export const BADGE_CATALOG = [
    claim them. */
 export const STAFF_GRANTABLE_BADGES = [
   'og', 'verified', 'bug_hunter', 'team', 'media', 'featured', 'partner', 'donater',
+  'rank_bronze', 'rank_silver', 'rank_gold', 'rank_platinum', 'rank_diamond', 'rank_master', 'rank_grandmaster', 'rank_legend',
 ];
 
 /* Whatever a form posted, the only grants that survive are catalog ids, minus
@@ -191,12 +192,34 @@ export async function computeAutoBadges(user, now = new Date()) {
     const rankedConfig = await loadRankedSettings();
     if (rankedConfig.auto_grant_badges !== false) {
       const details = computeRankDetails(user, rankedConfig, now);
-      // Remove lower rank badges so only their active/highest tier badge is displayed
+      const RANK_ORDER = [
+        'rank_rookie', 'rank_bronze', 'rank_silver', 'rank_gold',
+        'rank_platinum', 'rank_diamond', 'rank_master', 'rank_grandmaster', 'rank_legend'
+      ];
+
+      // Check if user already holds a manually assigned rank badge
+      let highestRankIndex = 0;
+      for (const b of currentBadges) {
+        const idx = RANK_ORDER.indexOf(b);
+        if (idx > highestRankIndex) {
+          highestRankIndex = idx;
+        }
+      }
+
+      // Check rank badge calculated from views
+      const viewsRankIndex = RANK_ORDER.indexOf(details?.badge);
+      if (viewsRankIndex > highestRankIndex) {
+        highestRankIndex = viewsRankIndex;
+      }
+
+      // Clean out lower rank badges so only their peak rank badge is worn
       for (const rId of ALL_RANK_BADGE_IDS) {
         currentBadges.delete(rId);
       }
-      if (details?.badge && details.badge !== 'rank_rookie') {
-        currentBadges.add(details.badge);
+
+      // Keep the peak rank badge (if higher than rookie)
+      if (highestRankIndex > 0) {
+        currentBadges.add(RANK_ORDER[highestRankIndex]);
       }
     }
   } catch (err) {

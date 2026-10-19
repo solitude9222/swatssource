@@ -9,6 +9,7 @@ import {
 
 import { FaDiscord as FaDiscordIcon } from "react-icons/fa6";
 import { BADGE_CATALOG } from "@/constants/badges";
+import { BadgeChip } from "@/components/BadgeChip";
 import { SmartSelect } from "@/components/ui-shared/SmartSelect";
 import { PageHeader, EmptyState } from "@/components/ui-shared/PageUI";
 import BotManager from "./BotManager";
@@ -955,29 +956,78 @@ export default function UserManager() {
               </div>
             )}
 
-            <div>
-              <label className="text-xs text-zinc-400 block mb-2">Granted Badges</label>
-              <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto pr-1">
-                {BADGE_CATALOG.map((b) => {
-                  const active = (editingUser.badges || []).includes(b.id);
-                  return (
-                    <button
-                      key={b.id}
-                      type="button"
-                      onClick={() =>
-                        setEditingUser({
-                          ...editingUser,
-                          badges: (editingUser.badges || []).includes(b.id)
-                            ? (editingUser.badges || []).filter((x) => x !== b.id)
-                            : [...(editingUser.badges || []), b.id],
-                        })
-                      }
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${active ? "bg-brand-500/25 text-brand-200 border border-brand-500/40" : "bg-white/5 text-zinc-500 border border-transparent hover:text-zinc-300"}`}
-                    >
-                      {active && <Check className="w-3 h-3 text-brand-400" />} {b.name}
-                    </button>
-                  );
-                })}
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs text-zinc-400 block mb-2 font-semibold">Granted Badges (Platform &amp; Staff)</label>
+                <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto pr-1">
+                  {BADGE_CATALOG.filter((b) => !b.id.startsWith("rank_")).map((b) => {
+                    const active = (editingUser.badges || []).includes(b.id);
+                    return (
+                      <button
+                        key={b.id}
+                        type="button"
+                        onClick={() =>
+                          setEditingUser({
+                            ...editingUser,
+                            badges: (editingUser.badges || []).includes(b.id)
+                              ? (editingUser.badges || []).filter((x) => x !== b.id)
+                              : [...(editingUser.badges || []), b.id],
+                          })
+                        }
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer ${
+                          active
+                            ? "bg-brand-500/25 text-brand-200 border border-brand-500/40"
+                            : "bg-white/5 text-zinc-500 border border-transparent hover:text-zinc-300"
+                        }`}
+                      >
+                        <BadgeChip id={b.id} size="sm" />
+                        {active && <Check className="w-3 h-3 text-brand-400" />} {b.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs text-zinc-400 block font-semibold">Ranked Tier Badges (Assign / Elevate Rank)</label>
+                  <span className="font-mono2 text-[10px] text-zinc-500">Admins &amp; Owner can grant</span>
+                </div>
+                <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto pr-1">
+                  {BADGE_CATALOG.filter((b) => b.id.startsWith("rank_")).map((b) => {
+                    const active = (editingUser.badges || []).includes(b.id);
+                    return (
+                      <button
+                        key={b.id}
+                        type="button"
+                        onClick={() => {
+                          const current = editingUser.badges || [];
+                          if (current.includes(b.id)) {
+                            setEditingUser({
+                              ...editingUser,
+                              badges: current.filter((x) => x !== b.id),
+                            });
+                          } else {
+                            // Replace other rank badges and set this peak rank badge
+                            const cleaned = current.filter((x) => !x.startsWith("rank_"));
+                            setEditingUser({
+                              ...editingUser,
+                              badges: [...cleaned, b.id],
+                            });
+                          }
+                        }}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer ${
+                          active
+                            ? "bg-amber-500/25 text-amber-200 border border-amber-500/40 shadow-sm"
+                            : "bg-white/5 text-zinc-500 border border-transparent hover:text-zinc-300"
+                        }`}
+                      >
+                        <BadgeChip id={b.id} size="sm" />
+                        {active && <Check className="w-3 h-3 text-amber-400" />} {b.name}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 

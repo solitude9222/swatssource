@@ -3,6 +3,7 @@ import axios from 'axios';
 import jwt from 'jsonwebtoken';
 import { query } from '../db.js';
 import { grantViewRewards } from '../rewards.js';
+import { computeAutoBadges } from '../badges.js';
 import {
   VIEW_RULES,
   verifyProof,
@@ -214,13 +215,23 @@ router.post('/views/register', async (req, res) => {
     }
 
     const updated = await query(
-      'UPDATE users SET views = COALESCE(views, 0) + 1 WHERE id = $1 RETURNING views',
+      'UPDATE users SET views = COALESCE(views, 0) + 1 WHERE id = $1 RETURNING *',
       [challenge.user_id]
     );
 
-    // The view count moved. Milestones are reached and claimed manually by the user
-    // from their dashboard Rewards section.
-    const newViews = updated.rows[0]?.views || 0;
+    const userRow = updated.rows[0];
+    const newViews = userRow?.views || 0;
+
+    // Check if view milestone crossed a ranked stage or unlocked rank badges
+    if (userRow) {
+      computeAutoBadges(userRow)
+        .then((freshBadges) => {
+          if (JSON.stringify(freshBadges.sort()) !== JSON.stringify((userRow.badges || []).sort())) {
+            return query('UPDATE users SET badges = $1 WHERE id = $2', [freshBadges, userRow.id]);
+          }
+        })
+        .catch(() => {});
+    }
 
     return res.json({ counted: true, views: newViews });
   } catch (err) {

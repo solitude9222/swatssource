@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { api, apiError } from "@/lib/api";
 import { toast } from "@/lib/notify";
 import {
   SlidersHorizontal, ShieldAlert, ShieldCheck, UserPlus, Save, Loader2, LogIn,
   Trophy, Plus, Trash2, Eye, Shield, Lock, FileUp, Sparkles, Globe, Laptop,
   BellRing, Activity, Server, Database, Check,
+  Download, Upload, FolderArchive, FileJson, AlertTriangle, CheckCircle2,
 } from "lucide-react";
 import AnnouncementManager from "@/components/AnnouncementManager";
 import { SmartSelect } from "@/components/ui-shared/SmartSelect";
@@ -37,6 +38,106 @@ export default function SiteSettings() {
   });
   const [hasCustomNotif, setHasCustomNotif] = useState(false);
   const [rewardsSaving, setRewardsSaving] = useState(false);
+
+  // Platform Data Migration (Export & Import) state
+  const [exporting, setExporting] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [pendingImport, setPendingImport] = useState(null);
+  const fileInputRef = useRef(null);
+
+  const handleExportInfo = async () => {
+    setExporting(true);
+    try {
+      const res = await api.get("/admin/site/export");
+      const backup = res.data;
+      const jsonStr = JSON.stringify(backup, null, 2);
+      const blob = new Blob([jsonStr], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      const dateStr = new Date().toISOString().slice(0, 10);
+      a.download = `swats-bio-backup-${dateStr}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success(
+        `Successfully exported ${backup.total_users ?? backup.users?.length ?? 0} user accounts and platform backup!`
+      );
+    } catch (err) {
+      toast.error(apiError(err, "Failed to export platform data"));
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const parsed = JSON.parse(evt.target?.result);
+        if (!parsed || typeof parsed !== "object") {
+          toast.error("Invalid file: Must be a valid JSON backup object.");
+          return;
+        }
+
+        const usersList = Array.isArray(parsed.users)
+          ? parsed.users
+          : Array.isArray(parsed)
+          ? parsed
+          : [];
+        const settingsList = Array.isArray(parsed.site_settings) ? parsed.site_settings : [];
+        const templatesList = Array.isArray(parsed.community_templates) ? parsed.community_templates : [];
+        const invitesList = Array.isArray(parsed.invite_codes) ? parsed.invite_codes : [];
+
+        if (usersList.length === 0 && settingsList.length === 0 && templatesList.length === 0 && invitesList.length === 0) {
+          toast.error("No compatible platform data (users, settings, templates) found in JSON file.");
+          return;
+        }
+
+        setPendingImport({
+          fileName: file.name,
+          userCount: usersList.length,
+          settingsCount: settingsList.length,
+          templatesCount: templatesList.length,
+          invitesCount: invitesList.length,
+          payload: {
+            users: usersList,
+            site_settings: settingsList,
+            community_templates: templatesList,
+            invite_codes: invitesList,
+          },
+        });
+      } catch (err) {
+        toast.error("Failed to parse JSON file: " + (err.message || "Invalid JSON"));
+      } finally {
+        if (fileInputRef.current) fileInputRef.current.value = "";
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const handleConfirmImport = async () => {
+    if (!pendingImport?.payload) return;
+    setImporting(true);
+    try {
+      const { data } = await api.post("/admin/site/import", pendingImport.payload);
+      toast.success(
+        `Successfully imported ${data.imported_users ?? pendingImport.userCount} users and platform data!`
+      );
+      setPendingImport(null);
+      // Refresh current site settings
+      const res = await api.get("/admin/site").catch(() => null);
+      if (res?.data) setSettings((prev) => ({ ...prev, ...res.data }));
+    } catch (err) {
+      toast.error(apiError(err, "Failed to import platform data"));
+    } finally {
+      setImporting(false);
+    }
+  };
 
   useEffect(() => {
     api.get("/admin/site")
@@ -536,6 +637,131 @@ export default function SiteSettings() {
               onChange={(e) => setSettings({ ...settings, announcement: e.target.value })}
               className="w-full px-4 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-zinc-100 placeholder-zinc-500 outline-none focus:border-brand-500/50 transition"
             />
+          </div>
+
+          {/* Platform Data Migration: Export & Import Info */}
+          <div className="glass rounded-3xl p-5 space-y-4 shadow-[0_10px_30px_rgba(0,0,0,0.3)] border border-white/5 relative overflow-hidden">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-brand-400">
+                  <FolderArchive className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-zinc-100 flex items-center gap-1.5">
+                    Platform Data Migration
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/20 font-mono2 font-bold uppercase">
+                      Owner Only
+                    </span>
+                  </h3>
+                  <p className="text-[11px] text-zinc-400">
+                    Export or import all user accounts, password hashes, profiles, views, and site configs.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-3 rounded-2xl bg-white/[0.02] border border-white/5 text-xs text-zinc-300 space-y-2">
+              <div className="flex items-start gap-2">
+                <Database className="w-4 h-4 text-brand-400 shrink-0 mt-0.5" />
+                <p className="text-[11px] text-zinc-400 leading-relaxed">
+                  Moving database or hosting providers? <span className="text-zinc-200 font-medium">Export Info</span> downloads a complete JSON bundle with user credentials, profile themes, widgets, and analytics. <span className="text-zinc-200 font-medium">Import Info</span> lets you restore or migrate onto a new backend instantly.
+                </p>
+              </div>
+            </div>
+
+            {/* Hidden File Input for Import */}
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept=".json,application/json"
+              className="hidden"
+              onChange={handleFileSelect}
+            />
+
+            {/* Pending Import Confirmation Dialog / Alert */}
+            {pendingImport && (
+              <div className="rounded-2xl border border-amber-500/30 bg-amber-500/[0.08] p-4 space-y-3 animate-in fade-in zoom-in-95">
+                <div className="flex items-center gap-2 text-xs font-bold text-amber-300">
+                  <AlertTriangle className="w-4 h-4 text-amber-400" />
+                  <span>Ready to Import Platform Data</span>
+                </div>
+                <div className="text-xs text-zinc-300 space-y-1">
+                  <p className="text-zinc-400 text-[11px]">
+                    Selected file: <span className="text-zinc-200 font-mono2">{pendingImport.fileName}</span>
+                  </p>
+                  <div className="grid grid-cols-2 gap-1.5 pt-1 text-[11px] font-mono2">
+                    <span className="px-2 py-1 rounded-lg bg-black/30 border border-white/5 text-zinc-200">
+                      👥 {pendingImport.userCount} Users
+                    </span>
+                    <span className="px-2 py-1 rounded-lg bg-black/30 border border-white/5 text-zinc-200">
+                      ⚙️ {pendingImport.settingsCount} Settings
+                    </span>
+                    <span className="px-2 py-1 rounded-lg bg-black/30 border border-white/5 text-zinc-200">
+                      🎨 {pendingImport.templatesCount} Templates
+                    </span>
+                    <span className="px-2 py-1 rounded-lg bg-black/30 border border-white/5 text-zinc-200">
+                      🎟️ {pendingImport.invitesCount} Invites
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-amber-300/80 pt-1 leading-snug">
+                    Existing records will be updated and new user accounts will be created without losing views or badges.
+                  </p>
+                </div>
+                <div className="flex items-center justify-end gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setPendingImport(null)}
+                    disabled={importing}
+                    className="px-3 py-1.5 rounded-xl border border-white/10 text-zinc-400 hover:text-zinc-200 text-xs transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="confirm-import-btn"
+                    onClick={handleConfirmImport}
+                    disabled={importing}
+                    className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black text-xs font-bold transition flex items-center gap-1.5 shadow-lg shadow-amber-500/20"
+                  >
+                    {importing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                    Confirm & Restore Platform
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="grid grid-cols-2 gap-2.5 pt-1">
+              <button
+                type="button"
+                data-testid="export-info-btn"
+                onClick={handleExportInfo}
+                disabled={exporting || importing}
+                className="w-full px-4 py-2.5 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-white/20 text-xs font-semibold text-zinc-200 hover:text-white transition flex items-center justify-center gap-2 group"
+              >
+                {exporting ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-brand-400" />
+                ) : (
+                  <Download className="w-4 h-4 text-brand-400 group-hover:scale-110 transition-transform" />
+                )}
+                <span>Export Info</span>
+              </button>
+
+              <button
+                type="button"
+                data-testid="import-info-btn"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={exporting || importing}
+                className="w-full px-4 py-2.5 rounded-2xl bg-gradient-to-r from-brand-500/20 to-purple-500/20 hover:from-brand-500/30 hover:to-purple-500/30 border border-brand-500/30 hover:border-brand-500/50 text-xs font-semibold text-brand-300 hover:text-brand-200 transition flex items-center justify-center gap-2 group"
+              >
+                {importing ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-purple-400" />
+                ) : (
+                  <Upload className="w-4 h-4 text-purple-400 group-hover:scale-110 transition-transform" />
+                )}
+                <span>Import Info</span>
+              </button>
+            </div>
           </div>
 
           {/* Server Telemetry & Status card - ensures right side is full and purposeful */}

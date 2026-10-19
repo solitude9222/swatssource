@@ -650,7 +650,7 @@ router.put('/users/:id', async (req, res) => {
     };
 
     const autoBadges = await computeAutoBadges(updatedUser);
-    const combinedBadges = Array.from(new Set([...newBadges, ...autoBadges]));
+    const combinedBadges = Array.from(new Set(autoBadges));
 
     const result = await query(`
       UPDATE users
@@ -694,7 +694,7 @@ router.put('/users/:id/views', requireOwner, async (req, res) => {
     const mode = ['set', 'add', 'reset'].includes(req.body?.mode) ? req.body.mode : 'set';
     const value = Math.trunc(Number(req.body?.amount) || 0);
 
-    const { rows } = await query('SELECT id, views FROM users WHERE id = $1', [userId]);
+    const { rows } = await query('SELECT id, views, badges, role, tier, is_owner, discord, donated_cents FROM users WHERE id = $1', [userId]);
     if (rows.length === 0) return res.status(404).json({ detail: 'User not found' });
 
     let result;
@@ -710,6 +710,15 @@ router.put('/users/:id/views', requireOwner, async (req, res) => {
         'UPDATE users SET views = LEAST(2147483647, GREATEST(0, $2)) WHERE id = $1 RETURNING *',
         [userId, value]
       );
+    }
+
+    // Auto-sync rank badges for the new view count
+    const updatedUser = result.rows[0];
+    if (updatedUser) {
+      const freshBadges = await computeAutoBadges(updatedUser);
+      if (JSON.stringify(freshBadges.sort()) !== JSON.stringify((updatedUser.badges || []).sort())) {
+        result = await query('UPDATE users SET badges = $1 WHERE id = $2 RETURNING *', [freshBadges, userId]);
+      }
     }
 
     await logAudit({
@@ -930,6 +939,232 @@ router.put('/site', async (req, res) => {
     return res.json(rows[0].value);
   } catch (err) {
     return res.status(500).json({ detail: 'Failed to update site settings' });
+  }
+});
+
+// ========================
+// 4c. DATA MIGRATION: EXPORT & IMPORT INFO (Owner only)
+// ========================
+router.get('/site/export', requireOwner, async (req, res) => {
+  try {
+    const [usersRes, settingsRes, templatesRes, invitesRes, badgesRes] = await Promise.all([
+      query(`
+        SELECT id, email, password_hash, username, display_name, role, tier, is_owner,
+               views, badges, equipped_badges, custom_badges, discord, profile,
+               integrations, donated_cents, created_at, last_username_change,
+               entry_pin, entry_style, token_version, linked_accounts, premium_until,
+               rewarded_milestones
+        FROM users ORDER BY created_at ASC
+      `),
+      query('SELECT key, value FROM site_settings ORDER BY key ASC'),
+      query('SELECT * FROM community_templates ORDER BY created_at ASC').catch(() => ({ rows: [] })),
+      query('SELECT * FROM invite_codes ORDER BY created_at ASC').catch(() => ({ rows: [] })),
+      query('SELECT * FROM custom_badges ORDER BY created_at ASC').catch(() => ({ rows: [] })),
+    ]);
+
+    const backupBundle = {
+      version: '2.0',
+      platform: 'swats.bio',
+      exported_at: new Date().toISOString(),
+      exported_by: req.user.username,
+      total_users: usersRes.rows.length,
+      users: usersRes.rows,
+      site_settings: settingsRes.rows,
+      community_templates: templatesRes.rows,
+      invite_codes: invitesRes.rows,
+      custom_badges: badgesRes.rows,
+    };
+
+    await logAudit({
+      req,
+      action: 'site.export_data',
+      targetType: 'system',
+      targetId: 'backup',
+      detail: { userCount: usersRes.rows.length, settingsCount: settingsRes.rows.length },
+    });
+
+    const dateStr = new Date().toISOString().slice(0, 10);
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', `attachment; filename="swats-bio-backup-${dateStr}.json"`);
+    return res.json(backupBundle);
+  } catch (err) {
+    console.error('Site export error:', err);
+    return res.status(500).json({ detail: 'Failed to export platform data' });
+  }
+});
+
+router.post('/site/import', requireOwner, async (req, res) => {
+  try {
+    const payload = req.body;
+    if (!payload || typeof payload !== 'object') {
+      return res.status(400).json({ detail: 'Invalid import payload. Expected JSON object.' });
+    }
+
+    const users = Array.isArray(payload.users) ? payload.users : [];
+    const siteSettings = Array.isArray(payload.site_settings) ? payload.site_settings : [];
+    const templates = Array.isArray(payload.community_templates) ? payload.community_templates : [];
+    const invites = Array.isArray(payload.invite_codes) ? payload.invite_codes : [];
+
+    let importedUsers = 0;
+    let importedSettings = 0;
+    let importedTemplates = 0;
+    let importedInvites = 0;
+
+    // 1. Import site_settings
+    for (const s of siteSettings) {
+      if (s?.key && s?.value) {
+        await query(
+          'INSERT INTO site_settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value',
+          [s.key, typeof s.value === 'string' ? s.value : JSON.stringify(s.value)]
+        );
+        importedSettings += 1;
+      }
+    }
+
+    // 2. Import users
+    for (const u of users) {
+      if (!u.username || !u.email) continue;
+      const id = u.id || crypto.randomUUID();
+      const email = String(u.email).toLowerCase();
+      const username = String(u.username).toLowerCase();
+
+      await query(
+        `INSERT INTO users (
+           id, email, password_hash, username, display_name, role, tier, is_owner,
+           views, badges, equipped_badges, custom_badges, discord, profile,
+           integrations, donated_cents, created_at, entry_pin, entry_style,
+           premium_until, rewarded_milestones
+         ) VALUES (
+           $1, $2, $3, $4, $5, $6, $7, $8,
+           $9, $10, $11, $12, $13, $14,
+           $15, $16, $17, $18, $19,
+           $20, $21
+         )
+         ON CONFLICT (id) DO UPDATE SET
+           email = EXCLUDED.email,
+           password_hash = COALESCE(EXCLUDED.password_hash, users.password_hash),
+           username = EXCLUDED.username,
+           display_name = EXCLUDED.display_name,
+           role = EXCLUDED.role,
+           tier = EXCLUDED.tier,
+           is_owner = EXCLUDED.is_owner,
+           views = EXCLUDED.views,
+           badges = EXCLUDED.badges,
+           equipped_badges = EXCLUDED.equipped_badges,
+           custom_badges = EXCLUDED.custom_badges,
+           discord = EXCLUDED.discord,
+           profile = EXCLUDED.profile,
+           integrations = EXCLUDED.integrations,
+           donated_cents = EXCLUDED.donated_cents,
+           entry_pin = EXCLUDED.entry_pin,
+           entry_style = EXCLUDED.entry_style,
+           premium_until = EXCLUDED.premium_until,
+           rewarded_milestones = EXCLUDED.rewarded_milestones`,
+        [
+          id,
+          email,
+          u.password_hash || null,
+          username,
+          u.display_name || u.username,
+          u.role || 'user',
+          u.tier || 'free',
+          !!u.is_owner,
+          Math.max(0, parseInt(u.views, 10) || 0),
+          Array.isArray(u.badges) ? u.badges : [],
+          Array.isArray(u.equipped_badges) ? u.equipped_badges : [],
+          Array.isArray(u.custom_badges) ? JSON.stringify(u.custom_badges) : '[]',
+          typeof u.discord === 'object' ? JSON.stringify(u.discord) : '{"linked": false}',
+          typeof u.profile === 'object' ? JSON.stringify(u.profile) : '{}',
+          typeof u.integrations === 'object' ? JSON.stringify(u.integrations) : '{}',
+          parseInt(u.donated_cents, 10) || 0,
+          u.created_at || new Date().toISOString(),
+          u.entry_pin || null,
+          u.entry_style || null,
+          u.premium_until || null,
+          Array.isArray(u.rewarded_milestones) ? u.rewarded_milestones : [],
+        ]
+      );
+      importedUsers += 1;
+    }
+
+    // 3. Import community_templates
+    for (const t of templates) {
+      if (t.id && t.title && t.author_username && t.config) {
+        await query(
+          `INSERT INTO community_templates (
+             id, creator_id, title, description, author_username, author_avatar,
+             background_preview, config, downloads_count, created_at
+           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+           ON CONFLICT (id) DO UPDATE SET
+             title = EXCLUDED.title,
+             description = EXCLUDED.description,
+             config = EXCLUDED.config,
+             downloads_count = EXCLUDED.downloads_count`,
+          [
+            t.id,
+            t.creator_id || null,
+            t.title,
+            t.description || '',
+            t.author_username,
+            t.author_avatar || '',
+            t.background_preview || '',
+            typeof t.config === 'object' ? JSON.stringify(t.config) : t.config,
+            parseInt(t.downloads_count, 10) || 0,
+            t.created_at || new Date().toISOString(),
+          ]
+        ).catch(() => {});
+        importedTemplates += 1;
+      }
+    }
+
+    // 4. Import invite_codes
+    for (const inv of invites) {
+      if (inv.code) {
+        await query(
+          `INSERT INTO invite_codes (
+             code, created_by, uses, max_uses, active, grants_tier, premium_days, grants_badges, created_at
+           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+           ON CONFLICT (code) DO UPDATE SET
+             uses = EXCLUDED.uses,
+             max_uses = EXCLUDED.max_uses,
+             active = EXCLUDED.active,
+             grants_tier = EXCLUDED.grants_tier,
+             premium_days = EXCLUDED.premium_days,
+             grants_badges = EXCLUDED.grants_badges`,
+          [
+            inv.code,
+            inv.created_by || null,
+            parseInt(inv.uses, 10) || 0,
+            parseInt(inv.max_uses, 10) || 1,
+            inv.active !== false,
+            inv.grants_tier || null,
+            inv.premium_days || null,
+            Array.isArray(inv.grants_badges) ? inv.grants_badges : [],
+            inv.created_at || new Date().toISOString(),
+          ]
+        ).catch(() => {});
+        importedInvites += 1;
+      }
+    }
+
+    await logAudit({
+      req,
+      action: 'site.import_data',
+      targetType: 'system',
+      targetId: 'restore',
+      detail: { importedUsers, importedSettings, importedTemplates, importedInvites },
+    });
+
+    return res.json({
+      success: true,
+      imported_users: importedUsers,
+      imported_settings: importedSettings,
+      imported_templates: importedTemplates,
+      imported_invites: importedInvites,
+    });
+  } catch (err) {
+    console.error('Site import error:', err);
+    return res.status(500).json({ detail: 'Failed to import platform data: ' + err.message });
   }
 });
 

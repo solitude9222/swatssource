@@ -221,6 +221,17 @@ export function computeRankDetails(user, config = DEFAULT_RANKED_CONFIG, now = n
     }
   }
 
+  // Also check if user holds a manually assigned rank badge
+  const userBadges = Array.isArray(user?.badges) ? user.badges : [];
+  for (let i = stages.length - 1; i >= 0; i -= 1) {
+    if (stages[i].badge && userBadges.includes(stages[i].badge)) {
+      if (i > activeStageIndex) {
+        activeStageIndex = i;
+      }
+      break;
+    }
+  }
+
   const currentStage = stages[activeStageIndex];
   const nextStage = stages[activeStageIndex + 1] || null;
 

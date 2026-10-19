@@ -129,3 +129,24 @@ it("reports the server's reason when the save is refused", async () => {
   expect(toast.error).toHaveBeenCalledWith("Failed to save reward settings");
   expect(toast.success).not.toHaveBeenCalled();
 });
+
+it("renders Platform Data Migration controls and triggers export info", async () => {
+  await draw();
+  const exportBtn = container.querySelector('[data-testid="export-info-btn"]');
+  const importBtn = container.querySelector('[data-testid="import-info-btn"]');
+  expect(exportBtn).toBeTruthy();
+  expect(importBtn).toBeTruthy();
+
+  window.URL.createObjectURL = jest.fn(() => "blob:http://localhost/mock-uuid");
+  window.URL.revokeObjectURL = jest.fn();
+
+  await act(async () => {
+    exportBtn.click();
+    await Promise.resolve();
+    await Promise.resolve();
+  });
+
+  expect(get).toHaveBeenCalledWith("/admin/site/export");
+  expect(toast.success).toHaveBeenCalledWith(expect.stringContaining("exported"));
+});
+
