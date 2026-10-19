@@ -1,14 +1,11 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { createRequire } from 'module';
 import { query, memberNumber } from '../db.js';
 import { BADGE_CATALOG } from '../badges.js';
 import { eventBadgeCatalog, upcomingEvents } from '../eventBadges.js';
 import { loadRankedSettings, computeRankDetails, flattenStages } from '../rankedSettings.js';
 
-const require = createRequire(import.meta.url);
-const archiver = require('archiver');
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -370,51 +367,5 @@ router.get('/meta/:username', async (req, res) => {
     return res.status(500).send('Server Error');
   }
 });
-
-// GET /api/download-source & GET /api/download-site
-// Packages the complete source code of swats.bio into a clean zip archive,
-// ready to deploy immediately to any cloud provider or VPS.
-const handleDownloadSource = async (req, res) => {
-  try {
-    const rootDir = path.resolve(__dirname, '../..');
-    res.setHeader('Content-Type', 'application/zip');
-    res.setHeader('Content-Disposition', 'attachment; filename="swats.bio-source-ready-to-deploy.zip"');
-
-    const archive = archiver('zip', { zlib: { level: 9 } });
-    archive.on('error', (err) => {
-      console.error('Archiver error:', err);
-      if (!res.headersSent) res.status(500).send('Archiving error');
-    });
-
-    archive.pipe(res);
-
-    archive.glob('**/*', {
-      cwd: rootDir,
-      ignore: [
-        '**/node_modules/**',
-        '**/.git/**',
-        '**/.npm/**',
-        '**/.cache/**',
-        '**/.system_generated/**',
-        '**/.emergent/**',
-        '**/.freebuff/**',
-        '**/test_reports/**',
-        '**/.env',
-        '**/*.log',
-      ],
-      dot: true,
-    });
-
-    await archive.finalize();
-  } catch (err) {
-    console.error('Source download packaging error:', err);
-    if (!res.headersSent) {
-      res.status(500).json({ detail: 'Failed to package source code for download' });
-    }
-  }
-};
-
-router.get('/download-source', handleDownloadSource);
-router.get('/download-site', handleDownloadSource);
 
 export default router;
