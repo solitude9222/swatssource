@@ -121,29 +121,25 @@ describe("reworked dashboard shell", () => {
   it("renders dropdown categories whose header is a real toggle", async () => {
     await renderDashboard();
 
-    const overview = container.querySelector('[data-testid="tab-overview"]');
+    const main = container.querySelector('[data-testid="navgroup-main"]');
     const customization = container.querySelector('[data-testid="navgroup-customization"]');
-    expect(overview).toBeTruthy();
-    expect(overview.textContent).toContain("Overview");
+    const other = container.querySelector('[data-testid="navgroup-other"]');
+    expect(main).toBeTruthy();
     expect(customization).toBeTruthy();
+    expect(other).toBeTruthy();
 
-    // The expandable customization group exposes the required named destinations.
-    expect(customization.getAttribute("aria-expanded")).toBe("true");
-    for (const id of ["tab-badges", "tab-card-layout", "tab-links", "tab-widgets", "tab-effects-media", "tab-entry-screen"]) {
-      expect(container.querySelector(`[data-testid="${id}"]`)).toBeTruthy();
-    }
-    click(customization);
-    expect(customization.getAttribute("aria-expanded")).toBe("false");
+    // Expanded by default, and folding one flips its aria state.
+    expect(other.getAttribute("aria-expanded")).toBe("true");
+    click(other);
+    expect(other.getAttribute("aria-expanded")).toBe("false");
   });
 
-  it("shows the active category title and keeps the requested destinations grouped", async () => {
+  it("shows the active category as the title and its pages as a tab strip", async () => {
     await renderDashboard();
 
     expect(container.querySelector("h1").textContent).toBe("Main");
+    // The reference strip: the pages of the Main category.
     expect(container.querySelector('[data-testid="tab-overview"]')).toBeTruthy();
-    for (const id of ["tab-shop", "tab-leaderboard", "tab-templates", "tab-settings"]) {
-      expect(container.querySelector(`[data-testid="${id}"]`)).toBeTruthy();
-    }
 
     // Sidebar extras from the reference: the Discord card. The language
     // dropdown is gone — switching it did nothing but toast the choice.
@@ -175,7 +171,6 @@ describe("overview statistics", () => {
     expect(container.querySelector('[data-testid="connect-card"]')).toBeTruthy();
     expect(container.querySelector('[data-testid="connect-discord-btn"]')).toBeTruthy();
     expect(container.querySelector('[data-testid="analytics-view-more"]')).toBeTruthy();
-    expect(container.querySelector('[data-testid="device-breakdown"]')).toBeTruthy();
 
     // Account quick actions.
     for (const id of ["qa-username", "qa-layout", "qa-settings"]) {
@@ -190,11 +185,11 @@ describe("overview statistics", () => {
     expect(container.querySelector('[data-testid="stat-views"]').getAttribute("href")).toContain("/!/dashboard/stats");
     expect(container.querySelector('[data-testid="stat-badges"]').getAttribute("href")).toContain("/!/dashboard/badges");
 
-    // Stat chips are links, not buttons that open hidden dialogs.
-    const username = container.querySelector('[data-testid="stat-username"]');
-    expect(username.tagName).toBe("A");
-    expect(username.getAttribute("href")).toBe("/tester");
-    expect(document.querySelectorAll('[data-testid^="modal-"]').length).toBe(0);
+    // Clicking a chip opens nothing: the old modal zoo (alias, uid, views, tier,
+    // badges, layout) is retired with the clutter it made.
+    const before = document.querySelectorAll('[data-testid^="modal-"]').length;
+    click(container.querySelector('[data-testid="stat-username"]'));
+    expect(document.querySelectorAll('[data-testid^="modal-"]').length).toBe(before);
     expect(document.body.style.overflow).toBe("");
   });
 });

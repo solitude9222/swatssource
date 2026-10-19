@@ -2,14 +2,16 @@ import {
   FaDiscord, FaTiktok, FaSpotify, FaTwitch, FaYoutube, FaSteam,
   FaGithub, FaInstagram, FaXTwitter, FaRedditAlien, FaSnapchat, FaPinterest,
   FaTelegram, FaSoundcloud, FaApple, FaPaypal, FaLinkedin, FaBehance,
-  FaFacebook, FaTumblr, FaDribbble, FaPatreon, FaMedium
+  FaFacebook, FaTumblr, FaDribbble, FaPatreon, FaMedium,
+  FaBitcoin, FaEthereum
 } from "react-icons/fa6";
 import {
   SiValorant, SiEpicgames, SiKick, SiNetflix, SiRiotgames, SiRoblox,
-  SiApplemusic, SiCashapp, SiCrunchyroll, SiWise, SiOsu, SiBitcoin, SiEthereum, SiSolana
+  SiApplemusic, SiCashapp, SiCrunchyroll, SiWise, SiOsu,
+  SiSolana, SiLitecoin, SiTether, SiMonero
 } from "react-icons/si";
 
-// 30+ supported platforms
+// 30+ supported platforms including cryptocurrency wallets and payments
 export const PLATFORMS = [
   { id: "discord", name: "Discord", Icon: FaDiscord, color: "#5865F2" },
   { id: "valorant", name: "Valorant", Icon: SiValorant, color: "#FF4655" },
@@ -30,10 +32,13 @@ export const PLATFORMS = [
   { id: "applemusic", name: "Apple Music", Icon: SiApplemusic, color: "#FA57C1" },
   { id: "apple", name: "Apple", Icon: FaApple, color: "#f5f5f5" },
   { id: "paypal", name: "PayPal", Icon: FaPaypal, color: "#00457C" },
-  { id: "bitcoin", name: "Bitcoin", Icon: SiBitcoin, color: "#F7931A" },
-  { id: "ethereum", name: "Ethereum", Icon: SiEthereum, color: "#627EEA" },
-  { id: "solana", name: "Solana", Icon: SiSolana, color: "#9945FF" },
   { id: "cashapp", name: "CashApp", Icon: SiCashapp, color: "#00D632" },
+  { id: "bitcoin", name: "Bitcoin (BTC)", Icon: FaBitcoin, color: "#F7931A", isCrypto: true },
+  { id: "ethereum", name: "Ethereum (ETH)", Icon: FaEthereum, color: "#627EEA", isCrypto: true },
+  { id: "solana", name: "Solana (SOL)", Icon: SiSolana, color: "#14F195", isCrypto: true },
+  { id: "litecoin", name: "Litecoin (LTC)", Icon: SiLitecoin, color: "#345D9D", isCrypto: true },
+  { id: "tether", name: "Tether (USDT)", Icon: SiTether, color: "#26A17B", isCrypto: true },
+  { id: "monero", name: "Monero (XMR)", Icon: SiMonero, color: "#FF6600", isCrypto: true },
   { id: "linkedin", name: "LinkedIn", Icon: FaLinkedin, color: "#0A66C2" },
   { id: "behance", name: "Behance", Icon: FaBehance, color: "#1769ff" },
   { id: "dribbble", name: "Dribbble", Icon: FaDribbble, color: "#EA4C89" },

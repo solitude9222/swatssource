@@ -1,5 +1,4 @@
 import { useState, useRef } from "react";
-import { Search } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { api, fileUrl } from "@/lib/api";
 import { TRACK_STYLES, resolveTrackStyle } from "@/constants/effects";
@@ -127,12 +126,6 @@ export default function Widgets() {
   // Full-size look at every player style, since the picker grid can only show
   // them at thumbnail size.
   const [showStyleGallery, setShowStyleGallery] = useState(false);
-  const [widgetQuery, setWidgetQuery] = useState("");
-  const [widgetCategory, setWidgetCategory] = useState("all");
-  const [discordPreviewLoading, setDiscordPreviewLoading] = useState(false);
-  const [discordPreviewError, setDiscordPreviewError] = useState("");
-  const [discordPreviewData, setDiscordPreviewData] = useState(null);
-
 
   // Discord banner upload: used by the Banner layout when the server has no
   // banner of its own (Discord only exposes it through the invite API).
@@ -152,12 +145,6 @@ export default function Widgets() {
     setBannerUploading(false);
   };
 
-  const visibleKinds = WIDGET_KINDS.filter((kind) => {
-    const matchesQuery = `${kind.label} ${kind.description || ""} ${kind.id}`.toLowerCase().includes(widgetQuery.trim().toLowerCase());
-    const matchesCategory = widgetCategory === "all" || (widgetCategory === "social" ? /discord|spotify|youtube|twitch|soundcloud/.test(kind.id) : widgetCategory === "gaming" ? /roblox|valorant|steam|riot|game/.test(kind.id) : widgetCategory === "creator" ? /github|youtube|twitch|soundcloud/.test(kind.id) : /music|audio|player/.test(kind.id));
-    return matchesQuery && matchesCategory;
-  });
-
   const openAddWidgetModal = (kind) => {
     if (kind.premium && !isPremium) {
       // The dialog explains what is locked and offers the plans; the old toast
@@ -166,16 +153,12 @@ export default function Widgets() {
       return;
     }
     setActiveModal({ isNew: true, index: widgets.length, widget: blankWidget(kind) });
-    setDiscordPreviewData(null);
-    setDiscordPreviewError("");
   };
 
   const openEditWidgetModal = (i) => {
     const kind = KIND_MAP[widgets[i].type];
     // Backfill the subtype for widgets saved before subtypes existed.
     setActiveModal({ isNew: false, index: i, widget: { ...blankWidget(kind || { id: widgets[i].type }), ...widgets[i] } });
-    setDiscordPreviewData(null);
-    setDiscordPreviewError("");
   };
 
   const patchActiveWidget = (patch) =>
@@ -192,15 +175,6 @@ export default function Widgets() {
 
   const saveModalWidget = () => {
     if (!activeModal) return;
-    const invite = String(activeModal.widget.invite || activeModal.widget.invite_url || "").trim();
-    if (activeModal.widget.type === "discord" && invite && !/^(https?:\/\/)?(www\.)?(discord\.gg|discord(app)?\.com\/invite)\/[A-Za-z0-9-]+\/?$/i.test(invite)) {
-      toast.error("Enter a valid Discord invite URL or invite code.");
-      return;
-    }
-    if (activeModal.widget.type === "discord" && invite && !activeModal.widget.server_id && !/discord\.gg\//i.test(invite)) {
-      toast.error("Enter a Discord server ID or invite link.");
-      return;
-    }
     const { isNew, index, widget } = activeModal;
     if (isNew) {
       setWidgets([...widgets, widget]);
@@ -209,21 +183,6 @@ export default function Widgets() {
     }
     setActiveModal(null);
     toast.success("Widget updated in draft — remember to save");
-  };
-
-  const loadDiscordPreview = async () => {
-    if (!activeModal || activeModal.widget.type !== "discord") return;
-    const guildId = String(activeModal.widget.server_id || activeModal.widget.group_id || "").trim();
-    if (!guildId) { setDiscordPreviewError("Add a Discord server ID to preview live server data."); return; }
-    setDiscordPreviewLoading(true);
-    setDiscordPreviewError("");
-    try {
-      const { data } = await api.get(`/widgets/discord/server/${encodeURIComponent(guildId)}`);
-      setDiscordPreviewData(data);
-    } catch (error) {
-      setDiscordPreviewData(null);
-      setDiscordPreviewError(error.response?.data?.detail || "Discord server data is unavailable. Check that the server widget is enabled.");
-    } finally { setDiscordPreviewLoading(false); }
   };
 
   const removeWidget = async (i) => {
@@ -315,8 +274,9 @@ export default function Widgets() {
         track_shuffle: shuffle,
         track_volume: volume,
         track_position: trackPosition,
-      });        setUser(data);
-        baseline.current = snapshot(widgets, tracks, trackStyle, shuffle, volume, trackPosition);
+      });
+      setUser(data);
+      baseline.current = snapshot(widgets, tracks, trackStyle, shuffle, volume, trackPosition);
       toast.success("Widgets & audio player saved!");
       setJustSaved(true);
       clearTimeout(savedTimer.current);
@@ -369,12 +329,8 @@ export default function Widgets() {
           </button>
         </div>
 
-        <div className="mb-5 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
-          <label className="relative block"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" /><input aria-label="Search widgets" value={widgetQuery} onChange={(e) => setWidgetQuery(e.target.value)} placeholder="Search the widget library…" className="w-full rounded-xl border border-white/10 bg-black/20 py-2.5 pl-10 pr-3 text-sm text-zinc-100 outline-none focus:border-brand-400/50" /></label>
-          <div className="flex flex-wrap gap-1.5" aria-label="Widget categories">{[["all","All"],["social","Social"],["gaming","Gaming"],["creator","Creator"],["media","Media"]].map(([id,label]) => <button key={id} type="button" aria-pressed={widgetCategory === id} onClick={() => setWidgetCategory(id)} className={`rounded-lg border px-3 py-2 text-xs font-semibold ${widgetCategory === id ? "border-brand-400/40 bg-brand-500/15 text-brand-100" : "border-white/10 text-zinc-400 hover:text-white"}`}>{label}</button>)}</div>
-        </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {visibleKinds.map((kind) => {
+          {WIDGET_KINDS.map((kind) => {
             const locked = kind.premium && !isPremium;
             const Icon = kind.Icon || GENERIC_WIDGET_ICON;
             return (
@@ -420,11 +376,8 @@ export default function Widgets() {
               </button>
             );
           })}
-          {visibleKinds.length === 0 && <div className="col-span-full rounded-2xl border border-dashed border-white/10 p-8 text-center text-sm text-zinc-500">No widgets match those filters.</div>}
         </div>
       </div>
-
-
 
       {/* Configured Widgets */}
       <div className="glass rounded-3xl p-5 sm:p-7">
@@ -939,10 +892,10 @@ export default function Widgets() {
                           </button>
                         ))}
                       </div>
-                      <p className="mt-1.5 text-[11px] leading-relaxed text-zinc-500">Displays live server identity and supported member information. Server data requires Discord&apos;s server widget to be enabled; unsupported fields are omitted rather than simulated.</p>
-                      <div className="mt-3 flex gap-2"><button type="button" onClick={loadDiscordPreview} disabled={discordPreviewLoading} className="rounded-lg border border-brand-400/25 bg-brand-500/10 px-3 py-2 text-xs font-semibold text-brand-100 disabled:opacity-50">{discordPreviewLoading ? "Loading preview…" : "Load live preview"}</button></div>
-                      {discordPreviewError && <p role="status" className="mt-2 text-xs text-amber-200">{discordPreviewError}</p>}
-                      {discordPreviewData && <div className="mt-3 rounded-xl border border-white/10 bg-white/[0.03] p-3"><div className="flex items-center gap-3">{(discordPreviewData.icon || discordPreviewData.icon_url) && <img src={discordPreviewData.icon || discordPreviewData.icon_url} alt="" className="h-9 w-9 rounded-lg object-cover" />}<div><div className="text-sm font-semibold text-zinc-100">{discordPreviewData.name || discordPreviewData.guild?.name || "Discord server"}</div><div className="text-xs text-zinc-400">{discordPreviewData.presence_count != null ? `${discordPreviewData.presence_count} online` : "Live source connected"}</div></div></div></div>}
+                      <p className="mt-1.5 text-[11px] leading-relaxed text-zinc-500">
+                        Classic is the full card with a strip of real members, Minimal is a single compact row,
+                        and Banner puts the server banner across the top with the crew beneath it.
+                      </p>
 
                       {(activeModal.widget.discord_style || "classic") === "banner" && (
                         <div className="mt-3 rounded-2xl border border-white/10 bg-white/[0.02] p-3.5">
@@ -1031,10 +984,11 @@ export default function Widgets() {
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
-                    <ColorPicker label="Widget accent" value={color} onChange={(v) => patchActiveWidget({ color: v })} />
-                    <ColorPicker label="Widget glow" value={glow || "#000000"} onChange={(v) => patchActiveWidget({ glow: `${v}80` })} />
+                    <ColorPicker label="Widget Color" value={color} onChange={(v) => patchActiveWidget({ color: v })} />
+                    <ColorPicker label="Widget Glow" value={glow || "#000000"} onChange={(v) => patchActiveWidget({ glow: `${v}80` })} />
+                    <ColorPicker label="Background Tint" value={activeModal.widget.card_bg_color || "#0c0d12"} onChange={(v) => patchActiveWidget({ card_bg_color: v })} />
+                    <ColorPicker label="Border Color" value={activeModal.widget.card_border_color || "#ffffff"} onChange={(v) => patchActiveWidget({ card_border_color: v })} />
                   </div>
-                  <p className="rounded-xl border border-white/10 bg-white/[0.02] p-3 text-[11px] leading-relaxed text-zinc-500">Shared widget borders, backgrounds, opacity and blur are inherited from the profile card style. Configure them once in Card / Layout rather than for each widget.</p>
 
                   <div className="space-y-3 rounded-2xl border border-white/10 bg-white/[0.02] p-3.5">
                     <div>

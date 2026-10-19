@@ -378,11 +378,10 @@ function discordBanner(guild) {
   return guild?.banner ? `https://cdn.discordapp.com/banners/${guild.id}/${guild.banner}.png?size=600` : null;
 }
 
-router.get('/discord/server/:pathId?', async (req, res) => {
-  // `id` is the invite code (or a bare server ID). Older widget drafts also
-  // encode this value as a path segment; accept both shapes so saved widgets
-  // keep working while new callers use query parameters.
-  const raw = clean(req.params.pathId || req.query.id || req.query.invite || req.query.code || req.query.guild);
+router.get('/discord/server', async (req, res) => {
+  // `id` is the invite code (or a bare server ID). `guild` is an optional server
+  // ID supplied alongside an invite so both can be paired on one card.
+  const raw = clean(req.query.id || req.query.invite || req.query.code || req.query.guild);
   if (!raw) {
     return res.status(400).json({ detail: 'Add your Discord invite link or code (e.g. discord.gg/abc123 or abc123)' });
   }

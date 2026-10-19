@@ -8,39 +8,57 @@ import { FaDiscord } from "react-icons/fa6";
 import NotificationBell from "@/components/NotificationBell";
 import AnnouncementBanner from "@/components/AnnouncementBanner";
 import AuthGateNotice from "@/components/AuthGateNotice";
-import { toast } from "@/lib/notify";
 import {
-  LayoutDashboard, Link2, Award, LayoutGrid, Settings, LayoutTemplate, Trophy,
-  BarChart3, Users, Ticket, SlidersHorizontal, LineChart, LogOut, ExternalLink,
-  Crown, ChevronDown, Sparkles, BellRing, Newspaper, ShieldCheck, Plus, ScrollText,
-  Loader2, Gift, Store, Layers3, Film,
+  LayoutDashboard, Paintbrush, Link2, Award, LayoutGrid, Settings, LayoutTemplate,
+  Trophy, BarChart3, Users, Ticket, SlidersHorizontal, LineChart, LogOut,
+  ExternalLink, Crown,  ChevronDown, Sparkles, BellRing, Newspaper, ShieldCheck, Plus,
+  ScrollText, Loader2, Gift, ShoppingBag, Store,
 } from "lucide-react";
 import PremiumPlansModal from "@/components/PremiumPlansModal";
 import DevlogFeedModal from "@/components/DevlogFeedModal";
 
 const DISCORD_INVITE = "https://discord.gg/a9uwptuepD";
-const spring = { type: "spring", stiffness: 420, damping: 34, mass: 0.7 };
 
+/* ---------------------------------------------------------------------------
+   The sidebar is grouped into collapsible categories, and the content header
+   shows that category's tabs — so the shell reads "here is the area I am in"
+   instead of one flat wall of eleven links. A category can be folded away, but
+   the one holding the current page never collapses, so a route is never hidden.
+   --------------------------------------------------------------------------- */
 const NAV_GROUPS = [
-  { id: "main", label: "Main", tabs: [
-    { to: "/!/dashboard", end: true, label: "Overview", icon: LayoutDashboard, testid: "tab-overview" },
-  ] },
-  { id: "customization", label: "Customization", icon: Layers3, collapsible: true, tabs: [
-    { to: "/!/dashboard/badges", label: "Badges", icon: Award, testid: "tab-badges" },
-    { to: "/!/dashboard/editor?section=card", label: "Card / Layout", icon: LayoutTemplate, testid: "tab-card-layout", match: "/!/dashboard/editor" },
-    { to: "/!/dashboard/links", label: "Links", icon: Link2, testid: "tab-links" },
-    { to: "/!/dashboard/widgets", label: "Widgets", icon: LayoutGrid, testid: "tab-widgets" },
-    { to: "/!/dashboard/editor?section=effects", label: "Effects / Media", icon: Film, testid: "tab-effects-media", match: "/!/dashboard/editor" },
-    { to: "/!/dashboard/editor?section=entry", label: "Entry Screen", icon: LayoutGrid, testid: "tab-entry-screen", match: "/!/dashboard/editor" },
-  ] },
-  { id: "other", label: "Other", tabs: [
-    { to: "/!/dashboard/shop", label: "Marketplace", icon: Store, testid: "tab-shop" },
-    { to: "/!/dashboard/leaderboard", label: "Leaderboard", icon: Trophy, testid: "tab-leaderboard" },
-    { to: "/!/dashboard/templates", label: "Templates", icon: LayoutTemplate, testid: "tab-templates" },
-    { to: "/!/dashboard/settings", label: "Settings", icon: Settings, testid: "tab-settings" },
-  ] },
+  {
+    id: "main",
+    label: "Main",
+    tabs: [
+      { to: "/!/dashboard", end: true, label: "Overview", icon: LayoutDashboard, testid: "tab-overview" },
+    ],
+  },
+  {
+    id: "customization",
+    label: "Customization",
+    icon: Paintbrush,
+    expandable: true,
+    tabs: [
+      { to: "/!/dashboard/badges", label: "Badges", icon: Award, testid: "tab-badges" },
+      { to: "/!/dashboard/editor", label: "Card / Layout", icon: Paintbrush, testid: "tab-editor" },
+      { to: "/!/dashboard/links", label: "Links", icon: Link2, testid: "tab-links" },
+      { to: "/!/dashboard/widgets", label: "Widgets", icon: LayoutGrid, testid: "tab-widgets" },
+      { to: "/!/dashboard/effects", label: "Effects / Media", icon: Sparkles, testid: "tab-effects" },
+    ],
+  },
+  {
+    id: "other",
+    label: "Other",
+    tabs: [
+      { to: "/!/dashboard/shop", label: "Marketplace", icon: Store, testid: "tab-shop" },
+      { to: "/!/dashboard/leaderboard", label: "Leaderboard", icon: Trophy, testid: "tab-leaderboard" },
+      { to: "/!/dashboard/templates", label: "Templates", icon: LayoutTemplate, testid: "tab-templates" },
+      { to: "/!/dashboard/settings", label: "Settings", icon: Settings, testid: "tab-settings" },
+    ],
+  },
 ];
 
+/* Admin section definitions */
 const ADMIN_SECTIONS = [
   { to: "/!/dashboard/admin", end: true, label: "Overview", icon: ShieldCheck, testid: "tab-admin-overview" },
   { to: "/!/dashboard/admin/ranked", label: "Ranked", icon: Trophy, testid: "tab-admin-ranked" },
@@ -52,138 +70,699 @@ const ADMIN_SECTIONS = [
   { to: "/!/dashboard/admin/analytics", label: "Analytics", icon: LineChart, testid: "tab-admin-analytics" },
   { to: "/!/dashboard/admin/audit", label: "Audit", icon: ScrollText, testid: "tab-admin-audit" },
 ];
-const ADMIN_LINK = { to: "/!/dashboard/admin", end: false, label: "Admin", icon: ShieldCheck, testid: "tab-admin" };
-const EXTRA_TABS = [
-  { to: "/!/dashboard/stats", label: "Analytics", icon: BarChart3, testid: "tab-stats" },
-  { to: "/!/dashboard/rewards", label: "Rewards", icon: Gift, testid: "tab-rewards" },
-];
-const ALL_TABS = [...NAV_GROUPS.flatMap((group) => group.tabs), ...EXTRA_TABS, ADMIN_LINK, ...ADMIN_SECTIONS];
-const isAdminPath = (path) => path.startsWith("/!/dashboard/admin");
-const groupFor = (path) => isAdminPath(path) ? NAV_GROUPS[2] : NAV_GROUPS.find((g) => g.tabs.some((t) => path === (t.match || t.to.split("?")[0]) || (t.match && path.startsWith(t.match)))) || null;
-const tabFor = (path, search) => {
-  if (path === "/!/dashboard/editor") return search.includes("section=effects") ? NAV_GROUPS[1].tabs[4] : search.includes("section=entry") ? NAV_GROUPS[1].tabs[5] : NAV_GROUPS[1].tabs[1];
-  return ALL_TABS.find((t) => path === t.to || (t.to !== "/!/dashboard" && path.startsWith(t.to))) || null;
+
+const ADMIN_ITEM = {
+  to: "/!/dashboard/admin",
+  label: "Admin",
+  icon: ShieldCheck,
+  testid: "tab-admin",
 };
 
-function TabLink({ t }) {
-  const location = useLocation();
-  const isEditorTab = t.to.startsWith("/!/dashboard/editor?");
-  const isCurrent = isEditorTab
-    ? location.pathname === "/!/dashboard/editor" && location.search.includes(t.to.split("?")[1])
-    : undefined;
-  return <NavLink to={t.to} end={t.end} data-testid={t.testid} className={({ isActive }) => {
-    const active = isCurrent ?? isActive;
-    return `group relative flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-brand-500/60 ${active ? "text-brand-100" : "text-zinc-400 hover:text-zinc-100"}`;
-  }}>
-    {({ isActive }) => {
-      const active = isCurrent ?? isActive;
-      return <>
-        <span className={`absolute inset-0 rounded-lg transition-colors ${active ? "border border-brand-400/25 bg-brand-500/15" : "group-hover:bg-white/[0.04]"}`} />
-        <t.icon className={`relative z-10 h-3.5 w-3.5 shrink-0 ${active ? "text-brand-300" : ""}`} />
-        <span className="relative z-10 truncate">{t.label}</span>
-        {active && <span className="relative z-10 ml-auto h-1.5 w-1.5 rounded-full bg-brand-300" />}
-      </>;
-    }}
-  </NavLink>;
-}
+const ALL_TABS = [
+  ...NAV_GROUPS.flatMap((g) => g.tabs),
+  ADMIN_ITEM,
+  ...ADMIN_SECTIONS,
+];
 
+const spring = { type: "spring", stiffness: 420, damping: 34, mass: 0.7 };
+
+const groupFor = (pathname) => {
+  if (pathname.startsWith("/!/dashboard/admin")) {
+    return { id: "other", label: "Other" };
+  }
+  const exact = ALL_TABS.find((t) => t.to === pathname);
+  if (exact) return NAV_GROUPS.find((g) => g.tabs.some((tb) => tb.to === exact.to)) || null;
+  const partial = ALL_TABS.find((t) => t.to !== "/!/dashboard" && pathname.startsWith(t.to));
+  if (partial) return NAV_GROUPS.find((g) => g.tabs.some((tb) => tb.to === partial.to)) || null;
+  return null;
+};
+
+const tabFor = (pathname) =>
+  ALL_TABS.find((t) => t.to === pathname) ||
+  ALL_TABS.find((t) => t.to !== "/!/dashboard" && pathname.startsWith(t.to)) ||
+  null;
+
+const TabLink = ({ t }) => (
+  <NavLink
+    to={t.to}
+    end={t.end}
+    data-testid={t.testid}
+    className={({ isActive }) =>
+      `group relative flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs font-medium outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-brand-500/60 ${
+        isActive ? "text-brand-100" : "text-zinc-400 hover:text-zinc-100"
+      }`
+    }
+  >
+    {({ isActive }) => (
+      <>
+        {isActive ? (
+          <motion.span
+            layoutId="dash-nav-active"
+            transition={spring}
+            className="absolute inset-0 rounded-lg border border-brand-400/25 bg-brand-500/15"
+          />
+        ) : (
+          <span className="absolute inset-0 rounded-lg bg-white/0 transition-colors duration-200 group-hover:bg-white/[0.04]" />
+        )}
+        <t.icon
+          className={`relative z-10 w-3.5 h-3.5 shrink-0 transition-transform duration-200 ${
+            isActive ? "scale-110" : "group-hover:scale-105"
+          }`}
+        />
+        <span className="relative z-10 truncate">{t.label}</span>
+        {isActive && (
+          <motion.span
+            layoutId="dash-nav-marker"
+            transition={spring}
+            className="relative z-10 ml-auto h-1.5 w-1.5 rounded-full bg-brand-300"
+          />
+        )}
+      </>
+    )}
+  </NavLink>
+);
+
+/* A foldable category. The chevron rotates, the list animates its height and a
+   dot marks the folded category that holds the page you are on, so folding the
+   sidebar can never lose your route. */
 function NavGroup({ group, open, onToggle, containsActive }) {
-  if (!group.collapsible && group.id === "main") return <div className="mb-1"><div className="mb-1 px-3 pt-2 font-mono2 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">{group.label}</div><div className="space-y-0.5">{group.tabs.map((t) => <TabLink key={t.testid} t={t} />)}</div></div>;
-  return <div className="mb-1">    {group.collapsible ? <>
-      <div className="mb-1 px-3 pt-2 font-mono2 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">{group.label}</div>
-      <button type="button" onClick={onToggle} aria-expanded={open} data-testid={`navgroup-${group.id}`} className={`group flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-brand-500/50 ${containsActive ? "bg-brand-500/10 text-brand-100" : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-100"}`}>
-        <group.icon className="h-4 w-4 shrink-0 text-brand-300" /><span className="text-xs font-semibold">{group.label}</span>
-        {containsActive && !open && <span className="h-1 w-1 rounded-full bg-brand-400" />}
-        <ChevronDown className={`ml-auto h-3.5 w-3.5 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+  const Icon = group.icon;
+  return (
+    <div className="mb-1">
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={open}
+        data-testid={`navgroup-${group.id}`}
+        className={`group flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-left outline-none transition-all duration-200 hover:bg-white/[0.04] focus-visible:ring-2 focus-visible:ring-brand-500/50 ${
+          containsActive ? "bg-white/[0.02] text-zinc-200" : "text-zinc-400"
+        }`}
+      >
+        {Icon && (
+          <span className="flex h-5 w-5 items-center justify-center rounded-md bg-brand-500/10 text-brand-300 transition-colors group-hover:bg-brand-500/20">
+            <Icon className="h-3.5 w-3.5" />
+          </span>
+        )}
+        <span className="font-mono2 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 transition-colors duration-200 group-hover:text-zinc-200">
+          {group.label}
+        </span>
+        {containsActive && !open && <span className="h-1.5 w-1.5 rounded-full bg-brand-400 animate-pulse" />}
+        <ChevronDown
+          className={`ml-auto h-3 w-3 shrink-0 text-zinc-500 transition-transform duration-300 ${
+            open ? "rotate-0" : "-rotate-90"
+          }`}
+        />
       </button>
-      <AnimatePresence initial={false}>{open && <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="ml-3 mt-1 overflow-hidden border-l border-white/10 pl-2"><div className="space-y-0.5">{group.tabs.map((t) => <TabLink key={t.testid} t={t} />)}</div></motion.div>}</AnimatePresence>
-    </> : <><div className="mb-1 px-3 pt-2 font-mono2 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">{group.label}</div><div className="space-y-0.5">{group.tabs.map((t) => <TabLink key={t.testid} t={t} />)}</div></>}
-  </div>;
+
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="overflow-hidden"
+          >
+            <div className={`space-y-0.5 pt-1 ${group.expandable ? "pl-2 border-l border-white/[0.07] ml-3.5 my-1" : ""}`}>
+              {group.tabs.map((t) => (
+                <TabLink key={t.to} t={t} />
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
 }
 
 function CommunityCard() {
   const [stats, setStats] = useState(null);
-  useEffect(() => { let alive = true; api.get("/stats").then(({ data }) => { if (alive) setStats(data); }).catch(() => {}); return () => { alive = false; }; }, []);
-  return <a href={DISCORD_INVITE} target="_blank" rel="noreferrer" data-testid="discord-card" className="group block rounded-xl border border-white/[0.06] bg-gradient-to-br from-brand-500/[0.12] to-white/[0.02] p-2.5 transition-colors hover:border-brand-400/30">
-    <div className="flex items-center gap-2"><span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/[0.08]"><FaDiscord className="h-3.5 w-3.5 text-white" /></span><div className="min-w-0 flex-1 truncate text-xs font-bold text-zinc-100">Join our Discord</div><ExternalLink className="h-3 w-3 text-zinc-500" /></div>
-    {stats && Number.isFinite(stats.bio_links) && <div className="mt-1.5 flex items-center gap-1.5 text-[9px] text-zinc-400"><span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />{stats.bio_links.toLocaleString()} bios · {Number(stats.total_views || 0).toLocaleString()} views</div>}
-  </a>;
+
+  useEffect(() => {
+    let alive = true;
+    api.get("/stats").then(({ data }) => { if (alive) setStats(data); }).catch(() => {});
+    return () => { alive = false; };
+  }, []);
+
+  return (
+    <a
+      href={DISCORD_INVITE}
+      target="_blank"
+      rel="noreferrer"
+      data-testid="discord-card"
+      className="group block rounded-xl border border-white/[0.06] bg-gradient-to-br from-brand-500/[0.12] to-white/[0.02] p-2.5 transition-colors duration-200 hover:border-brand-400/30"
+    >
+      <div className="flex items-center gap-2">
+        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-white/[0.08] border border-white/10 transition-transform duration-300 group-hover:scale-105">
+          <FaDiscord className="h-3.5 w-3.5 text-white" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-xs font-bold text-zinc-100">Join our Discord</div>
+        </div>
+        <ExternalLink className="h-3 w-3 shrink-0 text-zinc-500 transition-colors duration-200 group-hover:text-brand-300" />
+      </div>
+      {stats && Number.isFinite(stats.bio_links) && (
+        <div className="mt-1.5 flex items-center gap-1.5 text-[9px] text-zinc-400">
+          <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400" />
+          {stats.bio_links.toLocaleString()} bios · {Number(stats.total_views || 0).toLocaleString()} views
+        </div>
+      )}
+    </a>
+  );
 }
 
 function UserCard({ user, onLogout }) {
   const initial = (user.display_name || user.username || "?")[0]?.toUpperCase();
-  return <div className="mt-2 flex items-center gap-2.5 rounded-xl border border-white/[0.06] bg-white/[0.03] p-2">
-    <div className="h-8 w-8 shrink-0 overflow-hidden rounded-full bg-zinc-800 text-xs ring-1 ring-white/10">{user.profile?.avatar_url ? <img src={fileUrl(user.profile.avatar_url)} alt="" className="h-full w-full object-cover" /> : <span className="flex h-full w-full items-center justify-center font-bold text-zinc-400">{initial}</span>}</div>
-    <div className="min-w-0 flex-1"><div className="truncate text-xs font-semibold text-zinc-100">{user.display_name || user.username}</div><div className="truncate font-mono2 text-[10px] text-zinc-500">@{user.username}{Number.isFinite(user.uid_number) && <span className="text-zinc-600"> · #{user.uid_number} <span className="sr-only">UID {user.uid_number}</span></span>}</div></div>
-    <button type="button" onClick={onLogout} data-testid="logout-btn" title="Log out" aria-label="Log out" className="rounded-lg p-1.5 text-zinc-500 transition hover:bg-red-500/10 hover:text-red-300 focus-visible:ring-2 focus-visible:ring-red-500/40"><LogOut className="h-3.5 w-3.5" /></button>
-  </div>;
+  return (
+    <div className="mt-2 flex items-center gap-2.5 rounded-xl border border-white/[0.06] bg-white/[0.03] p-2">
+      <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-zinc-800 text-xs ring-1 ring-white/10">
+        {user.profile?.avatar_url ? (
+          <img src={fileUrl(user.profile.avatar_url)} alt="" className="h-full w-full object-cover" />
+        ) : (
+          <span className="flex h-full w-full items-center justify-center font-bold text-zinc-400">{initial}</span>
+        )}
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-xs font-semibold text-zinc-100">{user.display_name || user.username}</div>
+        <div className="truncate font-mono2 text-[10px] text-zinc-500">
+          @{user.username}
+          {Number.isFinite(user.uid_number) && <span className="text-zinc-600"> · #{user.uid_number} <span className="sr-only">UID {user.uid_number}</span></span>}
+        </div>
+      </div>
+      <button
+        type="button"
+        onClick={onLogout}
+        data-testid="logout-btn"
+        title="Log out"
+        aria-label="Log out"
+        className="group shrink-0 rounded-lg p-1.5 text-zinc-500 outline-none transition-colors duration-200 hover:bg-red-500/10 hover:text-red-300 focus-visible:ring-2 focus-visible:ring-red-500/40 cursor-pointer"
+      >
+        <LogOut className="h-3.5 w-3.5" />
+      </button>
+    </div>
+  );
 }
 
+/* The top-right account menu: a click on the avatar opens every account this
+   session can reach — the current one, the paired accounts to swap between,
+   an inline form that pairs a new one (signing into it once verifies it), and
+   the sign-out. The paired accounts stay mutual-only, so the menu can never
+   show an account the other side has not agreed to. */
 function AccountMenu({ user }) {
-  const { switchable, loadSwitchable, switchAccount, linkAccount, startPair, logout } = useAuth();
-  const [open, setOpen] = useState(false); const [busy, setBusy] = useState(false); const [adding, setAdding] = useState(false); const [addMode, setAddMode] = useState("credentials");
-  const [ident, setIdent] = useState(""); const [password, setPassword] = useState(""); const [code, setCode] = useState(""); const [needsCode, setNeedsCode] = useState(false); const [error, setError] = useState("");
-  const menuRef = useRef(null); const buttonRef = useRef(null);
+  const { switchable, loadSwitchable, switchAccount, linkAccount, startPair, unlinkAccount, logout } = useAuth();
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [adding, setAdding] = useState(false);
+  const [addMode, setAddMode] = useState("credentials"); // "credentials" | "discord"
+  const [ident, setIdent] = useState("");
+  const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
+  const [needsCode, setNeedsCode] = useState(false);
+  const [error, setError] = useState("");
+  const menuRef = useRef(null);
+  const buttonRef = useRef(null);
+
+  // Auto-close menu when clicking outside or pressing Escape
   useEffect(() => {
     if (!open) return undefined;
-    const outside = (e) => { if (!menuRef.current?.contains(e.target) && !buttonRef.current?.contains(e.target)) setOpen(false); };
-    const escape = (e) => { if (e.key === "Escape") setOpen(false); };
-    document.addEventListener("mousedown", outside); document.addEventListener("touchstart", outside); document.addEventListener("keydown", escape);
-    return () => { document.removeEventListener("mousedown", outside); document.removeEventListener("touchstart", outside); document.removeEventListener("keydown", escape); };
+    const onMouseDown = (e) => {
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(e.target) &&
+        !buttonRef.current?.contains(e.target)
+      ) {
+        setOpen(false);
+      }
+    };
+    const onKeyDown = (e) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", onMouseDown);
+    document.addEventListener("touchstart", onMouseDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", onMouseDown);
+      document.removeEventListener("touchstart", onMouseDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
   }, [open]);
-  useEffect(() => { if (open) loadSwitchable(); }, [open, loadSwitchable]);
-  const doSwitch = async (id) => { setBusy(true); const res = await switchAccount(id); setBusy(false); if (!res.ok) { setError(res.error); return; } setOpen(false); window.location.reload(); };
-  const doLink = async (e) => { e.preventDefault(); if (!ident.trim() || !password) { setError("Enter username/email and password"); return; } setBusy(true); setError(""); const res = await linkAccount(ident.trim(), password, needsCode ? code.trim() : undefined); setBusy(false); if (!res.ok) { if (res.code === "totp_required") setNeedsCode(true); setError(res.error || "Enter the required two-factor code"); return; } toast.success("Account paired! You can switch between them anytime."); setAdding(false); setIdent(""); setPassword(""); setCode(""); setNeedsCode(false); };
+
+  // Re-read the pairing when the menu opens, so a link made in another tab is
+  // here too.
+  useEffect(() => {
+    if (open) loadSwitchable();
+  }, [open, loadSwitchable]);
+
+  const doSwitch = async (targetId) => {
+    setBusy(true);
+    const res = await switchAccount(targetId);
+    setBusy(false);
+    if (!res.ok) { setError(res.error); return; }
+    setOpen(false);
+    window.location.reload();
+  };
+
+  const doLinkCredentials = async (e) => {
+    e?.preventDefault?.();
+    if (!ident.trim() || !password) {
+      setError("Enter username/email and password");
+      return;
+    }
+    setBusy(true);
+    setError("");
+    const res = await linkAccount(ident.trim(), password, needsCode ? code.trim() : undefined);
+    setBusy(false);
+    if (!res.ok) {
+      if (res.code === "totp_required") {
+        setNeedsCode(true);
+        setError("Enter 6-digit two-factor authentication code");
+      } else {
+        setError(res.error || "Failed to link account");
+      }
+      return;
+    }
+    toast.success("Account paired! You can switch between them anytime.");
+    setAdding(false);
+    setIdent("");
+    setPassword("");
+    setCode("");
+    setNeedsCode(false);
+  };
+
+  /* Add another account via Discord: stages a pair intent and redirects to OAuth callback */
+  const doPair = async () => {
+    setBusy(true);
+    setError("");
+    const res = await startPair();
+    setBusy(false);
+    if (!res.ok) setError(res.error || "Could not start the Discord sign-in");
+  };
+
   const initial = (name) => (name || "?")[0]?.toUpperCase();
-  return <div className="relative">
-    <button ref={buttonRef} type="button" data-testid="account-menu-button" onClick={() => setOpen((v) => !v)} aria-expanded={open} title={`${user.display_name || user.username} — account menu`} className="hidden h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-zinc-800 text-sm ring-1 ring-white/10 sm:flex">{user.profile?.avatar_url ? <img src={fileUrl(user.profile.avatar_url)} alt="" className="h-full w-full object-cover" /> : initial(user.display_name || user.username)}</button>
-    {open && <><div className="fixed inset-0 z-40" onClick={() => setOpen(false)} /><div ref={menuRef} data-testid="account-menu" className="absolute right-0 top-10 z-50 w-72 overflow-hidden rounded-2xl border border-white/10 bg-[#101014] shadow-[0_20px_60px_rgba(0,0,0,0.7)]">
-      <div data-testid="account-switcher" className="max-h-72 overflow-y-auto p-2">{switchable.map((acc) => <div key={acc.id} className="flex items-center gap-2.5 rounded-xl px-2.5 py-2"><div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-zinc-800 ring-1 ring-white/10">{acc.avatar_url ? <img src={fileUrl(acc.avatar_url)} alt="" className="h-full w-full object-cover" /> : initial(acc.display_name)}</div><div className="min-w-0 flex-1"><div className="truncate text-xs font-semibold text-zinc-100">{acc.display_name}</div><div className="truncate font-mono2 text-[10px] text-zinc-500">@{acc.username}</div></div>{acc.id === user.id ? <span className="text-[9px] font-bold uppercase text-brand-300">current</span> : <button type="button" data-testid={`switch-account-${acc.username}`} disabled={busy} onClick={() => doSwitch(acc.id)} className="rounded-lg border border-white/10 px-2.5 py-1 text-[10px] font-semibold text-zinc-300 disabled:opacity-50">Switch</button>}</div>)}
-      {!adding ? <button type="button" data-testid="add-account" onClick={() => { setAdding(true); setError(""); }} className="mt-1 flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-xs font-semibold text-zinc-300 hover:bg-white/[0.04]"><Plus className="h-3.5 w-3.5 text-brand-400" /> Add another account</button> : <div data-testid="link-account-form" className="mt-1 space-y-2.5 rounded-xl border border-white/10 bg-white/[0.03] p-3">
-        <div className="flex rounded-lg border border-white/10 p-0.5 text-[11px] font-semibold"><button type="button" onClick={() => setAddMode("credentials")} className="flex-1 rounded-md py-1">Password</button><button type="button" onClick={() => setAddMode("discord")} className="flex-1 rounded-md py-1">Discord</button></div>{error && <p className="text-[10px] text-red-400">{error}</p>}
-        {addMode === "credentials" ? <form onSubmit={doLink} className="space-y-2"><input aria-label="Username or email" value={ident} onChange={(e) => setIdent(e.target.value)} placeholder="Username or email" className="w-full rounded-lg border border-white/10 bg-black/50 px-2.5 py-1.5 text-xs" /><input aria-label="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" className="w-full rounded-lg border border-white/10 bg-black/50 px-2.5 py-1.5 text-xs" />{needsCode && <input aria-label="Two-factor code" value={code} onChange={(e) => setCode(e.target.value)} placeholder="6-digit 2FA code" className="w-full rounded-lg border border-white/10 bg-black/50 px-2.5 py-1.5 text-xs" />}<button type="submit" disabled={busy} className="w-full rounded-lg bg-brand-500 px-3 py-2 text-xs font-bold disabled:opacity-50">{busy ? "Linking…" : "Link account"}</button></form> : <button type="button" data-testid="pair-discord" disabled={busy} onClick={async () => { setBusy(true); const res = await startPair(); setBusy(false); if (!res.ok) setError(res.error || "Could not start Discord sign-in"); }} className="w-full rounded-lg bg-[#5865F2] px-3 py-2 text-xs font-bold disabled:opacity-50"><FaDiscord className="mr-2 inline" />Continue with Discord</button>}
-        <Link to="/!/register" onClick={() => setOpen(false)} className="block text-center text-[10px] text-zinc-500">Need to create a new profile? Register here →</Link>
-      </div>}</div>
-      <div className="border-t border-white/10 p-2"><a href={`/${user.username}`} target="_blank" rel="noreferrer" className="flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-xs font-semibold text-zinc-300"><ExternalLink className="h-3.5 w-3.5 text-brand-400" /> View public profile</a><button type="button" data-testid="account-menu-logout" onClick={async () => { await logout(); window.location.href = "/"; }} className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-xs font-semibold text-red-300"><LogOut className="h-3.5 w-3.5" /> Log out</button></div>
-    </div></>}
-  </div>;
+  const avatar = (acc, sizeClass) => (
+    <div className={`${sizeClass} shrink-0 overflow-hidden rounded-full bg-zinc-800 ring-1 ring-white/10`}>
+      {acc.avatar_url ? (
+        <img src={fileUrl(acc.avatar_url)} alt="" className="h-full w-full object-cover" />
+      ) : (
+        <span className={`flex h-full w-full items-center justify-center text-zinc-400`}>{initial(acc.display_name)}</span>
+      )}
+    </div>
+  );
+
+  return (
+    <div className="relative">
+      <button
+        ref={buttonRef}
+        type="button"
+        data-testid="account-menu-button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        title={`${user.display_name || user.username} — account menu`}
+        className="hidden h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-zinc-800 text-sm ring-1 ring-white/10 transition-transform duration-200 hover:scale-105 focus-visible:ring-2 focus-visible:ring-brand-500/60 sm:flex"
+      >
+        {user.profile?.avatar_url ? (
+          <img src={fileUrl(user.profile.avatar_url)} alt="" className="h-full w-full object-cover" />
+        ) : (
+          initial(user.display_name || user.username)
+        )}
+      </button>
+
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div
+            ref={menuRef}
+            data-testid="account-menu"
+            className="absolute right-0 top-10 z-50 w-72 overflow-hidden rounded-2xl border border-white/10 bg-[#101014] shadow-[0_20px_60px_rgba(0,0,0,0.7)]"
+          >
+            <div data-testid="account-switcher" className="max-h-72 overflow-y-auto p-2">
+              {switchable.map((acc) => {
+                const current = acc.id === user.id;
+                return (
+                  <div key={acc.id} className="flex items-center gap-2.5 rounded-xl px-2.5 py-2">
+                    {avatar(acc, "h-8 w-8")}
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-xs font-semibold text-zinc-100">{acc.display_name}</div>
+                      <div className="truncate font-mono2 text-[10px] text-zinc-500">@{acc.username}</div>
+                    </div>
+                    {current ? (
+                      <span className="shrink-0 rounded-full bg-brand-500/15 px-2 py-0.5 text-[9px] font-bold uppercase text-brand-300">current</span>
+                    ) : (
+                      <button
+                        type="button"
+                        data-testid={`switch-account-${acc.username}`}
+                        disabled={busy}
+                        onClick={() => doSwitch(acc.id)}
+                        className="shrink-0 rounded-lg border border-white/10 px-2.5 py-1 text-[10px] font-semibold text-zinc-300 transition hover:border-brand-500/40 hover:text-brand-200 disabled:opacity-50"
+                      >
+                        Switch
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+
+              {!adding ? (
+                <button
+                  type="button"
+                  data-testid="add-account"
+                  onClick={() => { setAdding(true); setError(""); setAddMode("credentials"); }}
+                  className="mt-1 flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-xs font-semibold text-zinc-300 transition hover:bg-white/[0.04]"
+                >
+                  <Plus className="h-3.5 w-3.5 text-brand-400" /> Add another account
+                </button>
+              ) : (
+                <div data-testid="link-account-form" className="mt-1 space-y-2.5 rounded-xl border border-white/10 bg-white/[0.03] p-3">
+                  <div className="flex rounded-lg border border-white/10 bg-black/40 p-0.5 text-[11px] font-semibold">
+                    <button
+                      type="button"
+                      onClick={() => { setAddMode("credentials"); setError(""); }}
+                      className={`flex-1 py-1 rounded-md transition ${addMode === "credentials" ? "bg-brand-500/25 text-brand-200" : "text-zinc-400 hover:text-zinc-200"}`}
+                    >
+                      Password
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setAddMode("discord"); setError(""); }}
+                      className={`flex-1 py-1 rounded-md transition ${addMode === "discord" ? "bg-brand-500/25 text-brand-200" : "text-zinc-400 hover:text-zinc-200"}`}
+                    >
+                      Discord
+                    </button>
+                  </div>
+
+                  {error && <p className="text-[10px] text-red-400 font-medium">{error}</p>}
+
+                  {addMode === "credentials" ? (
+                    <form onSubmit={doLinkCredentials} className="space-y-2">
+                      <input
+                        type="text"
+                        placeholder="Username or email"
+                        value={ident}
+                        onChange={(e) => setIdent(e.target.value)}
+                        className="w-full rounded-lg border border-white/10 bg-black/50 px-2.5 py-1.5 text-xs text-zinc-100 placeholder:text-zinc-600 outline-none focus:border-brand-500/50"
+                      />
+                      <input
+                        type="password"
+                        placeholder="Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="w-full rounded-lg border border-white/10 bg-black/50 px-2.5 py-1.5 text-xs text-zinc-100 placeholder:text-zinc-600 outline-none focus:border-brand-500/50"
+                      />
+                      {needsCode && (
+                        <input
+                          type="text"
+                          placeholder="6-digit 2FA code"
+                          value={code}
+                          onChange={(e) => setCode(e.target.value)}
+                          className="w-full rounded-lg border border-amber-500/40 bg-black/50 px-2.5 py-1.5 text-xs text-zinc-100 placeholder:text-zinc-600 outline-none focus:border-amber-400"
+                        />
+                      )}
+                      <div className="flex gap-2 pt-1">
+                        <button
+                          type="submit"
+                          disabled={busy}
+                          className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-brand-500 to-brand-600 px-3 py-1.5 text-[11px] font-bold text-white transition hover:brightness-110 disabled:opacity-50"
+                        >
+                          {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Link account"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { setAdding(false); setError(""); }}
+                          className="rounded-lg border border-white/10 px-3 py-1.5 text-[11px] font-semibold text-zinc-400 hover:text-zinc-200"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    <div className="space-y-2">
+                      <p className="text-[11px] leading-relaxed text-zinc-400">
+                        Sign in with the <span className="font-semibold text-zinc-200">other Discord account</span>. We link the two accounts so you can switch between them here.
+                      </p>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          data-testid="pair-discord"
+                          onClick={doPair}
+                          disabled={busy}
+                          className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#5865F2] px-3 py-1.5 text-[11px] font-bold text-white transition hover:brightness-110 disabled:opacity-50"
+                        >
+                          {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FaDiscord className="h-3.5 w-3.5" />}
+                          Continue with Discord
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { setAdding(false); setError(""); }}
+                          className="rounded-lg border border-white/10 px-3 py-1.5 text-[11px] font-semibold text-zinc-400 hover:text-zinc-200"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="pt-1 text-center">
+                    <Link
+                      to="/!/register"
+                      onClick={() => setOpen(false)}
+                      className="text-[10px] text-zinc-500 hover:text-brand-300 transition"
+                    >
+                      Need to create a new profile? Register here →
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="border-t border-white/10 p-2">
+              <a
+                href={`/${user.username}`}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-xs font-semibold text-zinc-300 transition hover:bg-white/[0.04]"
+              >
+                <ExternalLink className="h-3.5 w-3.5 text-brand-400" /> View public profile
+              </a>
+              <button
+                type="button"
+                onClick={async () => { await logout(); window.location.href = "/"; }}
+                data-testid="account-menu-logout"
+                className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-xs font-semibold text-red-300 transition hover:bg-red-500/10"
+              >
+                <LogOut className="h-3.5 w-3.5" /> Log out
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
 }
 
 export default function DashboardLayout() {
-  const { user, logout } = useAuth(); const navigate = useNavigate(); const { pathname, search } = useLocation();
-  const [collapsed, setCollapsed] = useState({}); const [popup, setPopup] = useState(null);
-  if (!user || user === false) return null;
-  const isAdmin = user.role === "admin" || user.is_owner; const isOwner = user.is_owner || user.role === "owner";
-  const adminTabs = isOwner ? ADMIN_SECTIONS.filter((section) => section.testid !== "tab-admin-ranked") : ADMIN_SECTIONS.filter((section) => section.testid !== "tab-admin-ranked" && (section.to.includes("users") || section.to.includes("analytics") || section.to === "/!/dashboard/admin"));
-  const groups = NAV_GROUPS.map((group) => group.id === "other" ? { ...group, admin: isAdmin, tabs: [...group.tabs, ...EXTRA_TABS, ...(isAdmin ? [ADMIN_LINK] : [])] } : group);
-  const activeGroup = groupFor(pathname); const activeTab = tabFor(pathname, search);
-  const strip = isAdminPath(pathname) ? adminTabs : (activeGroup?.tabs || []);
-  const handleLogout = () => { logout(); navigate("/"); };
-  const beginDiscordLink = async () => {
-    try {
-      const token = localStorage.getItem("swats_token");
-      const { data } = await api.get("/auth/discord/login", { params: { mode: "link", token } });
-      window.location.href = data.url;
-    } catch {
-      toast.error("Could not start Discord link");
-    }
-  };
-  const pageTitle = isAdminPath(pathname) ? (pathname === "/!/dashboard/admin" ? "Admin" : "Other") : activeGroup?.label || activeTab?.label || "Dashboard";
-  return <div className="dash-font flex min-h-screen sw-page-bg text-zinc-100">
-    <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-white/[0.06] bg-gradient-to-b from-white/[0.05] via-white/[0.012] to-black/40 p-3 sm:p-3.5 lg:flex">
-      <div className="px-1.5 py-1"><Logo size="text-base" /></div><UserCard user={user} onLogout={handleLogout} />
-      <button type="button" onClick={beginDiscordLink} data-testid="connect-discord-btn" className="mt-2 flex items-center gap-2 rounded-xl border border-brand-400/20 bg-brand-500/[0.07] px-3 py-2 text-xs font-semibold text-zinc-200 transition hover:bg-brand-500/15"><FaDiscord className="h-4 w-4 text-brand-300" />{user.discord?.linked ? `Connected · ${user.discord.username || "Discord"}` : "Connect Discord"}</button>
-      <nav className="mt-2.5 flex-1 space-y-0.5 overflow-y-auto pr-0.5 scrollbar-none">{groups.map((group) => <NavGroup key={group.id} group={group} open={!collapsed[group.id]} containsActive={activeGroup?.id === group.id} onToggle={() => setCollapsed((c) => ({ ...c, [group.id]: !c[group.id] }))} />)}
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
 
-        <div className="mt-2 border-t border-white/5 pt-2"><button type="button" onClick={() => setPopup("premium")} data-testid="premium-link" className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs text-zinc-400 hover:bg-white/[0.04]"><Sparkles className="h-3.5 w-3.5 text-brand-400" /> Premium <Crown className="ml-auto h-3 w-3 text-brand-300" /></button><button type="button" onClick={() => setPopup("devlog")} data-testid="devlog-link" className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs text-zinc-400 hover:bg-white/[0.04]"><Newspaper className="h-3.5 w-3.5" /> Devlog</button><Link to={`/${user.username}`} target="_blank" data-testid="view-public-btn" className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs text-zinc-400 hover:bg-white/[0.04]"><ExternalLink className="h-3.5 w-3.5" /> View profile</Link></div>
-      </nav><div className="mt-2 border-t border-white/5 pt-2"><CommunityCard /></div>
-    </aside>
-    <div className="flex min-w-0 flex-1 flex-col"><header className="sticky top-0 z-30 border-b border-white/5 glass-strong"><div className="flex items-center justify-between gap-3 px-5 pt-4 sm:px-6 sm:pt-5"><div className="flex min-w-0 items-center gap-3"><div className="lg:hidden"><Logo size="text-base" /></div><motion.h1 key={activeGroup?.id || pathname} initial={{ opacity: 0, x: -4 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }} className="truncate font-display text-2xl font-black tracking-tight text-zinc-50">{pageTitle}</motion.h1></div><div className="flex shrink-0 items-center gap-3"><NotificationBell />{user.tier !== "free" && <span className="hidden items-center gap-1 rounded-full bg-brand-500/15 px-2.5 py-1 text-[10px] font-bold uppercase text-brand-300 sm:inline-flex"><Crown className="h-3 w-3" />{user.tier}</span>}<AccountMenu user={user} /></div></div>
-</header>
-      <AuthGateNotice /><AnnouncementBanner className="border-b border-white/5 bg-white/[0.01] px-6 py-3" />
-      {strip.length > 1 && <nav aria-label="Dashboard pages" className="hidden gap-1.5 overflow-x-auto border-b border-white/5 px-5 pt-3 [scrollbar-width:none] lg:flex [&::-webkit-scrollbar]:hidden">{strip.map((t) => <NavLink key={t.testid} to={t.to} end={t.end} data-testid={`strip-${t.testid}`} className={({ isActive }) => `relative shrink-0 px-3.5 pb-3 pt-3 text-sm font-medium transition-colors ${isActive ? "text-brand-200" : "text-zinc-500 hover:text-zinc-200"}`}>{t.label === "Overview" && isAdminPath(pathname) ? "Admin" : t.label}</NavLink>)}</nav>}
-      <nav aria-label="Dashboard pages" className="flex snap-x gap-2 overflow-x-auto border-b border-white/5 px-5 py-4 [scrollbar-width:none] lg:hidden [&::-webkit-scrollbar]:hidden">{[...groups.flatMap((group) => group.tabs), ...(isAdmin ? adminTabs.slice(1) : [])].map((t) => <NavLink key={t.testid} to={t.to} end={t.end} data-testid={`mobile-${t.testid}`} className={({ isActive }) => `flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium ${isActive ? "bg-brand-500/20 text-brand-100 ring-1 ring-brand-400/30" : "bg-white/[0.04] text-zinc-400 hover:text-zinc-100"}`}><t.icon className="h-3.5 w-3.5" />{t.label}</NavLink>)}</nav>
-      <main id="dashboard-main" className="mx-auto w-full flex-1 p-5 sm:p-8"><Outlet /></main></div>
-    <PremiumPlansModal open={popup === "premium"} onClose={() => setPopup(null)} /><DevlogFeedModal open={popup === "devlog"} onClose={() => setPopup(null)} />
-  </div>;
+  const [collapsed, setCollapsed] = useState({});
+  // Which in-dashboard popup is open: null, "premium" or "devlog".
+  const [popup, setPopup] = useState(null);
+
+  if (!user || user === false) return null;
+
+  const isAdmin = user.role === "admin" || user.is_owner;
+  const isOwner = user.is_owner || user.role === "owner";
+  const adminTabs = isOwner
+    ? ADMIN_SECTIONS
+    : ADMIN_SECTIONS.filter((s) => s.to === "/!/dashboard/admin" || s.to.includes("users") || s.to.includes("analytics"));
+
+  const groups = NAV_GROUPS.map((g) => {
+    if (g.id === "other") {
+      const tabs = isAdmin ? [...g.tabs, ADMIN_ITEM] : g.tabs;
+      return { ...g, tabs };
+    }
+    return g;
+  });
+
+  const activeGroup = groupFor(pathname);
+  const activeTab = tabFor(pathname);
+  const isInsideAdmin = pathname.startsWith("/!/dashboard/admin");
+  const strip = isInsideAdmin ? adminTabs : (activeGroup?.tabs || []);
+
+  const handleLogout = () => { logout(); navigate("/"); };
+
+  return (
+    /* sw-page-bg, not a flat fill: the page darkens from a lifted grey at the top
+       to near-black at the bottom, so the rounded panels have something to sit on. */
+    <div className="dash-font flex min-h-screen sw-page-bg text-zinc-100">
+      {/* Sidebar */}
+      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-white/[0.06] bg-gradient-to-b from-white/[0.05] via-white/[0.012] to-black/40 p-3 sm:p-3.5 lg:flex">
+        <div className="px-1.5 py-1">
+          <Logo size="text-base" />
+        </div>
+
+        <UserCard user={user} onLogout={handleLogout} />
+
+        <nav className="mt-2.5 flex-1 overflow-y-auto pr-0.5 space-y-0.5 scrollbar-none">
+          {groups.map((group) => {
+            // Admin is a single destination rather than a foldable category, and it
+            // stays lit for its whole subtree (end:false), so arriving on
+            // /!​/dashboard/admin/users still shows which entry you are inside.
+            if (group.to) return <TabLink key={group.id} t={{ ...group, end: false }} />;
+
+            const containsActive = activeGroup?.id === group.id;
+            const isOpen = !collapsed[group.id];
+            return (
+              <NavGroup
+                key={group.id}
+                group={group}
+                open={isOpen}
+                containsActive={containsActive}
+                onToggle={() => setCollapsed((c) => ({ ...c, [group.id]: isOpen }))}
+              />
+            );
+          })}
+
+          <div className="mt-1.5 space-y-0.5 border-t border-white/5 pt-1.5">
+            <button
+              type="button"
+              onClick={() => setPopup("premium")}
+              data-testid="premium-link"
+              className="group relative flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left text-xs font-medium text-zinc-400 outline-none transition-colors duration-200 hover:bg-white/[0.04] hover:text-zinc-100 focus-visible:ring-2 focus-visible:ring-brand-500/50 cursor-pointer"
+            >
+              <Sparkles className="h-3.5 w-3.5 shrink-0 text-brand-400/80 transition-transform duration-200 group-hover:scale-110" />
+              <span className="truncate">Premium</span>
+              <Crown className="ml-auto h-3 w-3 shrink-0 text-brand-400/70" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setPopup("devlog")}
+              data-testid="devlog-link"
+              className="group relative flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left text-xs font-medium text-zinc-400 outline-none transition-colors duration-200 hover:bg-white/[0.04] hover:text-zinc-100 focus-visible:ring-2 focus-visible:ring-brand-500/50 cursor-pointer"
+            >
+              <Newspaper className="h-3.5 w-3.5 shrink-0 transition-transform duration-200 group-hover:scale-110" />
+              <span className="truncate">Devlog</span>
+              <span className="ml-auto shrink-0 font-mono2 text-[9px] text-zinc-600">what's new</span>
+            </button>
+            <Link
+              to={`/${user.username}`}
+              target="_blank"
+              data-testid="view-public-btn"
+              className="group relative flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-zinc-400 outline-none transition-colors duration-200 hover:bg-white/[0.04] hover:text-zinc-100 focus-visible:ring-2 focus-visible:ring-brand-500/50"
+            >
+              <ExternalLink className="h-3.5 w-3.5 shrink-0 transition-transform duration-200 group-hover:scale-110" />
+              <span className="truncate">View profile</span>
+            </Link>
+          </div>
+        </nav>
+
+        <div className="mt-2 border-t border-white/5 pt-2">
+          <CommunityCard />
+        </div>
+      </aside>
+
+      {/* Main */}
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="sticky top-0 z-30 border-b border-white/5 glass-strong">
+          <div className="flex items-center justify-between gap-3 px-6 pt-5">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="lg:hidden">
+                <Logo size="text-base" />
+              </div>
+              <motion.h1
+                key={activeGroup?.id || pathname}
+                initial={{ opacity: 0, x: -4 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                className="truncate font-display text-2xl font-black tracking-tight text-zinc-50"
+              >
+                {isInsideAdmin ? "Admin" : (activeGroup?.label || activeTab?.label || "Dashboard")}
+              </motion.h1>
+            </div>
+
+            <div className="flex shrink-0 items-center gap-3">
+              {/* The bell stays visible on mobile: a notification nobody sees on a
+                  phone may as well not exist. */}
+              <NotificationBell />
+              {user.tier !== "free" && (
+                <span className="hidden items-center gap-1 rounded-full bg-brand-500/15 px-2.5 py-1 text-[10px] font-bold uppercase text-brand-300 sm:inline-flex">
+                  <Crown className="h-3 w-3" /> {user.tier}
+                </span>
+              )}
+              <AccountMenu user={user} />
+            </div>
+          </div>
+
+          {/* Section tabs — the pages of the category you are inside. */}
+          {strip.length > 0 && (
+            <nav className="-mb-px flex gap-1 overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {strip.map((t) => (
+                <NavLink
+                  key={t.to}
+                  to={t.to}
+                  end={t.end}
+                  // Prefixed so a strip tab is never confused with the sidebar item
+                  // that shares its testid (tab-overview exists in both places).
+                  data-testid={t.testid ? `strip-${t.testid}` : undefined}
+                  className={({ isActive }) =>
+                    `relative shrink-0 px-3.5 pb-3 pt-3 text-sm font-medium outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-brand-500/50 ${
+                      isActive ? "text-brand-200" : "text-zinc-500 hover:text-zinc-200"
+                    }`
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      {t.label}
+                      {isActive && (
+                        <motion.span
+                          layoutId="dash-section-underline"
+                          transition={spring}
+                          className="absolute inset-x-2 bottom-0 h-0.5 rounded-full bg-brand-400"
+                        />
+                      )}
+                    </>
+                  )}
+                </NavLink>
+              ))}
+            </nav>
+          )}
+        </header>
+
+        {/* Admin "Auth check" and live announcements, above the page content so
+            they are read before whatever the page itself says. */}
+        <AuthGateNotice />
+        {/* Renders nothing (no padding, no border) when nothing is live. */}
+        <AnnouncementBanner className="border-b border-white/5 bg-white/[0.01] px-6 py-3" />
+
+        {/* Mobile tabs: every destination, since the sidebar is hidden. */}
+        <div className="flex snap-x gap-2 overflow-x-auto border-b border-white/5 px-5 py-4 [scrollbar-width:none] lg:hidden [&::-webkit-scrollbar]:hidden">
+          {[...NAV_GROUPS.flatMap((g) => g.tabs), ...(isAdmin ? [ADMIN_ITEM] : [])].map((t) => (
+            <NavLink
+              key={t.to}
+              to={t.to}
+              end={t.end}
+              className={({ isActive }) =>
+                `flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium outline-none transition-colors duration-200 ${
+                  isActive
+                    ? "bg-brand-500/20 text-brand-100 ring-1 ring-brand-400/30"
+                    : "bg-white/[0.04] text-zinc-400 hover:text-zinc-100"
+                }`
+              }
+            >
+              <t.icon className="h-3.5 w-3.5" /> {t.label}
+            </NavLink>
+          ))}
+        </div>
+
+        <main id="dashboard-main" className="mx-auto w-full flex-1 p-5 sm:p-8">
+          <Outlet />
+        </main>
+      </div>
+
+      {/* The dashboard's own popups. Mounted once here so the sidebar, the
+          notification footer and any page all open the same instance. */}
+      <PremiumPlansModal open={popup === "premium"} onClose={() => setPopup(null)} />
+      <DevlogFeedModal open={popup === "devlog"} onClose={() => setPopup(null)} />
+    </div>
+  );
 }

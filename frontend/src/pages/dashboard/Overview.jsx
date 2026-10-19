@@ -1,156 +1,72 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
-import { api, setToken } from "@/lib/api";
+import { api, setToken, fileUrl } from "@/lib/api";
 import { toast } from "@/lib/notify";
-import RankCard from "@/components/RankCard";
 import { FaDiscord } from "react-icons/fa6";
+import {
+  AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer
+} from "recharts";
 import {
   AtSign, Award, Check, ChevronRight, Crown, Eye, Gift, Image as ImageIcon,
   LayoutTemplate, Loader2, Pencil, Settings, ShieldCheck, Sparkles, UserRound,
-  Copy, ExternalLink, Globe, Link2,
+  ExternalLink, TrendingUp, TrendingDown, ArrowUpRight, Monitor, Smartphone,
+  Tablet, Link2, LayoutGrid, HelpCircle, FileText, CheckCircle2, Clock
 } from "lucide-react";
 import { actionLabel } from "@/constants/audit";
+import AutoMarqueeText from "@/components/AutoMarqueeText";
 
 const EASE = [0.16, 1, 0.3, 1];
-
-const fmtDay = (day) => {
-  if (!day) return "";
-  const d = new Date(`${day}T00:00:00`);
-  return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
-};
-
-/* The dashboard's front door, kept deliberately quiet.
- *
- * It used to read like a telemetry export: six interactive stat tiles (each one
- * opening yet another explanatory dialog stuffed with label rows) plus the
- * checklist and the quick actions. All the numbers a member actually checks are
- * on Stats and Badges, so this page now shows one compact strip of facts —
- * username, tier, views, badges — and the two things worth doing from here:
- * finish the profile, and connect Discord.
- */
-const Reveal = ({ children, delay = 0, className = "" }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 16 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.5, delay, ease: EASE }}
-    className={className}
-  >
-    {children}
-  </motion.div>
-);
-
-const SectionTitle = ({ children, action }) => (
-  <div className="mb-5 flex items-center justify-between gap-3">
-    <h2 className="flex items-center gap-2.5 font-display text-xl font-bold tracking-tight text-zinc-100">
-      {/* A short accent bar — the quiet way to brand a heading without a wall
-          of shouting the page used to lack entirely. */}
-      <span className="h-5 w-1 rounded-full bg-gradient-to-b from-brand-400 to-brand-600" />
-      {children}
-    </h2>
-    {action}
-  </div>
-);
-
-const CheckRow = ({ icon: Icon, label, done, to }) => (
-  <Link
-    to={to}
-    className="group flex items-center gap-3 rounded-xl border border-white/[0.05] bg-white/[0.02] px-3.5 py-3 outline-none transition-colors duration-200 hover:border-white/10 hover:bg-white/[0.04] focus-visible:ring-2 focus-visible:ring-brand-500/50"
-  >
-    <Icon className={`h-4 w-4 shrink-0 ${done ? "text-brand-400/70" : "text-zinc-500"}`} />
-    <span className={`min-w-0 flex-1 truncate text-sm ${done ? "text-zinc-500 line-through" : "text-zinc-200"}`}>
-      {label}
-    </span>
-    <span
-      className={`grid h-5 w-5 shrink-0 place-items-center rounded-full transition-colors duration-300 ${
-        done ? "bg-emerald-500 text-white" : "border border-zinc-700 text-transparent"
-      }`}
-    >
-      <Check className="h-3 w-3" />
-    </span>
-  </Link>
-);
-
-const QuickAction = ({ icon: Icon, label, onClick, testid }) => (
-  <button
-    type="button"
-    onClick={onClick}
-    data-testid={testid}
-    className="group flex w-full items-center gap-3 rounded-xl border border-white/[0.06] bg-white/[0.03] px-4 py-3 text-left text-sm font-medium text-zinc-200 outline-none transition-colors duration-200 hover:border-brand-400/25 hover:bg-brand-500/10 hover:text-white focus-visible:ring-2 focus-visible:ring-brand-500/50"
-  >
-    <Icon className="h-4 w-4 shrink-0 text-zinc-400 transition-colors duration-200 group-hover:text-brand-300" />
-    <span className="min-w-0 flex-1 truncate">{label}</span>
-    <ChevronRight className="h-4 w-4 shrink-0 text-zinc-600 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-brand-300" />
-  </button>
-);
-
-/* One quiet fact chip. No click target, no dialog behind it, no sub-caption —
- * the value and its label are the whole story. */
-const StatChip = ({ icon: Icon, label, value, to, testid }) => {
-  const body = (
-    <>
-      <Icon className="h-4 w-4 shrink-0 text-brand-300/80" />
-      <span className="truncate font-display text-lg font-extrabold tabular-nums text-zinc-50">
-        {typeof value === "number" ? value.toLocaleString() : value}
-      </span>
-      <span className="truncate font-mono2 text-[10px] uppercase tracking-wider text-zinc-500">{label}</span>
-    </>
-  );
-  // A gradient tile with a hover lift: the flat near-black boxes made the top
-  // of the page read as a spreadsheet header. The accent glow only wakes on
-  // hover so the strip stays quiet by default.
-  const cls =
-    "flex min-w-0 items-center gap-2.5 rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.06] via-white/[0.03] to-transparent px-4 py-3 shadow-[0_4px_18px_rgba(0,0,0,0.28)] transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-400/25 hover:shadow-[0_10px_28px_rgba(164, 141, 244,0.10)]";
-  return to ? (
-    <Link to={to} className={`${cls} outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50`} data-testid={testid}>
-      {body}
-    </Link>
-  ) : (
-    <div className={cls} data-testid={testid}>{body}</div>
-  );
-};
+const RANGES = [
+  { id: "24h", label: "24 Hours" },
+  { id: "3d", label: "3 Days" },
+  { id: "7d", label: "7 Days" },
+  { id: "30d", label: "30 Days" },
+  { id: "all", label: "All Time" },
+];
 
 export default function Overview() {
   const { user, setUser } = useAuth();
   const navigate = useNavigate();
-  /* The leaderboard position, read from the endpoint that computes it in SQL
-     rather than by finding this account in a 100-row page: your position on the
-     board and the position a visitor sees on your profile are then the same
-     number, even when you are far outside the loaded window. */
-  const [placement, setPlacement] = useState(null);
+
+  const [range, setRange] = useState("7d");
+  const [analytics, setAnalytics] = useState(null);
+  const [loadingAnalytics, setLoadingAnalytics] = useState(true);
   const [rewards, setRewards] = useState(null);
   const [activity, setActivity] = useState(null);
-  const [analyticsRange, setAnalyticsRange] = useState("7d");
-  const [activityError, setActivityError] = useState("");
+  const [claiming, setClaiming] = useState(false);
+  const [redeemCode, setRedeemCode] = useState("");
+  const [redeeming, setRedeeming] = useState(false);
 
-  useEffect(() => {
-    api.get("/me/leaderboard")
-      .then(({ data }) => setPlacement(data || null))
-      .catch(() => {});
-  }, [user.username]);
-
-  // Real reward state and real recent activity, both from the account's own
-  // rows — never a made-up counter.
+  // Fetch real analytics based on range
   useEffect(() => {
     let alive = true;
-    api.get("/me/rewards")
-      .then(({ data }) => { if (alive) setRewards(data); })
-      .catch(() => {});
+    setLoadingAnalytics(true);
+    api.get(`/me/analytics?range=${range}`)
+      .then(({ data }) => {
+        if (alive) {
+          setAnalytics(data);
+          setLoadingAnalytics(false);
+        }
+      })
+      .catch(() => {
+        if (alive) setLoadingAnalytics(false);
+      });
+    return () => { alive = false; };
+  }, [range, user.username, user.views]);
+
+  // Fetch rewards and recent activity
+  useEffect(() => {
+    let alive = true;
+    Promise.allSettled([api.get("/me/rewards"), api.get("/me/activity")]).then(([r, a]) => {
+      if (!alive) return;
+      if (r.status === "fulfilled") setRewards(r.value.data);
+      if (a.status === "fulfilled") setActivity(a.value.data);
+    });
     return () => { alive = false; };
   }, [user.username, user.views]);
 
-  useEffect(() => {
-    let alive = true;
-    setActivityError("");
-    api.get("/me/activity", { params: { range: analyticsRange } })
-      .then(({ data }) => { if (alive) setActivity(data); })
-      .catch(() => { if (alive) setActivityError("Profile analytics are temporarily unavailable."); });
-    return () => { alive = false; };
-  }, [user.username, user.views, analyticsRange]);
-
-  const [claiming, setClaiming] = useState(false);
   const handleClaim = async (m) => {
     if (!m) return;
     setClaiming(true);
@@ -167,182 +83,506 @@ export default function Overview() {
     }
   };
 
-  const rank = placement?.rank ? `#${placement.rank}` : "—";
-
-  const p = user.profile || {};
-  const links = p.links || [];
-  const ownedBadges = user.badges || [];
-  const equipped = user.equipped_badges || [];
-
-  const checklist = [
-    { icon: UserRound, label: "Upload an avatar", done: !!p.avatar_url, to: "/!/dashboard/editor?section=media" },
-    { icon: ImageIcon, label: "Choose a background", done: !!p.background_url || !!p.background_color, to: "/!/dashboard/editor?section=media" },
-    { icon: AtSign, label: "Add a description", done: !!String(p.bio || "").trim(), to: "/!/dashboard/editor?section=media" },
-    { icon: FaDiscord, label: "Connect a Discord account", done: !!user.discord?.linked, to: "/!/dashboard/settings" },
-    { icon: Link2, label: "Add social links", done: links.some((link) => link?.enabled !== false && link?.url), to: "/!/dashboard/links" },
-    { icon: Eye, label: "Reach 10 profile views", done: Number(user.views || 0) >= 10, to: "/!/dashboard/stats" },
-  ];
-  const doneCount = checklist.filter((c) => c.done).length;
-  const pct = Math.round((doneCount / checklist.length) * 100);
-
-  const aliasAvailability = user.username ? "Claimed" : "Unavailable";
-  const linkDiscord = async () => {
-    try {
-      const token = localStorage.getItem("swats_token");
-      const { data } = await api.get("/auth/discord/login", { params: { mode: "link", token } });
-      window.location.href = data.url;
-    } catch {
-      toast.error("Could not start Discord link");
-    }
-  };
-
-  const tierLabel = user.tier === "admin" ? "Admin" : user.tier === "premium" ? "Premium" : "Free";
-
-  /* ----------------------------- Redeem invite code --------------------------
-   * The card a fresh signup is promised: paste an invite code *after*
-   * registering and the account's tier moves — permanently, or for the number
-   * of days the admin put on the code — and/or the badges the code carries
-   * (Verified, Media, OG, …) are added to the shelf. It is shown to every
-   * account, admins included: an admin can hold a badge-carrying code too, and
-   * hiding the box from them is exactly why they could never find it.
-   * ------------------------------------------------------------------------- */
-  const [redeemCode, setRedeemCode] = useState("");
-  const [redeeming, setRedeeming] = useState(false);
   const redeemPremium = async (e) => {
     e.preventDefault();
     if (!redeemCode.trim()) return;
     setRedeeming(true);
     try {
       const { data } = await api.post("/me/redeem-invite", { code: redeemCode.trim() });
-      // The tier rode in the old JWT; the fresh one the backend mints keeps the
-      // session reading Premium immediately.
       if (data.token) setToken(data.token);
       if (data.user) setUser(data.user);
       setRedeemCode("");
-      const unlocked = [
-        data.premium_days
-          ? `Premium for ${data.premium_days} day${data.premium_days === 1 ? "" : "s"}`
-          : data.premium_days === null && data.user?.tier === "premium"
-            ? "Permanent Premium"
-            : null,
-        (data.badges_added || []).length
-          ? `${data.badges_added.length} badge${data.badges_added.length === 1 ? "" : "s"}`
-          : null,
-      ].filter(Boolean);
-      toast.success(unlocked.length ? `${unlocked.join(" + ")} unlocked! 🎉` : "Code redeemed!");
+      toast.success(data.detail || "Code redeemed successfully! 🎉");
     } catch (err) {
       toast.error(err.response?.data?.detail || "Could not redeem that code");
+    } finally {
+      setRedeeming(false);
     }
-    setRedeeming(false);
   };
 
-  const trialEnds = user.premium_until ? new Date(user.premium_until).toLocaleDateString() : null;
+  const p = user.profile || {};
+  const ownedBadges = user.badges || [];
+  const tierLabel = user.tier === "admin" ? "Admin" : user.tier === "premium" ? "Premium" : "Free";
+
+  // Dynamic Profile Setup tasks calculation
+  const completion = analytics?.completion || {
+    percentage: 0,
+    completed_count: 0,
+    total_count: 6,
+    tasks: [
+      { id: "avatar", title: "Upload an avatar", completed: !!p.avatar_url, link: "/!/dashboard/editor" },
+      { id: "bio", title: "Add a description / bio", completed: !!p.bio, link: "/!/dashboard/editor" },
+      { id: "background", title: "Choose a background", completed: !!(p.background_url || p.background_effect), link: "/!/dashboard/effects" },
+      { id: "discord", title: "Connect Discord account", completed: !!user.discord?.linked, link: "/!/dashboard" },
+      { id: "links", title: "Add social links", completed: Array.isArray(p.links) && p.links.length > 0, link: "/!/dashboard/links" },
+      { id: "views", title: "Reach first profile view", completed: Number(user.views || 0) >= 1, link: "/!/dashboard" },
+    ],
+  };
+
+  const diffViews = analytics?.diff_views ?? 0;
+  const changePct = analytics?.change_pct ?? 0;
+  const isPositiveChange = diffViews >= 0;
+
   return (
-    <div className="space-y-6" data-testid="overview-page">
-      {/* The facts, one quiet strip: profile, tier, views, badges, rank. */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
-        <StatChip
-          icon={AtSign}
-          label="Profile"
-          value={`@${user.username}`}
-          to={`/${user.username}`}
-          testid="stat-username"
-        />
-        <StatChip icon={Crown} label="Tier" value={tierLabel} to="/!/pricing" testid="stat-tier" />
-        <StatChip icon={Eye} label="Views" value={user.views || 0} to="/!/dashboard/stats" testid="stat-views" />
-        <StatChip
-          icon={Award}
-          label="Badges"
-          value={ownedBadges.length}
-          to="/!/dashboard/badges"
-          testid="stat-badges"
-        />
-        <StatChip icon={ShieldCheck} label="Account rank" value={rank} to="/!/dashboard/leaderboard" testid="stat-rank" />
-        <StatChip icon={AtSign} label="Alias status" value={aliasAvailability} to="/!/dashboard/settings" testid="stat-alias" />
-        <StatChip icon={UserRound} label="User ID" value={user.uid_number ? `#${user.uid_number}` : "—"} testid="stat-user-id" />
+    <div className="space-y-6 pb-20" data-testid="overview-page">
+      {/* 1. ACCOUNT OVERVIEW BANNER */}
+      <div className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-white/[0.05] via-[#121118]/80 to-[#08080c] p-6 shadow-2xl backdrop-blur-xl">
+        <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-brand-500/10 blur-[100px]" />
+        
+        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-center gap-4">
+            <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-zinc-800 ring-2 ring-brand-400/20 shadow-lg">
+              {p.avatar_url ? (
+                <img src={fileUrl(p.avatar_url)} alt="" className="h-full w-full object-cover" />
+              ) : (
+                <span className="flex h-full w-full items-center justify-center text-xl font-black text-brand-300">
+                  {(user.display_name || user.username || "?")[0]?.toUpperCase()}
+                </span>
+              )}
+            </div>
+
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <AutoMarqueeText text={user.display_name || user.username} className="font-display text-xl sm:text-2xl font-black text-white" />
+                <Link
+                  to="/!/pricing"
+                  data-testid="stat-tier"
+                  className="inline-flex items-center rounded-full border border-brand-400/30 bg-brand-500/15 px-2.5 py-0.5 text-[10px] font-bold text-brand-200 hover:bg-brand-500/25 transition"
+                >
+                  {tierLabel}
+                </Link>
+              </div>
+              <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-zinc-400 font-mono2">
+                <span data-testid="stat-username">@{user.username}</span>
+                <span className="text-zinc-600">·</span>
+                <span>UID #{user.uid_number || analytics?.join_rank || 1}</span>
+                <span className="text-zinc-600">·</span>
+                <span className="inline-flex items-center gap-1 text-emerald-400">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  {analytics?.alias_status || "Active · Verified"}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Metrics Bar */}
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              to="/!/dashboard/stats"
+              data-testid="stat-views"
+              className="flex-1 min-w-[130px] rounded-2xl border border-white/[0.06] bg-white/[0.03] p-3 text-left hover:border-brand-400/20 transition"
+            >
+              <div className="flex items-center justify-between text-[11px] font-semibold text-zinc-400">
+                <span>Profile Views</span>
+                <Eye className="h-3.5 w-3.5 text-brand-300" />
+              </div>
+              <div className="mt-1 text-xl font-black text-zinc-50 font-display">
+                {Number(user.views || 0).toLocaleString()}
+              </div>
+              <div className="mt-0.5 flex items-center gap-1 text-[10px] font-mono2">
+                {isPositiveChange ? (
+                  <span className="flex items-center text-emerald-400">
+                    <TrendingUp className="h-3 w-3 mr-0.5" />
+                    +{diffViews} vs last week ({changePct > 0 ? `+${changePct}%` : "steady"})
+                  </span>
+                ) : (
+                  <span className="flex items-center text-rose-400">
+                    <TrendingDown className="h-3 w-3 mr-0.5" />
+                    {diffViews} vs last week
+                  </span>
+                )}
+              </div>
+            </Link>
+
+            <Link
+              to="/!/dashboard/leaderboard"
+              data-testid="stat-rank"
+              className="flex-1 min-w-[110px] rounded-2xl border border-white/[0.06] bg-white/[0.03] p-3 text-left hover:border-brand-400/20 transition"
+            >
+              <div className="flex items-center justify-between text-[11px] font-semibold text-zinc-400">
+                <span>Join Rank</span>
+                <ShieldCheck className="h-3.5 w-3.5 text-brand-300" />
+              </div>
+              <div className="mt-1 text-xl font-black text-zinc-50 font-display">
+                #{analytics?.join_rank || user.uid_number || 1}
+              </div>
+              <div className="mt-0.5 text-[10px] font-mono2 text-zinc-500">
+                Early adopter
+              </div>
+            </Link>
+
+            <Link
+              to="/!/dashboard/badges"
+              data-testid="stat-badges"
+              className="flex-1 min-w-[110px] rounded-2xl border border-white/[0.06] bg-white/[0.03] p-3 text-left hover:border-brand-400/20 transition"
+            >
+              <div className="flex items-center justify-between text-[11px] font-semibold text-zinc-400">
+                <span>Badges</span>
+                <Award className="h-3.5 w-3.5 text-brand-300" />
+              </div>
+              <div className="mt-1 text-xl font-black text-zinc-50 font-display">
+                {ownedBadges.length}
+              </div>
+              <div className="mt-0.5 text-[10px] font-mono2 text-zinc-500">
+                {user.equipped_badges?.length || ownedBadges.length} equipped
+              </div>
+            </Link>
+          </div>
+        </div>
       </div>
 
-      {/* Rewards and activity: the two things the strip above cannot say.
-          Both read the account's real rows; a new account sees the honest
-          empty states instead of a fabricated chart. */}
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-        <Reveal>
-          <div className="rounded-3xl glass p-5" data-testid="overview-activity">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="flex items-center gap-2 font-display text-base font-bold text-zinc-100">
-                <Eye className="h-4 w-4 text-brand-300" /> Profile statistics
+      {/* 2. PROFILE QUICKSTART & COMPLETION SECTION */}
+      <div data-testid="completion-card" className="rounded-3xl border border-white/[0.08] bg-white/[0.02] p-5 shadow-xl">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-brand-400" />
+              <h2 className="font-display text-base font-bold text-zinc-100">
+                Profile Setup & Quickstart
               </h2>
-              <Link to="/!/dashboard/stats" data-testid="analytics-view-more" className="font-mono2 text-[10px] uppercase tracking-wider text-zinc-500 transition hover:text-brand-300">
-                View analytics
-              </Link>
             </div>
-            <div className="mt-3 flex flex-wrap items-center gap-1.5" aria-label="Analytics time range">
-              {[['24h','24 hours'],['3d','3 days'],['7d','7 days'],['30d','30 days'],['all','All time']].map(([value,label]) => <button key={value} type="button" aria-pressed={analyticsRange === value} onClick={() => setAnalyticsRange(value)} className={`rounded-lg border px-2.5 py-1.5 text-[10px] font-semibold transition ${analyticsRange === value ? "border-brand-400/40 bg-brand-500/15 text-brand-100" : "border-white/10 text-zinc-400 hover:text-white"}`}>{label}</button>)}
-            </div>
-            {activityError ? <p className="mt-4 rounded-xl border border-amber-400/20 bg-amber-400/5 p-3 text-xs text-amber-200">{activityError}</p> : !activity ? (
-              <div className="mt-4 h-36 animate-pulse rounded-2xl bg-white/[0.03]" />
-            ) : (
-              <>
-                {(activity.days || []).length === 0 ? <div className="mt-4 flex h-36 items-center justify-center rounded-2xl border border-dashed border-white/10 text-center text-xs text-zinc-500">No validated profile views in this period yet. Share your profile to start collecting analytics.</div> : <div className="mt-4 h-36" data-testid="activity-chart"><ResponsiveContainer width="100%" height="100%"><AreaChart data={activity.days}><defs><linearGradient id="overviewViews" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#ec4899" stopOpacity={0.36}/><stop offset="100%" stopColor="#ec4899" stopOpacity={0}/></linearGradient></defs><XAxis dataKey="day" hide/><Tooltip contentStyle={{ background: "#18141a", border: "1px solid #ffffff18", borderRadius: 12 }} labelFormatter={(label) => fmtDay(label)} /><Area type="monotone" dataKey="views" stroke="#ec4899" fill="url(#overviewViews)" strokeWidth={2} /></AreaChart></ResponsiveContainer></div>}
-                <div className="mt-2 flex items-center justify-between font-mono2 text-[10px] text-zinc-500">
-                  <span>{Number(activity.total || 0).toLocaleString()} views · {analyticsRange === "all" ? "all time" : analyticsRange}</span>
-                  <span>{activity.week_change ? `${activity.week_change.delta >= 0 ? "+" : ""}${activity.week_change.delta} vs previous week` : ""}</span>
-                </div>
-                <div className="mt-3 flex flex-wrap gap-2" data-testid="device-breakdown">{(activity.devices || []).length ? activity.devices.map((device) => <span key={device.device} className="rounded-lg border border-white/10 bg-white/[0.03] px-2.5 py-1.5 text-[10px] text-zinc-400">{device.device}: {device.views}</span>) : <span className="text-[10px] text-zinc-600">Device breakdown appears when views are recorded.</span>}</div>
-
-                <ul className="mt-4 space-y-1.5 border-t border-white/5 pt-3">
-                  {(activity.events || []).length === 0 ? (
-                    <li className="text-xs text-zinc-500">No account events yet — sign-ins, linking and rewards appear here.</li>
-                  ) : (
-                    (activity.events || []).slice(0, 4).map((e, i) => (
-                      <li key={`${e.action}-${i}`} className="flex items-center justify-between gap-3 text-xs">
-                        <span className="truncate text-zinc-300">{actionLabel(e.action)}</span>
-                        <span className="shrink-0 font-mono2 text-[10px] text-zinc-600">
-                          {fmtDay(String(e.created_at || "").slice(0, 10))}
-                        </span>
-                      </li>
-                    ))
-                  )}
-                </ul>
-              </>
-            )}
+            <p className="mt-0.5 text-xs text-zinc-400">
+              Complete these essential setup tasks to maximize the reach and beauty of your bio page.
+            </p>
           </div>
-        </Reveal>
+          <div className="flex items-center gap-2">
+            <span className="font-mono2 text-sm font-bold text-brand-300">
+              {completion.percentage}% complete
+            </span>
+            <div className="h-2 w-28 overflow-hidden rounded-full bg-white/10">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-brand-500 to-brand-300 transition-all duration-500"
+                style={{ width: `${completion.percentage}%` }}
+              />
+            </div>
+          </div>
+        </div>
 
-        <Reveal delay={0.05}>
-          <div className="flex h-full flex-col rounded-3xl glass p-5" data-testid="overview-rewards">
-            <div className="flex items-center justify-between gap-3">
-              <h2 className="flex items-center gap-2 font-display text-base font-bold text-zinc-100">
-                <Gift className="h-4 w-4 text-brand-300" /> Next reward
-              </h2>
-              <Link to="/!/dashboard/rewards" className="font-mono2 text-[10px] uppercase tracking-wider text-zinc-500 transition hover:text-brand-300">
-                All rewards
+        <div className="mt-4 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+          {completion.tasks.map((task) => (
+            <Link
+              key={task.id}
+              to={task.link}
+              className={`group flex items-center justify-between rounded-2xl border p-3.5 transition ${
+                task.completed
+                  ? "border-emerald-500/20 bg-emerald-500/[0.03] text-zinc-300"
+                  : "border-white/[0.07] bg-white/[0.02] text-zinc-200 hover:border-brand-400/30 hover:bg-white/[0.05]"
+              }`}
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <span
+                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-xl transition ${
+                    task.completed
+                      ? "bg-emerald-500/20 text-emerald-400"
+                      : "bg-white/[0.05] text-zinc-500 group-hover:bg-brand-500/20 group-hover:text-brand-300"
+                  }`}
+                >
+                  {task.completed ? <Check className="h-4 w-4" /> : <Clock className="h-3.5 w-3.5" />}
+                </span>
+                <span className={`text-xs font-semibold truncate ${task.completed ? "line-through text-zinc-400" : ""}`}>
+                  {task.title}
+                </span>
+              </div>
+              <ChevronRight className="h-4 w-4 shrink-0 text-zinc-600 transition-transform group-hover:translate-x-0.5 group-hover:text-brand-300" />
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      {/* 3. PROFILE STATISTICS & CHART SECTION */}
+      <div className="rounded-3xl border border-white/[0.08] bg-white/[0.02] p-5 shadow-xl">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-white/[0.06] pb-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <Eye className="h-4 w-4 text-brand-300" />
+              <h2 className="font-display text-base font-bold text-zinc-100">Profile Statistics</h2>
+            </div>
+            <p className="mt-0.5 text-xs text-zinc-400">
+              Real validated visitor impressions over time with device distribution.
+            </p>
+          </div>
+
+          {/* Time range picker */}
+          <div className="flex flex-wrap items-center gap-1.5 rounded-xl border border-white/[0.08] bg-black/40 p-1">
+            {RANGES.map((r) => (
+              <button
+                key={r.id}
+                type="button"
+                onClick={() => setRange(r.id)}
+                className={`rounded-lg px-2.5 py-1 text-[11px] font-semibold transition ${
+                  range === r.id
+                    ? "bg-brand-500 text-white shadow-sm"
+                    : "text-zinc-400 hover:text-zinc-200"
+                }`}
+              >
+                {r.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Chart + Device Breakdown */}
+        <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+          {/* Views Area Chart */}
+          <div className="flex flex-col justify-between" data-testid="overview-activity">
+            <div className="h-60 w-full">
+              {loadingAnalytics ? (
+                <div className="flex h-full w-full items-center justify-center">
+                  <Loader2 className="h-6 w-6 animate-spin text-brand-400" />
+                </div>
+              ) : !analytics?.series || analytics.series.length === 0 || analytics.series.every((s) => s.views === 0) ? (
+                <div className="flex h-full flex-col items-center justify-center text-center p-4 rounded-2xl border border-dashed border-white/10">
+                  <Eye className="h-8 w-8 text-zinc-600 mb-2" />
+                  <p className="text-xs font-semibold text-zinc-400">No views recorded in this period</p>
+                  <p className="text-[11px] text-zinc-600 mt-0.5 max-w-xs">
+                    Share your link (swats.bio/{user.username}) on Discord, TikTok, or Twitter to start gaining analytics!
+                  </p>
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={analytics.series} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="viewsGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#A48DF4" stopOpacity={0.35} />
+                        <stop offset="95%" stopColor="#A48DF4" stopOpacity={0.0} />
+                      </linearGradient>
+                    </defs>
+                    <XAxis
+                      dataKey="label"
+                      stroke="#52525b"
+                      fontSize={10}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <YAxis
+                      stroke="#52525b"
+                      fontSize={10}
+                      tickLine={false}
+                      axisLine={false}
+                      allowDecimals={false}
+                    />
+                    <Tooltip
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const d = payload[0].payload;
+                          return (
+                            <div className="rounded-xl border border-white/15 bg-black/90 p-2.5 shadow-xl backdrop-blur-md text-left">
+                              <div className="text-[10px] font-mono2 text-zinc-400">{d.date}</div>
+                              <div className="text-xs font-bold text-white mt-0.5">
+                                {d.views} view{d.views === 1 ? "" : "s"}
+                              </div>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="views"
+                      stroke="#A48DF4"
+                      strokeWidth={2.5}
+                      fillOpacity={1}
+                      fill="url(#viewsGradient)"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+
+            <div className="mt-3 flex items-center justify-between border-t border-white/5 pt-3">
+              <span className="text-xs text-zinc-400 font-mono2">
+                Total in range: <strong className="text-zinc-100">{analytics?.series?.reduce((acc, s) => acc + s.views, 0) || 0} views</strong>
+              </span>
+              <a
+                href={`/${user.username}`}
+                target="_blank"
+                rel="noreferrer"
+                data-testid="analytics-view-more"
+                className="flex items-center gap-1.5 text-xs font-semibold text-brand-300 hover:text-brand-200 transition"
+              >
+                View Analytics & Profile <ArrowUpRight className="h-3.5 w-3.5" />
+              </a>
+            </div>
+          </div>
+
+          {/* Visitor Device Breakdown */}
+          <div className="flex flex-col justify-between rounded-2xl border border-white/[0.06] bg-black/30 p-4">
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-300">
+                Visitor Devices
+              </h3>
+              <p className="mt-0.5 text-[11px] text-zinc-500">
+                Breakdown of operating environments visiting your profile.
+              </p>
+
+              <div className="mt-4 space-y-3">
+                {(analytics?.devices || []).map((dev) => {
+                  const Icon = dev.device === "mobile" ? Smartphone : dev.device === "tablet" ? Tablet : Monitor;
+                  return (
+                    <div key={dev.device} className="space-y-1">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="flex items-center gap-2 capitalize text-zinc-300 font-medium">
+                          <Icon className="h-3.5 w-3.5 text-brand-300" />
+                          {dev.device}
+                        </span>
+                        <span className="font-mono2 text-zinc-400">
+                          {dev.count} ({dev.percentage}%)
+                        </span>
+                      </div>
+                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-brand-500 to-brand-300"
+                          style={{ width: `${dev.percentage}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="mt-4 border-t border-white/5 pt-3 text-center">
+              <span className="text-[10px] font-mono2 text-zinc-500">
+                Data strictly anonymized and GDPR compliant
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Connect & Discord Integration Card */}
+      <div data-testid="connect-card" className="flex flex-col sm:flex-row items-center justify-between gap-4 rounded-3xl border border-[#5865F2]/20 bg-[#5865F2]/[0.06] p-5">
+        <div className="flex items-center gap-3.5">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#5865F2] text-white shadow-lg shadow-[#5865F2]/30">
+            <FaDiscord className="h-5 w-5" />
+          </span>
+          <div>
+            <div className="text-sm font-bold text-white">
+              {user.discord?.linked ? "Discord Connected" : "Connect your Discord"}
+            </div>
+            <div className="text-xs text-zinc-300">
+              {user.discord?.linked
+                ? `Linked to ${user.discord.username || user.discord.tag || "Discord account"}`
+                : "Display Discord status, bot details, and role badges on your public bio"}
+            </div>
+          </div>
+        </div>
+        <button
+          type="button"
+          data-testid="connect-discord-btn"
+          onClick={() => {
+            if (user.discord?.linked) {
+              navigate("/!/dashboard/settings");
+            } else {
+              api.get("/auth/discord/login", { params: { mode: "link" } })
+                .then(({ data }) => { if (data.url) window.location.href = data.url; })
+                .catch(() => toast.error("Could not initiate Discord connection"));
+            }
+          }}
+          className="flex items-center gap-2 rounded-xl bg-[#5865F2] px-4 py-2.5 text-xs font-bold text-white hover:brightness-110 active:scale-95 transition shrink-0"
+        >
+          <FaDiscord className="h-4 w-4" />
+          <span>{user.discord?.linked ? "Manage Discord Connection" : "Connect Discord"}</span>
+        </button>
+      </div>
+
+      {/* 4. QUICK ACTIONS & SHORTCUTS */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Link
+          to="/!/dashboard/editor"
+          data-testid="qa-layout"
+          className="group flex items-center gap-3.5 rounded-2xl border border-white/[0.08] bg-white/[0.02] p-4 transition hover:border-brand-400/30 hover:bg-white/[0.05]"
+        >
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-500/15 text-brand-300 group-hover:scale-105 transition">
+            <Pencil className="h-5 w-5" />
+          </span>
+          <div className="min-w-0">
+            <div className="text-xs font-bold text-zinc-100">Edit Card & Layout</div>
+            <div className="text-[11px] text-zinc-400 truncate">Appearance, styling & theme</div>
+          </div>
+        </Link>
+
+        <Link
+          to="/!/dashboard/links"
+          data-testid="qa-username"
+          className="group flex items-center gap-3.5 rounded-2xl border border-white/[0.08] bg-white/[0.02] p-4 transition hover:border-brand-400/30 hover:bg-white/[0.05]"
+        >
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-500/15 text-blue-300 group-hover:scale-105 transition">
+            <Link2 className="h-5 w-5" />
+          </span>
+          <div className="min-w-0">
+            <div className="text-xs font-bold text-zinc-100">Manage Links</div>
+            <div className="text-[11px] text-zinc-400 truncate">Socials, crypto wallets & URLs</div>
+          </div>
+        </Link>
+
+        <Link
+          to="/!/dashboard/badges"
+          className="group flex items-center gap-3.5 rounded-2xl border border-white/[0.08] bg-white/[0.02] p-4 transition hover:border-brand-400/30 hover:bg-white/[0.05]"
+        >
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/15 text-amber-300 group-hover:scale-105 transition">
+            <Award className="h-5 w-5" />
+          </span>
+          <div className="min-w-0">
+            <div className="text-xs font-bold text-zinc-100">Equip Badges</div>
+            <div className="text-[11px] text-zinc-400 truncate">Glow settings & showcase</div>
+          </div>
+        </Link>
+
+        <Link
+          to="/!/dashboard/settings"
+          data-testid="qa-settings"
+          className="group flex items-center gap-3.5 rounded-2xl border border-white/[0.08] bg-white/[0.02] p-4 transition hover:border-brand-400/30 hover:bg-white/[0.05]"
+        >
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-zinc-700/30 text-zinc-300 group-hover:scale-105 transition">
+            <Settings className="h-5 w-5" />
+          </span>
+          <div className="min-w-0">
+            <div className="text-xs font-bold text-zinc-100">Account Settings</div>
+            <div className="text-[11px] text-zinc-400 truncate">Security, 2FA & aliases</div>
+          </div>
+        </Link>
+      </div>
+
+      {/* 5. REWARDS & REDEEM SECTION */}
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+        {/* Next Milestone Reward */}
+        <div className="flex flex-col justify-between rounded-3xl border border-white/[0.08] bg-white/[0.02] p-5 shadow-xl" data-testid="overview-rewards">
+          <div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Gift className="h-4 w-4 text-brand-300" />
+                <h3 className="font-display text-base font-bold text-zinc-100">Milestone Rewards</h3>
+              </div>
+              <Link to="/!/dashboard/rewards" className="text-[10px] font-mono2 text-brand-300 hover:underline">
+                View all
               </Link>
             </div>
-            {!rewards ? (
-              <div className="mt-4 h-20 animate-pulse rounded-2xl bg-white/[0.03]" />
-            ) : !rewards.enabled ? (
-              <p className="mt-3 text-xs leading-relaxed text-zinc-500">
-                View rewards are paused right now. Your views still count toward the leaderboard.
-              </p>
-            ) : (() => {
-              const claimable = (rewards.milestones || []).filter((m) => (Number(rewards.views || 0) >= m.views) && !m.claimed);
+            <p className="mt-0.5 text-xs text-zinc-400">
+              Reach organic view milestones to unlock free Premium days automatically.
+            </p>
+
+            {rewards && (() => {
+              const claimable = (rewards.milestones || []).filter(
+                (m) => Number(rewards.views || user.views || 0) >= m.views && !m.claimed
+              );
               if (claimable.length > 0) {
                 const cur = claimable[0];
                 return (
-                  <div className="mt-3 p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-200">
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-white">
+                  <div className="mt-4 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4">
+                    <div className="flex items-center gap-2 text-xs font-bold text-white">
                       <Sparkles className="h-4 w-4 text-emerald-400" />
-                      <span>Reward Unlocked! ({cur.views.toLocaleString()} views)</span>
+                      <span>Reward Ready to Claim! ({cur.views.toLocaleString()} views)</span>
                     </div>
-                    <div className="mt-1 text-[11px] text-zinc-300 leading-snug">
-                      You reached a new milestone and unlocked <strong>{cur.premium_days} days of Premium</strong>! Click below to claim your reward.
-                    </div>
+                    <p className="mt-1 text-xs text-zinc-300 leading-relaxed">
+                      You achieved this milestone and unlocked <strong>{cur.premium_days} days of Premium</strong>!
+                    </p>
                     <button
                       type="button"
                       onClick={() => handleClaim(cur)}
                       disabled={claiming}
-                      className="mt-3 w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-bold text-xs shadow-[0_0_20px_rgba(34,197,94,0.35)] hover:brightness-110 active:scale-95 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                      className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 py-2.5 text-xs font-bold text-white shadow-lg hover:brightness-110 active:scale-95 disabled:opacity-50 transition"
                     >
                       {claiming ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Gift className="h-3.5 w-3.5" />}
                       Claim {cur.premium_days} Days Premium
@@ -350,189 +590,80 @@ export default function Overview() {
                   </div>
                 );
               }
-              if (rewards.next) {
-                return (
-                  <>
-                    <div className="mt-3 font-display text-2xl font-black text-zinc-50">
-                      {rewards.next.premium_days}d <span className="text-sm font-semibold text-zinc-400">Premium</span>
-                    </div>
-                    <p className="mt-1 text-xs text-zinc-500">
-                      at {rewards.next.views.toLocaleString()} views — {(rewards.remaining || 0).toLocaleString()} to go
-                    </p>
-                    <div className="mt-3 h-2 overflow-hidden rounded-full bg-black/40">
-                      <motion.div
-                        className="h-full rounded-full bg-gradient-to-r from-brand-500 to-brand-300"
-                        initial={{ width: 0 }}
-                        animate={{ width: `${Math.min(100, rewards.next.progress)}%` }}
-                        transition={{ duration: 0.8, ease: EASE }}
-                      />
-                    </div>
-                    <p className="mt-auto pt-3 text-[11px] text-zinc-500">
-                      {rewards.claimed.length} of {rewards.milestones.length} milestones claimed.
-                    </p>
-                  </>
-                );
-              }
+              const next = (rewards.milestones || []).find((m) => (Number(rewards.views || user.views || 0) < m.views));
               return (
-                <p className="mt-3 text-xs text-emerald-300">
-                  Every milestone is claimed on this account.
-                </p>
+                <div className="mt-4 rounded-2xl border border-white/[0.06] bg-black/40 p-4">
+                  <div className="flex items-center justify-between text-xs font-semibold text-zinc-200">
+                    <span>Next milestone: {next ? `${next.views.toLocaleString()} views` : "All milestones unlocked!"}</span>
+                    {next && <span className="font-mono2 text-brand-300">+{next.premium_days}d Premium</span>}
+                  </div>
+                  {next && (
+                    <div className="mt-2.5 space-y-1">
+                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+                        <div
+                          className="h-full rounded-full bg-brand-400"
+                          style={{
+                            width: `${Math.min(100, Math.round(((Number(user.views || 0)) / next.views) * 100))}%`
+                          }}
+                        />
+                      </div>
+                      <div className="flex justify-between text-[10px] font-mono2 text-zinc-500">
+                        <span>{Number(user.views || 0).toLocaleString()} views</span>
+                        <span>{Math.max(0, next.views - Number(user.views || 0)).toLocaleString()} to go</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
               );
             })()}
           </div>
-        </Reveal>
-      </div>
 
-      {/* Rank and the badges behind it, then the page itself. The rank box sits
-          above the checklist because it is the summary of all of it: the
-          checklist is how you move the rank. */}
-      <section>
-        <SectionTitle
-          action={
-            <Link
-              to="/!/dashboard/leaderboard"
-              className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-1.5 text-xs font-semibold text-zinc-200 outline-none transition-colors duration-200 hover:border-brand-400/30 hover:bg-brand-500/10 hover:text-white focus-visible:ring-2 focus-visible:ring-brand-500/50"
-            >
-              Leaderboard <ChevronRight className="h-3.5 w-3.5" />
+          <div className="mt-4 border-t border-white/5 pt-3">
+            <Link to="/!/docs" className="flex items-center gap-2 text-xs text-zinc-400 hover:text-zinc-200 transition">
+              <FileText className="h-3.5 w-3.5 text-brand-300" />
+              <span>Read documentation & custom domain setup guide →</span>
             </Link>
-          }
-        >
-          Your standing
-        </SectionTitle>
-        <RankCard />
-      </section>
-
-      {/* Getting the page finished */}
-      <section>
-        <SectionTitle
-          action={
-            <Link
-              to="/!/dashboard/editor"
-              data-testid="open-editor-link"
-              className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-1.5 text-xs font-semibold text-zinc-200 outline-none transition-colors duration-200 hover:border-brand-400/30 hover:bg-brand-500/10 hover:text-white focus-visible:ring-2 focus-visible:ring-brand-500/50"
-            >
-              Open the editor <ChevronRight className="h-3.5 w-3.5" />
-            </Link>
-          }
-        >
-          Finish your profile
-        </SectionTitle>
-
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-          <Reveal delay={0.05}>
-            <div className="rounded-3xl p-5 glass" data-testid="completion-card">
-              <div className="flex items-center gap-3">
-                <div className="relative h-2.5 flex-1 overflow-hidden rounded-full bg-zinc-800">
-                  <motion.div
-                    className="relative h-full overflow-hidden rounded-full bg-gradient-to-r from-brand-500 to-brand-400"
-                    initial={{ width: "0%" }}
-                    animate={{ width: `${pct}%` }}
-                    transition={{ duration: 0.9, delay: 0.2, ease: EASE }}
-                  />
-                </div>
-                <span className="shrink-0 font-mono2 text-xs text-brand-300">{pct}%</span>
-              </div>
-
-              <div className="mt-5 grid gap-2.5 sm:grid-cols-2">
-                {checklist.map((c) => (
-                  <CheckRow key={c.label} {...c} />
-                ))}
-              </div>
-            </div>
-          </Reveal>
-
-          <Reveal delay={0.1}>
-            <div className="space-y-5" data-testid="connect-card">
-              {/* Redeem — the invite-code door, right on the front page. */}
-              <div className="rounded-3xl p-5 glass" data-testid="redeem-premium-card">
-                  <h3 className="flex items-center gap-2 font-display text-base font-bold text-zinc-100">
-                    <Sparkles className="h-4 w-4 text-brand-300" /> Redeem invite code
-                  </h3>
-                  <p className="mt-1 text-xs text-zinc-400">
-                    Have an invite code? Paste it here to unlock Premium and the
-                    badges the code carries.
-                  </p>
-                  <form onSubmit={redeemPremium} className="mt-3 flex gap-2">
-                    <input
-                      type="text"
-                      data-testid="redeem-premium-input"
-                      value={redeemCode}
-                      onChange={(e) => setRedeemCode(e.target.value.toUpperCase())}
-                      placeholder="SWATS-XXXXXX"
-                      className="min-w-0 flex-1 rounded-xl border border-white/10 bg-white/[0.04] px-3.5 py-2.5 font-mono2 text-sm uppercase tracking-wide text-zinc-100 placeholder-zinc-600 outline-none focus:border-brand-500/50"
-                    />
-                    <button
-                      type="submit"
-                      disabled={redeeming || !redeemCode.trim()}
-                      className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 px-4 py-2.5 text-xs font-bold text-white transition hover:brightness-110 disabled:opacity-40"
-                    >
-                      {redeeming ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Crown className="h-3.5 w-3.5" />}
-                      Redeem
-                    </button>
-                  </form>
-                  {user.tier === "premium" && (
-                    <p className="mt-2 text-[11px] text-brand-200">
-                      {trialEnds ? `Your Premium trial runs until ${trialEnds}.` : "You have Premium."}
-                    </p>
-                  )}
-                </div>
-
-              {/* Account shortcuts */}
-              <div className="rounded-3xl p-5 glass">
-                <h3 className="font-display text-base font-bold text-zinc-100">Account</h3>
-                <div className="mt-4 space-y-2.5">
-                  <QuickAction
-                    icon={Pencil}
-                    label="Change Username"
-                    testid="qa-username"
-                    onClick={() => navigate("/!/dashboard/settings")}
-                  />
-                  <QuickAction icon={LayoutTemplate} label="Customize" testid="qa-layout" onClick={() => navigate("/!/dashboard/editor?section=card")} />
-                  <QuickAction icon={ExternalLink} label="Setup guide" testid="qa-docs" onClick={() => navigate("/!/docs")} />
-                  <QuickAction icon={Settings} label="Settings" testid="qa-settings" onClick={() => navigate("/!/dashboard/settings")} />
-                </div>
-              </div>
-
-              {/* The single live connection */}
-              <div className="rounded-3xl p-5 glass">
-                <h3 className="font-display text-base font-bold text-zinc-100">Connections</h3>
-                <p className="mt-1 text-xs text-zinc-400">Connect your accounts to swats.bio</p>
-
-                <div className="mt-4">
-                  {user.discord?.linked ? (
-                    <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] pl-3 pr-3 py-2.5">
-                      <FaDiscord className="h-4 w-4 shrink-0 text-brand-200" />
-                      <span className="min-w-0 flex-1 truncate text-sm font-semibold text-zinc-100">
-                        {user.discord.username ? `@${user.discord.username}` : "Discord"}
-                      </span>
-                      <ShieldCheck className="h-4 w-4 shrink-0 text-emerald-400" />
-                    </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={linkDiscord}
-                      data-testid="connect-discord-btn"
-                      className="flex w-full items-center gap-2 rounded-xl border border-brand-400/30 bg-brand-500/12 px-3 py-2.5 text-sm font-semibold text-zinc-100 outline-none transition-colors duration-200 hover:bg-brand-500/20 focus-visible:ring-2 focus-visible:ring-brand-500/60"
-                    >
-                      <FaDiscord className="h-4 w-4 shrink-0 text-brand-200" />
-                      Connect Discord
-                    </button>
-                  )}
-                  {equipped.length > 0 && (
-                    <p className="mt-2 text-[11px] text-zinc-500">
-                      {equipped.length} badge{equipped.length === 1 ? "" : "s"} showing on your public page.
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-          </Reveal>
+          </div>
         </div>
-      </section>
+
+        {/* Redeem Code Card */}
+        <div data-testid="redeem-premium-card" className="flex flex-col justify-between rounded-3xl border border-white/[0.08] bg-white/[0.02] p-5 shadow-xl">
+          <div>
+            <div className="flex items-center gap-2">
+              <Crown className="h-4 w-4 text-brand-300" />
+              <h3 className="font-display text-base font-bold text-zinc-100">Redeem Invite or Gift Code</h3>
+            </div>
+            <p className="mt-0.5 text-xs text-zinc-400">
+              Enter a promotional or invite code to unlock Premium tiers and exclusive badges.
+            </p>
+
+            <form onSubmit={redeemPremium} className="mt-4 space-y-3">
+              <input
+                data-testid="redeem-premium-input"
+                type="text"
+                value={redeemCode}
+                onChange={(e) => setRedeemCode(e.target.value.toUpperCase())}
+                placeholder="PROMO-XXXX-XXXX"
+                className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 font-mono2 text-xs text-zinc-100 placeholder-zinc-600 outline-none focus:border-brand-400/50"
+              />
+              <button
+                type="submit"
+                disabled={redeeming || !redeemCode.trim()}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-white/[0.08] py-2.5 text-xs font-semibold text-zinc-100 hover:bg-brand-500 hover:text-white disabled:opacity-40 transition"
+              >
+                {redeeming ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+                Redeem
+              </button>
+            </form>
+          </div>
+
+          <div className="mt-4 border-t border-white/5 pt-3 text-center">
+            <span className="text-[11px] text-zinc-500">
+              Need help? Join our community on Discord for instant support.
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
-
-/* A tiny loading affordance some pages embed. Kept out of the default tree;
- * defined here so the module stays import-compatible for older callers. */
-export const OverviewSpinner = () => <Loader2 className="h-4 w-4 animate-spin text-brand-400" />;

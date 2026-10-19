@@ -382,3 +382,29 @@ body.custom-cursor-active,
 body.custom-cursor-active * {
   cursor: none !important;
 }
+
+/* ── Smooth Horizontal Marquee for Text Overflow ────────────────────────── */
+@keyframes auto-marquee {
+  0%, 18% {
+    transform: translateX(0);
+  }
+  50%, 68% {
+    transform: translateX(var(--overflow-dist, -40px));
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.animate-auto-marquee {
+  animation-name: auto-marquee;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  animation-iteration-count: infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-auto-marquee {
+    animation-duration: 120s !important;
+  }
+}
+

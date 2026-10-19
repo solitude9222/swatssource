@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { Check, X, Loader2, ArrowRight } from "lucide-react";
+import { Check, X, Loader2, ArrowRight, Download } from "lucide-react";
 import { API } from "@/lib/api";
 
 export const Hero = () => {
@@ -94,6 +94,17 @@ export const Hero = () => {
               {status.reason}
             </p>
           )}
+
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+            <a
+              href={`${API}/download-source`}
+              download="swats-bio-source.zip"
+              data-testid="hero-download-source-btn"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-brand-400/40 bg-brand-500/15 hover:bg-brand-500/25 text-brand-200 hover:text-white text-xs font-semibold shadow-lg transition duration-200"
+            >
+              <Download className="w-4 h-4 text-brand-300" /> Download Entire Source Code (.zip)
+            </a>
+          </div>
         </div>
       </div>
     </section>

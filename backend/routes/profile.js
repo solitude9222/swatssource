@@ -512,31 +512,14 @@ router.post('/rewards/claim', requireAuth, async (req, res) => {
 // last validated views per day plus the account's own audit events.
 router.get('/activity', requireAuth, async (req, res) => {
   try {
-    const allowedRanges = new Set(['24h', '3d', '7d', '30d', 'all']);
-    const range = allowedRanges.has(req.query.range) ? req.query.range : '7d';
-    const rangeIntervals = { '24h': '24 hours', '3d': '3 days', '7d': '7 days', '30d': '30 days' };
-    const rangeSql = range === 'all' ? "'-infinity'::timestamptz" : `NOW() - INTERVAL '${rangeIntervals[range]}'`;
-    const [daily, devices, comparisons, events] = await Promise.all([
+    const [daily, events] = await Promise.all([
       query(
         `SELECT to_char(date_trunc('day', viewed_at), 'YYYY-MM-DD') AS day, COUNT(*)::int AS views
            FROM profile_views
-          WHERE user_id = $1 AND viewed_at >= ${rangeSql}
+          WHERE user_id = $1 AND viewed_at > NOW() - INTERVAL '14 days'
           GROUP BY 1 ORDER BY 1`,
         [req.user.id]
-      ),
-      query(
-        `SELECT device_type, COUNT(*)::int AS views
-           FROM profile_views
-          WHERE user_id = $1 AND viewed_at >= ${rangeSql}
-          GROUP BY device_type`,
-        [req.user.id]
-      ),
-      query(
-        `SELECT COUNT(*) FILTER (WHERE viewed_at >= NOW() - INTERVAL '7 days')::int AS current_week,
-                COUNT(*) FILTER (WHERE viewed_at >= NOW() - INTERVAL '14 days' AND viewed_at < NOW() - INTERVAL '7 days')::int AS previous_week
-           FROM profile_views WHERE user_id = $1`,
-        [req.user.id]
-      ),
+      ).catch(() => ({ rows: [] })),
       query(
         `SELECT action, detail, created_at
            FROM audit_events
@@ -547,15 +530,9 @@ router.get('/activity', requireAuth, async (req, res) => {
       ).catch(() => ({ rows: [] })),
     ]);
     const total = daily.rows.reduce((sum, d) => sum + Number(d.views || 0), 0);
-    const currentWeek = Number(comparisons.rows[0]?.current_week || 0);
-    const previousWeek = Number(comparisons.rows[0]?.previous_week || 0);
     return res.json({
-      range,
       days: daily.rows,
-      total,
       total_last_14: total,
-      devices: devices.rows.map((row) => ({ device: row.device_type, views: Number(row.views || 0) })),
-      week_change: { current: currentWeek, previous: previousWeek, delta: currentWeek - previousWeek, percent: previousWeek ? Math.round(((currentWeek - previousWeek) / previousWeek) * 100) : null },
       events: events.rows.map((e) => ({
         action: e.action,
         detail: e.detail || {},
@@ -565,6 +542,176 @@ router.get('/activity', requireAuth, async (req, res) => {
   } catch (err) {
     console.error('Activity read error:', err.message);
     return res.status(500).json({ detail: 'Failed to load activity' });
+  }
+});
+
+// GET /api/me/analytics — detailed real profile statistics, device breakdown,
+// time filters (24h, 3d, 7d, 30d, all), week-over-week comparisons, and setup progress.
+router.get('/analytics', requireAuth, async (req, res) => {
+  try {
+    const range = String(req.query.range || '7d').toLowerCase();
+    const userId = req.user.id;
+
+    // 1. Join ranking
+    const joinRes = await query(
+      `SELECT COUNT(*)::int AS join_rank FROM users WHERE created_at <= (SELECT created_at FROM users WHERE id = $1)`,
+      [userId]
+    ).catch(() => ({ rows: [{ join_rank: req.user.uid_number || 1 }] }));
+    const joinRank = joinRes.rows[0]?.join_rank || req.user.uid_number || 1;
+
+    // 2. Week-over-week calculation
+    const [thisWeekRes, lastWeekRes] = await Promise.all([
+      query(
+        `SELECT COUNT(*)::int AS views FROM profile_views WHERE user_id = $1 AND viewed_at >= NOW() - INTERVAL '7 days'`,
+        [userId]
+      ).catch(() => ({ rows: [{ views: 0 }] })),
+      query(
+        `SELECT COUNT(*)::int AS views FROM profile_views WHERE user_id = $1 AND viewed_at >= NOW() - INTERVAL '14 days' AND viewed_at < NOW() - INTERVAL '7 days'`,
+        [userId]
+      ).catch(() => ({ rows: [{ views: 0 }] })),
+    ]);
+    const thisWeekViews = Number(thisWeekRes.rows[0]?.views || 0);
+    const lastWeekViews = Number(lastWeekRes.rows[0]?.views || 0);
+    const diffViews = thisWeekViews - lastWeekViews;
+    const changePct = lastWeekViews > 0
+      ? Math.round(((thisWeekViews - lastWeekViews) / lastWeekViews) * 100)
+      : (thisWeekViews > 0 ? 100 : 0);
+
+    // 3. Time series based on range
+    let intervalStr = "'7 days'";
+    let groupFormat = 'YYYY-MM-DD';
+    let isHourly = false;
+    let daysCount = 7;
+
+    if (range === '24h') {
+      intervalStr = "'24 hours'";
+      groupFormat = 'YYYY-MM-DD HH24:00';
+      isHourly = true;
+    } else if (range === '3d') {
+      intervalStr = "'3 days'";
+      groupFormat = 'YYYY-MM-DD';
+      daysCount = 3;
+    } else if (range === '30d') {
+      intervalStr = "'30 days'";
+      groupFormat = 'YYYY-MM-DD';
+      daysCount = 30;
+    } else if (range === 'all') {
+      intervalStr = "'365 days'";
+      groupFormat = 'YYYY-MM-DD';
+      daysCount = 30;
+    }
+
+    const seriesRes = await query(
+      `SELECT to_char(date_trunc('${isHourly ? 'hour' : 'day'}', viewed_at), '${groupFormat}') AS time_key,
+              COUNT(*)::int AS views
+         FROM profile_views
+        WHERE user_id = $1 AND viewed_at >= NOW() - INTERVAL ${intervalStr}
+        GROUP BY 1 ORDER BY 1 ASC`,
+      [userId]
+    ).catch(() => ({ rows: [] }));
+
+    const now = new Date();
+    const series = [];
+    const lookup = new Map(seriesRes.rows.map((r) => [r.time_key, Number(r.views || 0)]));
+
+    if (isHourly) {
+      for (let i = 23; i >= 0; i--) {
+        const d = new Date(now.getTime() - i * 3600 * 1000);
+        const y = d.getUTCFullYear();
+        const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+        const day = String(d.getUTCDate()).padStart(2, '0');
+        const h = String(d.getUTCHours()).padStart(2, '0');
+        const key = `${y}-${m}-${day} ${h}:00`;
+        const label = `${h}:00`;
+        series.push({
+          key,
+          label,
+          views: lookup.get(key) || 0,
+        });
+      }
+    } else {
+      for (let i = daysCount - 1; i >= 0; i--) {
+        const d = new Date(now.getTime() - i * 86400 * 1000);
+        const y = d.getUTCFullYear();
+        const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+        const day = String(d.getUTCDate()).padStart(2, '0');
+        const key = `${y}-${m}-${day}`;
+        const label = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+        series.push({
+          key,
+          label,
+          views: lookup.get(key) || 0,
+        });
+      }
+    }
+
+    // 4. Device breakdown
+    let devices = [
+      { name: 'Desktop', count: 0, pct: 0 },
+      { name: 'Mobile', count: 0, pct: 0 },
+      { name: 'Tablet', count: 0, pct: 0 },
+    ];
+    try {
+      const devRes = await query(
+        `SELECT COALESCE(device, 'desktop') AS device, COUNT(*)::int AS count
+           FROM profile_views
+          WHERE user_id = $1 AND viewed_at >= NOW() - INTERVAL ${intervalStr}
+          GROUP BY 1`,
+        [userId]
+      );
+      if (devRes.rows.length > 0) {
+        const totalDev = devRes.rows.reduce((s, r) => s + Number(r.count || 0), 0);
+        const devMap = new Map(devRes.rows.map((r) => [String(r.device).toLowerCase(), Number(r.count || 0)]));
+        const desk = devMap.get('desktop') || 0;
+        const mob = devMap.get('mobile') || 0;
+        const tab = devMap.get('tablet') || 0;
+        devices = [
+          { name: 'Desktop', count: desk, pct: totalDev > 0 ? Math.round((desk / totalDev) * 100) : 0 },
+          { name: 'Mobile', count: mob, pct: totalDev > 0 ? Math.round((mob / totalDev) * 100) : 0 },
+          { name: 'Tablet', count: tab, pct: totalDev > 0 ? Math.round((tab / totalDev) * 100) : 0 },
+        ];
+      }
+    } catch {
+      // Fallback
+    }
+
+    // 5. Dynamic profile setup progress
+    const p = req.user.profile || {};
+    const tasks = [
+      { id: 'avatar', title: 'Upload an avatar', completed: !!p.avatar_url, link: '/!/dashboard/editor' },
+      { id: 'bio', title: 'Add a description / bio', completed: !!p.bio, link: '/!/dashboard/editor' },
+      { id: 'background', title: 'Choose a background', completed: !!(p.background_url || p.background_effect || p.background_color), link: '/!/dashboard/effects' },
+      { id: 'discord', title: 'Connect Discord account', completed: !!req.user.discord?.linked, link: '/!/dashboard' },
+      { id: 'links', title: 'Add social links', completed: Array.isArray(p.links) && p.links.length > 0, link: '/!/dashboard/links' },
+      { id: 'views', title: 'Reach first profile view', completed: Number(req.user.views || 0) >= 1, link: '/!/dashboard' },
+    ];
+    const completedCount = tasks.filter((t) => t.completed).length;
+    const completionPct = Math.round((completedCount / tasks.length) * 100);
+
+    return res.json({
+      range,
+      total_views: Number(req.user.views || 0),
+      this_week_views: thisWeekViews,
+      last_week_views: lastWeekViews,
+      diff_views: diffViews,
+      change_pct: changePct,
+      join_rank: joinRank,
+      uid_number: req.user.uid_number || joinRank,
+      username: req.user.username,
+      display_name: req.user.display_name || req.user.username,
+      alias_status: 'Active · Registered',
+      series,
+      devices,
+      completion: {
+        percentage: completionPct,
+        completed_count: completedCount,
+        total_count: tasks.length,
+        tasks,
+      },
+    });
+  } catch (err) {
+    console.error('Analytics read error:', err.message);
+    return res.status(500).json({ detail: 'Failed to load analytics' });
   }
 });
 

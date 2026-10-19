@@ -1,5 +1,4 @@
 import { memo, useMemo, useState, useEffect, useRef } from "react";
-import { useSearchParams } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { PremiumGate } from "@/components/ui-shared/PremiumGate";
 import { api, fileUrl } from "@/lib/api";
@@ -40,31 +39,6 @@ const SUBTABS = [
   { id: "card", label: "Card Layout & Style" },
   { id: "entry", label: "Entry Screen" },
 ];
-const SECTION_SUBTAB = { card: "card", effects: "effects", media: "profile", entry: "entry" };
-
-function SharedWidgetCardPanel({ profile, onChange }) {
-  const [previewKind, setPreviewKind] = useState("discord");
-  const style = {
-    borderWidth: Number(profile.widget_card_border_width ?? 1),
-    borderOpacity: Number(profile.widget_card_border_opacity ?? 24),
-    borderColor: profile.widget_card_border_color || "#ffffff",
-    backgroundColor: profile.widget_card_background_color || "#121218",
-    backgroundOpacity: Number(profile.widget_card_background_opacity ?? 82),
-    blur: Number(profile.widget_card_background_blur ?? 10),
-  };
-  const update = (key, value) => onChange({ ...profile, [key]: value });
-  return <Section title="Shared widget card appearance" hint="One profile-wide style for supported widgets">
-    <p className="mb-4 text-xs leading-relaxed text-zinc-500">These inherited values style every widget card. Image-backed widgets keep their artwork; background color is used only when no image background is present.</p>
-    <div className="grid gap-4 sm:grid-cols-2">
-      {[{ key: "widget_card_border_width", label: "Border width", value: style.borderWidth, max: 6, suffix: "px" }, { key: "widget_card_border_opacity", label: "Border opacity", value: style.borderOpacity, max: 100, suffix: "%" }, { key: "widget_card_background_opacity", label: "Background opacity", value: style.backgroundOpacity, max: 100, suffix: "%" }, { key: "widget_card_background_blur", label: "Background blur", value: style.blur, max: 30, suffix: "px" }].map((field) => <SliderRow key={field.key} testid={field.key} label={field.label} value={field.value} min={0} max={field.max} suffix={field.suffix} onChange={(value) => update(field.key, value)} />)}
-      <ColorPicker label="Border color" value={style.borderColor} onChange={(value) => update("widget_card_border_color", value)} />
-      <ColorPicker label="Background color" value={style.backgroundColor} onChange={(value) => update("widget_card_background_color", value)} />
-    </div>
-    <div className="mt-5 flex flex-wrap items-center gap-2"><span className="mr-2 text-xs font-semibold text-zinc-400">Preview:</span>{[["discord","Discord"],["spotify","Audio"],["github","Creator"]].map(([id,label]) => <button key={id} type="button" aria-pressed={previewKind === id} onClick={() => setPreviewKind(id)} className={`rounded-lg border px-3 py-1.5 text-[11px] ${previewKind === id ? "border-brand-400/40 bg-brand-500/15 text-brand-100" : "border-white/10 text-zinc-400"}`}>{label}</button>)}</div>
-    <div data-testid="widget-card-shared-preview" className="mt-3 rounded-2xl p-4 transition-colors" style={{ border: `${style.borderWidth}px solid ${style.borderColor}${Math.round(style.borderOpacity * 2.55).toString(16).padStart(2,"0")}`, backgroundColor: `${style.backgroundColor}${Math.round(style.backgroundOpacity * 2.55).toString(16).padStart(2,"0")}`, backdropFilter: `blur(${style.blur}px)` }}><div className="flex items-center gap-3"><span className="grid h-9 w-9 place-items-center rounded-xl bg-white/10 text-brand-300">{previewKind === "discord" ? "D" : previewKind === "spotify" ? "♫" : "GH"}</span><div className="min-w-0"><div className="truncate text-sm font-semibold text-white">{previewKind === "discord" ? "Community server" : previewKind === "spotify" ? "Now playing" : "Creator profile"}</div><div className="text-xs text-zinc-400">Shared widget styling preview</div></div></div></div>
-    <button type="button" onClick={() => onChange({ ...profile, widget_card_border_width: 1, widget_card_border_opacity: 24, widget_card_border_color: "#ffffff", widget_card_background_color: "#121218", widget_card_background_opacity: 82, widget_card_background_blur: 10 })} className="mt-3 rounded-lg border border-white/10 px-3 py-2 text-xs text-zinc-300 hover:bg-white/5">Reset shared style</button>
-  </Section>;
-}
 
 export const CARD_STYLE_PRESETS = {
   classic: {
@@ -841,17 +815,7 @@ export default function Editor() {
   const [premiumFeature, setPremiumFeature] = useState(null);
   const askPremium = (feature) => () => setPremiumFeature(feature);
   const gate = useEditGate();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const sectionParam = searchParams.get("section");
-  const [sub, setSubState] = useState(() => SECTION_SUBTAB[sectionParam] || "profile");
-  const setSub = (id) => {
-    setSubState(id);
-    const section = id === "card" ? "card" : id === "effects" ? "effects" : id === "entry" ? "entry" : "media";
-    setSearchParams({ section }, { replace: true });
-  };
-  useEffect(() => {
-    setSubState(SECTION_SUBTAB[sectionParam] || "profile");
-  }, [sectionParam]);
+  const [sub, setSub] = useState("profile");
   const [showDecoModal, setShowDecoModal] = useState(false);
   // The one panel every hover label and every footer-line setting lives in.
   const [showTipPanel, setShowTipPanel] = useState(false);
@@ -925,6 +889,11 @@ export default function Editor() {
         tracks: user.profile?.tracks || [],
         display_name: displayName,
       };
+      if (p.advanced_mode) {
+        payload.advanced_mode = true;
+      } else {
+        delete payload.advanced_mode;
+      }
       const { data } = await api.put("/me/profile", payload);
       setUser(data);
       toast.success("Profile changes saved!");
@@ -1406,7 +1375,6 @@ export default function Editor() {
 
           {sub === "card" && (
             <>
-              <SharedWidgetCardPanel profile={p} onChange={setP} />
               <Section title="Layout Mode" hint="Every layout renders differently">
                 <LayoutPicker 
                   value={p.layout} 
@@ -1426,79 +1394,121 @@ export default function Editor() {
                 </div>
               </Section>
 
-              <Section title="Card Style" hint="Surface behind everything">
-                <ChipGrid
-                  testid="cardstyle"
-                  cols={3}
-                  value={p.card_style || ""}
-                  onChange={(v) => handleCardStylePreset(v)}
-                  options={[
-                    { id: "classic", label: "Classic" },
-                    { id: "frosted", label: "Frosted" },
-                    { id: "frosted-soft", label: "Frosted soft" },
-                    { id: "outlined", label: "Outlined" },
-                    { id: "aurora", label: "Aurora" },
-                    { id: "transparent", label: "Transparent" },
-                  ]}
-                />
-                <div className="mt-4 space-y-3 border-t border-white/5 pt-4">
-                  <label className="flex cursor-pointer items-center justify-between gap-4 text-xs text-zinc-300">
-                    <span>Card surface background</span>
-                    <Switch
-                      data-testid="card-bg-toggle"
-                      className={SWITCH_CLASS}
-                      checked={p.card_background !== false && p.card_style !== "transparent"}
-                      onCheckedChange={(v) => {
-                        set("card_background", v);
-                        if (!v) set("card_style", "transparent");
-                        else if (p.card_style === "transparent") set("card_style", "classic");
-                      }}
+              <Section title="Card Customization" hint="Surface, glassmorphism, borders and effects">
+                <div className="space-y-6">
+                  {/* Presets */}
+                  <div>
+                    <label className="mb-2 block text-xs font-semibold text-zinc-300">Card Style Presets</label>
+                    <ChipGrid
+                      testid="cardstyle"
+                      cols={3}
+                      value={p.card_style || ""}
+                      onChange={(v) => handleCardStylePreset(v)}
+                      options={[
+                        { id: "classic", label: "Classic" },
+                        { id: "frosted", label: "Frosted" },
+                        { id: "frosted-soft", label: "Frosted Soft" },
+                        { id: "outlined", label: "Outlined" },
+                        { id: "aurora", label: "Aurora" },
+                        { id: "transparent", label: "Transparent" },
+                      ]}
                     />
-                  </label>
-                  <label className="flex cursor-pointer items-center justify-between gap-4 text-xs text-zinc-300">
-                    <span>Glow around the card</span>
-                    <Switch data-testid="card-glow-toggle" className={SWITCH_CLASS} checked={p.card_glow !== false} onCheckedChange={(v) => set("card_glow", v)} />
-                  </label>
-                  <label className="flex cursor-pointer items-center justify-between gap-4 text-xs text-zinc-300">
-                    <span>Glow behind your name</span>
-                    <Switch data-testid="name-glow-toggle" className={SWITCH_CLASS} checked={p.name_glow !== false} onCheckedChange={(v) => set("name_glow", v)} />
-                  </label>
-                  {/* ADVANCED MODE — every dial lives behind it. While it is off
-                      the presets own the surface completely; while it is on the
-                      renderer builds the card from the sliders and colours here,
-                      on every layout. This is the owner's ask: the glass blur,
-                      surface/outline alpha, rounding and width dials are hidden
-                      until Advanced is switched on, and the Themes grid is gone —
-                      the three colour pickers replace it. */}
-                  <div className="pt-3 space-y-4 border-t border-white/5">
-                    <label className="flex cursor-pointer items-center justify-between gap-4 text-xs text-zinc-300">
-                      <span>Advanced mode — show the surface dials</span>
-                      {/* Strict boolean on purpose: the renderer overrides the
-                          presets only when advanced_mode === true, so a legacy
-                          numeric 1 saved by the long-gone panel reads OFF and
-                          that profile keeps rendering the Card Style preset
-                          it picked. */}
+                  </div>
+
+                  {/* Surface Fill & Advanced Mode Controls */}
+                  <div className="space-y-4 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div>
+                        <div className="text-xs font-semibold text-zinc-200">Card Background Surface</div>
+                        <div className="text-[11px] text-zinc-500">Enable solid, frosted, or styled card surface</div>
+                      </div>
+                      <Switch
+                        data-testid="card-bg-toggle"
+                        className={SWITCH_CLASS}
+                        checked={p.card_background !== false && !p.card_transparent}
+                        onCheckedChange={(v) => {
+                          set("card_background", v);
+                          set("card_transparent", !v);
+                          if (!v) set("card_style", "transparent");
+                          else if (p.card_style === "transparent") set("card_style", "classic");
+                        }}
+                      />
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-white/5 pt-3">
+                      <div>
+                        <div className="text-xs font-semibold text-zinc-200">Make card transparent</div>
+                        <div className="text-[11px] text-zinc-500">Remove all card background styling and surface fills</div>
+                      </div>
+                      <Switch
+                        data-testid="card-transparent-toggle"
+                        className={SWITCH_CLASS}
+                        checked={p.card_transparent === true || p.card_style === "transparent" || p.card_background === false}
+                        onCheckedChange={(v) => {
+                          set("card_transparent", v);
+                          set("card_background", !v);
+                          if (v) set("card_style", "transparent");
+                          else if (p.card_style === "transparent") set("card_style", "classic");
+                        }}
+                      />
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-white/5 pt-3">
+                      <div>
+                        <div className="text-xs font-semibold text-zinc-200">Advanced Mode</div>
+                        <div className="text-[11px] text-zinc-500">Reveal fine-grained surface dials, blur, and opacity sliders</div>
+                      </div>
                       <Switch
                         data-testid="advanced-mode-toggle"
                         className={SWITCH_CLASS}
-                        checked={p.advanced_mode === true}
+                        checked={!!p.advanced_mode}
                         onCheckedChange={(v) => set("advanced_mode", v)}
                       />
-                    </label>
-                    {p.advanced_mode === true ? (
-                      <div className="space-y-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4" data-testid="advanced-appearance">
-                        <SliderRow
-                          testid="card-blur"
-                          label="Card glass blur"
-                          value={Number(p.card_blur ?? 20)}
-                          min={0}
-                          max={40}
-                          suffix="px"
-                          onChange={(v) => set("card_blur", v)}
-                        />
+                    </div>
+                  </div>
+
+                  {/* Advanced Appearance controls - only visible when advanced_mode is active */}
+                  {p.advanced_mode && (
+                    <div data-testid="advanced-appearance" className="space-y-4 rounded-2xl border border-white/10 bg-white/[0.02] p-4 animate-in fade-in duration-200">
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-300">Advanced Appearance</h3>
+
+                      <div className="grid gap-4 sm:grid-cols-3">
+                        <div>
+                          <label className="mb-1.5 block text-xs text-zinc-400">Card Surface Color</label>
+                          <ColorPicker
+                            label=""
+                            value={p.card_fill_color || "#131316"}
+                            onChange={(v) => set("card_fill_color", v)}
+                            testid="card-fill-color"
+                          />
+                        </div>
+                        <div>
+                          <label className="mb-1.5 block text-xs text-zinc-400">Border Color</label>
+                          <ColorPicker
+                            label=""
+                            value={p.card_outline_color || "#ffffff"}
+                            onChange={(v) => {
+                              set("card_outline_color", v);
+                              set("card_border_color", v);
+                            }}
+                            testid="card-outline-color"
+                          />
+                        </div>
+                        <div>
+                          <label className="mb-1.5 block text-xs text-zinc-400">Card Glow Color</label>
+                          <ColorPicker
+                            label=""
+                            value={p.card_glow_color || accentColor}
+                            onChange={(v) => set("card_glow_color", v)}
+                            testid="card-glow-color"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid gap-4 sm:grid-cols-2 border-t border-white/5 pt-4">
                         <SliderRow
                           testid="card-fill-alpha"
-                          label="Surface alpha"
+                          label="Card Opacity"
                           value={Number(p.card_fill_alpha ?? 78)}
                           min={0}
                           max={100}
@@ -1506,29 +1516,44 @@ export default function Editor() {
                           onChange={(v) => set("card_fill_alpha", v)}
                         />
                         <SliderRow
+                          testid="card-blur"
+                          label="Card Glass Blur"
+                          value={Number(p.card_blur ?? 20)}
+                          min={0}
+                          max={40}
+                          suffix="px"
+                          onChange={(v) => set("card_blur", v)}
+                        />
+                      </div>
+
+                      <div className="grid gap-4 sm:grid-cols-2 border-t border-white/5 pt-4">
+                        <SliderRow
                           testid="card-outline-alpha"
-                          label="Outline alpha"
+                          label="Border Opacity"
                           value={Number(p.card_outline_alpha ?? 33)}
                           min={0}
                           max={100}
                           suffix="%"
-                          onChange={(v) => set("card_outline_alpha", v)}
+                          onChange={(v) => {
+                            set("card_outline_alpha", v);
+                            set("card_border_opacity", v);
+                          }}
                         />
                         <SliderRow
                           testid="card-radius"
-                          label="Corner rounding"
+                          label="Border Radius"
                           value={Number(p.card_radius ?? 24)}
                           min={0}
                           max={60}
                           suffix="px"
                           onChange={(v) => set("card_radius", v)}
                         />
-                        {/* Positioning: the card sits centred forever at its
-                            hard-coded 680px before this. The dial narrows or widens
-                            it — the preview and the public page both obey. */}
+                      </div>
+
+                      <div className="grid gap-4 sm:grid-cols-2 border-t border-white/5 pt-4">
                         <SliderRow
                           testid="card-width"
-                          label="Card width"
+                          label="Card Width"
                           value={Number(p.card_width ?? 680)}
                           min={320}
                           max={920}
@@ -1536,55 +1561,162 @@ export default function Editor() {
                           suffix="px"
                           onChange={(v) => set("card_width", v)}
                         />
-                        <div className="grid gap-4 sm:grid-cols-3 border-t border-white/5 pt-4">
-                          <div>
-                            <label className="mb-1.5 block text-xs text-zinc-400">Fill colour</label>
-                            <ColorPicker label="" value={p.card_fill_color || "#131316"} onChange={(v) => set("card_fill_color", v)} testid="card-fill-color" />
-                          </div>
-                          <div>
-                            <label className="mb-1.5 block text-xs text-zinc-400">Outline colour</label>
-                            <ColorPicker label="" value={p.card_outline_color || accentColor} onChange={(v) => set("card_outline_color", v)} testid="card-outline-color" />
-                          </div>
-                          <div>
-                            <label className="mb-1.5 block text-xs text-zinc-400">Glow colour</label>
-                            <ColorPicker label="" value={p.card_glow_color || accentColor} onChange={(v) => set("card_glow_color", v)} testid="card-glow-color" />
-                          </div>
-                        </div>
-                        {/* The text colours live behind the same Advanced switch
-                            as the surface dials — they were only readable by
-                            the renderer with no control anywhere, which is the
-                            "there aren't enough colour pickers" half of this
-                            panel's reputation. */}
-                        <div className="grid gap-4 sm:grid-cols-3 border-t border-white/5 pt-4">
-                          <div>
-                            <label className="mb-1.5 block text-xs text-zinc-400">Name colour</label>
-                            <ColorPicker label="" value={p.name_color || "#ffffff"} onChange={(v) => set("name_color", v)} testid="card-name-color" />
-                          </div>
-                          <div>
-                            <label className="mb-1.5 block text-xs text-zinc-400">Alias colour</label>
-                            <ColorPicker label="" value={p.alias_color || ""} onChange={(v) => set("alias_color", v)} testid="card-alias-color" />
-                          </div>
-                          <div>
-                            <label className="mb-1.5 block text-xs text-zinc-400">Bio colour</label>
-                            <ColorPicker label="" value={p.bio_color || ""} onChange={(v) => set("bio_color", v)} testid="card-bio-color" />
-                          </div>
-                        </div>
                         <SliderRow
                           testid="card-glow-strength"
-                          label="Glow strength"
+                          label="Card Glow Intensity"
                           value={Number(p.card_glow_strength ?? 50)}
                           min={0}
                           max={100}
                           suffix="%"
                           onChange={(v) => set("card_glow_strength", v)}
                         />
-                        <p className="text-[11px] leading-relaxed text-zinc-500">
-                          These dials build the surface and your text colours on every layout,
-                          overriding the preset look. Turn Advanced off to return to the selected
-                          Card Style exactly as shipped.
-                        </p>
                       </div>
-                    ) : null}
+                    </div>
+                  )}
+
+                  {/* Glow & Gradient Settings */}
+                  <div className="space-y-4 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-300">Glow & Gradient Settings</h3>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-xs font-semibold text-zinc-200">Activate Card Gradient</div>
+                        <div className="text-[11px] text-zinc-500">Blend secondary color across the profile card</div>
+                      </div>
+                      <Switch
+                        data-testid="card-gradient-toggle"
+                        className={SWITCH_CLASS}
+                        checked={p.card_gradient_enabled === true}
+                        onCheckedChange={(v) => set("card_gradient_enabled", v)}
+                      />
+                    </div>
+
+                    {p.card_gradient_enabled && (
+                      <div className="grid gap-4 sm:grid-cols-2 border-t border-white/5 pt-3">
+                        <div>
+                          <label className="mb-1.5 block text-xs text-zinc-400">Gradient Secondary Color</label>
+                          <ColorPicker
+                            value={p.card_gradient_color || accentColor}
+                            onChange={(v) => set("card_gradient_color", v)}
+                          />
+                        </div>
+                        <SliderRow
+                          label="Gradient Angle"
+                          value={Number(p.card_gradient_angle ?? 135)}
+                          min={0}
+                          max={360}
+                          step={5}
+                          suffix="°"
+                          onChange={(v) => set("card_gradient_angle", v)}
+                        />
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between border-t border-white/5 pt-3">
+                      <div>
+                        <div className="text-xs font-semibold text-zinc-200">Card Ambient Glow</div>
+                        <div className="text-[11px] text-zinc-500">Outer diffused luminescent halo</div>
+                      </div>
+                      <Switch
+                        data-testid="card-glow-toggle"
+                        className={SWITCH_CLASS}
+                        checked={p.card_glow !== false}
+                        onCheckedChange={(v) => set("card_glow", v)}
+                      />
+                    </div>
+
+                    {p.card_glow !== false && (
+                      <div className="grid gap-4 sm:grid-cols-2 border-t border-white/5 pt-3">
+                        <div>
+                          <label className="mb-1.5 block text-xs text-zinc-400">Card Glow Color</label>
+                          <ColorPicker
+                            value={p.card_glow_color || accentColor}
+                            onChange={(v) => set("card_glow_color", v)}
+                            testid="card-glow-color"
+                          />
+                        </div>
+                        <SliderRow
+                          testid="card-glow-strength"
+                          label="Card Glow Intensity"
+                          value={Number(p.card_glow_strength ?? 50)}
+                          min={0}
+                          max={100}
+                          suffix="%"
+                          onChange={(v) => set("card_glow_strength", v)}
+                        />
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between border-t border-white/5 pt-3">
+                      <div>
+                        <div className="text-xs font-semibold text-zinc-200">Badge Glow</div>
+                        <div className="text-[11px] text-zinc-500">Luminescent halo behind equipped badges</div>
+                      </div>
+                      <Switch
+                        data-testid="badge-glow-toggle"
+                        className={SWITCH_CLASS}
+                        checked={p.badge_glow !== false}
+                        onCheckedChange={(v) => set("badge_glow", v)}
+                      />
+                    </div>
+
+                    {p.badge_glow !== false && (
+                      <div className="border-t border-white/5 pt-3">
+                        <SliderRow
+                          testid="badge-glow-intensity"
+                          label="Badge Glow Intensity"
+                          value={Number(p.badge_glow_intensity ?? 60)}
+                          min={0}
+                          max={100}
+                          suffix="%"
+                          onChange={(v) => set("badge_glow_intensity", v)}
+                        />
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between border-t border-white/5 pt-3">
+                      <div>
+                        <div className="text-xs font-semibold text-zinc-200">Social Icons Glow</div>
+                        <div className="text-[11px] text-zinc-500">Glow effect on social platform icons and link pills</div>
+                      </div>
+                      <Switch
+                        data-testid="social-glow-toggle"
+                        className={SWITCH_CLASS}
+                        checked={p.social_glow === true}
+                        onCheckedChange={(v) => set("social_glow", v)}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Audio & Button Border Toggles */}
+                  <div className="space-y-3 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-300">Audio & Button Borders</h3>
+                    
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-xs font-semibold text-zinc-200">Disable border for mute button</div>
+                        <div className="text-[11px] text-zinc-500">Render background audio mute toggle seamlessly without outline</div>
+                      </div>
+                      <Switch
+                        data-testid="disable-mute-border-toggle"
+                        className={SWITCH_CLASS}
+                        checked={p.disable_mute_border === true}
+                        onCheckedChange={(v) => set("disable_mute_border", v)}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between border-t border-white/5 pt-3">
+                      <div>
+                        <div className="text-xs font-semibold text-zinc-200">Disable borders when audio is displayed</div>
+                        <div className="text-[11px] text-zinc-500">Remove borders on track cards and player blocks</div>
+                      </div>
+                      <Switch
+                        data-testid="disable-audio-border-toggle"
+                        className={SWITCH_CLASS}
+                        checked={p.disable_audio_border === true}
+                        onCheckedChange={(v) => set("disable_audio_border", v)}
+                      />
+                    </div>
                   </div>
                 </div>
               </Section>

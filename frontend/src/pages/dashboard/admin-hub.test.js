@@ -153,6 +153,7 @@ describe("admin navigation", () => {
     // a redirect that exists outside this shell in App.js.
     const expected = {
       "strip-tab-admin-overview": "/!/dashboard/admin",
+      "strip-tab-admin-ranked": "/!/dashboard/admin/ranked",
       "strip-tab-admin-users": "/!/dashboard/admin/users",
       "strip-tab-admin-invites": "/!/dashboard/admin/invites",
       "strip-tab-admin-notify": "/!/dashboard/admin/notify",
@@ -175,7 +176,7 @@ describe("admin navigation", () => {
     await renderAt("/!/dashboard/admin");
     // Strip and sidebar are two different lists that must not be conflated: the
     // strip holds the sections, the sidebar holds the one entry.
-    expect(container.querySelectorAll('[data-testid^="strip-tab-admin-"]')).toHaveLength(8);
+    expect(container.querySelectorAll('[data-testid^="strip-tab-admin-"]')).toHaveLength(9);
     expect(container.querySelectorAll('aside a[href^="/!/dashboard/admin"]')).toHaveLength(1);
   });
 
@@ -212,8 +213,9 @@ describe("admin hub", () => {
     await renderAt("/!/dashboard/admin");
 
     const cards = [...container.querySelectorAll('[data-testid^="admin-card-"]')];
-    expect(cards).toHaveLength(7);
+    expect(cards).toHaveLength(8);
     expect(cards.map((c) => c.getAttribute("href"))).toEqual([
+      "/!/dashboard/admin/ranked",
       "/!/dashboard/admin/users",
       "/!/dashboard/admin/invites",
       "/!/dashboard/admin/notify",

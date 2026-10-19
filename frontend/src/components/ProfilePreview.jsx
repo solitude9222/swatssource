@@ -86,13 +86,22 @@ function cardStyles(p) {
   const accent = p.accent_color || "#A48DF4";
   const base = { card: {}, pill: {}, view: {} };
   const style = p.card_style || "classic";
+  const borderWidth = p.card_border_width !== undefined 
+    ? `${p.card_border_width}px` 
+    : (p.card_outline_width !== undefined ? `${p.card_outline_width}px` : "1px");
+  const borderColor = withA(
+    p.card_outline_color || p.card_border_color || "#ffffff",
+    p.card_outline_alpha ?? p.card_border_opacity ?? 25
+  );
+  const borderRule = Number(p.card_border_width ?? 1) === 0 ? "none" : `${borderWidth} solid ${borderColor}`;
+
   switch (style) {
     case "frosted":
       base.card = {
         background: `linear-gradient(165deg, rgba(255,255,255,${((p.card_fill_alpha ?? 10) / 100 + 0.04).toFixed(3)}), rgba(255,255,255,${((p.card_fill_alpha ?? 10) / 100).toFixed(3)}))`,
         backdropFilter: `blur(${p.card_blur ?? 25}px) saturate(150%)`,
         WebkitBackdropFilter: `blur(${p.card_blur ?? 25}px) saturate(150%)`,
-        border: `1px solid rgba(255,255,255,${((p.card_outline_alpha ?? 20) / 100).toFixed(2)})`,
+        border: borderRule,
         boxShadow: "inset 0 1px 0 rgba(255,255,255,0.12)",
       };
       break;
@@ -101,7 +110,7 @@ function cardStyles(p) {
         background: `linear-gradient(165deg, rgba(255,255,255,${((p.card_fill_alpha ?? 6) / 100 + 0.02).toFixed(3)}), rgba(255,255,255,${((p.card_fill_alpha ?? 6) / 100).toFixed(3)}))`,
         backdropFilter: `blur(${p.card_blur ?? 14}px) saturate(125%)`,
         WebkitBackdropFilter: `blur(${p.card_blur ?? 14}px) saturate(125%)`,
-        border: `1px solid rgba(255,255,255,${((p.card_outline_alpha ?? 10) / 100).toFixed(2)})`,
+        border: borderRule,
         boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)",
       };
       break;
@@ -109,31 +118,46 @@ function cardStyles(p) {
       base.card = {
         background: withA(p.card_fill_color || "#000000", p.card_fill_alpha ?? 0),
         backdropFilter: p.card_blur ? `blur(${p.card_blur}px)` : "none",
-        border: `1.5px solid ${withA(p.card_outline_color || accent, p.card_outline_alpha ?? 100)}`,
+        border: `1.5px solid ${borderColor}`,
       };
       break;
     case "aurora":
       base.card = {
         background: withA(p.card_fill_color || "#0f1015", p.card_fill_alpha ?? 65),
         backdropFilter: `blur(${p.card_blur ?? 20}px)`,
-        border: `1px solid ${withA(p.card_outline_color || accent, p.card_outline_alpha ?? 45)}`,
+        border: borderRule,
         boxShadow: `0 0 50px ${withA(p.card_glow_color || accent, 35)}, inset 0 0 40px ${withA(p.card_glow_color || accent, 15)}`,
       };
       break;
     case "transparent":
       base.card = { background: "transparent", border: "none" };
       break;
-    default:
+    default: {
+      const fill = withA(p.card_fill_color || "#131316", p.card_fill_alpha ?? 78);
+      const bgStyle = p.card_gradient_enabled
+        ? `linear-gradient(${p.card_gradient_angle || 135}deg, ${fill}, ${withA(p.card_gradient_color || accent, p.card_fill_alpha ?? 78)})`
+        : fill;
       base.card = {
-        background: withA(p.card_fill_color || "#131316", p.card_fill_alpha ?? 78),
+        background: bgStyle,
         backdropFilter: `blur(${p.card_blur ?? 20}px)`,
-        border: `1px solid ${withA(p.card_outline_color || accent, p.card_outline_alpha ?? 33)}`,
+        border: borderRule,
       };
+    }
   }
-  // The corner radius reads the saved value and shares one default
-  if (base.card.borderRadius === undefined) base.card.borderRadius = `${p.card_radius ?? 24}px`;
-  if (p.card_background === false || p.card_bg_enabled === false) {
-    base.card = { background: "transparent", border: "none", boxShadow: "none", backdropFilter: "none", borderRadius: base.card.borderRadius };
+
+  // Corner radius reads the saved value and shares one default
+  if (base.card.borderRadius === undefined) {
+    base.card.borderRadius = `${p.card_radius ?? 24}px`;
+  }
+  if (p.card_transparent || p.card_background === false || p.card_bg_enabled === false) {
+    base.card = {
+      background: "transparent",
+      border: "none",
+      boxShadow: "none",
+      backdropFilter: "none",
+      WebkitBackdropFilter: "none",
+      borderRadius: base.card.borderRadius
+    };
   }
   return base;
 }
@@ -627,7 +651,7 @@ function Fold({ label, accent, folded, children }) {
 
 // The background track is a plain <audio> element rendered by the profile page,
 // so this button drives it by id rather than owning a second copy of it.
-function BackgroundAudioButton() {
+function BackgroundAudioButton({ disableBorder = false }) {
   const [muted, setMuted] = useState(false);
   const toggle = () => {
     const el = document.getElementById("profile-bg-audio");
@@ -646,7 +670,9 @@ function BackgroundAudioButton() {
       // Bottom-left, not top-left: the top-left corner belongs to the pinned /
       // Corner Icon track player, and the two buttons used to sit on top of
       // each other whenever a profile had both a background track and a player.
-      className="absolute bottom-4 left-4 z-30 flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-black/40 text-zinc-200 backdrop-blur transition hover:bg-black/60"
+      className={`absolute bottom-4 left-4 z-30 flex h-10 w-10 items-center justify-center rounded-full ${
+        disableBorder ? "border-0 shadow-none" : "border border-white/15"
+      } bg-black/40 text-zinc-200 backdrop-blur transition hover:bg-black/60`}
     >
       {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
     </button>
@@ -899,9 +925,6 @@ function SlideshowView({
       style={{ backgroundColor: bg ? "#050505" : (p.background_color || "#050505") }}
     >
       {/* Background layers: effects, video/image background and overlays */}
-      {/* Keep this wrapper out of a lower stacking context: the profile's
-          decorative backgrounds remain behind the card by paint order, while
-          the overlay canvas can honor its own z-index above profile content. */}
       <div className={`${embedded ? "absolute" : "fixed"} inset-0 pointer-events-none`}>
         {BgLayers}
       </div>
@@ -1392,9 +1415,9 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
       )}
       <div className="absolute inset-0" style={{ background: `rgba(0,0,0,${((Number(p.bg_dim ?? 50)) / 100).toFixed(2)})` }} />
       {p.background_effect && <BackgroundEffect effect={p.background_effect} />}
-      {/* Overlays sit above cards on the public profile, but in the editor they sit behind (z-0) so editing is unobstructed */}
-      {p.overlay && <OverlayEffect effect={p.overlay} color={accent} opacity={p.overlay_opacity ?? 100} zIndex={embedded ? "z-0" : "z-[70]"} />}
-      {p.overlay_enabled && <div className={`absolute inset-0 pointer-events-none ${embedded ? "z-0" : "z-[70]"}`} style={{ background: withA(p.overlay_color || accent, 18) }} />}
+      {/* Overlays sit above cards with pointer-events-none so all interactive elements remain clickable */}
+      {p.overlay && <OverlayEffect effect={p.overlay} color={accent} opacity={p.overlay_opacity ?? 100} zIndex="z-[25]" />}
+      {p.overlay_enabled && <div className="absolute inset-0 pointer-events-none z-[25]" style={{ background: withA(p.overlay_color || accent, 18) }} />}
       {/* The lifted player: fixed to the page's top-right corner, above the
           card. Every layout includes BgLayers, so the pin works on Minimal,
           Banner and Floating alike. The widget cards stay (tracks.slice(1))
@@ -1854,7 +1877,7 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
         style={{ background: bg ? undefined : pageBg }}
       >
         {BgLayers}
-        {backgroundAudio && <BackgroundAudioButton />}
+        {backgroundAudio && <BackgroundAudioButton disableBorder={p.disable_mute_border} />}
 
         <div
           ref={cardRef}
@@ -1917,6 +1940,7 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
                 // Numeric on purpose — see the border-radius fix above.
                 borderRadius: Math.max(4, Number(p.card_radius ?? 24) - 4),
                 boxShadow: cardShadow(true),
+                ...(p.disable_audio_border ? { border: "none" } : {}),
               })}
             >
               <AudioBlock />
@@ -1981,7 +2005,7 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
         style={{ background: bg ? undefined : pageBg }}
       >
         {BgLayers}
-        {backgroundAudio && <BackgroundAudioButton />}
+        {backgroundAudio && <BackgroundAudioButton disableBorder={p.disable_mute_border} />}
 
         <div
           ref={cardRef}
@@ -2093,7 +2117,7 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
         style={{ background: bg ? undefined : pageBg }}
       >
         {BgLayers}
-        {backgroundAudio && <BackgroundAudioButton />}
+        {backgroundAudio && <BackgroundAudioButton disableBorder={p.disable_mute_border} />}
 
         <div
           ref={cardRef}

@@ -21,6 +21,12 @@ import {
  */
 const SECTIONS = [
   {
+    to: "/!/dashboard/admin/ranked",
+    icon: Trophy,
+    title: "Ranked System",
+    body: "Tiers, stages, view requirements, rank badges, user overrides and mass recalculation.",
+  },
+  {
     to: "/!/dashboard/admin/users",
     icon: Users,
     title: "Users",

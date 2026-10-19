@@ -335,10 +335,19 @@ export default function PublicProfile() {
       )}
 
       {p.hide_footer !== true && (
-        <Link to="/!/home" className="fixed bottom-4 left-1/2 z-20 inline-flex w-auto max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center gap-2.5 rounded-full border border-pink-200/25 bg-gradient-to-r from-white/95 via-white/90 to-pink-50/95 px-5 py-3 text-[10px] font-semibold tracking-tight text-pink-700 shadow-[0_8px_30px_rgba(236,72,153,0.2)] backdrop-blur-xl transition duration-200 hover:-translate-y-0.5 hover:border-pink-300/60 hover:shadow-[0_12px_36px_rgba(236,72,153,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-400" data-testid="profile-footer-pill" title="Made in swats.bio">
-          <img src="/logo.png" alt="" className="h-5 w-5 shrink-0 rounded-md object-contain" />
-          <span className="truncate">Made in swats.bio</span>
-        </Link>
+        <a
+          href="/!/home"
+          target="_blank"
+          rel="noreferrer"
+          className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 inline-flex w-auto items-center gap-2.5 rounded-full border border-white/20 bg-gradient-to-r from-black/85 via-[#181226]/90 to-black/85 px-5 py-2 text-[10px] sm:text-xs font-bold leading-none text-zinc-100 shadow-[0_8px_30px_rgba(0,0,0,0.6),0_0_20px_rgba(164,141,244,0.2)] backdrop-blur-xl transition-all duration-300 hover:scale-105 hover:border-brand-400/60 hover:shadow-[0_8px_35px_rgba(0,0,0,0.8),0_0_28px_rgba(164,141,244,0.45)] group cursor-pointer"
+          data-testid="profile-footer-pill"
+          title="Made in swats.bio"
+        >
+          <img src="/logo.png" alt="swats.bio" className="h-4 w-4 rounded-md object-contain transition-transform duration-200 group-hover:scale-110" />
+          <span className="tracking-wide">
+            Made in <span className="text-brand-300 group-hover:text-white transition-colors font-extrabold">swats.bio</span>
+          </span>
+        </a>
       )}
     </div>
   );

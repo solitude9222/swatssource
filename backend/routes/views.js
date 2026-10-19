@@ -79,13 +79,6 @@ async function resolveUserId(username) {
 }
 
 // A signed-in user looking at their own profile should never inflate its count.
-function visitorDevice(req) {
-  const ua = String(req.headers['user-agent'] || '').toLowerCase();
-  if (/ipad|tablet|kindle|silk/.test(ua)) return 'tablet';
-  if (/mobile|android|iphone|ipod|windows phone/.test(ua)) return 'mobile';
-  return 'desktop';
-}
-
 function requesterId(req) {
   const header = req.headers.authorization;
   if (!header || !header.startsWith('Bearer ')) return null;
@@ -208,12 +201,20 @@ router.post('/views/register', async (req, res) => {
       return res.json({ counted: false, reason: 'own_profile', views: cur.rows[0]?.views || 0 });
     }
 
+    const ua = String(req.headers['user-agent'] || '').toLowerCase();
+    let deviceType = 'desktop';
+    if (/ipad|tablet|(android(?!.*mobile))/i.test(ua)) {
+      deviceType = 'tablet';
+    } else if (/mobile|iphone|ipod|android|blackberry|iemobile|opera mini/i.test(ua)) {
+      deviceType = 'mobile';
+    }
+
     const inserted = await query(
-      `INSERT INTO profile_views (user_id, visitor_hash, bucket, device_type)
+      `INSERT INTO profile_views (user_id, visitor_hash, bucket, device)
        VALUES ($1, $2, $3, $4)
        ON CONFLICT (user_id, visitor_hash, bucket) DO NOTHING
        RETURNING id`,
-      [challenge.user_id, vHash, viewBucket(), visitorDevice(req)]
+      [challenge.user_id, vHash, viewBucket(), deviceType]
     );
 
     if (inserted.rows.length === 0) {
