@@ -1,6 +1,6 @@
-import { Clock, CalendarDays, Code2, Hourglass, LayoutGrid } from "lucide-react";
-import { FaDiscord, FaSpotify, FaGithub, FaYoutube, FaSteam, FaTiktok, FaSoundcloud } from "react-icons/fa6";
-import { SiRoblox, SiValorant } from "react-icons/si";
+import { Clock, CalendarDays, Code2, Hourglass, LayoutGrid, BarChart3, CloudSun, Box } from "lucide-react";
+import { FaDiscord, FaSpotify, FaGithub, FaYoutube, FaSteam, FaTiktok, FaSoundcloud, FaTwitch, FaLastfm } from "react-icons/fa6";
+import { SiRoblox, SiValorant, SiSupercell } from "react-icons/si";
 
 // ---------------------------------------------------------------------------
 // Widget catalog
@@ -14,11 +14,34 @@ import { SiRoblox, SiValorant } from "react-icons/si";
 
 export const WIDGET_KINDS = [
   {
+    id: "discord",
+    label: "Discord",
+    Icon: FaDiscord,
+    color: "#5865F2",
+    desc: "Display your Discord bot or server information with member count and status.",
+    subtypes: [
+      { id: "server", label: "Server", fields: ["discord_invite", "discord_server"] },
+      { id: "profile", label: "Profile", fields: ["discord_user"] },
+      { id: "bot", label: "Bot", fields: ["discord_user"] },
+    ],
+  },
+  {
+    id: "github",
+    label: "GitHub",
+    Icon: FaGithub,
+    color: "#e7e7e7",
+    desc: "Showcase your GitHub profile with follower count, repositories, and top starred projects.",
+    subtypes: [
+      { id: "user", label: "Profile", fields: ["github_user"] },
+      { id: "repo", label: "Repository", fields: ["github_repo"] },
+    ],
+  },
+  {
     id: "roblox",
     label: "Roblox",
     Icon: SiRoblox,
     color: "#E2231A",
-    desc: "Avatar, join date, friends — or a group or a live game",
+    desc: "Display your Roblox profile with followers, friends, and online status.",
     subtypes: [
       { id: "profile", label: "Profile", fields: ["roblox_user"] },
       { id: "group", label: "Group / Community", fields: ["roblox_group"] },
@@ -26,24 +49,102 @@ export const WIDGET_KINDS = [
     ],
   },
   {
-    id: "discord",
-    label: "Discord",
-    Icon: FaDiscord,
-    color: "#5865F2",
-    desc: "Live server counts, or your own presence & activity",
-    subtypes: [
-      { id: "server", label: "Server", fields: ["discord_server", "discord_invite"] },
-      { id: "profile", label: "Profile", fields: ["discord_user"] },
-    ],
+    id: "lastfm",
+    label: "Last.fm",
+    Icon: FaLastfm,
+    color: "#D51007",
+    desc: "Show your Last.fm listening history with total scrobbles, top artists, and most played track.",
+    subtypes: [{ id: "profile", label: "Profile", fields: ["lastfm_user"] }],
+  },
+  {
+    id: "statsfm",
+    label: "Stats.fm",
+    Icon: BarChart3,
+    color: "#1DB954",
+    desc: "Display your Stats.fm profile with streaming statistics, recent tracks, and listening insights.",
+    subtypes: [{ id: "profile", label: "Profile", fields: ["statsfm_user"] }],
+  },
+  {
+    id: "valorant",
+    label: "Valorant",
+    Icon: SiValorant,
+    color: "#FF4655",
+    desc: "Show your Valorant rank, competitive stats, and account level.",
+    subtypes: [{ id: "player", label: "Player", fields: ["valorant_user"] }],
+  },
+  {
+    id: "timezone",
+    label: "Timezone",
+    Icon: Clock,
+    color: "#EF4444",
+    desc: "Show a live analog clock for your selected time zone.",
+    subtypes: [{ id: "clock", label: "Clock", fields: ["timezone"] }],
+  },
+  {
+    id: "steam",
+    label: "Steam",
+    Icon: FaSteam,
+    color: "#66C0F4",
+    desc: "Display your Steam profile with game library, playtime, friends count, and recent games.",
+    subtypes: [{ id: "profile", label: "Profile", fields: ["steam_user"] }],
+  },
+  {
+    id: "twitch",
+    label: "Twitch",
+    Icon: FaTwitch,
+    color: "#9146FF",
+    desc: "Show your Twitch channel with follower count, live status, and viewer count when streaming.",
+    subtypes: [{ id: "channel", label: "Channel", fields: ["twitch_channel"] }],
   },
   {
     id: "spotify",
     label: "Spotify",
     Icon: FaSpotify,
     color: "#1DB954",
-    desc: "Song, album or playlist — playable embed or card",
+    desc: "Display Spotify content: user profiles, tracks, albums, artists, or playlists.",
     subtypes: [{ id: "media", label: "Track / Album / Playlist", fields: ["media_url"] }],
   },
+  {
+    id: "minecraft",
+    label: "Minecraft Server",
+    Icon: Box,
+    color: "#22C55E",
+    desc: "Display your Minecraft server with online player count and MOTD.",
+    subtypes: [{ id: "server", label: "Server", fields: ["minecraft_server"] }],
+  },
+  {
+    id: "clash-of-clans",
+    label: "Clash of Clans",
+    Icon: SiSupercell,
+    color: "#EAB308",
+    desc: "Show your Clash of Clans player stats with town hall level, trophies, and clan information.",
+    subtypes: [{ id: "player", label: "Player", fields: ["coc_player"] }],
+  },
+  {
+    id: "clash-royale",
+    label: "Clash Royale",
+    Icon: SiSupercell,
+    color: "#06B6D4",
+    desc: "Display your Clash Royale player stats with arena, trophies, and card levels.",
+    subtypes: [{ id: "player", label: "Player", fields: ["cr_player"] }],
+  },
+  {
+    id: "brawl-stars",
+    label: "Brawl Stars",
+    Icon: SiSupercell,
+    color: "#F59E0B",
+    desc: "Show your Brawl Stars profile with trophies, brawlers unlocked, and club information.",
+    subtypes: [{ id: "player", label: "Player", fields: ["bs_player"] }],
+  },
+  {
+    id: "weather",
+    label: "Weather",
+    Icon: CloudSun,
+    color: "#38BDF8",
+    desc: "Display current weather conditions and temperature for your location.",
+    subtypes: [{ id: "location", label: "Location", fields: ["weather_city"] }],
+  },
+  // Supported and legacy widgets
   {
     id: "youtube",
     label: "YouTube",
@@ -51,25 +152,6 @@ export const WIDGET_KINDS = [
     color: "#FF0000",
     desc: "Channel avatar, subscriber count and newest upload",
     subtypes: [{ id: "channel", label: "Channel", fields: ["youtube_channel"] }],
-  },
-  {
-    id: "github",
-    label: "GitHub",
-    Icon: FaGithub,
-    color: "#e7e7e7",
-    desc: "Repos, followers, stars — or one repository",
-    subtypes: [
-      { id: "user", label: "Profile", fields: ["github_user"] },
-      { id: "repo", label: "Repository", fields: ["github_repo"] },
-    ],
-  },
-  {
-    id: "steam",
-    label: "Steam",
-    Icon: FaSteam,
-    color: "#c7d5e0",
-    desc: "Persona, online status and current game",
-    subtypes: [{ id: "profile", label: "Profile", fields: ["steam_user"] }],
   },
   {
     id: "soundcloud",
@@ -86,22 +168,6 @@ export const WIDGET_KINDS = [
     color: "#25F4EE",
     desc: "Any TikTok video, with its real caption and thumbnail",
     subtypes: [{ id: "media", label: "Video", fields: ["media_url"] }],
-  },
-  {
-    id: "valorant",
-    label: "Valorant",
-    Icon: SiValorant,
-    color: "#FF4655",
-    desc: "Rank, RR, wins and peak straight from the Riot API",
-    subtypes: [{ id: "player", label: "Player", fields: ["valorant_user"] }],
-  },
-  {
-    id: "timezone",
-    label: "Timezone Clock",
-    Icon: Clock,
-    color: "#A48DF4",
-    desc: "A live ticking clock for any timezone",
-    subtypes: [{ id: "clock", label: "Clock", fields: ["timezone"] }],
   },
   {
     id: "countdown",
@@ -159,8 +225,8 @@ export const WIDGET_FIELDS = {
   },
   discord_invite: {
     key: "invite_url",
-    label: "Discord invite link",
-    placeholder: "discord.gg/yourinvite",
+    label: "Server Invite",
+    placeholder: "discord.gg/achern",
     help: "The invite unlocks the server banner and the exact total member count — Discord only returns those for an invite.",
   },
   discord_user: {
@@ -198,6 +264,54 @@ export const WIDGET_FIELDS = {
     label: "Steam profile link or custom URL",
     placeholder: "https://steamcommunity.com/id/yourname",
     help: "Persona, avatar, online state and current game.",
+  },
+  twitch_channel: {
+    key: "channel",
+    label: "Twitch channel name",
+    placeholder: "e.g. shroud",
+    help: "Live status, follower count and current stream title.",
+  },
+  lastfm_user: {
+    key: "username",
+    label: "Last.fm username",
+    placeholder: "e.g. musical_fan",
+    help: "Recent scrobbles, top artist and total listening count.",
+  },
+  statsfm_user: {
+    key: "username",
+    label: "Stats.fm username",
+    placeholder: "e.g. stats_lover",
+    help: "Streaming statistics, minutes listened and top songs.",
+  },
+  minecraft_server: {
+    key: "value",
+    label: "Minecraft server IP",
+    placeholder: "mc.hypixel.net",
+    help: "Real-time online player count, MOTD and ping.",
+  },
+  coc_player: {
+    key: "value",
+    label: "Clash of Clans player tag",
+    placeholder: "#9PPP02V2",
+    help: "Town hall level, trophies and clan information.",
+  },
+  cr_player: {
+    key: "value",
+    label: "Clash Royale player tag",
+    placeholder: "#8L9L9GL",
+    help: "Arena, trophies, favorite card and win rate.",
+  },
+  bs_player: {
+    key: "value",
+    label: "Brawl Stars player tag",
+    placeholder: "#2P0LY9Y9",
+    help: "Trophy count, brawlers unlocked and club name.",
+  },
+  weather_city: {
+    key: "value",
+    label: "City name or location",
+    placeholder: "e.g. London, Tokyo, New York",
+    help: "Live weather forecast, temperature and conditions.",
   },
   valorant_user: {
     key: "riot_id",

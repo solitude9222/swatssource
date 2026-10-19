@@ -1101,7 +1101,7 @@ function SlideshowView({
               <div data-block="widgets" className="pt-2">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-left auto-rows-min grid-flow-row-dense items-start content-start">
                   {widgets.map((w, i) => (
-                    <WidgetCard key={i} w={w} accent={accent} ownerCreated={data.created_at} owner={data.username} profileRadius={Number(p.card_radius ?? 24)} />
+                    <WidgetCard key={i} w={w} accent={accent} ownerCreated={data.created_at} owner={data.username} profileRadius={Number(p.card_radius ?? 24)} profile={p} />
                   ))}
                 </div>
               </div>
@@ -1723,7 +1723,7 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
   // to a layout carries the radius through, so a layout's own instantiation
   // cannot drop it. A widget's OWN card_radius still wins.
   const RadiusWidgetCard = (props) => (
-    <WidgetCard {...props} profileRadius={Number(p.card_radius ?? 24)} />
+    <WidgetCard {...props} profileRadius={Number(p.card_radius ?? 24)} profile={p} />
   );
 
   const linkMode = (l) => l.mode || p.link_global_mode || "card";
@@ -1818,7 +1818,7 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
               {pill ? (
                 <WidgetPill w={w} accent={accent} ownerCreated={data.created_at} owner={data.username} p={p} />
               ) : (
-                <WidgetCard w={w} accent={accent} ownerCreated={data.created_at} owner={data.username} profileRadius={Number(p.card_radius ?? 24)} />
+                <WidgetCard w={w} accent={accent} ownerCreated={data.created_at} owner={data.username} profileRadius={Number(p.card_radius ?? 24)} profile={p} />
               )}
             </div>
           );

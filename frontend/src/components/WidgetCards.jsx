@@ -21,6 +21,8 @@ import { SiRoblox, SiValorant } from "react-icons/si";
 // Roblox Profile, GitHub Activity Heatmap, Spotify Player, Discord Presence & Invite
 // ---------------------------------------------------------------------------
 
+export const WidgetProfileContext = createContext(null);
+
 const BRAND_ICON = {
   roblox: SiRoblox,
   discord: FaDiscord,
@@ -214,7 +216,6 @@ function WidgetShell({
   // Modern, sleek card sizing without bloated padding
   const pad = tight ? "p-2.5 sm:p-3" : "p-3 sm:p-3.5";
   const bgEnabled = w?.background !== false && w?.bg_enabled !== false && w?.show_bg !== false && !w?.transparent && w?.card_style !== "transparent";
-  const fillAlpha = clampPct(w?.card_fill_alpha, WIDGET_SURFACE_DEFAULTS.fillAlpha);
   const { tipProps, tipNode } = useTooltip(w?.tooltip);
   const popoutUrl = resolveWidgetUrl(w, data);
   const openStyle = w?.open_style || "button";
@@ -233,16 +234,32 @@ function WidgetShell({
     }
   };
 
-  const bgFill = hexOrRgba(w?.card_bg_color || "#0c0d12", fillAlpha);
+  const sharedProfile = useContext(WidgetProfileContext) || w?.profile;
+  const defBorderWidth = sharedProfile?.widget_border_width != null ? Number(sharedProfile.widget_border_width) : WIDGET_SURFACE_DEFAULTS.borderWidth;
+  const defBorderOpacity = sharedProfile?.widget_border_opacity != null ? Number(sharedProfile.widget_border_opacity) * 100 : WIDGET_SURFACE_DEFAULTS.outlineAlpha;
+  const defBorderColor = sharedProfile?.widget_border_color || "#ffffff";
+  const defBgColor = sharedProfile?.widget_bg_color || "#ffffff";
+  const defBgOpacity = sharedProfile?.widget_bg_opacity != null ? Number(sharedProfile.widget_bg_opacity) * 100 : WIDGET_SURFACE_DEFAULTS.fillAlpha;
+  const defBgBlur = sharedProfile?.widget_bg_blur != null ? Number(sharedProfile.widget_bg_blur) : 12;
+
+  const borderWidthVal = Math.max(0, Math.round(numOr(w?.card_border_width, defBorderWidth)));
+  const borderOpacityVal = clampPct(w?.card_outline_alpha, defBorderOpacity);
+  const borderColorVal = hexOrRgba(w?.card_border_color || defBorderColor, borderOpacityVal);
+
+  const fillAlpha = clampPct(w?.card_fill_alpha, defBgOpacity);
+  const bgFill = hexOrRgba(w?.card_bg_color || defBgColor, fillAlpha);
+  const blurVal = numOr(w?.card_bg_blur, defBgBlur);
 
   const surface = {
-    ...widgetBorder(w, w?.card_outline_alpha),
+    borderWidth: `${borderWidthVal}px`,
+    borderStyle: borderWidthVal > 0 ? "solid" : "none",
+    borderColor: borderColorVal,
     borderRadius: widgetRadius(w?.card_radius),
     ...(bgEnabled
       ? {
           background: bgFill,
-          backdropFilter: "blur(12px)",
-          WebkitBackdropFilter: "blur(12px)",
+          backdropFilter: `blur(${blurVal}px)`,
+          WebkitBackdropFilter: `blur(${blurVal}px)`,
         }
       : { background: "transparent" }),
     ...cardSurface(w, accent),
@@ -1554,12 +1571,15 @@ function GenericCard({ w, accent }) {
 // Main Widget Router
 // ---------------------------------------------------------------------------
 
-export function WidgetCard({ w, accent = "#A48DF4", ownerCreated, owner = "", profileRadius }) {
+export function WidgetCard({ w, accent = "#A48DF4", ownerCreated, owner = "", profileRadius, profile }) {
   // The rounding dial from the profile's Card section reaches every widget:
   // a widget without its own card_radius inherits the card's corner instead of
   // standing at a fixed radius the owner cannot change.
   if (profileRadius !== undefined && w && w.card_radius === undefined) {
     w = { ...w, card_radius: profileRadius };
+  }
+  if (profile && w && !w.profile) {
+    w = { ...w, profile };
   }
   const type = (w?.type || "").toLowerCase();
   const sub = (w?.subtype || "").toLowerCase();
