@@ -170,12 +170,9 @@ export function Toaster() {
       data-testid="notification-region"
       role="status"
       aria-live="polite"
-      // Top centre, growing downwards. `flex-col-reverse` keeps the DOM order
-      // (oldest first — the order the store holds) while painting the newest
-      // arrival nearest the top edge, where the eye already is.
-      className="pointer-events-none fixed inset-x-0 top-0 z-[9999] flex flex-col items-center p-3 sm:p-4"
+      className="pointer-events-none fixed bottom-0 right-0 z-[9999] flex flex-col items-end p-3 sm:p-5"
     >
-      <ol className="flex w-full max-w-md flex-col-reverse gap-2.5">
+      <ol className="flex w-full max-w-sm flex-col gap-2.5">
         {list.map((item) => (
           <NotificationCard key={item.id} item={item} />
         ))}

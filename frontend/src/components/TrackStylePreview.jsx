@@ -105,28 +105,22 @@ export function TrackStylePreview({ id, accent = "#A48DF4", size = "sm" }) {
     );
   }
 
-  // Marquee: scrolling title + audio wave equalizer bars
+  // Marquee: slim long pill with play/pause at left, title in middle, mute on right
   if (id === "marquee") {
     return shell(
-      <div className="flex h-full items-center gap-2.5">
+      <div className="flex h-full items-center justify-between gap-2 px-1">
         <span
-          className="flex shrink-0 items-center justify-center rounded-lg border"
-          style={{ width: S.line * 2, height: S.line * 2, background: `${accent}33`, borderColor: `${accent}55` }}
+          className="flex shrink-0 items-center justify-center rounded-full"
+          style={{ width: S.line * 1.8, height: S.line * 1.8, background: accent }}
           aria-hidden
         >
-          <Play width={S.line * 0.8} height={S.line * 0.8} style={{ color: accent }} aria-hidden />
+          <Play width={S.line * 0.75} height={S.line * 0.75} style={{ color: "#fff" }} aria-hidden />
         </span>
-        <div className="min-w-0 flex-1 space-y-1.5">
-          <div className="flex items-center justify-between">
-            <Bar w="60%" h={S.line - 1} className="bg-white/70" />
-            <div className="flex items-end gap-0.5 h-3">
-              <span className="w-1 h-2 rounded-full" style={{ background: accent }} />
-              <span className="w-1 h-3 rounded-full" style={{ background: accent }} />
-              <span className="w-1 h-1.5 rounded-full" style={{ background: accent }} />
-            </div>
-          </div>
-          <Bar w="100%" h={S.bar} style={{ background: `${accent}44` }} />
+        <div className="min-w-0 flex-1 flex flex-col items-center justify-center gap-1">
+          <Bar w="70%" h={S.line - 1} className="bg-white/70" />
+          <Bar w="90%" h={S.bar - 1} style={{ background: `${accent}44` }} />
         </div>
+        <Volume2 width={S.line} height={S.line} className="shrink-0 text-zinc-400" aria-hidden />
       </div>,
     );
   }

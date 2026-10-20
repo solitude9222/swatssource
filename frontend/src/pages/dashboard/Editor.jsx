@@ -1828,6 +1828,170 @@ export default function Editor() {
                 </div>
               </Section>
 
+              {/* Audio Player Customization (Global Editor below it) */}
+              <div className="rounded-2xl border border-[#2a2a2e] bg-[#111111] p-5 sm:p-6 space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <h2 className="text-base font-bold text-white tracking-tight">Audio Player Customization</h2>
+                    <p className="text-xs text-zinc-400 mt-0.5">Customize background fill, outline borders, colors and glow settings</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      set("audio_bg_color", "");
+                      set("audio_bg_opacity", 0.85);
+                      set("audio_bg_blur", 20);
+                      set("audio_border_color", "");
+                      set("audio_border_width", 1);
+                      set("audio_border_opacity", 0.25);
+                      set("audio_glow", true);
+                      set("audio_glow_color", "");
+                      set("audio_glow_spread", 25);
+                    }}
+                    className="px-3.5 py-2 rounded-xl bg-[#09090b] hover:border-white/30 text-xs font-semibold text-zinc-300 hover:text-white border border-[#2a2a2e] transition shrink-0 cursor-pointer self-start sm:self-auto"
+                  >
+                    Reset to Defaults
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-1">
+                  {/* 1. Background Fill Color */}
+                  <div className="p-4 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-zinc-200">Background Fill Color</span>
+                    </div>
+                    <ColorPicker
+                      label=""
+                      value={p.audio_bg_color || "#131316"}
+                      onChange={(val) => set("audio_bg_color", val)}
+                    />
+                  </div>
+
+                  {/* 2. Background Opacity */}
+                  <div className="p-4 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-zinc-200">Background Opacity</span>
+                      <span className="text-xs font-mono2 text-white font-bold">
+                        {(Number.isFinite(Number(p.audio_bg_opacity)) ? Number(p.audio_bg_opacity) : 0.85).toFixed(2)}
+                      </span>
+                    </div>
+                    <Slider
+                      value={[(Number.isFinite(Number(p.audio_bg_opacity)) ? Number(p.audio_bg_opacity) : 0.85) * 100]}
+                      min={0}
+                      max={100}
+                      step={1}
+                      onValueChange={([v]) => set("audio_bg_opacity", v / 100)}
+                    />
+                  </div>
+
+                  {/* 3. Background Blur */}
+                  <div className="p-4 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-zinc-200">Background Blur</span>
+                      <span className="text-xs font-mono2 text-white font-bold">
+                        {Number.isFinite(Number(p.audio_bg_blur)) ? Number(p.audio_bg_blur) : 20}px
+                      </span>
+                    </div>
+                    <Slider
+                      value={[Number.isFinite(Number(p.audio_bg_blur)) ? Number(p.audio_bg_blur) : 20]}
+                      min={0}
+                      max={40}
+                      step={1}
+                      onValueChange={([v]) => set("audio_bg_blur", v)}
+                    />
+                  </div>
+
+                  {/* 4. Border / Outline Color */}
+                  <div className="p-4 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-zinc-200">Outline Color</span>
+                    </div>
+                    <ColorPicker
+                      label=""
+                      value={p.audio_border_color || accentColor}
+                      onChange={(val) => set("audio_border_color", val)}
+                    />
+                  </div>
+
+                  {/* 5. Border Width */}
+                  <div className="p-4 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-zinc-200">Outline Width</span>
+                      <span className="text-xs font-mono2 text-white font-bold">
+                        {Number.isFinite(Number(p.audio_border_width)) ? Number(p.audio_border_width) : 1}px
+                      </span>
+                    </div>
+                    <Slider
+                      value={[Number.isFinite(Number(p.audio_border_width)) ? Number(p.audio_border_width) : 1]}
+                      min={0}
+                      max={10}
+                      step={1}
+                      onValueChange={([v]) => set("audio_border_width", v)}
+                    />
+                  </div>
+
+                  {/* 6. Border Opacity */}
+                  <div className="p-4 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-zinc-200">Outline Opacity</span>
+                      <span className="text-xs font-mono2 text-white font-bold">
+                        {(Number.isFinite(Number(p.audio_border_opacity)) ? Number(p.audio_border_opacity) : 0.25).toFixed(2)}
+                      </span>
+                    </div>
+                    <Slider
+                      value={[(Number.isFinite(Number(p.audio_border_opacity)) ? Number(p.audio_border_opacity) : 0.25) * 100]}
+                      min={0}
+                      max={100}
+                      step={1}
+                      onValueChange={([v]) => set("audio_border_opacity", v / 100)}
+                    />
+                  </div>
+
+                  {/* 7. Glow Toggle */}
+                  <div className="p-4 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-zinc-200">Player Ambient Glow</span>
+                      <Switch
+                        data-testid="audio-glow-toggle"
+                        className={SWITCH_CLASS}
+                        checked={p.audio_glow !== false}
+                        onCheckedChange={(v) => set("audio_glow", v)}
+                      />
+                    </div>
+                    <p className="text-[11px] text-zinc-400">Radiant ambient glow around the audio player card</p>
+                  </div>
+
+                  {/* 8. Glow Color */}
+                  <div className="p-4 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-zinc-200">Glow Color</span>
+                    </div>
+                    <ColorPicker
+                      label=""
+                      value={p.audio_glow_color || accentColor}
+                      onChange={(val) => set("audio_glow_color", val)}
+                    />
+                  </div>
+
+                  {/* 9. Glow Spread */}
+                  <div className="p-4 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-zinc-200">Glow Spread</span>
+                      <span className="text-xs font-mono2 text-white font-bold">
+                        {Number.isFinite(Number(p.audio_glow_spread)) ? Number(p.audio_glow_spread) : 25}px
+                      </span>
+                    </div>
+                    <Slider
+                      value={[Number.isFinite(Number(p.audio_glow_spread)) ? Number(p.audio_glow_spread) : 25]}
+                      min={0}
+                      max={60}
+                      step={1}
+                      onValueChange={([v]) => set("audio_glow_spread", v)}
+                    />
+                  </div>
+                </div>
+              </div>
+
               {/* Legacy backward-compatibility elements in sr-only */}
               <div className="sr-only" aria-hidden="true">
                 <input
