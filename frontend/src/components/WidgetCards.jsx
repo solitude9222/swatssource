@@ -235,20 +235,49 @@ function WidgetShell({
   };
 
   const sharedProfile = useContext(WidgetProfileContext) || w?.profile;
-  const defBorderWidth = sharedProfile?.widget_border_width != null ? Number(sharedProfile.widget_border_width) : WIDGET_SURFACE_DEFAULTS.borderWidth;
-  const defBorderOpacity = sharedProfile?.widget_border_opacity != null ? Number(sharedProfile.widget_border_opacity) * 100 : WIDGET_SURFACE_DEFAULTS.outlineAlpha;
-  const defBorderColor = sharedProfile?.widget_border_color || "#ffffff";
-  const defBgColor = sharedProfile?.widget_bg_color || "#ffffff";
-  const defBgOpacity = sharedProfile?.widget_bg_opacity != null ? Number(sharedProfile.widget_bg_opacity) * 100 : WIDGET_SURFACE_DEFAULTS.fillAlpha;
-  const defBgBlur = sharedProfile?.widget_bg_blur != null ? Number(sharedProfile.widget_bg_blur) : 12;
+  const hasShared = !!sharedProfile;
 
-  const borderWidthVal = Math.max(0, Math.round(numOr(w?.card_border_width, defBorderWidth)));
-  const borderOpacityVal = clampPct(w?.card_outline_alpha, defBorderOpacity);
+  const toPct = (v, fallback) => {
+    if (v == null || v === "") return fallback;
+    const n = Number(v);
+    if (!Number.isFinite(n)) return fallback;
+    if (n > 0 && n <= 1) return Math.round(n * 100);
+    return Math.max(0, Math.min(100, Math.round(n)));
+  };
+
+  const defBorderWidth = hasShared && sharedProfile.widget_border_width != null 
+    ? Number(sharedProfile.widget_border_width) 
+    : WIDGET_SURFACE_DEFAULTS.borderWidth;
+
+  const defBorderOpacity = hasShared && sharedProfile.widget_border_opacity != null 
+    ? toPct(sharedProfile.widget_border_opacity, WIDGET_SURFACE_DEFAULTS.outlineAlpha) 
+    : WIDGET_SURFACE_DEFAULTS.outlineAlpha;
+
+  const defBorderColor = hasShared && sharedProfile.widget_border_color 
+    ? sharedProfile.widget_border_color 
+    : "#ffffff";
+
+  // When inside a user's profile with custom settings, use their widget_bg_color.
+  // When standalone or on home page showcase, default to obsidian dark #0c0d14 so cards are NEVER solid white!
+  const defBgColor = hasShared && sharedProfile.widget_bg_color 
+    ? sharedProfile.widget_bg_color 
+    : (hasShared ? "#ffffff" : "#0c0d14");
+
+  const defBgOpacity = hasShared && sharedProfile.widget_bg_opacity != null 
+    ? toPct(sharedProfile.widget_bg_opacity, String(defBgColor).toLowerCase() === "#ffffff" ? 5 : 75) 
+    : (String(defBgColor).toLowerCase() === "#ffffff" ? 5 : 75);
+
+  const defBgBlur = hasShared && sharedProfile.widget_bg_blur != null 
+    ? Number(sharedProfile.widget_bg_blur) 
+    : 12;
+
+  const borderWidthVal = Math.max(0, Math.round(numOr(w?.card_border_width ?? defBorderWidth, defBorderWidth)));
+  const borderOpacityVal = clampPct(w?.card_outline_alpha != null ? toPct(w.card_outline_alpha, defBorderOpacity) : defBorderOpacity, defBorderOpacity);
   const borderColorVal = hexOrRgba(w?.card_border_color || defBorderColor, borderOpacityVal);
 
-  const fillAlpha = clampPct(w?.card_fill_alpha, defBgOpacity);
+  const fillAlpha = clampPct(w?.card_fill_alpha != null ? toPct(w.card_fill_alpha, defBgOpacity) : defBgOpacity, defBgOpacity);
   const bgFill = hexOrRgba(w?.card_bg_color || defBgColor, fillAlpha);
-  const blurVal = numOr(w?.card_bg_blur, defBgBlur);
+  const blurVal = numOr(w?.card_bg_blur ?? defBgBlur, defBgBlur);
 
   const surface = {
     borderWidth: `${borderWidthVal}px`,
@@ -1584,8 +1613,8 @@ export function WidgetCard({ w, accent = "#A48DF4", ownerCreated, owner = "", pr
   if (profileRadius !== undefined && w && w.card_radius === undefined) {
     w = { ...w, card_radius: profileRadius };
   }
-  if (profile && w && !w.profile) {
-    w = { ...w, profile };
+  if (profile && w) {
+    w = { ...w, profile: { ...profile, ...(w.profile || {}) } };
   }
   const type = (w?.type || "").toLowerCase();
   const sub = (w?.subtype || "").toLowerCase();
