@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { api, fileUrl } from "@/lib/api";
@@ -17,12 +17,13 @@ import { useEditGate } from "@/hooks/useEditGate";
 import {
   Save, Lock, Music, Upload, Loader2, X,
   Edit2, Check, BookOpen, LayoutGrid, GripVertical,
-  Sparkles, Eye, Trash2, HelpCircle, ExternalLink, ChevronDown, Plus,
+  Sparkles, Eye, Trash2, HelpCircle, ExternalLink, ChevronDown, ChevronLeft, ChevronRight, Plus,
   ArrowLeft, Globe, Star, Users, Radio, Shield, Trophy,
 } from "lucide-react";
 import { FaDiscord, FaGithub, FaSpotify, FaSteam, FaTwitch, FaLastfm } from "react-icons/fa6";
 import { SiRoblox, SiValorant, SiSupercell } from "react-icons/si";
 import { ColorPicker } from "@/components/ColorPicker";
+import { SmartSelect } from "@/components/ui-shared/SmartSelect";
 import { PremiumGate } from "@/components/ui-shared/PremiumGate";
 
 // Helper for hex -> rgba
@@ -108,7 +109,7 @@ const snapshot = (widgets, shared, tracks, trackStyle, shuffle, volume, trackPos
  * Real Live Data Widget Preview Component
  * Fetches real API data dynamically using useWidgetData
  */
-function RealLiveWidgetPreview({ widget, kind }) {
+function RealLiveWidgetPreview({ widget, kind, styleOverride }) {
   const isDiscord = widget.type === "discord";
   const { status, data, error } = useWidgetData(widget, { refreshSec: 0 });
   const Icon = kind.Icon || GENERIC_WIDGET_ICON;
@@ -152,8 +153,8 @@ function RealLiveWidgetPreview({ widget, kind }) {
 
   return (
     <div
-      className="relative w-full max-w-md rounded-2xl border border-white/10 bg-[#0c0d14] overflow-hidden shadow-2xl transition-all duration-300 text-left"
-      style={{ minHeight: "150px" }}
+      className={`relative w-full max-w-md rounded-2xl overflow-hidden shadow-2xl transition-all duration-300 text-left ${!styleOverride ? "border border-white/10 bg-[#0c0d14]" : ""}`}
+      style={{ minHeight: "150px", ...styleOverride }}
     >
       {/* Real Background Image Artwork if selected */}
       {widget.artwork_bg !== "none" && bgImage && (
@@ -280,6 +281,15 @@ export default function Widgets() {
   const [saving, setSaving] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
   const savedTimer = useRef(null);
+
+  const activeWidgets = useMemo(() => widgets.filter((w) => w.enabled !== false), [widgets]);
+  const [activePreviewIdx, setActivePreviewIdx] = useState(0);
+
+  useEffect(() => {
+    if (activeWidgets.length > 0 && activePreviewIdx >= activeWidgets.length) {
+      setActivePreviewIdx(0);
+    }
+  }, [activeWidgets.length, activePreviewIdx]);
 
   const currentShared = { borderWidth, borderOpacity, borderColor, bgColor, bgOpacity, bgBlur };
   const baseline = useRef(
@@ -515,15 +525,15 @@ export default function Widgets() {
               </div>
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-zinc-200">Type</label>
-                <select
+                <SmartSelect
                   value={editingWidget.widget.subtype || "server"}
-                  onChange={(e) => patchEditingWidget({ subtype: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-black/50 border border-white/10 text-xs font-medium text-white outline-none focus:border-brand-500/60 cursor-pointer"
-                >
-                  <option value="server">server</option>
-                  <option value="profile">profile</option>
-                  <option value="bot">bot</option>
-                </select>
+                  onChange={(val) => patchEditingWidget({ subtype: val })}
+                  options={[
+                    { value: "server", label: "server" },
+                    { value: "profile", label: "profile" },
+                    { value: "bot", label: "bot" },
+                  ]}
+                />
               </div>
             </div>
           ) : (
@@ -596,16 +606,18 @@ export default function Widgets() {
               <p className="text-[11px] text-zinc-400">
                 Use {kind.label} banner, splash, icon, or avatar artwork.
               </p>
-              <select
-                value={editingWidget.widget.artwork_bg || "splash"}
-                onChange={(e) => patchEditingWidget({ artwork_bg: e.target.value })}
-                className="w-full px-3.5 py-2 rounded-xl bg-black/40 border border-white/10 text-xs font-medium text-white outline-none focus:border-brand-500/60 cursor-pointer mt-1"
-              >
-                <option value="none">None</option>
-                <option value="banner">Banner</option>
-                <option value="splash">Server splash</option>
-                <option value="avatar">Icon / avatar</option>
-              </select>
+              <div className="pt-1">
+                <SmartSelect
+                  value={editingWidget.widget.artwork_bg || "splash"}
+                  onChange={(val) => patchEditingWidget({ artwork_bg: val })}
+                  options={[
+                    { value: "none", label: "None" },
+                    { value: "banner", label: "Banner" },
+                    { value: "splash", label: "Server splash" },
+                    { value: "avatar", label: "Icon / avatar" },
+                  ]}
+                />
+              </div>
             </div>
 
             <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06] space-y-1.5">
@@ -613,18 +625,20 @@ export default function Widgets() {
               <p className="text-[11px] text-zinc-400">
                 Tune the overlay used above {kind.label} artwork.
               </p>
-              <select
-                value={editingWidget.widget.bg_filter || "dark"}
-                onChange={(e) => patchEditingWidget({ bg_filter: e.target.value })}
-                className="w-full px-3.5 py-2 rounded-xl bg-black/40 border border-white/10 text-xs font-medium text-white outline-none focus:border-brand-500/60 cursor-pointer mt-1"
-              >
-                <option value="none">None</option>
-                <option value="soft">Soft fade</option>
-                <option value="dark">Dark overlay</option>
-                <option value="blur">Blurred</option>
-                <option value="dark_blur">Dark blur</option>
-                <option value="vignette">Vignette fade</option>
-              </select>
+              <div className="pt-1">
+                <SmartSelect
+                  value={editingWidget.widget.bg_filter || "dark"}
+                  onChange={(val) => patchEditingWidget({ bg_filter: val })}
+                  options={[
+                    { value: "none", label: "None" },
+                    { value: "soft", label: "Soft fade" },
+                    { value: "dark", label: "Dark overlay" },
+                    { value: "blur", label: "Blurred" },
+                    { value: "dark_blur", label: "Dark blur" },
+                    { value: "vignette", label: "Vignette fade" },
+                  ]}
+                />
+              </div>
             </div>
           </div>
 
@@ -971,20 +985,12 @@ export default function Widgets() {
                   </div>
                 </div>
               </div>
-              <span className="text-xs font-mono2 text-zinc-400 uppercase">{borderColor}</span>
             </div>
-            <div className="flex items-center gap-2">
-              <input
-                type="color"
+            <div>
+              <ColorPicker
+                label=""
                 value={borderColor}
-                onChange={(e) => setBorderColor(e.target.value)}
-                className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0 p-0"
-              />
-              <input
-                type="text"
-                value={borderColor}
-                onChange={(e) => setBorderColor(e.target.value)}
-                className="flex-1 px-3 py-1.5 rounded-lg bg-black/40 border border-white/10 text-xs font-mono2 text-zinc-200 uppercase"
+                onChange={(val) => setBorderColor(val)}
               />
             </div>
           </div>
@@ -1001,20 +1007,12 @@ export default function Widgets() {
                   </div>
                 </div>
               </div>
-              <span className="text-xs font-mono2 text-zinc-400 uppercase">{bgColor}</span>
             </div>
-            <div className="flex items-center gap-2">
-              <input
-                type="color"
+            <div>
+              <ColorPicker
+                label=""
                 value={bgColor}
-                onChange={(e) => setBgColor(e.target.value)}
-                className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0 p-0"
-              />
-              <input
-                type="text"
-                value={bgColor}
-                onChange={(e) => setBgColor(e.target.value)}
-                className="flex-1 px-3 py-1.5 rounded-lg bg-black/40 border border-white/10 text-xs font-mono2 text-zinc-200 uppercase"
+                onChange={(val) => setBgColor(val)}
               />
             </div>
           </div>
@@ -1066,68 +1064,136 @@ export default function Widgets() {
           </div>
         </div>
 
-        {/* Live Shared Design Preview Card */}
-        <div className="pt-5 border-t border-white/10 space-y-3">
-          <div>
-            <div className="text-xs font-bold text-white tracking-tight">Preview</div>
-            <p className="text-[11px] text-zinc-400 mt-0.5">
-              Normal widget card without an image background.
-            </p>
+        {/* Live Shared Design Preview Card with Active Widget Carousel */}
+        <div className="pt-5 border-t border-white/10 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <div className="text-xs font-bold text-white tracking-tight">Preview</div>
+              <p className="text-[11px] text-zinc-400 mt-0.5">
+                {activeWidgets.length > 0
+                  ? `Live previewing ${activeWidgets.length} active profile widget${activeWidgets.length > 1 ? "s" : ""} with shared card design.`
+                  : "Normal widget card without an image background."}
+              </p>
+            </div>
+
+            {/* Active Widgets Carousel Controls */}
+            {activeWidgets.length > 0 && (
+              <div className="flex items-center gap-2 self-start sm:self-auto bg-white/[0.04] border border-white/10 px-3 py-1.5 rounded-xl">
+                <span className="text-[11px] font-medium text-zinc-300">
+                  <span className="text-brand-300 font-bold">{activePreviewIdx + 1}</span> of {activeWidgets.length}
+                </span>
+                <div className="h-3.5 w-px bg-white/10 mx-0.5" />
+                <button
+                  type="button"
+                  title="Previous active widget"
+                  disabled={activeWidgets.length <= 1}
+                  onClick={() => setActivePreviewIdx((i) => (i - 1 + activeWidgets.length) % activeWidgets.length)}
+                  className="p-1 rounded-lg hover:bg-white/10 text-zinc-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  title="Next active widget"
+                  disabled={activeWidgets.length <= 1}
+                  onClick={() => setActivePreviewIdx((i) => (i + 1) % activeWidgets.length)}
+                  className="p-1 rounded-lg hover:bg-white/10 text-zinc-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
           </div>
 
-          <div className="p-6 rounded-2xl bg-black/60 border border-white/5 flex items-center justify-center">
-            <div
-              className="w-full max-w-md p-4 transition-all duration-200 space-y-3 relative overflow-hidden text-left"
-              style={{
-                borderRadius: "18px",
-                borderWidth: `${borderWidth}px`,
-                borderStyle: borderWidth > 0 ? "solid" : "none",
-                borderColor: hexOrRgba(borderColor, borderOpacity * 100),
-                backgroundColor: hexOrRgba(bgColor, bgOpacity * 100),
-                backdropFilter: bgBlur > 0 ? `blur(${bgBlur}px)` : "none",
-                WebkitBackdropFilter: bgBlur > 0 ? `blur(${bgBlur}px)` : "none",
-                boxShadow: "0 8px 32px rgba(0,0,0,0.45)",
-              }}
-            >
-              {/* Header row */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-[#5865F2]/20 border border-[#5865F2]/40 flex items-center justify-center text-[#5865F2]">
-                    <FaDiscord className="w-4 h-4" />
+          <div className="p-6 rounded-2xl bg-black/60 border border-white/5 flex flex-col items-center justify-center gap-4">
+            {activeWidgets.length > 0 ? (
+              <>
+                <RealLiveWidgetPreview
+                  widget={activeWidgets[activePreviewIdx]}
+                  kind={KIND_MAP[activeWidgets[activePreviewIdx]?.type] || { label: activeWidgets[activePreviewIdx]?.type || "Widget" }}
+                  styleOverride={{
+                    borderRadius: "18px",
+                    borderWidth: `${borderWidth}px`,
+                    borderStyle: borderWidth > 0 ? "solid" : "none",
+                    borderColor: hexOrRgba(borderColor, borderOpacity * 100),
+                    backgroundColor: hexOrRgba(bgColor, bgOpacity * 100),
+                    backdropFilter: bgBlur > 0 ? `blur(${bgBlur}px)` : "none",
+                    WebkitBackdropFilter: bgBlur > 0 ? `blur(${bgBlur}px)` : "none",
+                    boxShadow: "0 8px 32px rgba(0,0,0,0.45)",
+                  }}
+                />
+
+                {/* Dots indicator for active widgets */}
+                {activeWidgets.length > 1 && (
+                  <div className="flex items-center gap-1.5 pt-1">
+                    {activeWidgets.map((w, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setActivePreviewIdx(idx)}
+                        title={w.title || w.type}
+                        className={`h-1.5 rounded-full transition-all cursor-pointer ${
+                          idx === activePreviewIdx ? "w-6 bg-brand-400" : "w-1.5 bg-white/20 hover:bg-white/40"
+                        }`}
+                      />
+                    ))}
                   </div>
-                  <span className="text-xs font-bold text-white tracking-tight">Discord</span>
+                )}
+              </>
+            ) : (
+              <div
+                className="w-full max-w-md p-4 transition-all duration-200 space-y-3 relative overflow-hidden text-left"
+                style={{
+                  borderRadius: "18px",
+                  borderWidth: `${borderWidth}px`,
+                  borderStyle: borderWidth > 0 ? "solid" : "none",
+                  borderColor: hexOrRgba(borderColor, borderOpacity * 100),
+                  backgroundColor: hexOrRgba(bgColor, bgOpacity * 100),
+                  backdropFilter: bgBlur > 0 ? `blur(${bgBlur}px)` : "none",
+                  WebkitBackdropFilter: bgBlur > 0 ? `blur(${bgBlur}px)` : "none",
+                  boxShadow: "0 8px 32px rgba(0,0,0,0.45)",
+                }}
+              >
+                {/* Header row */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 rounded-lg bg-[#5865F2]/20 border border-[#5865F2]/40 flex items-center justify-center text-[#5865F2]">
+                      <FaDiscord className="w-4 h-4" />
+                    </div>
+                    <span className="text-xs font-bold text-white tracking-tight">Discord</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="px-2 py-0.5 rounded-md bg-white/5 text-[10px] font-bold text-zinc-300 border border-white/10 uppercase tracking-wider">
+                      Discord
+                    </span>
+                    <div className="w-6 h-6 rounded-md bg-white/5 flex items-center justify-center text-zinc-400">
+                      <ExternalLink className="w-3 h-3" />
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="px-2 py-0.5 rounded-md bg-white/5 text-[10px] font-bold text-zinc-300 border border-white/10 uppercase tracking-wider">
-                    Discord
+
+                {/* Title & subtitle */}
+                <div>
+                  <div className="text-sm font-bold text-white">cops.bio</div>
+                  <div className="text-xs text-zinc-400 mt-0.5 line-clamp-2">
+                    The modern solution for your personal biolink website. Simple, fast, and fully customizable.
+                  </div>
+                </div>
+
+                {/* Stats row */}
+                <div className="flex items-center gap-3 pt-1 text-xs">
+                  <span className="flex items-center gap-1.5 text-emerald-400 font-medium">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#34d399]" />
+                    23 Online
                   </span>
-                  <div className="w-6 h-6 rounded-md bg-white/5 flex items-center justify-center text-zinc-400">
-                    <ExternalLink className="w-3 h-3" />
-                  </div>
+                  <span className="text-zinc-400">466 Members</span>
+                  <span className="text-purple-400 font-medium flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />
+                    Level 3
+                  </span>
                 </div>
               </div>
-
-              {/* Title & subtitle */}
-              <div>
-                <div className="text-sm font-bold text-white">cops.bio</div>
-                <div className="text-xs text-zinc-400 mt-0.5 line-clamp-2">
-                  The modern solution for your personal biolink website. Simple, fast, and fully customizable.
-                </div>
-              </div>
-
-              {/* Stats row */}
-              <div className="flex items-center gap-3 pt-1 text-xs">
-                <span className="flex items-center gap-1.5 text-emerald-400 font-medium">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#34d399]" />
-                  23 Online
-                </span>
-                <span className="text-zinc-400">466 Members</span>
-                <span className="text-purple-400 font-medium flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />
-                  Level 3
-                </span>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

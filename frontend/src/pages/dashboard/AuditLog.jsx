@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { api, apiError } from "@/lib/api";
 import { toast } from "@/lib/notify";
 import { actionLabel, actionTone } from "@/constants/audit";
+import { SmartSelect } from "@/components/ui-shared/SmartSelect";
 import {
   ScrollText, Search, RefreshCw, Loader2, ChevronLeft, ChevronRight,
   Download, ChevronDown, ShieldCheck, User, Clock, Globe,
@@ -200,30 +201,34 @@ export default function AuditLog() {
             placeholder="Actor username"
             className="w-40 rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-xs text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-brand-500/50"
           />
-          <div className="relative">
-            <select
-              data-testid="audit-action"
+          <div className="w-56">
+            <SmartSelect
+              testid="audit-action"
+              nativeSelect={true}
               value={action}
-              onChange={(e) => resetTo(setAction)(e.target.value)}
-              className="w-52 appearance-none rounded-xl border border-white/10 bg-[#0c0d12]/90 pl-3 pr-8 py-2 text-xs font-medium text-zinc-200 outline-none transition hover:border-brand-500/30 focus:border-brand-500/60 focus:ring-1 focus:ring-brand-500/20 cursor-pointer shadow-sm"
-            >
-              <option value="" className="bg-[#0c0d12] text-zinc-300">Every kind of event</option>
-              {actions.map((a) => (
-                <option key={a} value={a} className="bg-[#0c0d12] text-zinc-200">{actionLabel(a)} — {a}</option>
-              ))}
-            </select>
-            <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-400" />
+              onChange={(val) => resetTo(setAction)(val)}
+              options={[
+                { value: "", label: "Every kind of event" },
+                ...actions.map((a) => ({
+                  value: a,
+                  label: `${actionLabel(a)} — ${a}`,
+                })),
+              ]}
+              size="sm"
+            />
           </div>
-          <div className="relative">
-            <select
-              data-testid="audit-limit"
+          <div className="w-28">
+            <SmartSelect
+              testid="audit-limit"
+              nativeSelect={true}
               value={limit}
-              onChange={(e) => resetTo(setLimit)(Number(e.target.value))}
-              className="appearance-none rounded-xl border border-white/10 bg-[#0c0d12]/90 pl-3 pr-7 py-2 text-xs font-medium text-zinc-200 outline-none transition hover:border-brand-500/30 focus:border-brand-500/60 focus:ring-1 focus:ring-brand-500/20 cursor-pointer shadow-sm"
-            >
-              {PAGE_SIZES.map((n) => <option key={n} value={n} className="bg-[#0c0d12] text-zinc-200">{n} / page</option>)}
-            </select>
-            <ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 text-zinc-400" />
+              onChange={(val) => resetTo(setLimit)(Number(val))}
+              options={PAGE_SIZES.map((n) => ({
+                value: n,
+                label: `${n} / page`,
+              }))}
+              size="sm"
+            />
           </div>
         </div>
       </div>

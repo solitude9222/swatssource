@@ -1,6 +1,17 @@
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { runMenuAction } from "@/lib/menuActions";
+import {
+  ExternalLink, Copy, Sparkles, LayoutGrid, Music, Play, Volume2,
+  Palette, Link as LinkIcon, ShieldCheck, Share2, ArrowLeft, ArrowRight,
+  RotateCcw, MousePointerClick, MessageSquare, Settings, Eye, Trash2,
+} from "lucide-react";
+
+const ICON_MAP = {
+  ExternalLink, Copy, Sparkles, LayoutGrid, Music, Play, Volume2,
+  Palette, Link: LinkIcon, ShieldCheck, Share2, ArrowLeft, ArrowRight,
+  RotateCcw, MousePointerClick, MessageSquare, Settings, Eye, Trash2,
+};
 
 /* ---------------------------------------------------------------------------
    The swats right-click menu.
@@ -29,12 +40,12 @@ import { runMenuAction } from "@/lib/menuActions";
    --------------------------------------------------------------------------- */
 
 const UNIVERSAL = [
-  { label: "Back", action: "back" },
-  { label: "Forward", action: "forward" },
-  { label: "Reload page", action: "reload" },
+  { label: "Back", action: "back", icon: "ArrowLeft" },
+  { label: "Forward", action: "forward", icon: "ArrowRight" },
+  { label: "Reload page", action: "reload", icon: "RotateCcw" },
   { sep: true },
-  { label: "Copy", action: "copy-selection" },
-  { label: "Select all", action: "select-all" },
+  { label: "Copy", action: "copy-selection", icon: "Copy" },
+  { label: "Select all", action: "select-all", icon: "MousePointerClick" },
 ];
 
 /* Items for a surface, from what its attributes describe. */
@@ -43,32 +54,100 @@ const buildSurfaceItems = (surface) => {
   const name = surface?.getAttribute?.("data-menu-name") || "";
   const href = surface?.getAttribute?.("data-menu-href") || "";
 
-  /* A conversation row. "Open" goes through the inbox's own action rather than a
-     navigation: opening a conversation is state inside the page (it fetches the
-     thread, unwraps its key and marks it read), and handing someone to
-     /bob instead would leave the inbox entirely. */
+  /* 1. Distinct Widget Card Surface */
+  if (id === "widget") {
+    const type = surface?.getAttribute?.("data-menu-widget-type") || "";
+    const title = surface?.getAttribute?.("data-menu-widget-title") || name || type || "Widget";
+    const widgetUrl = surface?.getAttribute?.("data-menu-widget-url") || href || "";
+    const typeLabel = type ? type.charAt(0).toUpperCase() + type.slice(1) : "Widget";
+    return [
+      ...(widgetUrl
+        ? [
+            { label: `Open ${title}`, action: "open-link", href: widgetUrl, icon: "ExternalLink" },
+            { label: "Copy link address", action: "copy", text: widgetUrl, icon: "Copy" },
+          ]
+        : []),
+      { label: `Copy ${typeLabel} details`, action: "copy", text: `${typeLabel}: ${title}${widgetUrl ? ` (${widgetUrl})` : ""}`, icon: "Copy" },
+      { label: "Customize widgets", action: "nav", path: "/!/dashboard/widgets", icon: "LayoutGrid" },
+      { sep: true },
+      ...UNIVERSAL,
+    ];
+  }
+
+  /* 2. Avatar Surface */
+  if (id === "avatar") {
+    const url = surface?.getAttribute?.("data-menu-url") || "";
+    return [
+      ...(url
+        ? [
+            { label: "Open avatar full size", action: "open-link", href: url, icon: "ExternalLink" },
+            { label: "Copy avatar image link", action: "copy", text: url, icon: "Copy" },
+          ]
+        : []),
+      { label: "Customize avatar", action: "nav", path: "/!/dashboard/editor", icon: "Sparkles" },
+      { sep: true },
+      ...UNIVERSAL,
+    ];
+  }
+
+  /* 3. Banner & Background Media Surface */
+  if (id === "banner" || id === "background") {
+    const url = surface?.getAttribute?.("data-menu-url") || "";
+    return [
+      ...(url
+        ? [
+            { label: "Open background image", action: "open-link", href: url, icon: "ExternalLink" },
+            { label: "Copy image address", action: "copy", text: url, icon: "Copy" },
+          ]
+        : []),
+      { label: "Customize background", action: "nav", path: "/!/dashboard/editor", icon: "Sparkles" },
+      { sep: true },
+      ...UNIVERSAL,
+    ];
+  }
+
+  /* 4. Audio Ambience & Track Surface */
+  if (id === "audio") {
+    const src = surface?.getAttribute?.("data-menu-audio-src") || "";
+    return [
+      { label: "Play / Pause music", action: "toggle-audio", icon: "Play" },
+      { label: "Mute / Unmute music", action: "toggle-audio-mute", icon: "Volume2" },
+      ...(src ? [{ label: "Copy audio track link", action: "copy", text: src, icon: "Copy" }] : []),
+      { label: "Audio settings", action: "nav", path: "/!/dashboard/widgets", icon: "Music" },
+      { sep: true },
+      ...UNIVERSAL,
+    ];
+  }
+
+  /* 5. Biography Surface */
+  if (id === "bio") {
+    const bioText = surface?.getAttribute?.("data-menu-bio") || "";
+    return [
+      ...(bioText ? [{ label: "Copy biography", action: "copy", text: bioText, icon: "Copy" }] : []),
+      { label: "Select all", action: "select-all", icon: "MousePointerClick" },
+      { sep: true },
+      ...UNIVERSAL,
+    ];
+  }
+
+  /* A conversation row. */
   if (id === "thread") {
     const threadId = surface?.getAttribute?.("data-menu-thread-id") || "";
     const kind = surface?.getAttribute?.("data-menu-thread-kind") || "direct";
     return [
       ...(threadId
-        ? [{ label: kind === "group" ? "Open this group" : "Open this conversation", action: "open-thread", threadId, silent: true }]
+        ? [{ label: kind === "group" ? "Open this group" : "Open this conversation", action: "open-thread", threadId, silent: true, icon: "MessageSquare" }]
         : []),
-      ...(name ? [{ label: `Copy @${name}`, action: "copy", text: `@${name}` }] : []),
-      // Only a group has settings to open; a direct message has none.
+      ...(name ? [{ label: `Copy @${name}`, action: "copy", text: `@${name}`, icon: "Copy" }] : []),
       ...(kind === "group" && threadId
-        ? [{ label: "Group settings", action: "thread-settings", threadId, silent: true }]
+        ? [{ label: "Group settings", action: "thread-settings", threadId, silent: true, icon: "Settings" }]
         : []),
       { sep: true },
       ...UNIVERSAL,
     ];
   }
 
-  /* A message in the public room. A member can do nothing to somebody else's
-     message, so the copy item is the whole menu for them; an admin gets the
-     three moderation verbs. Whether the viewer moderates arrives as an
-     attribute rather than as an auth check here, because this menu lives
-     outside the React tree and has no idea who is signed in. */
+  /* A message in the public room. */
   if (id === "global-message") {
     const messageId = surface?.getAttribute?.("data-menu-message-id") || "";
     const body = surface?.getAttribute?.("data-menu-message-body") || "";
@@ -76,11 +155,11 @@ const buildSurfaceItems = (surface) => {
     const authorId = surface?.getAttribute?.("data-menu-message-author-id") || "";
     const moderate = surface?.getAttribute?.("data-menu-moderate") === "1";
     const items = [
-      ...(body ? [{ label: "Copy message", action: "copy", text: body }] : []),
+      ...(body ? [{ label: "Copy message", action: "copy", text: body, icon: "Copy" }] : []),
       ...(moderate && messageId
         ? [
-            { label: "Edit this message", action: "global-message-edit", messageId, silent: true },
-            { label: "Delete this message", action: "global-message-delete", messageId, silent: true },
+            { label: "Edit this message", action: "global-message-edit", messageId, silent: true, icon: "ExternalLink" },
+            { label: "Delete this message", action: "global-message-delete", messageId, silent: true, icon: "Trash2" },
           ]
         : []),
       ...(moderate && authorId
@@ -91,6 +170,7 @@ const buildSurfaceItems = (surface) => {
               userId: authorId,
               username: author,
               silent: true,
+              icon: "Settings",
             },
           ]
         : []),
@@ -98,30 +178,27 @@ const buildSurfaceItems = (surface) => {
     return [...(items.length ? [...items, { sep: true }] : []), ...UNIVERSAL];
   }
 
-  /* A badge, wherever it is drawn: the shelf on the overview, the badge page, a
-     leaderboard row. The name is what is worth copying; the picture is not a
-     link to anything. */
+  /* A badge */
   if (id === "badge") {
     const badgeId = surface?.getAttribute?.("data-menu-badge") || "";
     const label = surface?.getAttribute?.("data-menu-badge-label") || badgeId;
     return [
-      ...(label ? [{ label: `Copy “${label}”`, action: "copy", text: label }] : []),
-      ...(badgeId ? [{ label: "Copy badge id", action: "copy", text: badgeId }] : []),
+      ...(label ? [{ label: `Copy “${label}”`, action: "copy", text: label, icon: "Copy" }] : []),
+      ...(badgeId ? [{ label: "Copy badge id", action: "copy", text: badgeId, icon: "ShieldCheck" }] : []),
       { sep: true },
       ...UNIVERSAL,
     ];
   }
 
-  /* A template card in the marketplace. Previewing is the page's own state, so
-     it goes through its registered action. */
+  /* A template card in the marketplace. */
   if (id === "template") {
     const templateId = surface?.getAttribute?.("data-menu-template-id") || "";
     const title = surface?.getAttribute?.("data-menu-template-title") || name;
     return [
       ...(templateId
-        ? [{ label: "Preview this template", action: "template-preview", templateId, silent: true }]
+        ? [{ label: "Preview this template", action: "template-preview", templateId, silent: true, icon: "Eye" }]
         : []),
-      ...(title ? [{ label: `Copy “${title}”`, action: "copy", text: title }] : []),
+      ...(title ? [{ label: `Copy “${title}”`, action: "copy", text: title, icon: "Copy" }] : []),
       { sep: true },
       ...UNIVERSAL,
     ];
@@ -131,7 +208,7 @@ const buildSurfaceItems = (surface) => {
   if (id === "invite") {
     const code = surface?.getAttribute?.("data-menu-invite") || "";
     return [
-      ...(code ? [{ label: "Copy invite code", action: "copy", text: code }] : []),
+      ...(code ? [{ label: "Copy invite code", action: "copy", text: code, icon: "Copy" }] : []),
       { sep: true },
       ...UNIVERSAL,
     ];
@@ -141,7 +218,7 @@ const buildSurfaceItems = (surface) => {
   if (id === "announcement") {
     const text = surface?.getAttribute?.("data-menu-announcement-text") || "";
     return [
-      ...(text ? [{ label: "Copy announcement", action: "copy", text }] : []),
+      ...(text ? [{ label: "Copy announcement", action: "copy", text, icon: "Copy" }] : []),
       { sep: true },
       ...UNIVERSAL,
     ];
@@ -149,37 +226,52 @@ const buildSurfaceItems = (surface) => {
 
   if (id === "profile") {
     return [
-      { label: "Open this profile", action: "open-profile", username: name },
-      ...(!name ? [] : [{ label: `Copy @${name}`, action: "copy", text: `@${name}` }]),
-      ...(!href ? [] : [{ label: "Copy profile link", action: "copy", text: href }]),
+      { label: "Open this profile", action: "open-profile", username: name, icon: "ExternalLink" },
+      ...(!name ? [] : [{ label: `Copy @${name}`, action: "copy", text: `@${name}`, icon: "Copy" }]),
+      ...(!href ? [] : [{ label: "Copy profile link", action: "copy", text: href, icon: "Link" }]),
       { sep: true },
       ...UNIVERSAL,
     ];
   }
   if (id === "user") {
     return [
-      ...(!name ? [] : [{ label: "Open this profile", action: "open-profile", username: name }]),
-      ...(!name ? [] : [{ label: `Copy @${name}`, action: "copy", text: `@${name}` }]),
+      ...(!name ? [] : [{ label: "Open this profile", action: "open-profile", username: name, icon: "ExternalLink" }]),
+      ...(!name ? [] : [{ label: `Copy @${name}`, action: "copy", text: `@${name}`, icon: "Copy" }]),
       { sep: true },
       ...UNIVERSAL,
     ];
   }
   if (id === "link" && href) {
     return [
-      { label: "Open link", action: "open-link", href },
-      { label: "Copy address", action: "copy", text: href },
+      { label: "Open link", action: "open-link", href, icon: "ExternalLink" },
+      { label: "Copy address", action: "copy", text: href, icon: "Copy" },
+      ...(name ? [{ label: `Copy “${name}”`, action: "copy", text: name, icon: "Copy" }] : []),
+      { label: "Share link", action: "share", text: href, title: name || "Link", icon: "Share2" },
       { sep: true },
       ...UNIVERSAL,
     ];
   }
   if (id === "thread" && name) {
     return [
-      { label: "Open conversation", action: "open-thread", username: name },
-      { label: `Copy @${name}`, action: "copy", text: `@${name}` },
+      { label: "Open conversation", action: "open-thread", username: name, icon: "MessageSquare" },
+      { label: `Copy @${name}`, action: "copy", text: `@${name}`, icon: "Copy" },
       { sep: true },
       ...UNIVERSAL,
     ];
   }
+
+  /* Dashboard background quick links */
+  if (typeof window !== "undefined" && window.location?.pathname?.startsWith("/!/dashboard")) {
+    return [
+      { label: "Profile Editor", action: "nav", path: "/!/dashboard/editor", icon: "Palette" },
+      { label: "Widgets & Music", action: "nav", path: "/!/dashboard/widgets", icon: "LayoutGrid" },
+      { label: "Links & Socials", action: "nav", path: "/!/dashboard/links", icon: "Link" },
+      { label: "Badges & Shelves", action: "nav", path: "/!/dashboard/badges", icon: "ShieldCheck" },
+      { sep: true },
+      ...UNIVERSAL,
+    ];
+  }
+
   return UNIVERSAL;
 };
 
@@ -210,11 +302,23 @@ const run = (item, close) => {
         if (sel?.selectAllChildren) sel.selectAllChildren(document.body);
         break;
       }
+      case "nav":
+        if (item.path) window.location.assign(item.path);
+        break;
+      case "toggle-audio":
+        window.dispatchEvent(new CustomEvent("swats:toggle-audio"));
+        break;
+      case "toggle-audio-mute":
+        window.dispatchEvent(new CustomEvent("swats:toggle-audio-mute"));
+        break;
+      case "share":
+        if (navigator.share) {
+          navigator.share({ title: item.title, url: item.text }).catch(() => {});
+        } else if (navigator.clipboard?.writeText) {
+          navigator.clipboard.writeText(item.text || "");
+        }
+        break;
       case "open-thread":
-        // The surface's own action first: opening a conversation is state inside
-        // the inbox. Only if nothing registered (the row is on screen without
-        // its page having claimed the action) does this fall back to the
-        // profile of the person the row names.
         if (item.threadId && runMenuAction("open-thread", { threadId: item.threadId })) break;
         if (item.username) window.location.assign(`/${item.username}`);
         break;
@@ -228,9 +332,6 @@ const run = (item, close) => {
         if (item.messageId) runMenuAction("global-message-edit", { messageId: item.messageId });
         break;
       case "global-message-delete":
-        // Destructive, and the room owns the confirmation: deleting is a change
-        // to a conversation, and the person doing it should be asked about it
-        // where they can see the message.
         if (item.messageId) runMenuAction("global-message-delete", { messageId: item.messageId });
         break;
       case "global-message-silence":
@@ -239,7 +340,6 @@ const run = (item, close) => {
         }
         break;
       case "open-profile":
-        // Public profiles live at the plain /:alias route.
         if (item.username) window.location.assign(`/${item.username}`);
         break;
       case "open-link": {
@@ -251,8 +351,7 @@ const run = (item, close) => {
         break;
     }
   } catch {
-    /* A menu action must never throw into the page: clipboard may deny, and
-       history may bounce from a cross-origin page. Silent is correct here. */
+    /* A menu action must never throw into the page */
   }
 };
 
@@ -338,24 +437,27 @@ export function ContextMenuProvider() {
         role="menu"
         data-testid="context-menu"
         onMouseDown={(e) => e.stopPropagation()}
-        className="fixed z-[10000] min-w-[190px] overflow-hidden rounded-xl border border-white/10 bg-[#101014]/95 py-1.5 shadow-2xl backdrop-blur-xl"
+        className="fixed z-[10000] min-w-[210px] overflow-hidden rounded-2xl border border-white/12 bg-[#0d0e14]/95 p-1.5 shadow-[0_20px_50px_rgba(0,0,0,0.85)] backdrop-blur-2xl animate-in fade-in zoom-in-95 duration-100"
         style={{ left: state.x, top: state.y, visibility: "hidden" }}
       >
-        {state.items.map((item, i) =>
-          item.sep ? (
-            <div key={i} className="mx-2.5 my-1 h-px bg-white/10" role="separator" />
-          ) : (
+        {state.items.map((item, i) => {
+          if (item.sep) {
+            return <div key={i} className="mx-2 my-1 h-px bg-white/10" role="separator" />;
+          }
+          const Icon = item.icon ? ICON_MAP[item.icon] : null;
+          return (
             <button
               key={i}
               type="button"
               role="menuitem"
               onClick={() => run(item, () => setState(null))}
-              className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-xs font-medium text-zinc-200 transition-colors hover:bg-brand-500/15 hover:text-brand-200"
+              className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-1.5 text-left text-xs font-medium text-zinc-200 transition-colors hover:bg-brand-500/20 hover:text-white group cursor-pointer"
             >
-              {item.label}
+              {Icon && <Icon className="w-3.5 h-3.5 shrink-0 opacity-70 group-hover:opacity-100 text-zinc-400 group-hover:text-brand-300 transition-all" />}
+              <span className="flex-1 truncate">{item.label}</span>
             </button>
-          ),
-        )}
+          );
+        })}
       </div>
     </MenuCtx.Provider>,
     document.body,

@@ -352,9 +352,18 @@ function TrackCardPreview({ track, style, accent, volume = 0.8, onTime, autoPlay
         togglePlay();
       }
     };
+    const onToggleAudio = () => togglePlay();
+    const onToggleMute = () => setMuted((m) => !m);
+
     window.addEventListener("swats:user-entered", onUserEntered);
-    return () => window.removeEventListener("swats:user-entered", onUserEntered);
-  }, [audioSrc]);
+    window.addEventListener("swats:toggle-audio", onToggleAudio);
+    window.addEventListener("swats:toggle-audio-mute", onToggleMute);
+    return () => {
+      window.removeEventListener("swats:user-entered", onUserEntered);
+      window.removeEventListener("swats:toggle-audio", onToggleAudio);
+      window.removeEventListener("swats:toggle-audio-mute", onToggleMute);
+    };
+  }, [audioSrc, togglePlay]);
 
   // The duration is only drawn once the element has reported one, so the label
   // never claims "/ 0:00" for a track the browser has not measured yet.
@@ -366,6 +375,8 @@ function TrackCardPreview({ track, style, accent, volume = 0.8, onTime, autoPlay
       <div
         className={`group/corner ${embedded ? "absolute" : "fixed"} left-3 top-3 z-[80]`}
         data-testid="track-corner-icon"
+        data-menu-id="audio"
+        data-menu-audio-src={audioSrc || ""}
       >
         <button
           type="button"
@@ -448,7 +459,7 @@ function TrackCardPreview({ track, style, accent, volume = 0.8, onTime, autoPlay
   // ---------- MINI BAR ----------
   if (chrome === "mini-bar") {
     return (
-      <div className="w-full text-left" data-testid="track-mini-bar">
+      <div className="w-full text-left" data-testid="track-mini-bar" data-menu-id="audio" data-menu-audio-src={audioSrc || ""}>
         <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-full border border-white/10 bg-black/40 backdrop-blur-md shadow-md">
           <button
             type="button"
@@ -1487,6 +1498,9 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
         // is checkable everywhere instead of only in the layouts that happened
         // to tag their own wrapper.
         data-block="avatar"
+        data-menu-id="avatar"
+        data-menu-url={avatar || ""}
+        data-menu-name={data?.username || "Avatar"}
         className="relative flex items-center justify-center"
         style={{ width: size, height: size, cursor: showUidTip ? "help" : undefined }}
         {...uidTip.props}

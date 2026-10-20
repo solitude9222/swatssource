@@ -270,6 +270,12 @@ function WidgetShell({
   return (
     <div
       data-widget={w?.type || "widget"}
+      data-menu-id="widget"
+      data-menu-widget-type={w?.type || ""}
+      data-menu-widget-title={headerTitle || w?.title || w?.type || ""}
+      data-menu-widget-url={popoutUrl || ""}
+      data-menu-href={popoutUrl || ""}
+      data-menu-name={headerTitle || w?.title || w?.type || "Widget"}
       {...tipProps}
       className={`${full ? "col-span-2" : ""} flex flex-col text-left transition duration-300 ${className}`}
     >

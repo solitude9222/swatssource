@@ -253,7 +253,7 @@ export function ColorPicker({ label, value, onChange, testid }) {
             <div
               ref={satValRef}
               onPointerDown={handleSatValPointerDown}
-              className="relative w-full h-36 rounded-xl overflow-hidden cursor-crosshair shadow-inner"
+              className="relative w-full h-36 rounded-xl overflow-hidden cursor-crosshair shadow-inner touch-none select-none"
               style={{ backgroundColor: pureHueHex }}
             >
               {/* White Saturation gradient horizontally */}
@@ -278,27 +278,57 @@ export function ColorPicker({ label, value, onChange, testid }) {
             </div>
 
             {/* 2. Custom Hue Slider Menu */}
-            <div>
-              <div className="flex items-center justify-between text-[11px] font-semibold text-zinc-400 mb-1.5">
-                <span>Custom Hue</span>
-                <span className="font-mono2 text-[10px] text-zinc-500">{hsv.h}°</span>
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-[11px] font-semibold text-zinc-400">
+                <span className="flex items-center gap-1.5">
+                  <span>Custom Hue Spectrum</span>
+                </span>
+                <span className="font-mono2 text-[10px] text-brand-300 font-bold bg-white/[0.04] px-1.5 py-0.5 rounded border border-white/5">
+                  {hsv.h}°
+                </span>
               </div>
               <div
                 ref={hueRef}
                 onPointerDown={handleHuePointerDown}
-                className="relative w-full h-4 rounded-full cursor-pointer shadow-inner border border-white/10"
+                className="relative w-full h-4 rounded-full cursor-pointer shadow-inner border border-white/10 touch-none select-none"
                 style={{
                   background:
                     "linear-gradient(to right, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%)",
                 }}
               >
                 <div
-                  className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-4.5 h-4.5 rounded-full border-2 border-white bg-black shadow-md pointer-events-none"
+                  className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-4.5 h-4.5 rounded-full border-2 border-white bg-black shadow-md pointer-events-none transition-transform"
                   style={{
                     left: `${(hsv.h / 360) * 100}%`,
                     backgroundColor: pureHueHex,
                   }}
                 />
+              </div>
+
+              {/* Quick Hue Spectrum Stops */}
+              <div className="flex items-center justify-between pt-1 gap-1">
+                {[
+                  { h: 0, c: "#ff3b30", title: "Red" },
+                  { h: 30, c: "#ff9500", title: "Orange" },
+                  { h: 55, c: "#ffcc00", title: "Yellow" },
+                  { h: 120, c: "#34c759", title: "Green" },
+                  { h: 180, c: "#00c7be", title: "Teal" },
+                  { h: 215, c: "#007aff", title: "Blue" },
+                  { h: 260, c: "#5856d6", title: "Indigo" },
+                  { h: 290, c: "#af52de", title: "Purple" },
+                  { h: 330, c: "#ff2d55", title: "Pink" },
+                ].map((stop) => (
+                  <button
+                    key={stop.h}
+                    type="button"
+                    title={stop.title}
+                    onClick={() => updateColor({ ...hsv, h: stop.h })}
+                    className={`w-4 h-4 rounded-full transition-transform hover:scale-125 border border-white/20 shadow-sm cursor-pointer ${
+                      Math.abs(hsv.h - stop.h) <= 15 ? "ring-2 ring-white scale-110" : "opacity-80 hover:opacity-100"
+                    }`}
+                    style={{ backgroundColor: stop.c }}
+                  />
+                ))}
               </div>
             </div>
 
@@ -306,12 +336,14 @@ export function ColorPicker({ label, value, onChange, testid }) {
             <div>
               <div className="flex items-center justify-between text-[11px] font-semibold text-zinc-400 mb-1.5">
                 <span>Transparency / Alpha</span>
-                <span className="font-mono2 text-[10px] text-zinc-500">{Math.round(hsv.a * 100)}%</span>
+                <span className="font-mono2 text-[10px] text-zinc-400 bg-white/[0.04] px-1.5 py-0.5 rounded border border-white/5">
+                  {Math.round(hsv.a * 100)}%
+                </span>
               </div>
               <div
                 ref={alphaRef}
                 onPointerDown={handleAlphaPointerDown}
-                className="relative w-full h-4 rounded-full cursor-pointer shadow-inner border border-white/10 overflow-hidden"
+                className="relative w-full h-4 rounded-full cursor-pointer shadow-inner border border-white/10 overflow-hidden touch-none select-none"
                 style={{
                   backgroundImage:
                     "linear-gradient(45deg, #222 25%, transparent 25%), linear-gradient(-45deg, #222 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #222 75%), linear-gradient(-45deg, transparent 75%, #222 75%)",
@@ -334,10 +366,10 @@ export function ColorPicker({ label, value, onChange, testid }) {
               </div>
             </div>
 
-            {/* 4. Color Swatch + Hex Input */}
-            <div className="flex items-center gap-2.5 p-2 rounded-xl bg-black/50 border border-white/10">
+            {/* 4. Color Swatch + Hex Input + Actions */}
+            <div className="flex items-center gap-2 p-1.5 rounded-xl bg-black/60 border border-white/10">
               <div
-                className="w-8 h-8 rounded-lg shadow-inner border border-white/20 shrink-0"
+                className="w-7 h-7 rounded-lg shadow-inner border border-white/20 shrink-0"
                 style={{ backgroundColor: currentHex }}
               />
               <input
@@ -345,10 +377,22 @@ export function ColorPicker({ label, value, onChange, testid }) {
                 value={hexInput}
                 onChange={handleHexInputChange}
                 onBlur={handleHexInputBlur}
-                className="w-full bg-transparent text-xs font-mono2 text-zinc-100 uppercase font-bold outline-none"
+                className="w-full bg-transparent text-xs font-mono2 text-zinc-100 uppercase font-bold outline-none pl-1"
                 placeholder="#A48DF4"
                 maxLength={9}
               />
+              <button
+                type="button"
+                title="Copy color hex"
+                onClick={() => {
+                  if (navigator.clipboard?.writeText) {
+                    navigator.clipboard.writeText(currentHex);
+                  }
+                }}
+                className="px-2 py-1 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-[10px] font-semibold text-zinc-400 hover:text-white transition cursor-pointer shrink-0"
+              >
+                Copy
+              </button>
             </div>
 
             {/* 5. Quick Aesthetic Presets */}

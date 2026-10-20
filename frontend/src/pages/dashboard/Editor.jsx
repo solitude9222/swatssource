@@ -5,6 +5,7 @@ import { api, fileUrl } from "@/lib/api";
 import { ProfilePreview } from "@/components/ProfilePreview";
 import AvatarDecorationModal from "@/components/AvatarDecorationModal";
 import { ColorPicker } from "@/components/ColorPicker";
+import { SmartSelect } from "@/components/ui-shared/SmartSelect";
 import { CrosshairPicker } from "@/components/CrosshairPicker";
 import { BackgroundEffect } from "@/components/BackgroundEffect";
 import { OverlayEffect } from "@/components/OverlayEffect";
@@ -1420,34 +1421,16 @@ export default function Editor() {
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div>
                         <div className="text-xs font-semibold text-zinc-200">Card Background Surface</div>
-                        <div className="text-[11px] text-zinc-500">Enable solid, frosted, or styled card surface</div>
+                        <div className="text-[11px] text-zinc-500">Enable solid, frosted, or styled card surface (turn off for full transparency)</div>
                       </div>
                       <Switch
                         data-testid="card-bg-toggle"
                         className={SWITCH_CLASS}
-                        checked={p.card_background !== false && !p.card_transparent}
+                        checked={p.card_background !== false && !p.card_transparent && p.card_style !== "transparent"}
                         onCheckedChange={(v) => {
                           set("card_background", v);
                           set("card_transparent", !v);
                           if (!v) set("card_style", "transparent");
-                          else if (p.card_style === "transparent") set("card_style", "classic");
-                        }}
-                      />
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-white/5 pt-3">
-                      <div>
-                        <div className="text-xs font-semibold text-zinc-200">Make card transparent</div>
-                        <div className="text-[11px] text-zinc-500">Remove all card background styling and surface fills</div>
-                      </div>
-                      <Switch
-                        data-testid="card-transparent-toggle"
-                        className={SWITCH_CLASS}
-                        checked={p.card_transparent === true || p.card_style === "transparent" || p.card_background === false}
-                        onCheckedChange={(v) => {
-                          set("card_transparent", v);
-                          set("card_background", !v);
-                          if (v) set("card_style", "transparent");
                           else if (p.card_style === "transparent") set("card_style", "classic");
                         }}
                       />
@@ -2057,21 +2040,21 @@ export default function Editor() {
                     <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
                       Font Chooser
                     </label>
-                    <select
+                    <SmartSelect
                       value={p.entry_font || "inherit"}
-                      onChange={(e) => set("entry_font", e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-[#121217] border border-white/10 text-xs text-zinc-100 outline-none focus:border-brand-500/50 cursor-pointer"
-                    >
-                      <option value="inherit">Default Site Font</option>
-                      <option value="Inter">Inter (Clean Sans)</option>
-                      <option value="Unbounded">Unbounded (Futuristic Bold)</option>
-                      <option value="Space Grotesk">Space Grotesk (Tech Modern)</option>
-                      <option value="JetBrains Mono">JetBrains Mono (Code)</option>
-                      <option value="Syne">Syne (Geometric Art)</option>
-                      <option value="Outfit">Outfit (Minimalist)</option>
-                      <option value="Cinzel">Cinzel (Classic Serif)</option>
-                      <option value="Playfair Display">Playfair Display (Luxury)</option>
-                    </select>
+                      onChange={(val) => set("entry_font", val)}
+                      options={[
+                        { value: "inherit", label: "Default Site Font" },
+                        { value: "Inter", label: "Inter (Clean Sans)" },
+                        { value: "Unbounded", label: "Unbounded (Futuristic Bold)" },
+                        { value: "Space Grotesk", label: "Space Grotesk (Tech Modern)" },
+                        { value: "JetBrains Mono", label: "JetBrains Mono (Code)" },
+                        { value: "Syne", label: "Syne (Geometric Art)" },
+                        { value: "Outfit", label: "Outfit (Minimalist)" },
+                        { value: "Cinzel", label: "Cinzel (Classic Serif)" },
+                        { value: "Playfair Display", label: "Playfair Display (Luxury)" },
+                      ]}
+                    />
                   </div>
 
                   <div className="grid gap-3 sm:grid-cols-2 pt-1">

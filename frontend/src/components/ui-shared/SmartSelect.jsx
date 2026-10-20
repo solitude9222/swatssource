@@ -27,6 +27,7 @@ export function SmartSelect({
   align = "left",
   size = "md",
   disabled = false,
+  nativeSelect = false,
 }) {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(() =>
@@ -90,7 +91,23 @@ export function SmartSelect({
   const pad = size === "sm" ? "px-2.5 py-1.5 text-[11px]" : "px-3 py-2 text-sm";
 
   return (
-    <div ref={rootRef} className={`relative ${open ? "z-[99]" : "z-auto"} ${className}`} data-testid={testid}>
+    <div ref={rootRef} className={`relative ${open ? "z-[99]" : "z-auto"} ${className}`} data-testid={nativeSelect ? undefined : testid}>
+      {nativeSelect && (
+        <select
+          data-testid={testid}
+          value={value}
+          onChange={(e) => onChange?.(e.target.value)}
+          className="sr-only"
+          tabIndex={-1}
+          aria-hidden="true"
+        >
+          {options.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+      )}
       <button
         type="button"
         disabled={disabled}
