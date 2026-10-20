@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@600;700;800&family=Playfair+Display:ital@0;1&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@500;600;700&family=Unbounded:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@600;700;800&family=Playfair+Display:ital@0;1&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -28,7 +28,7 @@ body {
     margin: 0;
     background-color: var(--sw-bg);
     color: var(--sw-text);
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Fredoka', 'Quicksand', 'Inter', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
@@ -79,9 +79,12 @@ body {
    page, but a whole dashboard of font-black Unbounded headings is hard to scan.
    Everything under the dashboard shell renders the same headings in Inter
    instead — same sizes and weights, plainer face. Profiles keep Unbounded. */
+.dash-font {
+    font-family: 'Fredoka', 'Quicksand', 'Inter', system-ui, sans-serif;
+}
 .dash-font .font-display,
 .dash-font .font-syne {
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Fredoka', 'Quicksand', system-ui, sans-serif;
 }
 .font-mono2 { font-family: 'JetBrains Mono', monospace; }
 .font-playfair { font-family: 'Playfair Display', serif; }

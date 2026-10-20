@@ -137,7 +137,7 @@ export default function RankedManager() {
   }
 
   return (
-    <div className="space-y-8 max-w-6xl mx-auto pb-16">
+    <div className="w-full space-y-8 pb-16">
       {/* Header Banner */}
       <div className="relative rounded-3xl p-6 sm:p-8 overflow-hidden border border-white/10 glass bg-gradient-to-r from-amber-600/15 via-brand-600/15 to-transparent flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div className="max-w-xl">

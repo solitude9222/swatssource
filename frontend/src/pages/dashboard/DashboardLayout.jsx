@@ -12,7 +12,7 @@ import {
   LayoutDashboard, Paintbrush, Link2, Award, LayoutGrid, Settings, LayoutTemplate,
   Trophy, BarChart3, Users, Ticket, SlidersHorizontal, LineChart, LogOut,
   ExternalLink, Crown,  ChevronDown, Sparkles, BellRing, Newspaper, ShieldCheck, Plus,
-  ScrollText, Loader2, Gift, ShoppingBag, Store,
+  ScrollText, Loader2, Gift, ShoppingBag, Store, Search,
 } from "lucide-react";
 import PremiumPlansModal from "@/components/PremiumPlansModal";
 import DevlogFeedModal from "@/components/DevlogFeedModal";
@@ -108,7 +108,7 @@ const TabLink = ({ t }) => (
     end={t.end}
     data-testid={t.testid}
     className={({ isActive }) =>
-      `group relative flex items-center gap-3 rounded-xl px-3.5 py-2 text-xs font-semibold outline-none transition-all duration-200 focus-visible:ring-2 focus-visible:ring-brand-500/60 ${
+      `group relative flex w-[266px] h-[43px] shrink-0 items-center gap-3 rounded-xl px-3.5 text-[14px] font-semibold outline-none transition-all duration-200 focus-visible:ring-2 focus-visible:ring-brand-500/60 ${
         isActive ? "text-white shadow-sm" : "text-zinc-400 hover:text-zinc-100 hover:bg-white/[0.04]"
       }`
     }
@@ -125,8 +125,8 @@ const TabLink = ({ t }) => (
           <span className="absolute inset-0 rounded-xl bg-white/0 transition-colors duration-200 group-hover:bg-white/[0.03]" />
         )}
         <t.icon
-          className={`relative z-10 w-4 h-4 shrink-0 transition-transform duration-200 ${
-            isActive ? "scale-110 text-brand-300" : "group-hover:scale-105 text-zinc-400 group-hover:text-zinc-200"
+          className={`relative z-10 w-[18px] h-[18px] shrink-0 transition-transform duration-200 ${
+            isActive ? "scale-105 text-brand-300" : "group-hover:scale-105 text-zinc-400 group-hover:text-zinc-200"
           }`}
         />
         <span className="relative z-10 truncate">{t.label}</span>
@@ -148,13 +148,13 @@ const TabLink = ({ t }) => (
 function NavGroup({ group, open, onToggle, containsActive }) {
   const Icon = group.icon;
   return (
-    <div className="mb-1">
+    <div className="w-[266px] mb-1">
       <button
         type="button"
         onClick={onToggle}
         aria-expanded={open}
         data-testid={`navgroup-${group.id}`}
-        className={`group flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-left outline-none transition-all duration-200 hover:bg-white/[0.04] focus-visible:ring-2 focus-visible:ring-brand-500/50 ${
+        className={`group flex w-[266px] h-[36px] items-center gap-2 rounded-xl px-2.5 text-left outline-none transition-all duration-200 hover:bg-white/[0.04] focus-visible:ring-2 focus-visible:ring-brand-500/50 ${
           containsActive ? "bg-white/[0.02] text-zinc-200" : "text-zinc-400"
         }`}
       >
@@ -183,7 +183,7 @@ function NavGroup({ group, open, onToggle, containsActive }) {
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
             className="overflow-hidden"
           >
-            <div className={`space-y-0.5 pt-1 ${group.expandable ? "pl-2 border-l border-white/[0.07] ml-3.5 my-1" : ""}`}>
+            <div className={`space-y-[12px] pt-1.5 ${group.expandable ? "pl-2 border-l border-white/[0.07] ml-2.5 my-1" : ""}`}>
               {group.tabs.map((t) => (
                 <TabLink key={t.to} t={t} />
               ))}
@@ -235,7 +235,7 @@ function UserCard({ user, onLogout }) {
   const initial = (user.display_name || user.username || "?")[0]?.toUpperCase();
   const isPremium = user.tier === "premium" || user.tier === "admin" || user.is_owner;
   return (
-    <div className="mt-3 flex items-center gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.025] hover:bg-white/[0.04] hover:border-brand-500/30 p-2.5 transition-all duration-200 shadow-md">
+    <div className="w-[260px] h-[70px] min-h-[70px] mx-auto flex items-center gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.025] hover:bg-white/[0.04] hover:border-brand-500/30 px-3 transition-all duration-200 shadow-md shrink-0">
       <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-xl bg-zinc-800 text-sm ring-2 ring-white/10 shadow-inner">
         {user.profile?.avatar_url ? (
           <img src={fileUrl(user.profile.avatar_url)} alt="" className="h-full w-full object-cover" />
@@ -577,6 +577,8 @@ export default function DashboardLayout() {
   // Which in-dashboard popup is open: null, "premium" or "devlog".
   const [popup, setPopup] = useState(null);
 
+  const [navQuery, setNavQuery] = useState("");
+
   if (!user || user === false) return null;
 
   const isAdmin = user.role === "admin" || user.is_owner;
@@ -585,7 +587,14 @@ export default function DashboardLayout() {
     ? ADMIN_SECTIONS
     : ADMIN_SECTIONS.filter((s) => s.to === "/!/dashboard/admin" || s.to.includes("users") || s.to.includes("analytics"));
 
-  const groups = NAV_GROUPS.map((g) => {
+  const filteredGroups = navQuery.trim()
+    ? NAV_GROUPS.map((g) => ({
+        ...g,
+        tabs: g.tabs.filter((t) => t.label.toLowerCase().includes(navQuery.toLowerCase().trim())),
+      })).filter((g) => g.tabs.length > 0)
+    : NAV_GROUPS;
+
+  const groups = filteredGroups.map((g) => {
     if (g.id === "other") {
       const tabs = isAdmin ? [...g.tabs, ADMIN_ITEM] : g.tabs;
       return { ...g, tabs };
@@ -604,22 +613,39 @@ export default function DashboardLayout() {
     /* sw-page-bg, not a flat fill: the page darkens from a lifted grey at the top
        to near-black at the bottom, so the rounded panels have something to sit on. */
     <div className="dash-font flex min-h-screen sw-page-bg text-zinc-100">
-      {/* Sidebar - Expanded to w-80 (320px) with high-end obsidian visuals */}
-      <aside className="sticky top-0 hidden h-screen w-80 min-w-[320px] max-w-[320px] shrink-0 flex-col border-r border-white/[0.08] bg-gradient-to-b from-[#11121d]/98 via-[#0c0d15]/98 to-[#06070a]/98 backdrop-blur-3xl p-4 sm:p-5 lg:flex shadow-[14px_0_45px_rgba(0,0,0,0.65)]">
-        <div className="flex items-center justify-between px-2 py-1">
+      {/* Sidebar - w-[304px] according to measurements */}
+      <aside className="sticky top-0 hidden h-screen w-[304px] min-w-[304px] max-w-[304px] shrink-0 flex-col border-r border-white/[0.08] bg-gradient-to-b from-[#11121d]/98 via-[#0c0d15]/98 to-[#06070a]/98 backdrop-blur-3xl px-[19px] pb-[18px] lg:flex shadow-[14px_0_45px_rgba(0,0,0,0.65)] overflow-hidden">
+        {/* Logo/header: 304 × 88 px */}
+        <div className="w-[304px] -mx-[19px] h-[88px] min-h-[88px] px-6 flex items-center justify-between border-b border-white/[0.06] shrink-0">
           <Logo size="text-lg" />
           <span className="px-2.5 py-0.5 rounded-full bg-brand-500/15 border border-brand-500/30 text-[10px] font-bold text-brand-300 uppercase tracking-widest shadow-sm">
             Studio
           </span>
         </div>
 
-        <UserCard user={user} onLogout={handleLogout} />
+        {/* User account card: 260 × 70 px */}
+        <div className="pt-3 shrink-0 flex justify-center">
+          <UserCard user={user} onLogout={handleLogout} />
+        </div>
 
-        <nav className="mt-3 flex-1 overflow-y-auto pr-0.5 space-y-1 scrollbar-none">
+        {/* Search bar: 260 × 38 px */}
+        <div className="pt-3 pb-1 shrink-0 flex justify-center">
+          <div className="relative w-[260px] h-[38px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
+            <input
+              type="text"
+              data-testid="nav-search-bar"
+              value={navQuery}
+              onChange={(e) => setNavQuery(e.target.value)}
+              placeholder="Search navigation…"
+              className="w-[260px] h-[38px] rounded-xl bg-white/[0.03] border border-white/10 pl-9 pr-3 text-xs text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:border-brand-500/50 transition-colors"
+            />
+          </div>
+        </div>
+
+        {/* Navigation list with item spacing 10-14px */}
+        <nav className="mt-2 flex-1 overflow-y-auto px-0.5 space-y-[12px] scrollbar-none flex flex-col items-center">
           {groups.map((group) => {
-            // Admin is a single destination rather than a foldable category, and it
-            // stays lit for its whole subtree (end:false), so arriving on
-            // /!​/dashboard/admin/users still shows which entry you are inside.
             if (group.to) return <TabLink key={group.id} t={{ ...group, end: false }} />;
 
             const containsActive = activeGroup?.id === group.id;
@@ -635,14 +661,18 @@ export default function DashboardLayout() {
             );
           })}
 
-          <div className="mt-3 space-y-2 border-t border-white/[0.08] pt-3">
+          {/* Bottom section divider: 1 px */}
+          <div className="w-[260px] h-px bg-white/[0.08] my-2 shrink-0" />
+
+          <div className="space-y-[12px] w-[260px] flex flex-col items-center">
+            {/* Premium upgrade card: 260 × 71 px */}
             <button
               type="button"
               onClick={() => setPopup("premium")}
               data-testid="premium-link"
-              className="group relative flex w-full items-center gap-3 rounded-2xl border border-brand-500/30 bg-gradient-to-r from-brand-500/15 via-brand-500/5 to-transparent p-3 text-left transition-all duration-200 hover:border-brand-500/60 hover:shadow-[0_0_20px_rgba(164,141,244,0.18)] cursor-pointer"
+              className="group relative flex w-[260px] h-[71px] min-h-[71px] items-center gap-3 rounded-2xl border border-brand-500/30 bg-gradient-to-r from-brand-500/15 via-brand-500/5 to-transparent px-3 text-left transition-all duration-200 hover:border-brand-500/60 hover:shadow-[0_0_20px_rgba(164,141,244,0.18)] cursor-pointer shrink-0"
             >
-              <div className="w-8 h-8 rounded-xl bg-brand-500/20 border border-brand-500/40 flex items-center justify-center text-brand-300 shadow-sm shrink-0">
+              <div className="w-9 h-9 rounded-xl bg-brand-500/20 border border-brand-500/40 flex items-center justify-center text-brand-300 shadow-sm shrink-0">
                 <Sparkles className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
               </div>
               <div className="min-w-0 flex-1">
@@ -658,7 +688,7 @@ export default function DashboardLayout() {
               type="button"
               onClick={() => setPopup("devlog")}
               data-testid="devlog-link"
-              className="group relative flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-xs font-semibold text-zinc-400 outline-none transition-all duration-200 hover:bg-white/[0.04] hover:text-white focus-visible:ring-2 focus-visible:ring-brand-500/50 cursor-pointer"
+              className="group relative flex w-[260px] h-[38px] items-center gap-3 rounded-xl px-3 text-left text-xs font-semibold text-zinc-400 outline-none transition-all duration-200 hover:bg-white/[0.04] hover:text-white focus-visible:ring-2 focus-visible:ring-brand-500/50 cursor-pointer shrink-0"
             >
               <Newspaper className="h-4 w-4 shrink-0 text-zinc-500 transition-transform duration-200 group-hover:scale-110 group-hover:text-zinc-300" />
               <span className="truncate">Devlog</span>
@@ -669,7 +699,7 @@ export default function DashboardLayout() {
               to={`/${user.username}`}
               target="_blank"
               data-testid="view-public-btn"
-              className="group relative flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-semibold text-zinc-400 outline-none transition-all duration-200 hover:bg-white/[0.04] hover:text-white focus-visible:ring-2 focus-visible:ring-brand-500/50"
+              className="group relative flex w-[260px] h-[38px] items-center gap-3 rounded-xl px-3 text-xs font-semibold text-zinc-400 outline-none transition-all duration-200 hover:bg-white/[0.04] hover:text-white focus-visible:ring-2 focus-visible:ring-brand-500/50 shrink-0"
             >
               <ExternalLink className="h-4 w-4 shrink-0 text-zinc-500 transition-transform duration-200 group-hover:scale-110 group-hover:text-zinc-300" />
               <span className="truncate">View public profile</span>
@@ -677,7 +707,10 @@ export default function DashboardLayout() {
           </div>
         </nav>
 
-        <div className="mt-3 border-t border-white/[0.08] pt-3">
+        {/* Bottom section divider: 1 px */}
+        <div className="w-[260px] h-px bg-white/[0.08] my-2 shrink-0 mx-auto" />
+
+        <div className="w-[260px] mx-auto shrink-0">
           <CommunityCard />
         </div>
       </aside>
@@ -716,7 +749,7 @@ export default function DashboardLayout() {
 
           {/* Section tabs — the pages of the category you are inside. */}
           {strip.length > 0 && (
-            <nav className="-mb-px flex gap-1 overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <nav className="-mb-px flex gap-2 overflow-x-auto px-6 py-2.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {strip.map((t) => (
                 <NavLink
                   key={t.to}
@@ -726,23 +759,14 @@ export default function DashboardLayout() {
                   // that shares its testid (tab-overview exists in both places).
                   data-testid={t.testid ? `strip-${t.testid}` : undefined}
                   className={({ isActive }) =>
-                    `relative shrink-0 px-3.5 pb-3 pt-3 text-sm font-medium outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-brand-500/50 ${
-                      isActive ? "text-brand-200" : "text-zinc-500 hover:text-zinc-200"
+                    `relative shrink-0 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 outline-none ${
+                      isActive
+                        ? "bg-brand-500/20 text-brand-200 border border-brand-500/40 shadow-[0_0_15px_rgba(164,141,244,0.15)]"
+                        : "bg-white/[0.03] text-zinc-400 hover:text-zinc-200 border border-white/5 hover:bg-white/[0.06]"
                     }`
                   }
                 >
-                  {({ isActive }) => (
-                    <>
-                      {t.label}
-                      {isActive && (
-                        <motion.span
-                          layoutId="dash-section-underline"
-                          transition={spring}
-                          className="absolute inset-x-2 bottom-0 h-0.5 rounded-full bg-brand-400"
-                        />
-                      )}
-                    </>
-                  )}
+                  {t.label}
                 </NavLink>
               ))}
             </nav>

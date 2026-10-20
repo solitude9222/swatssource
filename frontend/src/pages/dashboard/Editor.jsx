@@ -312,8 +312,8 @@ function LayoutPicker({ value, onChange, isPremium, navigate }) {
    prefixed with a Sparkles glyph, which is where most of the "stars everywhere"
    noise came from. */
 const Section = ({ title, hint, children }) => (
-  <section className="rounded-3xl border border-white/10 bg-white/[0.02] p-5">
-    <div className="mb-5 flex items-center gap-4">
+  <section className="w-full rounded-3xl border border-white/[0.08] bg-black/40 backdrop-blur-xl p-5 sm:p-7 space-y-6">
+    <div className="flex items-center gap-4">
       <h2 className="shrink-0 text-xs font-bold uppercase tracking-[0.14em] text-zinc-400">{title}</h2>
       <span className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
       {hint && <span className="shrink-0 text-[11px] text-zinc-500">{hint}</span>}
@@ -425,8 +425,8 @@ const EntryStyleThumb = ({ id, accent }) => (
    left (it is a thumbnail of the effect, not the subject of the page), what is
    selected beside it, and one button that opens the picker. */
 const FxCard = ({ title, hint, children, footer }) => (
-  <section className="rounded-3xl border border-white/10 bg-white/[0.02] p-4 sm:p-5">
-    <div className="mb-3 flex items-center gap-3">
+  <section className="w-full rounded-3xl border border-white/[0.08] bg-black/40 backdrop-blur-xl p-5 sm:p-6 space-y-4">
+    <div className="flex items-center gap-3">
       <h3 className="shrink-0 text-xs font-bold uppercase tracking-[0.14em] text-zinc-400">{title}</h3>
       <span className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
       {hint && <span className="shrink-0 text-[11px] text-zinc-500">{hint}</span>}
@@ -910,16 +910,16 @@ export default function Editor() {
       <AuthGateNotice variant="card" />
 
       {/* Navigation Subtabs */}
-      <div className="flex flex-wrap gap-2.5">
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
         {SUBTABS.map((s) => (
           <button
             key={s.id}
             data-testid={`editor-subtab-${s.id}`}
             onClick={() => setSub(s.id)}
-            className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-colors duration-200 ${
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer shrink-0 ${
               sub === s.id
-                ? "bg-brand-500/20 text-brand-200 border border-brand-500/40 shadow-md"
-                : "bg-white/5 text-zinc-400 hover:text-zinc-200 border border-white/5"
+                ? "bg-brand-500/20 text-brand-200 border border-brand-500/40 shadow-[0_0_15px_rgba(164,141,244,0.15)]"
+                : "bg-white/[0.03] text-zinc-400 hover:text-zinc-200 border border-white/5 hover:bg-white/[0.06]"
             }`}
           >
             {s.label}

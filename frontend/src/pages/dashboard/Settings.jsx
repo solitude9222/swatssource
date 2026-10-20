@@ -183,7 +183,7 @@ export default function Settings() {
   const showSection = (tabId) => activeTab === "all" || activeTab === tabId;
 
   return (
-    <div data-testid="settings-page" className="max-w-3xl mx-auto space-y-6 pb-16">
+    <div data-testid="settings-page" className="w-full space-y-6 pb-16">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-white/5">
         <div>
@@ -194,7 +194,7 @@ export default function Settings() {
         </div>
 
         {/* Category Tabs */}
-        <div className="flex flex-wrap items-center gap-1.5">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
           {SETTINGS_TABS.map((t) => {
             const Icon = t.icon;
             const active = activeTab === t.id;
@@ -203,10 +203,10 @@ export default function Settings() {
                 key={t.id}
                 type="button"
                 onClick={() => setActiveTab(t.id)}
-                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all duration-150 ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 shrink-0 cursor-pointer ${
                   active
-                    ? "bg-brand-500/20 text-brand-300 border border-brand-500/30"
-                    : "bg-white/[0.03] text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.07] border border-white/5"
+                    ? "bg-brand-500/20 text-brand-200 border border-brand-500/40 shadow-[0_0_15px_rgba(164,141,244,0.15)]"
+                    : "bg-white/[0.03] text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.06] border border-white/5"
                 }`}
               >
                 <Icon className="w-3.5 h-3.5 shrink-0" />

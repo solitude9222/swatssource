@@ -453,7 +453,7 @@ export default function Widgets() {
     const isSpotify = editingWidget.widget.type === "spotify";
 
     return (
-      <div data-testid="widgets-page" className="space-y-8 pb-32 max-w-4xl mx-auto text-left animate-in fade-in duration-200">
+      <div data-testid="widgets-page" className="w-full space-y-8 pb-32 text-left animate-in fade-in duration-200">
         {/* Navigation Breadcrumb / Actions Header */}
         <div className="flex items-center justify-between pb-4 border-b border-white/10">
           <button
@@ -729,7 +729,7 @@ export default function Widgets() {
   // Main Widgets Catalog & Global Customization Page
   // ---------------------------------------------------------------------------
   return (
-    <div data-testid="widgets-page" className="space-y-8 pb-32 max-w-6xl mx-auto">
+    <div data-testid="widgets-page" className="w-full space-y-8 pb-32">
       {/* Top Page Header */}
       <div className="flex items-center justify-between pb-1">
         <div>
