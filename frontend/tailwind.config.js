@@ -16,18 +16,20 @@ module.exports = {
       },
       colors: {
         // ── swats palette: Near-black #0A0A0D with Primary purple #A48DF4 and Light lavender #D3C4FF ──
+        // Brand scale is driven by CSS variables (space-separated RGB) so the public site keeps its
+        // violet defaults while the dashboard (body.dash-theme) remaps the same classes to blue.
         brand: {
-          50: '#FAF8FF',
-          100: '#F2EDFF',
-          200: '#E4DAFF',
-          300: '#D3C4FF', // Light lavender (#D3C4FF) — accent text, icons, borders, highlights
-          400: '#BCACF8', // soft lavender accent
-          500: '#A48DF4', // Primary purple (#A48DF4) — primary brand fill & buttons
-          600: '#8C71E8', // pressed / hover purple fill
-          700: '#7354D4', // deep purple
-          800: '#5938B8', // rich violet
-          900: '#3E228B',
-          950: '#1F0E54',
+          50: 'rgb(var(--brand-50) / <alpha-value>)',
+          100: 'rgb(var(--brand-100) / <alpha-value>)',
+          200: 'rgb(var(--brand-200) / <alpha-value>)',
+          300: 'rgb(var(--brand-300) / <alpha-value>)',
+          400: 'rgb(var(--brand-400) / <alpha-value>)',
+          500: 'rgb(var(--brand-500) / <alpha-value>)',
+          600: 'rgb(var(--brand-600) / <alpha-value>)',
+          700: 'rgb(var(--brand-700) / <alpha-value>)',
+          800: 'rgb(var(--brand-800) / <alpha-value>)',
+          900: 'rgb(var(--brand-900) / <alpha-value>)',
+          950: 'rgb(var(--brand-950) / <alpha-value>)',
         },
         ink: {
           50: '#FAFAFC',

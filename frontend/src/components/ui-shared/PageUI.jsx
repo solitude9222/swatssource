@@ -8,16 +8,16 @@
 
 export function PageHeader({ icon: Icon, title, subtitle, actions, testid }) {
   return (
-    <header className="mb-7 flex flex-wrap items-start justify-between gap-4" data-testid={testid}>
-      <div className="flex min-w-0 items-start gap-3">
+    <header className="mb-6 flex flex-wrap items-center justify-between gap-4" data-testid={testid}>
+      <div className="flex min-w-0 items-center gap-4">
         {Icon && (
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-brand-400/20 bg-brand-500/10">
-            <Icon className="h-5 w-5 text-brand-300" />
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-[#1f1f1f] bg-[#111111]">
+            <Icon className="h-6 w-6 text-brand-400" />
           </div>
         )}
         <div className="min-w-0">
-          <h1 className="font-display text-2xl font-black tracking-tight text-zinc-50">{title}</h1>
-          {subtitle && <p className="mt-1 max-w-2xl text-sm text-zinc-400">{subtitle}</p>}
+          <h1 className="text-[28px] font-bold leading-tight tracking-tight text-white">{title}</h1>
+          {subtitle && <p className="mt-0.5 max-w-2xl text-[13px] text-zinc-400">{subtitle}</p>}
         </div>
       </div>
       {actions && <div className="flex shrink-0 flex-wrap items-center gap-2.5">{actions}</div>}
@@ -29,7 +29,7 @@ export function EmptyState({ icon: Icon, title, hint, action }) {
   return (
     <div className="flex flex-col items-center justify-center gap-3 px-6 py-14 text-center">
       {Icon && (
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.03]">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#1f1f1f] bg-[#111111]">
           <Icon className="h-5 w-5 text-zinc-500" />
         </div>
       )}

@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import { Logo } from "@/components/landing/Navbar";
 import { api, fileUrl } from "@/lib/api";
+import { toast } from "@/lib/notify";
 import { FaDiscord } from "react-icons/fa6";
 import NotificationBell from "@/components/NotificationBell";
 import AnnouncementBanner from "@/components/AnnouncementBanner";
@@ -12,7 +13,8 @@ import {
   LayoutDashboard, Paintbrush, Link2, Award, LayoutGrid, Settings, LayoutTemplate,
   Trophy, BarChart3, Users, Ticket, SlidersHorizontal, LineChart, LogOut,
   ExternalLink, Crown, ChevronDown, Sparkles, BellRing, Newspaper, ShieldCheck, Plus,
-  ScrollText, Loader2, Gift, ShoppingBag, Store, Search, User,
+  ScrollText, Loader2, Gift, ShoppingBag, Store, Search, User, Home, ChevronRight, Eye,
+  Layers, Star,
 } from "lucide-react";
 import PremiumPlansModal from "@/components/PremiumPlansModal";
 import DevlogFeedModal from "@/components/DevlogFeedModal";
@@ -20,17 +22,26 @@ import DevlogFeedModal from "@/components/DevlogFeedModal";
 const DISCORD_INVITE = "https://discord.gg/a9uwptuepD";
 
 /* ---------------------------------------------------------------------------
-   The sidebar is grouped into collapsible categories, and the content header
-   shows that category's tabs — so the shell reads "here is the area I am in"
-   instead of one flat wall of eleven links. A category can be folded away, but
-   the one holding the current page never collapses, so a route is never hidden.
+   The sidebar is grouped into collapsible categories; the page header shows a
+   breadcrumb (Home › category › page), the page's own icon tile, title and
+   one-line description, so the shell reads "here is the area I am in".
+   A category can be folded away, but the one holding the current page never
+   collapses, so a route is never hidden.
+   `ownHeader` marks pages that render their own <PageHeader>, so the shell
+   does not print a second title above it.
    --------------------------------------------------------------------------- */
 const NAV_GROUPS = [
   {
     id: "main",
     label: "Main",
+    navLabel: "Home",
+    icon: Home,
+    flat: true,
     tabs: [
-      { to: "/!/dashboard", end: true, label: "Overview", icon: LayoutDashboard, testid: "tab-overview" },
+      {
+        to: "/!/dashboard", end: true, label: "Overview", icon: LayoutDashboard, testid: "tab-overview",
+        desc: "Your profile at a glance: stats, checklist and connections",
+      },
     ],
   },
   {
@@ -39,37 +50,39 @@ const NAV_GROUPS = [
     icon: Paintbrush,
     expandable: true,
     tabs: [
-      { to: "/!/dashboard/editor?tab=appearance", label: "Appearance", icon: Paintbrush, testid: "tab-appearance" },
-      { to: "/!/dashboard/editor", label: "Profile", icon: User, testid: "tab-editor" },
-      { to: "/!/dashboard/editor?tab=layout", label: "Layout", icon: LayoutTemplate, testid: "tab-layout" },
-      { to: "/!/dashboard/badges", label: "Badges", icon: Award, testid: "tab-badges" },
-      { to: "/!/dashboard/links", label: "Links", icon: Link2, testid: "tab-links" },
-      { to: "/!/dashboard/widgets", label: "Widgets", icon: LayoutGrid, testid: "tab-widgets" },
+      { to: "/!/dashboard/editor?tab=appearance", label: "Appearance", icon: Paintbrush, testid: "tab-appearance", desc: "Card surface, glow, borders, fonts and link looks" },
+      { to: "/!/dashboard/editor", label: "Profile", icon: User, testid: "tab-editor", desc: "Profile details, visibility toggles and card styling" },
+      { to: "/!/dashboard/editor?tab=layout", label: "Layout", icon: LayoutTemplate, testid: "tab-layout", desc: "Choose page structure and arrangement" },
+      { to: "/!/dashboard/badges", label: "Badges", icon: Award, testid: "tab-badges", desc: "Equip, reorder and manage your profile badges" },
+      { to: "/!/dashboard/links", label: "Links", icon: Link2, testid: "tab-links", desc: "Add, order and style the links on your page" },
+      { to: "/!/dashboard/widgets", label: "Widgets", icon: LayoutGrid, testid: "tab-widgets", desc: "Live widgets shown on your profile" },
     ],
   },
   {
     id: "other",
     label: "Other",
+    icon: Layers,
+    expandable: true,
     tabs: [
-      { to: "/!/dashboard/shop", label: "Marketplace", icon: Store, testid: "tab-shop" },
-      { to: "/!/dashboard/leaderboard", label: "Leaderboard", icon: Trophy, testid: "tab-leaderboard" },
-      { to: "/!/dashboard/templates", label: "Templates", icon: LayoutTemplate, testid: "tab-templates" },
-      { to: "/!/dashboard/settings", label: "Settings", icon: Settings, testid: "tab-settings" },
+      { to: "/!/dashboard/shop", label: "Marketplace", icon: Store, testid: "tab-shop", desc: "Browse cosmetics, effects and extras for your profile" },
+      { to: "/!/dashboard/leaderboard", label: "Leaderboard", icon: Trophy, testid: "tab-leaderboard", ownHeader: true },
+      { to: "/!/dashboard/templates", label: "Templates", icon: LayoutTemplate, testid: "tab-templates", desc: "Start from a ready-made profile template" },
+      { to: "/!/dashboard/settings", label: "Settings", icon: Settings, testid: "tab-settings", desc: "Account, security and integrations" },
     ],
   },
 ];
 
 /* Admin section definitions */
 const ADMIN_SECTIONS = [
-  { to: "/!/dashboard/admin", end: true, label: "Overview", icon: ShieldCheck, testid: "tab-admin-overview" },
-  { to: "/!/dashboard/admin/ranked", label: "Ranked", icon: Trophy, testid: "tab-admin-ranked" },
-  { to: "/!/dashboard/admin/users", label: "Users", icon: Users, testid: "tab-admin-users" },
-  { to: "/!/dashboard/admin/invites", label: "Invites", icon: Ticket, testid: "tab-admin-invites" },
-  { to: "/!/dashboard/admin/notify", label: "Notify", icon: BellRing, testid: "tab-admin-notify" },
-  { to: "/!/dashboard/admin/devlogs", label: "Devlogs", icon: Newspaper, testid: "tab-admin-devlogs" },
-  { to: "/!/dashboard/admin/site", label: "Site", icon: SlidersHorizontal, testid: "tab-admin-site" },
-  { to: "/!/dashboard/admin/analytics", label: "Analytics", icon: LineChart, testid: "tab-admin-analytics" },
-  { to: "/!/dashboard/admin/audit", label: "Audit", icon: ScrollText, testid: "tab-admin-audit" },
+  { to: "/!/dashboard/admin", end: true, label: "Overview", icon: ShieldCheck, testid: "tab-admin-overview", ownHeader: true },
+  { to: "/!/dashboard/admin/ranked", label: "Ranked", icon: Trophy, testid: "tab-admin-ranked", desc: "Manage ranked seasons and standings" },
+  { to: "/!/dashboard/admin/users", label: "Users", icon: Users, testid: "tab-admin-users", ownHeader: true },
+  { to: "/!/dashboard/admin/invites", label: "Invites", icon: Ticket, testid: "tab-admin-invites", desc: "Create and review invite codes" },
+  { to: "/!/dashboard/admin/notify", label: "Notify", icon: BellRing, testid: "tab-admin-notify", ownHeader: true },
+  { to: "/!/dashboard/admin/devlogs", label: "Devlogs", icon: Newspaper, testid: "tab-admin-devlogs", ownHeader: true },
+  { to: "/!/dashboard/admin/site", label: "Site", icon: SlidersHorizontal, testid: "tab-admin-site", desc: "Site-wide switches and settings" },
+  { to: "/!/dashboard/admin/analytics", label: "Analytics", icon: LineChart, testid: "tab-admin-analytics", desc: "Traffic and growth across the platform" },
+  { to: "/!/dashboard/admin/audit", label: "Audit", icon: ScrollText, testid: "tab-admin-audit", desc: "A log of admin actions" },
 ];
 
 const ADMIN_ITEM = {
@@ -77,6 +90,7 @@ const ADMIN_ITEM = {
   label: "Admin",
   icon: ShieldCheck,
   testid: "tab-admin",
+  desc: "Platform administration",
 };
 
 const ALL_TABS = [
@@ -87,90 +101,93 @@ const ALL_TABS = [
 
 const spring = { type: "spring", stiffness: 420, damping: 34, mass: 0.7 };
 
-const groupFor = (pathname) => {
-  if (pathname.startsWith("/!/dashboard/admin")) {
-    return { id: "other", label: "Other" };
-  }
-  const exact = ALL_TABS.find((t) => t.to === pathname);
-  if (exact) return NAV_GROUPS.find((g) => g.tabs.some((tb) => tb.to === exact.to)) || null;
-  const partial = ALL_TABS.find((t) => t.to !== "/!/dashboard" && pathname.startsWith(t.to));
-  if (partial) return NAV_GROUPS.find((g) => g.tabs.some((tb) => tb.to === partial.to)) || null;
-  return null;
+/* Is this tab the page we are on? The three editor tabs share one pathname and
+   differ only by ?tab=, so a plain pathname match would light all of them. */
+const EDITOR_PATH = "/!/dashboard/editor";
+const isTabActive = (t, pathname, search) => {
+  const [path, query] = t.to.split("?");
+  const exact = t.end || Boolean(query) || path === EDITOR_PATH;
+  const pathMatch = exact ? pathname === path : pathname === path || pathname.startsWith(`${path}/`);
+  if (!pathMatch) return false;
+  if (path !== EDITOR_PATH) return true;
+  const current = new URLSearchParams(search).get("tab") || "";
+  const wanted = new URLSearchParams(query || "").get("tab") || "";
+  if (wanted) return current === wanted;
+  // "Profile": the About Me sub-tab and the Audios / Extra sub-tabs.
+  return current !== "appearance" && current !== "layout";
 };
 
-const tabFor = (pathname) =>
-  ALL_TABS.find((t) => t.to === pathname) ||
-  ALL_TABS.find((t) => t.to !== "/!/dashboard" && pathname.startsWith(t.to)) ||
-  null;
+const tabFor = (pathname, search = "") => {
+  const hits = ALL_TABS.filter((t) => isTabActive(t, pathname, search));
+  hits.sort((a, b) => b.to.length - a.to.length);
+  return hits[0] || null;
+};
 
-const TabLink = ({ t }) => (
-  <NavLink
-    to={t.to}
-    end={t.end}
-    data-testid={t.testid}
-    className={({ isActive }) =>
-      `group relative flex w-[266px] h-[34px] shrink-0 items-center gap-2.5 rounded-xl px-3 text-[13px] font-semibold outline-none transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[hsl(272,24%,46%)]/60 ${
-        isActive ? "text-white shadow-sm" : "text-zinc-400 hover:text-white hover:bg-white/[0.04]"
-      }`
-    }
-  >
-    {({ isActive }) => (
-      <>
-        {isActive ? (
-          <motion.span
-            layoutId="dash-nav-active"
-            transition={spring}
-            className="absolute inset-0 rounded-xl border border-[hsl(272,24%,46%)]/40 bg-[hsl(272,24%,46%)]/20 shadow-[0_0_15px_hsla(272,24%,46%,0.2)]"
-          />
-        ) : (
-          <span className="absolute inset-0 rounded-xl bg-white/0 transition-colors duration-200 group-hover:bg-white/[0.03]" />
-        )}
-        <t.icon
-          className={`relative z-10 w-4 h-4 shrink-0 transition-transform duration-200 ${
-            isActive ? "scale-105 text-white" : "group-hover:scale-105 text-zinc-400 group-hover:text-zinc-200"
-          }`}
-        />
-        <span className="relative z-10 truncate">{t.label}</span>
-        {isActive && (
-          <motion.span
-            layoutId="dash-nav-marker"
-            transition={spring}
-            className="relative z-10 ml-auto h-1.5 w-1.5 rounded-full bg-[hsl(272,24%,46%)] shadow-[0_0_8px_hsl(272,24%,46%)]"
-          />
-        )}
-      </>
-    )}
-  </NavLink>
-);
+const groupFor = (pathname, search = "") => {
+  if (pathname.startsWith("/!/dashboard/admin")) {
+    return NAV_GROUPS.find((g) => g.id === "other") || null;
+  }
+  const tab = tabFor(pathname, search);
+  if (!tab) return null;
+  return NAV_GROUPS.find((g) => g.tabs.some((tb) => tb.to === tab.to)) || null;
+};
 
-/* A foldable category. The chevron rotates, the list animates its height and a
-   dot marks the folded category that holds the page you are on, so folding the
+/* Shared look of a top-level sidebar row (Home and the category headers). */
+const rowBase =
+  "group relative flex h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-sm font-medium outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-[#3f62e2]/60";
+
+/* A sub-page link inside an open category (or the flat Home link). */
+const TabLink = ({ t, sub = true, label }) => {
+  const { pathname, search } = useLocation();
+  const active = isTabActive(t, pathname, search);
+  return (
+    <Link
+      to={t.to}
+      data-testid={t.testid}
+      aria-current={active ? "page" : undefined}
+      className={
+        sub
+          ? `group relative flex h-9 w-full items-center gap-2.5 rounded-lg border px-3 text-[13px] font-medium outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-[#3f62e2]/60 ${
+              active
+                ? "border-[#3f62e2]/60 bg-[#191f2f] text-white"
+                : "border-transparent text-zinc-400 hover:bg-white/[0.04] hover:text-white"
+            }`
+          : `${rowBase} ${active ? "bg-[#1d243b] text-[#7f9bf2]" : "text-zinc-400 hover:bg-white/[0.04] hover:text-white"}`
+      }
+    >
+      <t.icon
+        className={`${sub ? "h-4 w-4" : "h-[18px] w-[18px]"} shrink-0 transition-colors duration-200 ${
+          active ? (sub ? "text-[#587fee]" : "text-[#7f9bf2]") : "text-zinc-500 group-hover:text-zinc-200"
+        }`}
+      />
+      <span className="truncate">{label || t.label}</span>
+    </Link>
+  );
+};
+
+/* A foldable category. The chevron rotates, the list animates its height and the
+   header turns blue while the page you are on lives inside it, so folding the
    sidebar can never lose your route. */
 function NavGroup({ group, open, onToggle, containsActive }) {
   const Icon = group.icon;
+  const lit = containsActive && open;
   return (
-    <div className="w-[266px] mb-0.5">
+    <div className="w-full">
       <button
         type="button"
         onClick={onToggle}
         aria-expanded={open}
         data-testid={`navgroup-${group.id}`}
-        className={`group flex w-[266px] h-[30px] items-center gap-2 rounded-xl px-2.5 text-left outline-none transition-all duration-200 hover:bg-white/[0.04] focus-visible:ring-2 focus-visible:ring-brand-500/50 ${
-          containsActive ? "bg-white/[0.02] text-zinc-200" : "text-zinc-400"
-        }`}
+        className={`${rowBase} ${lit ? "bg-[#1d243b] text-[#7f9bf2]" : containsActive ? "bg-white/[0.03] text-zinc-200" : "text-zinc-400 hover:bg-white/[0.04] hover:text-white"}`}
       >
         {Icon && (
-          <span className="flex h-4 w-4 items-center justify-center rounded-md bg-brand-500/10 text-brand-300 transition-colors group-hover:bg-brand-500/20">
-            <Icon className="h-3 w-3" />
-          </span>
+          <Icon className={`h-[18px] w-[18px] shrink-0 ${lit ? "text-[#7f9bf2]" : "text-zinc-500 group-hover:text-zinc-200"}`} />
         )}
-        <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 transition-colors duration-200 group-hover:text-zinc-200">
-          {group.label}
-        </span>
-        {containsActive && !open && <span className="h-1.5 w-1.5 rounded-full bg-brand-400 animate-pulse" />}
+        <span className="truncate">{group.label}</span>
+        {containsActive && !open && <span className="h-1.5 w-1.5 rounded-full bg-[#587fee] animate-pulse" />}
         <ChevronDown
-          className={`ml-auto h-3 w-3 shrink-0 text-zinc-500 transition-transform duration-300 ${
-            open ? "rotate-0" : "-rotate-90"
+          className={`ml-auto h-4 w-4 shrink-0 transition-transform duration-300 ${lit ? "text-[#7f9bf2]" : "text-zinc-500"} ${
+            open ? "rotate-180" : "rotate-0"
           }`}
         />
       </button>
@@ -184,7 +201,7 @@ function NavGroup({ group, open, onToggle, containsActive }) {
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
             className="overflow-hidden"
           >
-            <div className={`space-y-1 pt-1 ${group.expandable ? "pl-2 border-l border-white/[0.07] ml-2.5 my-0.5" : ""}`}>
+            <div className="space-y-1 pb-1 pl-3 pt-1.5">
               {group.tabs.map((t) => (
                 <TabLink key={t.to} t={t} />
               ))}
@@ -211,23 +228,25 @@ function CommunityCard() {
       target="_blank"
       rel="noreferrer"
       data-testid="discord-card"
-      className="group block rounded-xl border border-white/[0.08] bg-[#111111] px-3 py-2 transition-colors duration-200 hover:border-[hsl(272,24%,46%)]/40"
+      className="group block rounded-2xl border border-[#1f1f1f] bg-[#111111] px-3 py-2.5 transition-colors duration-200 hover:border-[#3f62e2]/50"
     >
-      <div className="flex items-center gap-2">
-        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-white/[0.06] border border-white/10 transition-transform duration-300 group-hover:scale-105">
-          <FaDiscord className="h-3.5 w-3.5 text-white" />
+      <div className="flex items-center gap-2.5">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-[#1f1f1f] bg-[#0d0d0d] transition-transform duration-300 group-hover:scale-105">
+          <FaDiscord className="h-4 w-4 text-white" />
         </span>
         <div className="min-w-0 flex-1">
-          <div className="truncate text-[11px] font-bold text-white">Join Discord</div>
+          <div className="truncate text-xs font-semibold text-white">Join Discord</div>
+          {stats && Number.isFinite(stats.bio_links) ? (
+            <div className="mt-0.5 flex items-center gap-1.5 truncate text-[10px] text-zinc-500">
+              <span className="inline-block h-1 w-1 shrink-0 rounded-full bg-emerald-400" />
+              {stats.bio_links.toLocaleString()} bios · {Number(stats.total_views || 0).toLocaleString()} views
+            </div>
+          ) : (
+            <div className="mt-0.5 truncate text-[10px] text-zinc-500">Community, support and news</div>
+          )}
         </div>
-        <ExternalLink className="h-3 w-3 shrink-0 text-zinc-500 transition-colors duration-200 group-hover:text-white" />
+        <ExternalLink className="h-3.5 w-3.5 shrink-0 text-zinc-600 transition-colors duration-200 group-hover:text-white" />
       </div>
-      {stats && Number.isFinite(stats.bio_links) && (
-        <div className="mt-1 flex items-center gap-1.5 text-[9px] text-zinc-400">
-          <span className="inline-block h-1 w-1 rounded-full bg-emerald-400" />
-          {stats.bio_links.toLocaleString()} bios · {Number(stats.total_views || 0).toLocaleString()} views
-        </div>
-      )}
     </a>
   );
 }
@@ -236,25 +255,24 @@ function UserCard({ user, onLogout }) {
   const initial = (user.display_name || user.username || "?")[0]?.toUpperCase();
   const isPremium = user.tier === "premium" || user.tier === "admin" || user.is_owner;
   return (
-    <div className="w-[260px] h-[52px] min-h-[52px] mx-auto flex items-center gap-2.5 rounded-xl border border-white/[0.08] bg-[#111111] hover:border-[hsl(272,24%,46%)]/40 px-3 transition-all duration-200 shadow-sm shrink-0">
-      <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-lg bg-zinc-800 text-xs ring-1 ring-white/10 shadow-inner">
+    <div className="flex h-[60px] w-full shrink-0 items-center gap-3 rounded-2xl border border-[#1f1f1f] bg-[#111111] px-3 transition-colors duration-200 hover:border-[#2a2a2e]">
+      <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full bg-zinc-800 text-xs ring-1 ring-white/10">
         {user.profile?.avatar_url ? (
           <img src={fileUrl(user.profile.avatar_url)} alt="" className="h-full w-full object-cover" />
         ) : (
           <span className="flex h-full w-full items-center justify-center font-bold text-zinc-300">{initial}</span>
         )}
-        <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-[#111111]" />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="truncate text-xs font-bold text-white flex items-center gap-1">
-          <span>{user.display_name || user.username}</span>
-          {isPremium && <Crown className="w-3 h-3 text-amber-400 shrink-0" />}
+        <div className="flex items-center gap-1 truncate text-[13px] font-semibold text-white">
+          <span className="truncate">{user.display_name || user.username}</span>
+          {isPremium && <Crown className="h-3 w-3 shrink-0 text-amber-400" />}
         </div>
-        <div className="truncate font-mono2 text-[9px] text-zinc-400 flex items-center gap-1">
-          <span>@{user.username}</span>
+        <div className="flex items-center gap-1.5 truncate font-mono2 text-[10px] text-zinc-500">
+          <span className="truncate">@{user.username}</span>
           {Number.isFinite(user.uid_number) && (
-            <span className="px-1 py-0.2 rounded bg-white/5 border border-white/10 text-[8px] text-zinc-400 font-bold">
-              #{user.uid_number} <span className="sr-only">UID {user.uid_number}</span>
+            <span className="shrink-0 text-zinc-400">
+              ID {user.uid_number} <span className="sr-only">UID {user.uid_number}</span>
             </span>
           )}
         </div>
@@ -265,13 +283,17 @@ function UserCard({ user, onLogout }) {
         data-testid="logout-btn"
         title="Log out"
         aria-label="Log out"
-        className="group shrink-0 rounded-lg p-1.5 text-zinc-400 outline-none transition-colors duration-200 hover:bg-red-500/15 hover:text-red-300 focus-visible:ring-2 focus-visible:ring-red-500/40 cursor-pointer"
+        className="group flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-[#1f1f1f] bg-[#0d0d0d] text-zinc-400 outline-none transition-colors duration-200 hover:border-red-500/30 hover:bg-red-500/10 hover:text-red-300 focus-visible:ring-2 focus-visible:ring-red-500/40"
       >
-        <LogOut className="h-3.5 w-3.5" />
+        <LogOut className="h-4 w-4" />
       </button>
     </div>
   );
 }
+
+/* Round-cornered icon button used in the header's top-right cluster. */
+const headerBtn =
+  "flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-[#1f1f1f] bg-[#111111] text-[#587fee] outline-none transition-colors duration-200 hover:border-[#3f62e2]/50 hover:bg-[#151722] focus-visible:ring-2 focus-visible:ring-[#3f62e2]/60";
 
 /* The top-right account menu: a click on the avatar opens every account this
    session can reach — the current one, the paired accounts to swap between,
@@ -572,13 +594,21 @@ function AccountMenu({ user }) {
 export default function DashboardLayout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
 
   const [collapsed, setCollapsed] = useState({});
   // Which in-dashboard popup is open: null, "premium" or "devlog".
   const [popup, setPopup] = useState(null);
 
   const [navQuery, setNavQuery] = useState("");
+
+  // The dashboard remaps the brand colour scale to blue (see index.css). It is a
+  // body class so dialogs portalled outside this tree are themed too, and it is
+  // removed again so the public site keeps its own palette.
+  useEffect(() => {
+    document.body.classList.add("dash-theme");
+    return () => document.body.classList.remove("dash-theme");
+  }, []);
 
   if (!user || user === false) return null;
 
@@ -588,10 +618,11 @@ export default function DashboardLayout() {
     ? ADMIN_SECTIONS
     : ADMIN_SECTIONS.filter((s) => s.to === "/!/dashboard/admin" || s.to.includes("users") || s.to.includes("analytics"));
 
-  const filteredGroups = navQuery.trim()
+  const q = navQuery.trim().toLowerCase();
+  const filteredGroups = q
     ? NAV_GROUPS.map((g) => ({
         ...g,
-        tabs: g.tabs.filter((t) => t.label.toLowerCase().includes(navQuery.toLowerCase().trim())),
+        tabs: g.tabs.filter((t) => t.label.toLowerCase().includes(q) || (g.navLabel || "").toLowerCase().includes(q)),
       })).filter((g) => g.tabs.length > 0)
     : NAV_GROUPS;
 
@@ -603,139 +634,156 @@ export default function DashboardLayout() {
     return g;
   });
 
-  const activeGroup = groupFor(pathname);
-  const activeTab = tabFor(pathname);
+  const activeGroup = groupFor(pathname, search);
+  const activeTab = tabFor(pathname, search);
   const isInsideAdmin = pathname.startsWith("/!/dashboard/admin");
   const strip = isInsideAdmin ? adminTabs : [];
+
+  // What the header prints: inside Admin the page is "Admin" (its sections are the tab bar).
+  const headerTab = isInsideAdmin ? ADMIN_ITEM : activeTab;
+  const pageTitle = headerTab?.label || "Dashboard";
+  const pageDesc = headerTab?.desc;
+  const PageIcon = headerTab?.icon || LayoutDashboard;
+  const currentSection = isInsideAdmin ? ADMIN_SECTIONS.find((s) => isTabActive(s, pathname, search)) : null;
+  // Pages that draw their own <PageHeader> do not get a second title from the shell.
+  const ownHeader = isInsideAdmin ? Boolean(currentSection?.ownHeader) : Boolean(activeTab?.ownHeader);
+
+  const crumbs = isInsideAdmin
+    ? [{ label: "Other" }, { label: "Admin" }, ...(currentSection && currentSection.to !== "/!/dashboard/admin" ? [{ label: currentSection.label }] : [])]
+    : activeGroup && !activeGroup.flat
+      ? [{ label: activeGroup.label }, { label: pageTitle }]
+      : [{ label: pageTitle }];
 
   const handleLogout = () => { logout(); navigate("/"); };
 
   return (
-    /* sw-page-bg, not a flat fill: the page darkens from a lifted grey at the top
-       to near-black at the bottom, so the rounded panels have something to sit on. */
     <div className="dash-font flex min-h-screen bg-[#09090b] text-zinc-100">
-      {/* Sidebar - w-[304px] */}
-      <aside className="sticky top-0 hidden h-screen w-[304px] min-w-[304px] max-w-[304px] shrink-0 flex-col border-r border-[#3f3f46]/30 bg-[#09090b] px-[19px] pb-3 lg:flex shadow-2xl overflow-hidden justify-between">
-        {/* Logo/header: 304 × 54 px */}
-        <div className="w-[304px] -mx-[19px] h-[54px] min-h-[54px] px-6 flex items-center justify-between border-b border-[#3f3f46]/30 shrink-0">
-          <Logo size="text-base" />
-          <span className="px-2 py-0.5 rounded-full bg-[hsl(272,24%,46%)]/15 border border-[hsl(272,24%,46%)]/30 text-[9px] font-bold text-white uppercase tracking-widest shadow-sm">
-            Studio
-          </span>
-        </div>
-
-        {/* User account card: 260 × 52 px */}
-        <div className="pt-2 shrink-0 flex justify-center">
-          <UserCard user={user} onLogout={handleLogout} />
-        </div>
-
-        {/* Search bar: 260 × 32 px */}
-        <div className="pt-2 pb-1 shrink-0 flex justify-center">
-          <div className="relative w-[260px] h-[32px]">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400 pointer-events-none" />
-            <input
-              type="text"
-              data-testid="nav-search-bar"
-              value={navQuery}
-              onChange={(e) => setNavQuery(e.target.value)}
-              placeholder="Search navigation…"
-              className="w-[260px] h-[32px] rounded-xl bg-[#111111] border border-[#3f3f46]/40 pl-8 pr-3 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-[hsl(272,24%,46%)] transition-colors"
-            />
+      {/* Sidebar: a floating rounded panel, like the reference. */}
+      <aside className="sticky top-0 hidden h-screen w-[308px] min-w-[308px] shrink-0 p-3 lg:block">
+        <div className="dash-panel flex h-full flex-col overflow-hidden rounded-[28px]">
+          {/* Logo */}
+          <div className="flex h-[68px] shrink-0 items-center justify-center px-5">
+            <Logo size="text-2xl" />
           </div>
-        </div>
 
-        {/* Navigation list */}
-        <nav className="mt-1 flex-1 overflow-y-auto px-0.5 space-y-1 scrollbar-none flex flex-col items-center">
-          {groups.map((group) => {
-            if (group.to) return <TabLink key={group.id} t={{ ...group, end: false }} />;
-
-            const containsActive = activeGroup?.id === group.id;
-            const isOpen = !collapsed[group.id];
-            return (
-              <NavGroup
-                key={group.id}
-                group={group}
-                open={isOpen}
-                containsActive={containsActive}
-                onToggle={() => setCollapsed((c) => ({ ...c, [group.id]: isOpen }))}
+          {/* Search */}
+          <div className="shrink-0 px-4 pb-3">
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+              <input
+                type="text"
+                data-testid="nav-search-bar"
+                value={navQuery}
+                onChange={(e) => setNavQuery(e.target.value)}
+                placeholder="search dashboard…"
+                className="h-10 w-full rounded-xl border border-[#2a2a2e] bg-[#0d0d0d] pl-9 pr-3 text-[13px] text-white outline-none transition-colors placeholder:text-zinc-500 focus:border-[#3f62e2]"
               />
-            );
-          })}
-        </nav>
-
-        {/* Bottom utility section pinned cleanly to bottom without scroll */}
-        <div className="shrink-0 pt-2 flex flex-col items-center space-y-1.5 border-t border-[#3f3f46]/30">
-          {/* Premium upgrade card: compact 260 × 44 px */}
-          <button
-            type="button"
-            onClick={() => setPopup("premium")}
-            data-testid="premium-link"
-            className="group relative flex w-[260px] h-[44px] min-h-[44px] items-center gap-2.5 rounded-xl border border-[hsl(272,24%,46%)]/30 bg-[#111111] px-3 text-left transition-all duration-200 hover:border-[hsl(272,24%,46%)]/70 hover:shadow-[0_0_15px_rgba(116,87,140,0.25)] cursor-pointer shrink-0"
-          >
-            <div className="w-7 h-7 rounded-lg bg-[hsl(272,24%,46%)]/20 border border-[hsl(272,24%,46%)]/40 flex items-center justify-center text-white shadow-sm shrink-0">
-              <Sparkles className="w-3.5 h-3.5 transition-transform duration-200 group-hover:scale-110" />
             </div>
-            <div className="min-w-0 flex-1">
-              <div className="text-xs font-bold text-white flex items-center gap-1">
-                <span>Swats Premium</span>
-                <Crown className="w-3 h-3 text-amber-400" />
-              </div>
-              <div className="text-[9px] text-zinc-400 truncate">Unlock all widgets & themes</div>
-            </div>
-          </button>
+          </div>
 
-          <div className="flex items-center gap-1.5 w-[260px]">
+          <div className="mx-4 h-px shrink-0 bg-[#1f1f1f]" />
+
+          {/* Navigation list */}
+          <nav className="scrollbar-none mt-2 flex-1 space-y-1 overflow-y-auto px-3 pb-2">
+            {groups.map((group) => {
+              if (group.flat) {
+                return group.tabs.map((t) => <TabLink key={t.to} t={t} sub={false} label={group.navLabel || t.label} />);
+              }
+              const containsActive = activeGroup?.id === group.id;
+              const isOpen = Boolean(q) || !collapsed[group.id];
+              return (
+                <NavGroup
+                  key={group.id}
+                  group={group}
+                  open={isOpen}
+                  containsActive={containsActive}
+                  onToggle={() => setCollapsed((c) => ({ ...c, [group.id]: isOpen }))}
+                />
+              );
+            })}
+            {groups.length === 0 && (
+              <div className="px-3 py-6 text-center text-xs text-zinc-500">Nothing matches “{navQuery}”.</div>
+            )}
+          </nav>
+
+          {/* Bottom: upgrade card, community, account */}
+          <div className="shrink-0 space-y-2 border-t border-[#1f1f1f] p-3">
             <button
               type="button"
-              onClick={() => setPopup("devlog")}
-              data-testid="devlog-link"
-              className="flex-1 group relative flex h-[30px] items-center justify-center gap-1.5 rounded-lg px-2 text-xs font-semibold text-zinc-400 border border-white/5 bg-[#111111] hover:bg-white/[0.04] hover:text-white transition-all cursor-pointer"
+              onClick={() => setPopup("premium")}
+              data-testid="premium-link"
+              className="group flex h-[58px] w-full cursor-pointer items-center gap-3 rounded-2xl border border-[#1f1f1f] bg-[#111111] px-3 text-left outline-none transition-colors duration-200 hover:border-[#3f62e2]/50 focus-visible:ring-2 focus-visible:ring-[#3f62e2]/60"
             >
-              <Newspaper className="h-3.5 w-3.5 text-zinc-500 group-hover:text-zinc-300" />
-              <span>Devlog</span>
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#1d243b] text-[#587fee]">
+                <Star className="h-4 w-4 fill-current transition-transform duration-200 group-hover:scale-110" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="flex items-center gap-1 text-[13px] font-semibold text-white">
+                  Upgrade to Premium
+                </span>
+                <span className="block truncate text-[10px] text-zinc-500">Unlock exclusive features</span>
+              </span>
             </button>
 
-            <Link
-              to={`/${user.username}`}
-              target="_blank"
-              data-testid="view-public-btn"
-              className="flex-1 group relative flex h-[30px] items-center justify-center gap-1.5 rounded-lg px-2 text-xs font-semibold text-zinc-400 border border-white/5 bg-[#111111] hover:bg-white/[0.04] hover:text-white transition-all"
-            >
-              <ExternalLink className="h-3.5 w-3.5 text-zinc-500 group-hover:text-zinc-300" />
-              <span>Public</span>
-            </Link>
-          </div>
-
-          <div className="w-[260px]">
             <CommunityCard />
+            <UserCard user={user} onLogout={handleLogout} />
           </div>
         </div>
       </aside>
 
       {/* Main */}
       <div className="flex min-w-0 flex-1 flex-col bg-[#09090b]">
-        <header className="sticky top-0 z-30 border-b border-[#3f3f46]/30 bg-[#09090b]/90 backdrop-blur-xl">
-          <div className="flex items-center justify-between gap-3 px-6 py-4">
+        <header className="px-5 pt-5 sm:px-8">
+          {/* Breadcrumb on the left, quick actions on the right */}
+          <div className="flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
               <div className="lg:hidden">
                 <Logo size="text-base" />
               </div>
-              <motion.h1
-                key={activeGroup?.id || pathname}
-                initial={{ opacity: 0, x: -4 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-                className="truncate font-display text-2xl font-black tracking-tight text-white"
+              <nav
+                aria-label="Breadcrumb"
+                data-testid="dash-breadcrumb"
+                className="hidden min-w-0 items-center gap-2 rounded-xl border border-[#1f1f1f] bg-[#111111] px-3.5 py-2 text-xs sm:flex"
               >
-                {isInsideAdmin ? "Admin" : (activeGroup?.label || activeTab?.label || "Dashboard")}
-              </motion.h1>
+                <Link to="/!/dashboard" aria-label="Dashboard home" className="text-zinc-400 transition-colors hover:text-white">
+                  <Home className="h-3.5 w-3.5" />
+                </Link>
+                {crumbs.map((c, i) => (
+                  <span key={`${c.label}-${i}`} className="flex min-w-0 items-center gap-2">
+                    <ChevronRight className="h-3 w-3 shrink-0 text-zinc-600" />
+                    <span className={`truncate ${i === crumbs.length - 1 ? "font-semibold text-white" : "text-zinc-400"}`}>
+                      {c.label}
+                    </span>
+                  </span>
+                ))}
+              </nav>
             </div>
 
-            <div className="flex shrink-0 items-center gap-3">
+            <div className="flex shrink-0 items-center gap-2.5">
+              <button
+                type="button"
+                onClick={() => setPopup("devlog")}
+                data-testid="devlog-link"
+                title="Devlog"
+                aria-label="Devlog"
+                className={`${headerBtn} text-zinc-400 hover:text-white`}
+              >
+                <Newspaper className="h-4 w-4" />
+              </button>
+              <Link
+                to={`/${user.username}`}
+                target="_blank"
+                data-testid="view-public-btn"
+                title="View public profile"
+                aria-label="View public profile"
+                className={headerBtn}
+              >
+                <Eye className="h-4 w-4" />
+              </Link>
               {/* The bell stays visible on mobile */}
               <NotificationBell />
               {user.tier !== "free" && (
-                <span className="hidden items-center gap-1 rounded-full bg-[hsl(272,24%,46%)]/20 px-2.5 py-1 text-[10px] font-bold uppercase text-white sm:inline-flex border border-[hsl(272,24%,46%)]/40">
+                <span className="hidden items-center gap-1 rounded-full border border-[#3f62e2]/40 bg-[#3f62e2]/15 px-2.5 py-1 text-[10px] font-bold uppercase text-white sm:inline-flex">
                   <Crown className="h-3 w-3 text-amber-400" /> {user.tier}
                 </span>
               )}
@@ -743,9 +791,33 @@ export default function DashboardLayout() {
             </div>
           </div>
 
-          {/* Section tabs — the pages of the category you are inside. */}
+          {/* Page title: icon tile, title, one-line description */}
+          {!ownHeader && (
+            <div className="mt-5 flex items-center gap-4" data-testid="dash-page-header">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-[#1f1f1f] bg-[#111111]">
+                <PageIcon className="h-6 w-6 text-[#587fee]" />
+              </div>
+              <div className="min-w-0">
+                <motion.h1
+                  key={pathname + search}
+                  initial={{ opacity: 0, x: -4 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                  className="truncate text-[28px] font-bold leading-tight tracking-tight text-white"
+                >
+                  {pageTitle}
+                </motion.h1>
+                {pageDesc && <p className="mt-0.5 truncate text-[13px] text-zinc-400">{pageDesc}</p>}
+              </div>
+            </div>
+          )}
+
+          {/* Section tabs: a segmented bar for the pages inside Admin. */}
           {strip.length > 0 && (
-            <nav className="-mb-px flex gap-2 overflow-x-auto px-6 py-2.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <nav
+              aria-label="Admin sections"
+              className="mt-5 flex gap-1 overflow-x-auto rounded-2xl border border-[#1f1f1f] bg-[#0d0d0d] p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
               {strip.map((t) => (
                 <NavLink
                   key={t.to}
@@ -753,13 +825,14 @@ export default function DashboardLayout() {
                   end={t.end}
                   data-testid={t.testid ? `strip-${t.testid}` : undefined}
                   className={({ isActive }) =>
-                    `relative shrink-0 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 outline-none ${
+                    `flex min-w-[96px] flex-1 shrink-0 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-semibold outline-none transition-colors duration-200 ${
                       isActive
-                        ? "bg-[hsl(272,24%,46%)] text-white shadow-sm"
-                        : "bg-[#111111] text-zinc-400 hover:text-white border border-[#3f3f46]/30 hover:border-[#3f3f46]/60"
+                        ? "bg-[#3f62e2] text-white shadow-sm"
+                        : "text-zinc-400 hover:bg-white/[0.04] hover:text-white"
                     }`
                   }
                 >
+                  <t.icon className="h-3.5 w-3.5 shrink-0" />
                   {t.label}
                 </NavLink>
               ))}
@@ -771,29 +844,29 @@ export default function DashboardLayout() {
             they are read before whatever the page itself says. */}
         <AuthGateNotice />
         {/* Renders nothing (no padding, no border) when nothing is live. */}
-        <AnnouncementBanner className="border-b border-white/5 bg-white/[0.01] px-6 py-3" />
+        <AnnouncementBanner className="mt-4 border-y border-[#1f1f1f] bg-white/[0.01] px-6 py-3" />
 
         {/* Mobile tabs: every destination, since the sidebar is hidden. */}
-        <div className="flex snap-x gap-2 overflow-x-auto border-b border-white/5 px-5 py-4 [scrollbar-width:none] lg:hidden [&::-webkit-scrollbar]:hidden">
-          {[...NAV_GROUPS.flatMap((g) => g.tabs), ...(isAdmin ? [ADMIN_ITEM] : [])].map((t) => (
-            <NavLink
-              key={t.to}
-              to={t.to}
-              end={t.end}
-              className={({ isActive }) =>
-                `flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium outline-none transition-colors duration-200 ${
-                  isActive
-                    ? "bg-brand-500/20 text-brand-100 ring-1 ring-brand-400/30"
-                    : "bg-white/[0.04] text-zinc-400 hover:text-zinc-100"
-                }`
-              }
-            >
-              <t.icon className="h-3.5 w-3.5" /> {t.label}
-            </NavLink>
-          ))}
+        <div className="mt-4 flex snap-x gap-2 overflow-x-auto px-5 py-1 [scrollbar-width:none] lg:hidden [&::-webkit-scrollbar]:hidden">
+          {[...NAV_GROUPS.flatMap((g) => g.tabs), ...(isAdmin ? [ADMIN_ITEM] : [])].map((t) => {
+            const active = isTabActive(t, pathname, search);
+            return (
+              <Link
+                key={t.to}
+                to={t.to}
+                className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium outline-none transition-colors duration-200 ${
+                  active
+                    ? "border-[#3f62e2]/60 bg-[#191f2f] text-white"
+                    : "border-[#1f1f1f] bg-[#111111] text-zinc-400 hover:text-zinc-100"
+                }`}
+              >
+                <t.icon className="h-3.5 w-3.5" /> {t.label}
+              </Link>
+            );
+          })}
         </div>
 
-        <main id="dashboard-main" className="mx-auto w-full flex-1 min-w-0 p-5 sm:p-8">
+        <main id="dashboard-main" className="mx-auto w-full min-w-0 flex-1 p-5 pt-5 sm:p-8 sm:pt-6">
           <Outlet />
         </main>
       </div>

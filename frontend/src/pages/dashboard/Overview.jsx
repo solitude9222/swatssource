@@ -343,8 +343,8 @@ export default function Overview() {
                   <AreaChart data={analytics.series} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <defs>
                       <linearGradient id="viewsGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#A48DF4" stopOpacity={0.35} />
-                        <stop offset="95%" stopColor="#A48DF4" stopOpacity={0.0} />
+                        <stop offset="5%" stopColor="#587fee" stopOpacity={0.35} />
+                        <stop offset="95%" stopColor="#587fee" stopOpacity={0.0} />
                       </linearGradient>
                     </defs>
                     <XAxis
@@ -380,7 +380,7 @@ export default function Overview() {
                     <Area
                       type="monotone"
                       dataKey="views"
-                      stroke="#A48DF4"
+                      stroke="#587fee"
                       strokeWidth={2.5}
                       fillOpacity={1}
                       fill="url(#viewsGradient)"

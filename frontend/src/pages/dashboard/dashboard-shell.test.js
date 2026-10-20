@@ -121,10 +121,11 @@ describe("reworked dashboard shell", () => {
   it("renders dropdown categories whose header is a real toggle", async () => {
     await renderDashboard();
 
-    const main = container.querySelector('[data-testid="navgroup-main"]');
+    // "Home" is a flat link now (like the reference), not a foldable category.
+    const home = container.querySelector('[data-testid="tab-overview"]');
     const customization = container.querySelector('[data-testid="navgroup-customization"]');
     const other = container.querySelector('[data-testid="navgroup-other"]');
-    expect(main).toBeTruthy();
+    expect(home).toBeTruthy();
     expect(customization).toBeTruthy();
     expect(other).toBeTruthy();
 
@@ -134,11 +135,11 @@ describe("reworked dashboard shell", () => {
     expect(other.getAttribute("aria-expanded")).toBe("false");
   });
 
-  it("shows the active category as the title and its pages as a tab strip", async () => {
+  it("shows the current page as the title, with a breadcrumb above it", async () => {
     await renderDashboard();
 
-    expect(container.querySelector("h1").textContent).toBe("Main");
-    // The reference strip: the pages of the Main category.
+    expect(container.querySelector("h1").textContent).toBe("Overview");
+    expect(container.querySelector('[data-testid="dash-breadcrumb"]')).toBeTruthy();
     expect(container.querySelector('[data-testid="tab-overview"]')).toBeTruthy();
 
     // Sidebar extras from the reference: the Discord card. The language

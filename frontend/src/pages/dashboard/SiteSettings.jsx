@@ -239,7 +239,7 @@ export default function SiteSettings() {
           type="button"
           onClick={saveSettings}
           disabled={saving}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 text-white text-xs font-semibold hover:brightness-110 transition shadow-[0_0_20px_rgba(164,141,244,0.3)] disabled:opacity-50 shrink-0 self-start sm:self-auto"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 text-white text-xs font-semibold hover:brightness-110 transition shadow-[0_0_20px_rgba(63,98,226,0.3)] disabled:opacity-50 shrink-0 self-start sm:self-auto"
         >
           {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Save Site Settings
         </button>

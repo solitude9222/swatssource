@@ -797,7 +797,7 @@ export default function Widgets() {
             <button
               type="button"
               onClick={saveWidgetEdit}
-              className="px-5 py-2 rounded-xl bg-[hsl(272,24%,46%)] hover:opacity-90 text-white text-xs font-bold transition shadow-lg cursor-pointer"
+              className="px-5 py-2 rounded-xl bg-[#3f62e2] hover:opacity-90 text-white text-xs font-bold transition shadow-lg cursor-pointer"
             >
               Apply widget
             </button>
@@ -820,7 +820,7 @@ export default function Widgets() {
         </div>
 
         {/* 1. Connected account Section */}
-        <div className="rounded-2xl border border-[#3f3f46]/40 bg-[#111111] p-5 sm:p-6 space-y-4">
+        <div className="rounded-2xl border border-[#2a2a2e] bg-[#111111] p-5 sm:p-6 space-y-4">
           <div>
             <h3 className="text-sm font-bold text-white tracking-tight uppercase">Connected account</h3>
           </div>
@@ -860,7 +860,7 @@ export default function Widgets() {
                     value={editingWidget.widget.user_id || editingWidget.widget.username || ""}
                     onChange={(e) => patchEditingWidget({ user_id: e.target.value, username: e.target.value })}
                     placeholder="e.g. 94490510688792576"
-                    className="w-full px-4 py-2.5 rounded-xl bg-[#09090b] border border-[#3f3f46]/40 text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-[hsl(272,24%,46%)]"
+                    className="w-full px-4 py-2.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-[#3f62e2]"
                   />
                 </div>
               ) : (
@@ -872,7 +872,7 @@ export default function Widgets() {
                       value={editingWidget.widget.invite_url || ""}
                       onChange={(e) => patchEditingWidget({ invite_url: e.target.value })}
                       placeholder="discord.gg/yourinvite"
-                      className="w-full px-4 py-2.5 rounded-xl bg-[#09090b] border border-[#3f3f46]/40 text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-[hsl(272,24%,46%)]"
+                      className="w-full px-4 py-2.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-[#3f62e2]"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -882,7 +882,7 @@ export default function Widgets() {
                       value={editingWidget.widget.server_id || ""}
                       onChange={(e) => patchEditingWidget({ server_id: e.target.value })}
                       placeholder="e.g. 613712999795015681"
-                      className="w-full px-4 py-2.5 rounded-xl bg-[#09090b] border border-[#3f3f46]/40 text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-[hsl(272,24%,46%)]"
+                      className="w-full px-4 py-2.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-[#3f62e2]"
                     />
                   </div>
                 </div>
@@ -898,7 +898,7 @@ export default function Widgets() {
                     value={editingWidget.widget[f.key] || ""}
                     onChange={(e) => patchEditingWidget({ [f.key]: e.target.value })}
                     placeholder={f.placeholder}
-                    className="w-full px-4 py-2.5 rounded-xl bg-[#09090b] border border-[#3f3f46]/40 text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-[hsl(272,24%,46%)]"
+                    className="w-full px-4 py-2.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-[#3f62e2]"
                   />
                 </div>
               ))}
@@ -928,25 +928,25 @@ export default function Widgets() {
         </div>
 
         {/* 2. Preview Section with REAL DATA */}
-        <div className="rounded-2xl border border-[#3f3f46]/40 bg-[#111111] p-5 sm:p-6 space-y-4">
+        <div className="rounded-2xl border border-[#2a2a2e] bg-[#111111] p-5 sm:p-6 space-y-4">
           <div>
             <h3 className="text-sm font-bold text-white tracking-tight uppercase">Preview</h3>
           </div>
 
-          <div className="p-6 rounded-xl bg-[#09090b] border border-[#3f3f46]/40 flex items-center justify-center">
+          <div className="p-6 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] flex items-center justify-center">
             <RealLiveWidgetPreview widget={editingWidget.widget} kind={kind} />
           </div>
         </div>
 
         {/* 3. Display options Section (NO visual styling controls here) */}
-        <div className="rounded-2xl border border-[#3f3f46]/40 bg-[#111111] p-5 sm:p-6 space-y-5">
+        <div className="rounded-2xl border border-[#2a2a2e] bg-[#111111] p-5 sm:p-6 space-y-5">
           <div>
             <h3 className="text-sm font-bold text-white tracking-tight uppercase">Display options</h3>
           </div>
 
           {/* Artwork & Filter Dropdowns */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="p-4 rounded-xl bg-[#09090b] border border-[#3f3f46]/40 space-y-1.5">
+            <div className="p-4 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] space-y-1.5">
               <label className="text-xs font-semibold text-zinc-200">Background</label>
               <div className="pt-1">
                 <SmartSelect
@@ -957,7 +957,7 @@ export default function Widgets() {
               </div>
             </div>
 
-            <div className="p-4 rounded-xl bg-[#09090b] border border-[#3f3f46]/40 space-y-1.5">
+            <div className="p-4 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] space-y-1.5">
               <label className="text-xs font-semibold text-zinc-200">Background filter</label>
               <div className="pt-1">
                 <SmartSelect
@@ -979,12 +979,12 @@ export default function Widgets() {
           {/* Tailored Toggle options */}
           <div className="space-y-2.5 pt-2">
             {getWidgetDisplayOptions(editingWidget.widget).map((item) => (
-              <div key={item.key} className="flex items-center justify-between p-3.5 rounded-xl bg-[#09090b] border border-[#3f3f46]/40">
+              <div key={item.key} className="flex items-center justify-between p-3.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e]">
                 <div className="text-xs font-semibold text-zinc-200">{item.label}</div>
                 <Switch
                   checked={editingWidget.widget[item.key] !== false}
                   onCheckedChange={(checked) => patchEditingWidget({ [item.key]: checked })}
-                  className="data-[state=checked]:bg-[hsl(272,24%,46%)]"
+                  className="data-[state=checked]:bg-[#3f62e2]"
                 />
               </div>
             ))}
@@ -1021,7 +1021,7 @@ export default function Widgets() {
           <button
             type="button"
             onClick={saveWidgetEdit}
-            className="px-6 py-2.5 rounded-xl bg-[hsl(272,24%,46%)] hover:opacity-90 text-white text-xs font-bold transition shadow-lg cursor-pointer"
+            className="px-6 py-2.5 rounded-xl bg-[#3f62e2] hover:opacity-90 text-white text-xs font-bold transition shadow-lg cursor-pointer"
           >
             Apply widget
           </button>
@@ -1043,7 +1043,7 @@ export default function Widgets() {
         <Link
           to={`/${user.username}`}
           target="_blank"
-          className="p-2.5 rounded-xl border border-[#3f3f46]/40 bg-[#09090b] hover:border-white/30 text-zinc-400 hover:text-white transition shadow-sm"
+          className="p-2.5 rounded-xl border border-[#2a2a2e] bg-[#09090b] hover:border-white/30 text-zinc-400 hover:text-white transition shadow-sm"
           title="Preview public profile"
         >
           <Eye className="w-4 h-4" />
@@ -1051,7 +1051,7 @@ export default function Widgets() {
       </div>
 
       {/* Available Widgets Section */}
-      <div className="rounded-2xl border border-[#3f3f46]/40 bg-[#111111] p-5 sm:p-6 space-y-4">
+      <div className="rounded-2xl border border-[#2a2a2e] bg-[#111111] p-5 sm:p-6 space-y-4">
         <div>
           <h2 className="text-sm font-bold text-white tracking-tight">Available Widgets</h2>
         </div>
@@ -1069,7 +1069,7 @@ export default function Widgets() {
                 className={`group relative flex items-center gap-3.5 p-3.5 rounded-xl border text-left transition-all duration-200 outline-none overflow-hidden cursor-pointer ${
                   locked
                     ? "border-[#3f3f46]/20 bg-[#09090b]/50 hover:border-white/20"
-                    : "border-[#3f3f46]/40 bg-[#09090b] hover:border-[hsl(272,24%,46%)] hover:bg-[#151518]"
+                    : "border-[#2a2a2e] bg-[#09090b] hover:border-[#3f62e2] hover:bg-[#151518]"
                 }`}
               >
                 <div
@@ -1096,7 +1096,7 @@ export default function Widgets() {
       </div>
 
       {/* Connected Widgets Section */}
-      <div className="rounded-2xl border border-[#3f3f46]/40 bg-[#111111] p-5 sm:p-6 space-y-4">
+      <div className="rounded-2xl border border-[#2a2a2e] bg-[#111111] p-5 sm:p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-sm font-bold text-white tracking-tight">Connected Widgets</h2>
@@ -1115,7 +1115,7 @@ export default function Widgets() {
         </div>
 
         {widgets.length === 0 ? (
-          <div className="text-center py-10 border border-dashed border-[#3f3f46]/40 rounded-xl p-6 bg-[#09090b]">
+          <div className="text-center py-10 border border-dashed border-[#2a2a2e] rounded-xl p-6 bg-[#09090b]">
             <LayoutGrid className="w-8 h-8 text-zinc-600 mx-auto mb-2" />
             <div className="text-xs font-semibold text-zinc-300">No active widgets connected</div>
           </div>
@@ -1139,9 +1139,9 @@ export default function Widgets() {
                   onDragEnd={() => setWidgetDragIndex(null)}
                   className={`flex items-center justify-between gap-3 p-3.5 rounded-xl border transition-all duration-200 ${
                     isEnabled
-                      ? "border-[#3f3f46]/40 bg-[#09090b]"
+                      ? "border-[#2a2a2e] bg-[#09090b]"
                       : "border-[#3f3f46]/20 bg-[#09090b]/40 opacity-60"
-                  } ${widgetDragIndex === i ? "border-[hsl(272,24%,46%)] opacity-50" : "hover:border-white/30"}`}
+                  } ${widgetDragIndex === i ? "border-[#3f62e2] opacity-50" : "hover:border-white/30"}`}
                 >
                   {/* Left: Drag grip, platform icon, Title & Subtitle */}
                   <div className="flex items-center gap-3.5 min-w-0">
@@ -1172,12 +1172,12 @@ export default function Widgets() {
                       onCheckedChange={(checked) => {
                         setWidgets(widgets.map((item, idx) => (idx === i ? { ...item, enabled: checked } : item)));
                       }}
-                      className="data-[state=checked]:bg-[hsl(272,24%,46%)]"
+                      className="data-[state=checked]:bg-[#3f62e2]"
                     />
                     <button
                       type="button"
                       onClick={() => openWidgetEditor(kind, i)}
-                      className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.09] text-zinc-300 hover:text-white border border-[#3f3f46]/40 transition cursor-pointer"
+                      className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.09] text-zinc-300 hover:text-white border border-[#2a2a2e] transition cursor-pointer"
                       title="Edit widget"
                       aria-label={`Edit ${w.title || w.type}`}
                     >
@@ -1201,7 +1201,7 @@ export default function Widgets() {
       </div>
 
       {/* Widget Card Customization (Shared design at the bottom) */}
-      <div className="rounded-2xl border border-[#3f3f46]/40 bg-[#111111] p-5 sm:p-6 space-y-6">
+      <div className="rounded-2xl border border-[#2a2a2e] bg-[#111111] p-5 sm:p-6 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 className="text-base font-bold text-white tracking-tight">Widget Card Customization</h2>
@@ -1209,7 +1209,7 @@ export default function Widgets() {
           <button
             type="button"
             onClick={resetSharedDefaults}
-            className="px-3.5 py-2 rounded-xl bg-[#09090b] hover:border-white/30 text-xs font-semibold text-zinc-300 hover:text-white border border-[#3f3f46]/40 transition shrink-0 cursor-pointer self-start sm:self-auto"
+            className="px-3.5 py-2 rounded-xl bg-[#09090b] hover:border-white/30 text-xs font-semibold text-zinc-300 hover:text-white border border-[#2a2a2e] transition shrink-0 cursor-pointer self-start sm:self-auto"
           >
             Reset to Defaults
           </button>
@@ -1218,7 +1218,7 @@ export default function Widgets() {
         {/* 6 Customization Controls Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-1">
           {/* 1. Border Width */}
-          <div className="p-4 rounded-xl bg-[#09090b] border border-[#3f3f46]/40 space-y-3">
+          <div className="p-4 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-zinc-200">Border Width</span>
               <span className="text-xs font-mono2 text-white font-bold">{borderWidth}px</span>
@@ -1233,7 +1233,7 @@ export default function Widgets() {
           </div>
 
           {/* 2. Border Opacity */}
-          <div className="p-4 rounded-xl bg-[#09090b] border border-[#3f3f46]/40 space-y-3">
+          <div className="p-4 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-zinc-200">Border Opacity</span>
               <span className="text-xs font-mono2 text-white font-bold">{borderOpacity.toFixed(2)}</span>
@@ -1248,7 +1248,7 @@ export default function Widgets() {
           </div>
 
           {/* 3. Border Color */}
-          <div className="p-4 rounded-xl bg-[#09090b] border border-[#3f3f46]/40 space-y-3">
+          <div className="p-4 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-zinc-200">Border Color</span>
             </div>
@@ -1262,7 +1262,7 @@ export default function Widgets() {
           </div>
 
           {/* 4. Background Color */}
-          <div className="p-4 rounded-xl bg-[#09090b] border border-[#3f3f46]/40 space-y-3">
+          <div className="p-4 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-zinc-200">Background Color</span>
             </div>
@@ -1276,7 +1276,7 @@ export default function Widgets() {
           </div>
 
           {/* 5. Background Opacity */}
-          <div className="p-4 rounded-xl bg-[#09090b] border border-[#3f3f46]/40 space-y-3">
+          <div className="p-4 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-zinc-200">Background Opacity</span>
               <span className="text-xs font-mono2 text-white font-bold">{bgOpacity.toFixed(2)}</span>
@@ -1291,7 +1291,7 @@ export default function Widgets() {
           </div>
 
           {/* 6. Background Blur */}
-          <div className="p-4 rounded-xl bg-[#09090b] border border-[#3f3f46]/40 space-y-3">
+          <div className="p-4 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-zinc-200">Background Blur</span>
               <span className="text-xs font-mono2 text-white font-bold">{bgBlur}px</span>
@@ -1307,7 +1307,7 @@ export default function Widgets() {
         </div>
 
         {/* Live Shared Design Preview Card with Active Widget Carousel */}
-        <div className="pt-5 border-t border-[#3f3f46]/30 space-y-4">
+        <div className="pt-5 border-t border-[#1f1f1f] space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <div className="text-xs font-bold text-white tracking-tight">Preview</div>
@@ -1438,7 +1438,7 @@ export default function Widgets() {
       {/* Floating Save Bar */}
       {dirty && (
         <div className="fixed bottom-6 inset-x-0 z-40 flex justify-center px-4 animate-in fade-in slide-in-from-bottom-4 duration-200">
-          <div className="flex items-center gap-4 px-5 py-3 rounded-2xl bg-[#111111] border border-[hsl(272,24%,46%)] shadow-2xl backdrop-blur-xl">
+          <div className="flex items-center gap-4 px-5 py-3 rounded-2xl bg-[#111111] border border-[#3f62e2] shadow-2xl backdrop-blur-xl">
             <div className="text-xs text-zinc-300">
               You have unsaved changes to your widgets and design.
             </div>
@@ -1447,7 +1447,7 @@ export default function Widgets() {
               data-testid="widget-save-btn"
               onClick={saveAll}
               disabled={saving}
-              className="px-4 py-2 rounded-xl bg-[hsl(272,24%,46%)] hover:opacity-90 text-white text-xs font-bold transition flex items-center gap-2 shadow-lg cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-[#3f62e2] hover:opacity-90 text-white text-xs font-bold transition flex items-center gap-2 shadow-lg cursor-pointer"
             >
               {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
               Save Changes

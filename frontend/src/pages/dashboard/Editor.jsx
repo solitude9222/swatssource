@@ -110,7 +110,7 @@ const AUDIO_STYLES = [
 const PREVIEW_WORD = "swats";
 
 const SWITCH_CLASS =
-  "h-5 w-9 shrink-0 rounded-full border border-[#3f3f46]/60 bg-[#111111] shadow-inner transition-colors duration-200 data-[state=checked]:border-[hsl(272,24%,46%)] data-[state=checked]:bg-[hsl(272,24%,46%)] data-[state=unchecked]:bg-[#3f3f46]/40";
+  "h-5 w-9 shrink-0 rounded-full border border-[#2a2a2e] bg-[#111111] shadow-inner transition-colors duration-200 data-[state=checked]:border-[#3f62e2] data-[state=checked]:bg-[#3f62e2] data-[state=unchecked]:bg-[#3f3f46]/40";
 
 function FontField({ label, value, onChange, isPremium, navigate, testid }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -137,12 +137,12 @@ function FontField({ label, value, onChange, isPremium, navigate, testid }) {
         type="button"
         data-testid={`${testid}-open`}
         onClick={() => { setQuery(""); setIsOpen(true); }}
-        className="w-full flex items-center justify-between rounded-xl border border-[#3f3f46]/40 bg-[#111111] px-4 py-3 hover:border-[hsl(272,24%,46%)] transition-colors"
+        className="w-full flex items-center justify-between rounded-xl border border-[#2a2a2e] bg-[#111111] px-4 py-3 hover:border-[#3f62e2] transition-colors"
       >
         <span className="text-sm text-white" style={{ fontFamily: selected.stack }}>
           {selected.name}
         </span>
-        <span className="text-[10px] font-bold text-white bg-[hsl(272,24%,46%)] px-2.5 py-1 rounded-md">
+        <span className="text-[10px] font-bold text-white bg-[#3f62e2] px-2.5 py-1 rounded-md">
           Change
         </span>
       </button>
@@ -162,10 +162,10 @@ function FontField({ label, value, onChange, isPremium, navigate, testid }) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search fonts…"
-          className="ov-input mb-4 px-4 py-2.5 text-sm placeholder:text-zinc-500 bg-[#111111] border border-[#3f3f46]/40 text-white rounded-xl"
+          className="ov-input mb-4 px-4 py-2.5 text-sm placeholder:text-zinc-500 bg-[#111111] border border-[#2a2a2e] text-white rounded-xl"
         />
 
-        <div className="mb-5 rounded-xl border border-[#3f3f46]/40 bg-[#111111] px-4 py-3">
+        <div className="mb-5 rounded-xl border border-[#2a2a2e] bg-[#111111] px-4 py-3">
           <div className="text-[11px] text-zinc-400">Preview</div>
           <div className="mt-1 truncate text-2xl text-white" style={{ fontFamily: selected.stack }}>
             {PREVIEW_WORD} · @yourname
@@ -196,10 +196,10 @@ function FontField({ label, value, onChange, isPremium, navigate, testid }) {
                     }}
                     className={`flex items-center justify-between rounded-xl border p-3 text-left transition-colors duration-200 ${
                       active
-                        ? "border-[hsl(272,24%,46%)] bg-[hsl(272,24%,46%)] text-white"
+                        ? "border-[#3f62e2] bg-[#3f62e2] text-white"
                         : locked
                         ? "border-[#3f3f46]/20 bg-[#111111] text-zinc-500 hover:border-amber-500/30"
-                        : "border-[#3f3f46]/40 bg-[#111111] hover:border-white/40 text-zinc-200"
+                        : "border-[#2a2a2e] bg-[#111111] hover:border-white/40 text-zinc-200"
                     }`}
                   >
                     <span
@@ -237,10 +237,10 @@ function LayoutPicker({ value, onChange, isPremium, navigate }) {
         type="button"
         data-testid="layout-open"
         onClick={() => setIsOpen(true)}
-        className="w-full flex items-center justify-between rounded-2xl border border-[#3f3f46]/40 bg-[#111111] px-4 py-4 hover:border-[hsl(272,24%,46%)] transition-colors"
+        className="w-full flex items-center justify-between rounded-2xl border border-[#2a2a2e] bg-[#111111] px-4 py-4 hover:border-[#3f62e2] transition-colors"
       >
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[hsl(272,24%,46%)]/20 text-white">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#3f62e2]/20 text-white">
             <Layout className="h-5 w-5 text-white" />
           </div>
           <div className="text-left">
@@ -248,7 +248,7 @@ function LayoutPicker({ value, onChange, isPremium, navigate }) {
             <div className="text-[11px] text-zinc-400 mt-0.5">{selected.hint}</div>
           </div>
         </div>
-        <span className="text-[10px] font-bold text-white bg-[hsl(272,24%,46%)] px-2.5 py-1 rounded-md shrink-0">
+        <span className="text-[10px] font-bold text-white bg-[#3f62e2] px-2.5 py-1 rounded-md shrink-0">
           Change Layout
         </span>
       </button>
@@ -277,8 +277,8 @@ function LayoutPicker({ value, onChange, isPremium, navigate }) {
                 }}
                 className={`p-4 rounded-2xl border text-left transition flex flex-col gap-2 ${
                   active
-                    ? "border-[hsl(272,24%,46%)] bg-[hsl(272,24%,46%)]/15 text-white"
-                    : "border-[#3f3f46]/40 bg-[#111111] hover:border-white/30 text-zinc-300"
+                    ? "border-[#3f62e2] bg-[#3f62e2]/15 text-white"
+                    : "border-[#2a2a2e] bg-[#111111] hover:border-white/30 text-zinc-300"
                 }`}
               >
                 <div className="flex items-center justify-between font-bold text-sm text-white">
@@ -296,11 +296,15 @@ function LayoutPicker({ value, onChange, isPremium, navigate }) {
 }
 
 const Section = ({ title, hint, children }) => (
-  <section className="w-full rounded-2xl border border-[#3f3f46]/30 bg-[#111111] p-5 sm:p-7 space-y-6 shadow-sm">
-    <div className="flex items-center gap-4">
-      <h2 className="shrink-0 text-xs font-bold uppercase tracking-[0.14em] text-zinc-300">{title}</h2>
-      <span className="h-px flex-1 bg-[#3f3f46]/30" />
-      {hint && <span className="shrink-0 text-[11px] text-zinc-400">{hint}</span>}
+  <section className="w-full space-y-6 rounded-2xl border border-[#1f1f1f] bg-[#111111] p-5 sm:p-7">
+    <div className="flex items-center gap-3">
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#3f62e2]/10 text-[#587fee]">
+        <Sliders className="h-4 w-4" />
+      </span>
+      <div className="min-w-0">
+        <h2 className="truncate text-[15px] font-semibold leading-tight text-white">{title}</h2>
+        {hint && <p className="mt-0.5 truncate text-xs text-zinc-400">{hint}</p>}
+      </div>
     </div>
     {children}
   </section>
@@ -318,10 +322,10 @@ const ChipGrid = ({ options, value, onChange, onLocked, testid, cols = 3 }) => (
           onClick={() => (o.locked ? onLocked?.() : onChange(o.id))}
           className={`flex items-center justify-center gap-1.5 rounded-xl border px-3 py-2.5 text-xs font-semibold transition ${
             active
-              ? "border-[hsl(272,24%,46%)] bg-[hsl(272,24%,46%)] text-white shadow-sm"
+              ? "border-[#3f62e2] bg-[#3f62e2] text-white shadow-sm"
               : o.locked
-                ? "border-[#3f3f46]/30 bg-[#09090b] text-zinc-600"
-                : "border-[#3f3f46]/40 bg-[#09090b] text-zinc-300 hover:border-white/30 hover:text-white"
+                ? "border-[#1f1f1f] bg-[#09090b] text-zinc-600"
+                : "border-[#2a2a2e] bg-[#09090b] text-zinc-300 hover:border-white/30 hover:text-white"
           }`}
         >
           {o.locked && <Lock className="h-3 w-3 text-amber-400" />}
@@ -351,7 +355,7 @@ const SliderRow = ({ label, value, min, max, step = 1, suffix = "", onChange, te
         value={[local]}
         onValueChange={([v]) => setLocal(v)}
         onValueCommit={([v]) => onChange(v)}
-        className="[&_[role=slider]]:border-[hsl(272,24%,46%)] [&_[role=slider]]:bg-white [&_.absolute]:bg-[hsl(272,24%,46%)]"
+        className="[&_[role=slider]]:border-[#3f62e2] [&_[role=slider]]:bg-white [&_.absolute]:bg-[#3f62e2]"
         aria-label={label}
       />
     </div>
@@ -365,7 +369,7 @@ const ENTRY_STYLES = [
 ];
 
 const EntryStyleThumb = ({ id, accent }) => (
-  <span className="relative flex h-14 w-full items-center justify-center overflow-hidden rounded-xl border border-[#3f3f46]/40 bg-[#09090b]">
+  <span className="relative flex h-14 w-full items-center justify-center overflow-hidden rounded-xl border border-[#2a2a2e] bg-[#09090b]">
     {id === "text" ? (
       <span className="relative font-mono2 text-[10px] uppercase tracking-widest text-white font-bold">
         Click to enter
@@ -384,7 +388,7 @@ const EntryStyleThumb = ({ id, accent }) => (
 );
 
 const ToggleRow = ({ testid, label, hint, checked, onCheckedChange }) => (
-  <label className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-[#3f3f46]/40 bg-[#09090b] px-3.5 py-2.5 text-xs text-zinc-300 hover:border-[#3f3f46]/70 transition-colors">
+  <label className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-[#2a2a2e] bg-[#09090b] px-3.5 py-2.5 text-xs text-zinc-300 hover:border-[#3f3f46]/70 transition-colors">
     <span>
       {label}
       {hint && <span className="ml-2 text-[10px] text-zinc-500">({hint})</span>}
@@ -413,8 +417,8 @@ const LivePreviewCard = memo(function LivePreviewCard({ user, profile, displayNa
 function EffectStage({ variant, id, accent, label, size = "lg" }) {
   const compact = size === "compact";
   const frame = compact
-    ? "relative h-28 w-52 sm:w-64 shrink-0 overflow-hidden rounded-2xl border border-[#3f3f46]/40 bg-[#09090b]"
-    : "relative h-56 sm:h-64 w-full overflow-hidden rounded-2xl border border-[#3f3f46]/40 bg-[#09090b]";
+    ? "relative h-28 w-52 sm:w-64 shrink-0 overflow-hidden rounded-2xl border border-[#2a2a2e] bg-[#09090b]"
+    : "relative h-56 sm:h-64 w-full overflow-hidden rounded-2xl border border-[#2a2a2e] bg-[#09090b]";
   const caption = (
     <span className="absolute left-4 top-3 z-20 max-w-[calc(100%-2rem)] truncate text-[10px] font-mono2 uppercase tracking-[0.14em] text-zinc-400">
       {label}
@@ -460,7 +464,7 @@ function EffectStage({ variant, id, accent, label, size = "lg" }) {
       {caption}
       <div className="absolute inset-0" style={{ background: `radial-gradient(circle at 50% 125%, ${accent}55, transparent 72%)` }} />
       <div className="relative z-10 flex h-full items-center justify-center px-6 pointer-events-none">
-        <div className={`rounded-2xl border border-[#3f3f46]/40 bg-black/50 text-center backdrop-blur-sm ${compact ? "px-4 py-3" : "px-6 py-5"}`}>
+        <div className={`rounded-2xl border border-[#2a2a2e] bg-black/50 text-center backdrop-blur-sm ${compact ? "px-4 py-3" : "px-6 py-5"}`}>
           <div className={`font-bold text-white ${compact ? "text-xs" : "text-base"}`}>swats</div>
           <div className="mt-1 font-mono2 text-[10px] text-zinc-400">@yourname</div>
         </div>
@@ -493,7 +497,7 @@ function EffectPicker({
         onClick={() => { onPreview?.(null); setIsOpen(true); }}
         data-testid={`${testid}-stage-open`}
         aria-label={`Change the ${selected.label} effect`}
-        className="shrink-0 rounded-2xl outline-none transition hover:ring-2 hover:ring-[hsl(272,24%,46%)]/60"
+        className="shrink-0 rounded-2xl outline-none transition hover:ring-2 hover:ring-[#3f62e2]/60"
       >
         <EffectStage
           variant={variant}
@@ -506,7 +510,7 @@ function EffectPicker({
 
       <div className="min-w-[10rem] flex-1">
         <div className="flex items-center gap-2 text-sm font-bold text-white">
-          <span className="h-2 w-2 shrink-0 rounded-full bg-[hsl(272,24%,46%)]" />
+          <span className="h-2 w-2 shrink-0 rounded-full bg-[#3f62e2]" />
           <span className="truncate">{selected.label}</span>
         </div>
         <p className="mt-1 text-[11px] leading-relaxed text-zinc-400">
@@ -522,7 +526,7 @@ function EffectPicker({
         type="button"
         data-testid={`${testid}-open`}
         onClick={() => { onPreview?.(null); setIsOpen(true); }}
-        className="px-4 py-2.5 rounded-xl bg-[hsl(272,24%,46%)] text-white font-semibold text-xs transition hover:brightness-110 shrink-0"
+        className="px-4 py-2.5 rounded-xl bg-[#3f62e2] text-white font-semibold text-xs transition hover:brightness-110 shrink-0"
       >
         Change effect
       </button>
@@ -576,7 +580,7 @@ function QuickUpload({ label, buttonLabel, value, accept, onUploaded, onRemove, 
 
   return (
     <div className="flex flex-wrap items-center gap-2.5" data-testid={testid}>
-      <label className="flex cursor-pointer items-center gap-2 rounded-xl bg-[hsl(272,24%,46%)] px-4 py-2.5 text-xs font-semibold text-white transition hover:brightness-110">
+      <label className="flex cursor-pointer items-center gap-2 rounded-xl bg-[#3f62e2] px-4 py-2.5 text-xs font-semibold text-white transition hover:brightness-110">
         {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
         {buttonLabel}
         <input type="file" accept={accept} onChange={handleUpload} disabled={uploading} className="hidden" />
@@ -586,7 +590,7 @@ function QuickUpload({ label, buttonLabel, value, accept, onUploaded, onRemove, 
           type="button"
           onClick={onRemove}
           data-testid={`${testid}-remove`}
-          className="rounded-xl border border-[#3f3f46]/40 bg-[#09090b] px-4 py-2.5 text-xs font-semibold text-zinc-300 transition hover:bg-white/[0.08]"
+          className="rounded-xl border border-[#2a2a2e] bg-[#09090b] px-4 py-2.5 text-xs font-semibold text-zinc-300 transition hover:bg-white/[0.08]"
         >
           Remove {label}
         </button>
@@ -619,7 +623,7 @@ function MetaImageUpload({ value, onUploaded }) {
 
   return (
     <div data-testid="meta-image-upload">
-      <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-[#3f3f46]/40 bg-[#09090b] px-3.5 py-2 text-xs font-semibold text-zinc-300 transition hover:border-[hsl(272,24%,46%)]">
+      <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-[#2a2a2e] bg-[#09090b] px-3.5 py-2 text-xs font-semibold text-zinc-300 transition hover:border-[#3f62e2]">
         {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
         {value ? "Replace image" : "Upload image"}
         <input type="file" accept="image/*" onChange={handleUpload} disabled={uploading} className="hidden" />
@@ -629,8 +633,8 @@ function MetaImageUpload({ value, onUploaded }) {
 }
 
 const ProfileRow = ({ label, children }) => (
-  <div className="border-b border-[#3f3f46]/30 py-5 last:border-b-0">
-    <div className="mb-3 text-sm font-semibold text-zinc-200">{label}</div>
+  <div className="border-b border-[#1f1f1f] py-5 first:pt-0 last:border-b-0 last:pb-0">
+    <div className="mb-3 text-[13px] font-semibold text-white">{label}</div>
     {children}
   </div>
 );
@@ -830,11 +834,11 @@ export default function Editor() {
   ];
 
   return (
-    <div data-testid="editor-page" className="space-y-8 bg-[#09090b] text-white">
+    <div data-testid="editor-page" className="space-y-6 text-white">
       <AuthGateNotice variant="card" />
 
-      {/* Navigation Subtabs Bar */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      {/* Navigation Subtabs Bar: one segmented control, active segment filled blue */}
+      <div className="flex items-center gap-1 overflow-x-auto rounded-2xl border border-[#1f1f1f] bg-[#0d0d0d] p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {SUBTAB_ITEMS.map((s) => {
           const Icon = s.icon;
           const active = sub === s.id;
@@ -844,13 +848,13 @@ export default function Editor() {
               type="button"
               data-testid={`editor-subtab-${s.id}`}
               onClick={() => switchSub(s.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer shrink-0 ${
+              className={`flex min-w-[110px] flex-1 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-semibold transition-colors duration-200 ${
                 active
-                  ? "bg-[hsl(272,24%,46%)] text-white shadow-sm"
-                  : "bg-[#111111] text-zinc-400 hover:text-white border border-[#3f3f46]/30 hover:border-[#3f3f46]/60"
+                  ? "bg-[#3f62e2] text-white shadow-sm"
+                  : "text-zinc-400 hover:bg-white/[0.04] hover:text-white"
               }`}
             >
-              <Icon className="w-3.5 h-3.5 shrink-0" />
+              <Icon className="h-3.5 w-3.5 shrink-0" />
               <span>{s.label}</span>
             </button>
           );
@@ -947,7 +951,7 @@ export default function Editor() {
                     type="button"
                     data-testid="open-decorations"
                     onClick={() => setShowDecoModal(true)}
-                    className="rounded-xl bg-[hsl(272,24%,46%)] px-4 py-2.5 text-xs font-semibold text-white transition hover:brightness-110 cursor-pointer"
+                    className="rounded-xl bg-[#3f62e2] px-4 py-2.5 text-xs font-semibold text-white transition hover:brightness-110 cursor-pointer"
                   >
                     Change Decoration
                   </button>
@@ -956,7 +960,7 @@ export default function Editor() {
                       type="button"
                       data-testid="remove-decoration"
                       onClick={() => { set("avatar_decoration", ""); set("avatar_decoration_hue", 0); }}
-                      className="rounded-xl border border-[#3f3f46]/40 bg-[#09090b] px-4 py-2.5 text-xs font-semibold text-zinc-300 transition hover:bg-white/[0.08]"
+                      className="rounded-xl border border-[#2a2a2e] bg-[#09090b] px-4 py-2.5 text-xs font-semibold text-zinc-300 transition hover:bg-white/[0.08]"
                     >
                       Remove Decoration
                     </button>
@@ -968,7 +972,7 @@ export default function Editor() {
               </ProfileRow>
 
               <ProfileRow label="Background">
-                <div className="mb-3 inline-flex rounded-xl border border-[#3f3f46]/40 bg-[#09090b] p-1">
+                <div className="mb-3 inline-flex rounded-xl border border-[#2a2a2e] bg-[#09090b] p-1">
                   {[
                     { id: "color", label: "Color" },
                     { id: "media", label: "Media" },
@@ -983,7 +987,7 @@ export default function Editor() {
                         setBgMode(mode.id);
                       }}
                       className={`rounded-lg px-4 py-1.5 text-xs font-semibold transition ${
-                        bgMode === mode.id ? "bg-[hsl(272,24%,46%)] text-white" : "text-zinc-400 hover:text-white"
+                        bgMode === mode.id ? "bg-[#3f62e2] text-white" : "text-zinc-400 hover:text-white"
                       }`}
                     >
                       {mode.label}
@@ -1076,7 +1080,7 @@ export default function Editor() {
                   data-testid="editor-displayname"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  className="w-full rounded-xl bg-[#09090b] border border-[#3f3f46]/40 px-4 py-3 text-sm text-white outline-none focus:border-[hsl(272,24%,46%)]"
+                  className="w-full rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] px-4 py-3 text-sm text-white outline-none focus:border-[#3f62e2]"
                 />
               </ProfileRow>
 
@@ -1086,7 +1090,7 @@ export default function Editor() {
                   value={p.bio || ""}
                   onChange={(e) => set("bio", e.target.value)}
                   rows={4}
-                  className="w-full resize-none rounded-xl bg-[#09090b] border border-[#3f3f46]/40 px-4 py-3 text-sm text-white outline-none focus:border-[hsl(272,24%,46%)]"
+                  className="w-full resize-none rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] px-4 py-3 text-sm text-white outline-none focus:border-[#3f62e2]"
                   placeholder="Tell people who you are..."
                 />
                 <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -1097,7 +1101,7 @@ export default function Editor() {
                       value={p.location || ""}
                       onChange={(e) => set("location", e.target.value)}
                       placeholder="e.g. Tokyo, Japan"
-                      className="w-full rounded-xl bg-[#09090b] border border-[#3f3f46]/40 px-4 py-2.5 text-xs text-white outline-none focus:border-[hsl(272,24%,46%)]"
+                      className="w-full rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] px-4 py-2.5 text-xs text-white outline-none focus:border-[#3f62e2]"
                     />
                   </div>
                   <div>
@@ -1129,8 +1133,8 @@ export default function Editor() {
                             onClick={() => handleCardStylePreset(styleId)}
                             className={`p-3 rounded-xl border text-xs font-semibold transition text-left ${
                               active
-                                ? "border-[hsl(272,24%,46%)] bg-[hsl(272,24%,46%)] text-white shadow-sm"
-                                : "border-[#3f3f46]/40 bg-[#09090b] text-zinc-300 hover:border-white/30"
+                                ? "border-[#3f62e2] bg-[#3f62e2] text-white shadow-sm"
+                                : "border-[#2a2a2e] bg-[#09090b] text-zinc-300 hover:border-white/30"
                             }`}
                           >
                             <span className="capitalize">{styleId.replace("-", " ")}</span>
@@ -1140,7 +1144,7 @@ export default function Editor() {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between border-t border-[#3f3f46]/30 pt-4">
+                  <div className="flex items-center justify-between border-t border-[#1f1f1f] pt-4">
                     <div>
                       <div className="text-xs font-semibold text-white">Card Background</div>
                       <div className="text-[11px] text-zinc-400">Render card body background container</div>
@@ -1154,7 +1158,7 @@ export default function Editor() {
                   </div>
 
                   {/* Advanced Mode Toggle */}
-                  <div className="flex items-center justify-between border-t border-[#3f3f46]/30 pt-4">
+                  <div className="flex items-center justify-between border-t border-[#1f1f1f] pt-4">
                     <div>
                       <div className="text-xs font-semibold text-white">Advanced Appearance Mode</div>
                       <div className="text-[11px] text-zinc-400">Fine-tune card blur, opacity, borders and surface colors</div>
@@ -1168,7 +1172,7 @@ export default function Editor() {
                   </div>
 
                   {p.advanced_mode && (
-                    <div data-testid="advanced-appearance" className="space-y-4 rounded-xl border border-[#3f3f46]/40 bg-[#09090b] p-4">
+                    <div data-testid="advanced-appearance" className="space-y-4 rounded-xl border border-[#2a2a2e] bg-[#09090b] p-4">
                       <div className="grid gap-4 sm:grid-cols-2">
                         <div>
                           <label className="mb-1.5 block text-xs text-zinc-400">Card Fill Color</label>
@@ -1188,7 +1192,7 @@ export default function Editor() {
                         </div>
                       </div>
 
-                      <div className="grid gap-4 sm:grid-cols-2 border-t border-[#3f3f46]/30 pt-4">
+                      <div className="grid gap-4 sm:grid-cols-2 border-t border-[#1f1f1f] pt-4">
                         <SliderRow
                           testid="card-fill-alpha"
                           label="Fill Opacity"
@@ -1209,7 +1213,7 @@ export default function Editor() {
                         />
                       </div>
 
-                      <div className="grid gap-4 sm:grid-cols-2 border-t border-[#3f3f46]/30 pt-4">
+                      <div className="grid gap-4 sm:grid-cols-2 border-t border-[#1f1f1f] pt-4">
                         <SliderRow
                           testid="card-outline-alpha"
                           label="Border Opacity"
@@ -1233,7 +1237,7 @@ export default function Editor() {
                         />
                       </div>
 
-                      <div className="grid gap-4 sm:grid-cols-2 border-t border-[#3f3f46]/30 pt-4">
+                      <div className="grid gap-4 sm:grid-cols-2 border-t border-[#1f1f1f] pt-4">
                         <SliderRow
                           testid="card-width"
                           label="Card Width"
@@ -1258,7 +1262,7 @@ export default function Editor() {
                   )}
 
                   {/* Glow & Gradient Settings */}
-                  <div className="space-y-4 rounded-xl border border-[#3f3f46]/40 bg-[#09090b] p-4">
+                  <div className="space-y-4 rounded-xl border border-[#2a2a2e] bg-[#09090b] p-4">
                     <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-300">Glow & Gradient</h3>
 
                     <div className="flex items-center justify-between">
@@ -1275,7 +1279,7 @@ export default function Editor() {
                     </div>
 
                     {p.card_glow !== false && (
-                      <div className="grid gap-4 sm:grid-cols-2 border-t border-[#3f3f46]/30 pt-3">
+                      <div className="grid gap-4 sm:grid-cols-2 border-t border-[#1f1f1f] pt-3">
                         <div>
                           <label className="mb-1.5 block text-xs text-zinc-400">Card Glow Color</label>
                           <ColorPicker
@@ -1296,7 +1300,7 @@ export default function Editor() {
                       </div>
                     )}
 
-                    <div className="flex items-center justify-between border-t border-[#3f3f46]/30 pt-3">
+                    <div className="flex items-center justify-between border-t border-[#1f1f1f] pt-3">
                       <div>
                         <div className="text-xs font-semibold text-white">Card Gradient Fill</div>
                         <div className="text-[11px] text-zinc-400">Blend secondary color across card</div>
@@ -1310,7 +1314,7 @@ export default function Editor() {
                     </div>
 
                     {p.card_gradient_enabled && (
-                      <div className="grid gap-4 sm:grid-cols-2 border-t border-[#3f3f46]/30 pt-3">
+                      <div className="grid gap-4 sm:grid-cols-2 border-t border-[#1f1f1f] pt-3">
                         <div>
                           <label className="mb-1.5 block text-xs text-zinc-400">Gradient Secondary Color</label>
                           <ColorPicker
@@ -1398,7 +1402,7 @@ export default function Editor() {
                     navigate={navigate}
                   />
 
-                  <div className="flex items-center justify-between border-t border-[#3f3f46]/30 pt-3">
+                  <div className="flex items-center justify-between border-t border-[#1f1f1f] pt-3">
                     <div>
                       <div className="text-xs font-semibold text-white">Social Icons Glow</div>
                       <div className="text-[11px] text-zinc-400">Glow effect on social platform icons and link pills</div>
@@ -1418,10 +1422,10 @@ export default function Editor() {
                   type="button"
                   data-testid="tooltip-panel-open"
                   onClick={() => setShowTipPanel(true)}
-                  className="flex w-full items-center justify-between gap-4 rounded-xl border border-[#3f3f46]/40 bg-[#09090b] px-4 py-3.5 text-left transition hover:border-[hsl(272,24%,46%)]"
+                  className="flex w-full items-center justify-between gap-4 rounded-xl border border-[#2a2a2e] bg-[#09090b] px-4 py-3.5 text-left transition hover:border-[#3f62e2]"
                 >
                   <span className="flex min-w-0 items-center gap-3">
-                    <MousePointer2 className="h-4 w-4 shrink-0 text-[hsl(272,24%,46%)]" />
+                    <MousePointer2 className="h-4 w-4 shrink-0 text-[#3f62e2]" />
                     <span className="min-w-0">
                       <span className="block text-xs font-bold text-white">Tooltips & Display Options</span>
                       <span className="mt-0.5 block truncate text-[11px] text-zinc-400">
@@ -1467,7 +1471,7 @@ export default function Editor() {
                   onLocked={askPremium("Section animations")}
                   options={SECTION_ANIMATIONS.map((a) => ({ ...a, locked: !!a.premium && !isPremium }))}
                 />
-                <label className="mt-4 flex cursor-pointer items-center justify-between gap-4 border-t border-[#3f3f46]/30 pt-4 text-xs text-zinc-300">
+                <label className="mt-4 flex cursor-pointer items-center justify-between gap-4 border-t border-[#1f1f1f] pt-4 text-xs text-zinc-300">
                   <span>
                     Foldable sections <span className="text-[10px] text-zinc-400">(click a header to collapse)</span>
                   </span>
@@ -1491,7 +1495,7 @@ export default function Editor() {
                 testid="tip-panel"
                 footer={
                   <div className="flex justify-end">
-                    <button type="button" onClick={() => setShowTipPanel(false)} className="px-4 py-2 text-xs bg-[hsl(272,24%,46%)] text-white font-bold rounded-xl">
+                    <button type="button" onClick={() => setShowTipPanel(false)} className="px-4 py-2 text-xs bg-[#3f62e2] text-white font-bold rounded-xl">
                       Done
                     </button>
                   </div>
@@ -1509,7 +1513,7 @@ export default function Editor() {
                     />
                   </div>
 
-                  <div className="border-t border-[#3f3f46]/30 pt-4">
+                  <div className="border-t border-[#1f1f1f] pt-4">
                     <div className="mb-2 text-xs text-zinc-300 font-semibold">Entrance</div>
                     <ChipGrid
                       testid="tooltip-animation"
@@ -1520,7 +1524,7 @@ export default function Editor() {
                     />
                   </div>
 
-                  <div className="border-t border-[#3f3f46]/30 pt-4">
+                  <div className="border-t border-[#1f1f1f] pt-4">
                     <div className="mb-2 text-xs text-zinc-300 font-semibold">Size</div>
                     <ChipGrid
                       testid="tooltip-size"
@@ -1531,7 +1535,7 @@ export default function Editor() {
                     />
                   </div>
 
-                  <div className="border-t border-[#3f3f46]/30 pt-4 space-y-3">
+                  <div className="border-t border-[#1f1f1f] pt-4 space-y-3">
                     <div className="text-xs font-bold uppercase tracking-wider text-zinc-400">Show hover label on</div>
                     <ToggleRow
                       testid="badge-tooltips-toggle"
@@ -1556,7 +1560,7 @@ export default function Editor() {
                     />
                   </div>
 
-                  <div className="border-t border-[#3f3f46]/30 pt-4 space-y-3">
+                  <div className="border-t border-[#1f1f1f] pt-4 space-y-3">
                     <div className="text-xs font-bold uppercase tracking-wider text-zinc-400">Footer Line Settings</div>
                     <ChipGrid
                       testid="meta-style"
@@ -1633,8 +1637,8 @@ export default function Editor() {
                         }}
                         className={`p-3.5 rounded-2xl border text-left transition flex flex-col gap-2 ${
                           active
-                            ? "border-[hsl(272,24%,46%)] bg-[hsl(272,24%,46%)] text-white shadow-sm"
-                            : "border-[#3f3f46]/40 bg-[#09090b] text-zinc-300 hover:border-white/30"
+                            ? "border-[#3f62e2] bg-[#3f62e2] text-white shadow-sm"
+                            : "border-[#2a2a2e] bg-[#09090b] text-zinc-300 hover:border-white/30"
                         }`}
                       >
                         <div className="flex items-center justify-between font-bold text-xs">
@@ -1651,7 +1655,7 @@ export default function Editor() {
               </div>
 
               {/* Audio Settings & Sliders */}
-              <div className="space-y-4 rounded-xl border border-[#3f3f46]/40 bg-[#09090b] p-4">
+              <div className="space-y-4 rounded-xl border border-[#2a2a2e] bg-[#09090b] p-4">
                 <SliderRow
                   label="Audio Default Volume"
                   value={Number(p.audio_volume ?? 80)}
@@ -1661,7 +1665,7 @@ export default function Editor() {
                   onChange={(v) => set("audio_volume", v)}
                 />
 
-                <div className="grid gap-3 sm:grid-cols-2 border-t border-[#3f3f46]/30 pt-4">
+                <div className="grid gap-3 sm:grid-cols-2 border-t border-[#1f1f1f] pt-4">
                   <ToggleRow
                     label="Autoplay Audio"
                     hint="start playback on entry"
@@ -1698,10 +1702,10 @@ export default function Editor() {
               </div>
 
               {/* Add New Track Section */}
-              <div className="rounded-xl border border-[#3f3f46]/40 bg-[#09090b] p-4 space-y-4">
+              <div className="rounded-xl border border-[#2a2a2e] bg-[#09090b] p-4 space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-white">Add New Track</h3>
-                  <label className="flex cursor-pointer items-center gap-2 rounded-xl bg-[hsl(272,24%,46%)] px-3.5 py-1.5 text-xs font-semibold text-white transition hover:brightness-110">
+                  <label className="flex cursor-pointer items-center gap-2 rounded-xl bg-[#3f62e2] px-3.5 py-1.5 text-xs font-semibold text-white transition hover:brightness-110">
                     {uploadingAudio ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
                     Upload MP3 / WAV
                     <input type="file" accept="audio/*" onChange={handleAudioUpload} disabled={uploadingAudio} className="hidden" />
@@ -1716,7 +1720,7 @@ export default function Editor() {
                       value={newTrackTitle}
                       onChange={(e) => setNewTrackTitle(e.target.value)}
                       placeholder="e.g. Moonlight"
-                      className="w-full px-3 py-2 rounded-xl bg-[#111111] border border-[#3f3f46]/40 text-xs text-white outline-none focus:border-[hsl(272,24%,46%)]"
+                      className="w-full px-3 py-2 rounded-xl bg-[#111111] border border-[#2a2a2e] text-xs text-white outline-none focus:border-[#3f62e2]"
                     />
                   </div>
                   <div>
@@ -1726,7 +1730,7 @@ export default function Editor() {
                       value={newTrackArtist}
                       onChange={(e) => setNewTrackArtist(e.target.value)}
                       placeholder="e.g. Kali Uchis"
-                      className="w-full px-3 py-2 rounded-xl bg-[#111111] border border-[#3f3f46]/40 text-xs text-white outline-none focus:border-[hsl(272,24%,46%)]"
+                      className="w-full px-3 py-2 rounded-xl bg-[#111111] border border-[#2a2a2e] text-xs text-white outline-none focus:border-[#3f62e2]"
                     />
                   </div>
                   <div className="sm:col-span-2">
@@ -1736,7 +1740,7 @@ export default function Editor() {
                       value={newTrackUrl}
                       onChange={(e) => setNewTrackUrl(e.target.value)}
                       placeholder="https://... or uploaded file"
-                      className="w-full px-3 py-2 rounded-xl bg-[#111111] border border-[#3f3f46]/40 text-xs text-white outline-none focus:border-[hsl(272,24%,46%)]"
+                      className="w-full px-3 py-2 rounded-xl bg-[#111111] border border-[#2a2a2e] text-xs text-white outline-none focus:border-[#3f62e2]"
                     />
                   </div>
                   <div className="sm:col-span-2">
@@ -1746,7 +1750,7 @@ export default function Editor() {
                       value={newTrackArtwork}
                       onChange={(e) => setNewTrackArtwork(e.target.value)}
                       placeholder="https://... image cover"
-                      className="w-full px-3 py-2 rounded-xl bg-[#111111] border border-[#3f3f46]/40 text-xs text-white outline-none focus:border-[hsl(272,24%,46%)]"
+                      className="w-full px-3 py-2 rounded-xl bg-[#111111] border border-[#2a2a2e] text-xs text-white outline-none focus:border-[#3f62e2]"
                     />
                   </div>
                   {(p.track_style === "lyrics" || p.audio_style === "lyrics") && (
@@ -1757,7 +1761,7 @@ export default function Editor() {
                         onChange={(e) => setNewTrackLyrics(e.target.value)}
                         placeholder="Paste track lyrics here..."
                         rows={3}
-                        className="w-full px-3 py-2 rounded-xl bg-[#111111] border border-[#3f3f46]/40 text-xs text-white outline-none focus:border-[hsl(272,24%,46%)] resize-none"
+                        className="w-full px-3 py-2 rounded-xl bg-[#111111] border border-[#2a2a2e] text-xs text-white outline-none focus:border-[#3f62e2] resize-none"
                       />
                     </div>
                   )}
@@ -1766,7 +1770,7 @@ export default function Editor() {
                 <button
                   type="button"
                   onClick={handleAddTrack}
-                  className="w-full py-2.5 rounded-xl bg-[hsl(272,24%,46%)] text-white text-xs font-bold transition hover:brightness-110 flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full py-2.5 rounded-xl bg-[#3f62e2] text-white text-xs font-bold transition hover:brightness-110 flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
                   Add Track to Playlist
@@ -1779,17 +1783,17 @@ export default function Editor() {
                   Current Tracks ({((p.tracks || []).length)})
                 </div>
                 {(!p.tracks || p.tracks.length === 0) ? (
-                  <div className="py-6 text-center text-xs text-zinc-500 rounded-xl border border-dashed border-[#3f3f46]/40 bg-[#09090b]">
+                  <div className="py-6 text-center text-xs text-zinc-500 rounded-xl border border-dashed border-[#2a2a2e] bg-[#09090b]">
                     No audio tracks in playlist yet. Add your first song above!
                   </div>
                 ) : (
                   p.tracks.map((track, i) => (
                     <div
                       key={i}
-                      className="flex items-center justify-between gap-3 p-3 rounded-xl border border-[#3f3f46]/40 bg-[#09090b]"
+                      className="flex items-center justify-between gap-3 p-3 rounded-xl border border-[#2a2a2e] bg-[#09090b]"
                     >
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-8 h-8 rounded-lg bg-[hsl(272,24%,46%)]/20 border border-[hsl(272,24%,46%)]/40 flex items-center justify-center text-white shrink-0">
+                        <div className="w-8 h-8 rounded-lg bg-[#3f62e2]/20 border border-[#3f62e2]/40 flex items-center justify-center text-white shrink-0">
                           <Music className="w-4 h-4 text-white" />
                         </div>
                         <div className="min-w-0">
@@ -1860,7 +1864,7 @@ export default function Editor() {
                     type="button"
                     data-testid="text-effects-modal-open"
                     onClick={() => setShowTextEffectsModal(true)}
-                    className="py-3 px-3 rounded-xl bg-[#09090b] border border-[#3f3f46]/40 text-xs font-bold text-white hover:border-[hsl(272,24%,46%)] transition-colors text-center cursor-pointer"
+                    className="py-3 px-3 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-bold text-white hover:border-[#3f62e2] transition-colors text-center cursor-pointer"
                   >
                     Text Effects
                   </button>
@@ -1868,7 +1872,7 @@ export default function Editor() {
                     type="button"
                     data-testid="overlay-effects-modal-open"
                     onClick={() => setShowOverlayEffectsModal(true)}
-                    className="py-3 px-3 rounded-xl bg-[#09090b] border border-[#3f3f46]/40 text-xs font-bold text-white hover:border-[hsl(272,24%,46%)] transition-colors text-center cursor-pointer"
+                    className="py-3 px-3 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-bold text-white hover:border-[#3f62e2] transition-colors text-center cursor-pointer"
                   >
                     Overlay Effects
                   </button>
@@ -1876,7 +1880,7 @@ export default function Editor() {
                     type="button"
                     data-testid="background-effects-modal-open"
                     onClick={() => setShowBgEffectsModal(true)}
-                    className="py-3 px-3 rounded-xl bg-[#09090b] border border-[#3f3f46]/40 text-xs font-bold text-white hover:border-[hsl(272,24%,46%)] transition-colors text-center cursor-pointer"
+                    className="py-3 px-3 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-bold text-white hover:border-[#3f62e2] transition-colors text-center cursor-pointer"
                   >
                     Background Effects
                   </button>
@@ -1884,7 +1888,7 @@ export default function Editor() {
                     type="button"
                     data-testid="cursor-effects-modal-open"
                     onClick={() => setShowCursorEffectsModal(true)}
-                    className="py-3 px-3 rounded-xl bg-[#09090b] border border-[#3f3f46]/40 text-xs font-bold text-white hover:border-[hsl(272,24%,46%)] transition-colors text-center cursor-pointer"
+                    className="py-3 px-3 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-bold text-white hover:border-[#3f62e2] transition-colors text-center cursor-pointer"
                   >
                     Cursor Effects
                   </button>
@@ -1973,7 +1977,7 @@ export default function Editor() {
                       onChange={(e) => set("meta_title", e.target.value)}
                       maxLength={60}
                       placeholder={`${(displayName || user.username) + (" on swats.bio")}`}
-                      className="w-full rounded-xl bg-[#09090b] border border-[#3f3f46]/40 px-4 py-2.5 text-xs text-white outline-none focus:border-[hsl(272,24%,46%)]"
+                      className="w-full rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] px-4 py-2.5 text-xs text-white outline-none focus:border-[#3f62e2]"
                     />
                   </div>
 
@@ -1986,7 +1990,7 @@ export default function Editor() {
                       rows={2}
                       maxLength={160}
                       placeholder="Your bio doubles as the description — or write a custom description here."
-                      className="w-full resize-none rounded-xl bg-[#09090b] border border-[#3f3f46]/40 px-4 py-2.5 text-xs text-white outline-none focus:border-[hsl(272,24%,46%)]"
+                      className="w-full resize-none rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] px-4 py-2.5 text-xs text-white outline-none focus:border-[#3f62e2]"
                     />
                   </div>
 
@@ -1998,7 +2002,7 @@ export default function Editor() {
                         value={p.meta_image || ""}
                         onChange={(e) => set("meta_image", e.target.value)}
                         placeholder="https://... or uploaded image"
-                        className="w-full rounded-xl bg-[#09090b] border border-[#3f3f46]/40 px-4 py-2.5 text-xs text-white outline-none focus:border-[hsl(272,24%,46%)]"
+                        className="w-full rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] px-4 py-2.5 text-xs text-white outline-none focus:border-[#3f62e2]"
                       />
                       <div className="mt-2">
                         <MetaImageUpload
@@ -2035,7 +2039,7 @@ export default function Editor() {
                               aria-pressed={active}
                               onClick={() => set("entry_style", id)}
                               className={`flex flex-col gap-2 rounded-xl border p-2 text-xs font-semibold transition cursor-pointer ${
-                                active ? "bg-[hsl(272,24%,46%)] border-[hsl(272,24%,46%)] text-white" : "border-[#3f3f46]/40 bg-[#09090b] text-zinc-300 hover:border-white/30"
+                                active ? "bg-[#3f62e2] border-[#3f62e2] text-white" : "border-[#2a2a2e] bg-[#09090b] text-zinc-300 hover:border-white/30"
                               }`}
                             >
                               <EntryStyleThumb id={id} accent={accentColor} />
@@ -2078,7 +2082,7 @@ export default function Editor() {
                         onChange={(e) => set("entry_text", e.target.value)}
                         maxLength={60}
                         placeholder="Click to enter"
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-[#09090b] border border-[#3f3f46]/40 text-xs text-white outline-none focus:border-[hsl(272,24%,46%)]"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs text-white outline-none focus:border-[#3f62e2]"
                       />
                     </div>
 
@@ -2089,14 +2093,14 @@ export default function Editor() {
                         </label>
                         <div className="flex items-center gap-2.5">
                           {p.entry_image ? (
-                            <img src={fileUrl(p.entry_image)} alt="" className="h-10 w-10 rounded-xl object-contain bg-black/40 border border-[#3f3f46]/40 p-1" />
+                            <img src={fileUrl(p.entry_image)} alt="" className="h-10 w-10 rounded-xl object-contain bg-black/40 border border-[#2a2a2e] p-1" />
                           ) : null}
                           <input
                             type="text"
                             value={p.entry_image || ""}
                             onChange={(e) => set("entry_image", e.target.value)}
                             placeholder="Paste image URL (or image path)"
-                            className="flex-1 px-3.5 py-2.5 rounded-xl bg-[#09090b] border border-[#3f3f46]/40 text-xs text-white outline-none focus:border-[hsl(272,24%,46%)]"
+                            className="flex-1 px-3.5 py-2.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs text-white outline-none focus:border-[#3f62e2]"
                           />
                         </div>
                       </div>
@@ -2137,8 +2141,8 @@ export default function Editor() {
                             onClick={() => set("entry_blur", b.id)}
                             className={`px-2 py-1.5 rounded-lg text-xs font-semibold border transition cursor-pointer ${
                               (p.entry_blur || "16px") === b.id
-                                ? "border-[hsl(272,24%,46%)] bg-[hsl(272,24%,46%)] text-white"
-                                : "border-[#3f3f46]/40 bg-[#09090b] text-zinc-300 hover:border-white/30"
+                                ? "border-[#3f62e2] bg-[#3f62e2] text-white"
+                                : "border-[#2a2a2e] bg-[#09090b] text-zinc-300 hover:border-white/30"
                             }`}
                           >
                             {b.label}
@@ -2161,7 +2165,7 @@ export default function Editor() {
                 testid="text-effects-modal"
                 footer={
                   <div className="flex justify-end">
-                    <button type="button" onClick={() => setShowTextEffectsModal(false)} className="px-4 py-2 text-xs bg-[hsl(272,24%,46%)] text-white font-bold rounded-xl">
+                    <button type="button" onClick={() => setShowTextEffectsModal(false)} className="px-4 py-2 text-xs bg-[#3f62e2] text-white font-bold rounded-xl">
                       Done
                     </button>
                   </div>
@@ -2169,7 +2173,7 @@ export default function Editor() {
               >
                 <div className="space-y-6">
                   {/* Scope Selector Tabs */}
-                  <div className="flex items-center gap-2 p-1 rounded-xl bg-[#09090b] border border-[#3f3f46]/40">
+                  <div className="flex items-center gap-2 p-1 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e]">
                     {[
                       { id: "name", label: "Display Name" },
                       { id: "alias", label: "Alias / Username" },
@@ -2180,7 +2184,7 @@ export default function Editor() {
                         type="button"
                         onClick={() => setActiveTextSlot(tab.id)}
                         className={`flex-1 py-2 text-xs font-bold rounded-lg transition ${
-                          activeTextSlot === tab.id ? "bg-[hsl(272,24%,46%)] text-white shadow-sm" : "text-zinc-400 hover:text-white"
+                          activeTextSlot === tab.id ? "bg-[#3f62e2] text-white shadow-sm" : "text-zinc-400 hover:text-white"
                         }`}
                       >
                         {tab.label}
@@ -2189,7 +2193,7 @@ export default function Editor() {
                   </div>
 
                   {/* Active Slot Toggle & Current Selection */}
-                  <div className="p-4 rounded-xl border border-[#3f3f46]/40 bg-[#111111] flex items-center justify-between">
+                  <div className="p-4 rounded-xl border border-[#2a2a2e] bg-[#111111] flex items-center justify-between">
                     <div>
                       <div className="text-xs font-bold text-white capitalize">
                         {activeTextSlot === "name" ? "Display Name" : activeTextSlot === "alias" ? "Alias (@handle)" : "Bio Text"} Effect
@@ -2242,8 +2246,8 @@ export default function Editor() {
                           }}
                           className={`p-3 rounded-xl border text-left transition flex flex-col gap-1.5 ${
                             active
-                              ? "border-[hsl(272,24%,46%)] bg-[hsl(272,24%,46%)] text-white shadow-sm"
-                              : "border-[#3f3f46]/40 bg-[#09090b] text-zinc-300 hover:border-white/30"
+                              ? "border-[#3f62e2] bg-[#3f62e2] text-white shadow-sm"
+                              : "border-[#2a2a2e] bg-[#09090b] text-zinc-300 hover:border-white/30"
                           }`}
                         >
                           <div className="flex items-center justify-between text-xs font-bold">
@@ -2275,7 +2279,7 @@ export default function Editor() {
                 testid="overlay-effects-modal"
                 footer={
                   <div className="flex justify-end">
-                    <button type="button" onClick={() => setShowOverlayEffectsModal(false)} className="px-4 py-2 text-xs bg-[hsl(272,24%,46%)] text-white font-bold rounded-xl">
+                    <button type="button" onClick={() => setShowOverlayEffectsModal(false)} className="px-4 py-2 text-xs bg-[#3f62e2] text-white font-bold rounded-xl">
                       Done
                     </button>
                   </div>
@@ -2299,8 +2303,8 @@ export default function Editor() {
                         }}
                         className={`p-3.5 rounded-xl border text-left transition flex flex-col gap-1.5 ${
                           active
-                            ? "border-[hsl(272,24%,46%)] bg-[hsl(272,24%,46%)] text-white shadow-sm"
-                            : "border-[#3f3f46]/40 bg-[#09090b] text-zinc-300 hover:border-white/30"
+                            ? "border-[#3f62e2] bg-[#3f62e2] text-white shadow-sm"
+                            : "border-[#2a2a2e] bg-[#09090b] text-zinc-300 hover:border-white/30"
                         }`}
                       >
                         <div className="flex items-center justify-between text-xs font-bold">
@@ -2324,7 +2328,7 @@ export default function Editor() {
                 testid="bg-effects-modal"
                 footer={
                   <div className="flex justify-end">
-                    <button type="button" onClick={() => setShowBgEffectsModal(false)} className="px-4 py-2 text-xs bg-[hsl(272,24%,46%)] text-white font-bold rounded-xl">
+                    <button type="button" onClick={() => setShowBgEffectsModal(false)} className="px-4 py-2 text-xs bg-[#3f62e2] text-white font-bold rounded-xl">
                       Done
                     </button>
                   </div>
@@ -2348,8 +2352,8 @@ export default function Editor() {
                         }}
                         className={`p-3.5 rounded-xl border text-left transition flex flex-col gap-1.5 ${
                           active
-                            ? "border-[hsl(272,24%,46%)] bg-[hsl(272,24%,46%)] text-white shadow-sm"
-                            : "border-[#3f3f46]/40 bg-[#09090b] text-zinc-300 hover:border-white/30"
+                            ? "border-[#3f62e2] bg-[#3f62e2] text-white shadow-sm"
+                            : "border-[#2a2a2e] bg-[#09090b] text-zinc-300 hover:border-white/30"
                         }`}
                       >
                         <div className="flex items-center justify-between text-xs font-bold">
@@ -2373,7 +2377,7 @@ export default function Editor() {
                 testid="cursor-effects-modal"
                 footer={
                   <div className="flex justify-end">
-                    <button type="button" onClick={() => setShowCursorEffectsModal(false)} className="px-4 py-2 text-xs bg-[hsl(272,24%,46%)] text-white font-bold rounded-xl">
+                    <button type="button" onClick={() => setShowCursorEffectsModal(false)} className="px-4 py-2 text-xs bg-[#3f62e2] text-white font-bold rounded-xl">
                       Done
                     </button>
                   </div>
@@ -2397,8 +2401,8 @@ export default function Editor() {
                         }}
                         className={`p-3.5 rounded-xl border text-left transition flex flex-col gap-1.5 ${
                           active
-                            ? "border-[hsl(272,24%,46%)] bg-[hsl(272,24%,46%)] text-white shadow-sm"
-                            : "border-[#3f3f46]/40 bg-[#09090b] text-zinc-300 hover:border-white/30"
+                            ? "border-[#3f62e2] bg-[#3f62e2] text-white shadow-sm"
+                            : "border-[#2a2a2e] bg-[#09090b] text-zinc-300 hover:border-white/30"
                         }`}
                       >
                         <div className="flex items-center justify-between text-xs font-bold">
@@ -2426,9 +2430,9 @@ export default function Editor() {
                   navigate={navigate}
                 />
 
-                <div className="space-y-3 pt-3 border-t border-[#3f3f46]/30">
+                <div className="space-y-3 pt-3 border-t border-[#1f1f1f]">
                   <div className="text-xs font-bold uppercase tracking-wider text-zinc-300">Layout Section Ordering</div>
-                  <div className="p-4 rounded-xl border border-[#3f3f46]/40 bg-[#09090b] text-xs text-zinc-400">
+                  <div className="p-4 rounded-xl border border-[#2a2a2e] bg-[#09090b] text-xs text-zinc-400">
                     The chosen layout ({LAYOUT_MAP[p.layout || DEFAULT_LAYOUT]?.label || "Minimal"}) determines the placement of your header, avatar, links and widgets.
                   </div>
                 </div>
@@ -2441,7 +2445,7 @@ export default function Editor() {
             onClick={save}
             disabled={saving}
             data-testid="editor-save"
-            className="w-full py-4 rounded-2xl bg-[hsl(272,24%,46%)] text-white font-bold text-sm hover:brightness-110 transition disabled:opacity-50 flex items-center justify-center gap-2 shadow-[0_0_25px_hsla(272,24%,46%,0.3)] cursor-pointer"
+            className="w-full py-4 rounded-2xl bg-[#3f62e2] text-white font-bold text-sm hover:brightness-110 transition disabled:opacity-50 flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(63,98,226,0.3)] cursor-pointer"
           >
             {saving ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -2457,7 +2461,7 @@ export default function Editor() {
         {/* Live Preview Column */}
         <div className="lg:sticky lg:top-24 self-start space-y-2.5">
           <div className="text-xs font-mono2 uppercase tracking-wider text-zinc-400 font-bold">Real-time Profile Preview</div>
-          <div className="overflow-hidden rounded-2xl border border-[#3f3f46]/40 bg-[#111111] shadow-2xl">
+          <div className="overflow-hidden rounded-2xl border border-[#2a2a2e] bg-[#111111] shadow-2xl">
             <LivePreviewCard user={user} profile={p} displayName={displayName} tuning={fxTuning} />
           </div>
         </div>

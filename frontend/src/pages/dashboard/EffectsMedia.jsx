@@ -170,7 +170,7 @@ export default function EffectsMedia() {
                   data-testid={`effects-tab-${t.id}`}
                   className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer shrink-0 ${
                     active
-                      ? "bg-brand-500/20 text-brand-200 border border-brand-500/40 shadow-[0_0_15px_rgba(164,141,244,0.15)]"
+                      ? "bg-brand-500/20 text-brand-200 border border-brand-500/40 shadow-[0_0_15px_rgba(63,98,226,0.15)]"
                       : "bg-white/[0.03] text-zinc-400 hover:text-zinc-200 border border-white/5 hover:bg-white/[0.06]"
                   }`}
                 >
