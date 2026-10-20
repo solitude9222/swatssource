@@ -165,28 +165,26 @@ function cardStyles(p) {
 
 // Helper to construct custom audio player card styling from profile settings
 const buildAudioCardStyle = (p = {}, accent = "#A48DF4") => {
-  const bgColor = p.audio_bg_color || "";
-  const bgOpacity = Number.isFinite(Number(p.audio_bg_opacity)) ? Number(p.audio_bg_opacity) : 0.85;
-  const bgBlur = Number.isFinite(Number(p.audio_bg_blur)) ? Number(p.audio_bg_blur) : 20;
+  const bgColor = p.audio_bg_color || "#ffffff";
+  const bgOpacity = Number.isFinite(Number(p.audio_bg_opacity)) ? Number(p.audio_bg_opacity) : 0.00;
+  const bgBlur = Number.isFinite(Number(p.audio_bg_blur)) ? Number(p.audio_bg_blur) : 11;
 
-  const borderColor = p.audio_border_color || accent;
-  const borderWidth = Number.isFinite(Number(p.audio_border_width)) ? Number(p.audio_border_width) : 1;
-  const borderOpacity = Number.isFinite(Number(p.audio_border_opacity)) ? Number(p.audio_border_opacity) : 0.25;
+  const borderColor = p.audio_border_color || "#ffffff";
+  const borderWidth = Number.isFinite(Number(p.audio_border_width)) ? Number(p.audio_border_width) : 0;
+  const borderOpacity = Number.isFinite(Number(p.audio_border_opacity)) ? Number(p.audio_border_opacity) : 0.13;
 
   const glowEnabled = p.audio_glow !== false;
   const glowColor = p.audio_glow_color || accent;
   const glowSpread = Number.isFinite(Number(p.audio_glow_spread)) ? Number(p.audio_glow_spread) : 25;
 
   let bg;
-  if (bgColor) {
-    if (bgColor.startsWith("#") && (bgColor.length === 7 || bgColor.length === 9)) {
-      const alphaHex = Math.round(bgOpacity * 255).toString(16).padStart(2, "0");
-      bg = `${bgColor.slice(0, 7)}${alphaHex}`;
-    } else {
-      bg = bgColor;
-    }
+  if (bgColor.startsWith("#") && (bgColor.length === 7 || bgColor.length === 9)) {
+    const alphaHex = Math.round(bgOpacity * 255).toString(16).padStart(2, "0");
+    bg = `${bgColor.slice(0, 7)}${alphaHex}`;
+  } else if (bgColor) {
+    bg = bgColor;
   } else {
-    bg = `linear-gradient(135deg, rgba(22, 20, 32, ${bgOpacity}), rgba(10, 10, 16, ${Math.min(1, bgOpacity + 0.1)}))`;
+    bg = `rgba(255, 255, 255, ${bgOpacity})`;
   }
 
   let borderRgba;
@@ -216,7 +214,7 @@ const buildAudioCardStyle = (p = {}, accent = "#A48DF4") => {
   };
 };
 
-// Vertical hover volume loudness slider with popover draggable line
+// Sleek capsule volume slider HUD matching the user's reference image
 function VolumeHoverSlider({ muted, setMuted, visitorVolume, handleVolumeChange, accent }) {
   const [isDragging, setIsDragging] = useState(false);
   const trackRef = useRef(null);
@@ -224,9 +222,9 @@ function VolumeHoverSlider({ muted, setMuted, visitorVolume, handleVolumeChange,
   const calculateVolumeFromEvent = (e) => {
     if (!trackRef.current) return;
     const rect = trackRef.current.getBoundingClientRect();
-    const offsetY = e.clientY - rect.top;
-    const clampedY = Math.max(0, Math.min(rect.height, offsetY));
-    const pct = 1 - (clampedY / rect.height);
+    const offsetX = e.clientX - rect.left;
+    const clampedX = Math.max(0, Math.min(rect.width, offsetX));
+    const pct = clampedX / rect.width;
     handleVolumeChange(pct);
   };
 
@@ -253,11 +251,9 @@ function VolumeHoverSlider({ muted, setMuted, visitorVolume, handleVolumeChange,
 
   return (
     <div className="relative group/vol flex items-center justify-center">
-      {/* Draggable vertical loudness slider popover line displayed above on hover */}
-      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2.5 opacity-0 pointer-events-none group-hover/vol:opacity-100 group-hover/vol:pointer-events-auto flex flex-col items-center p-2.5 py-3 rounded-2xl bg-black/95 border border-white/15 shadow-[0_12px_35px_rgba(0,0,0,0.9)] backdrop-blur-2xl z-50 transition-all duration-200">
-        <span className="text-[10px] font-mono2 text-zinc-300 font-bold mb-2 tabular-nums">
-          {Math.round(pct)}%
-        </span>
+      {/* Sleek Dynamic Island / Pill Volume HUD popover on hover */}
+      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2.5 opacity-0 pointer-events-none group-hover/vol:opacity-100 group-hover/vol:pointer-events-auto flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-black/95 border border-white/20 shadow-[0_10px_35px_rgba(0,0,0,0.95)] z-50 transition-all duration-200">
+        <Volume2 className="w-3.5 h-3.5 text-white shrink-0 fill-white" />
         <div
           ref={trackRef}
           data-testid="audio-volume-slider"
@@ -270,14 +266,11 @@ function VolumeHoverSlider({ muted, setMuted, visitorVolume, handleVolumeChange,
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
           onClick={calculateVolumeFromEvent}
-          className="relative h-20 w-2.5 cursor-pointer rounded-full bg-white/15 touch-none overflow-hidden"
+          className="relative h-2 w-24 cursor-pointer rounded-full bg-zinc-700/80 overflow-hidden select-none touch-none"
         >
           <div
-            className="absolute bottom-0 left-0 right-0 rounded-full transition-all duration-75"
-            style={{
-              height: `${pct}%`,
-              background: `linear-gradient(180deg, #c084fc, ${accent})`,
-            }}
+            className="h-full rounded-full bg-white transition-all duration-75"
+            style={{ width: `${pct}%` }}
           />
         </div>
       </div>
@@ -804,11 +797,11 @@ function TrackCardPreview({ track, style, accent, volume = 0.8, onTime, autoPlay
 
   // ---------- LYRICS ----------
   // Album cover on left center, title on top center scrolling if too big, timeline of song below,
-  // middle center mute with hover vertical loudness slider line, right skip + play/pause, lyrics window below
+  // middle center mute with hover loudness slider HUD, right skip + play/pause, lyrics window below
   if (chrome === "lyrics") {
-    const rawLyrics = track.lyrics || (typeof track.desc === "string" ? track.desc : "") || "♪ Listening to music on swats.bio ♪\n♪ High fidelity audio experience ♪\n♪ Smooth playback enabled ♪";
-    const lyricLines = rawLyrics.split("\n").filter(Boolean);
-    const activeLineIdx = Math.min(lyricLines.length - 1, Math.floor((progress / 100) * lyricLines.length));
+    const rawLyrics = track.lyrics || (typeof track.desc === "string" ? track.desc : "") || "";
+    const lyricLines = rawLyrics ? rawLyrics.split("\n").map((l) => l.trim()).filter(Boolean) : [];
+    const activeLineIdx = lyricLines.length > 0 ? Math.min(lyricLines.length - 1, Math.floor((progress / 100) * lyricLines.length)) : -1;
 
     return (
       <div
@@ -898,31 +891,33 @@ function TrackCardPreview({ track, style, accent, volume = 0.8, onTime, autoPlay
           </div>
         </div>
 
-        {/* Real-time Lyrics window */}
-        <div
-          className="mt-3.5 max-h-28 overflow-y-auto space-y-1.5 rounded-xl bg-black/50 p-3 border border-white/5 text-center text-xs no-scrollbar"
-          style={{
-            maskImage: "linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)",
-            WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)",
-          }}
-        >
-          {lyricLines.map((line, idx) => {
-            const isCurrent = idx === activeLineIdx;
-            return (
-              <div
-                key={idx}
-                className={`transition-all duration-300 px-2 py-0.5 rounded-lg ${
-                  isCurrent
-                    ? "font-extrabold text-sm scale-[1.03] bg-white/[0.04]"
-                    : "text-zinc-500 text-[11px] opacity-70"
-                }`}
-                style={isCurrent ? { color: accent, textShadow: `0 0 14px ${accent}88` } : undefined}
-              >
-                {line}
-              </div>
-            );
-          })}
-        </div>
+        {/* Real-time Lyrics window - only rendered when real lyrics exist */}
+        {lyricLines.length > 0 && (
+          <div
+            className="mt-3.5 max-h-28 overflow-y-auto space-y-1.5 rounded-xl bg-black/50 p-3 border border-white/5 text-center text-xs no-scrollbar"
+            style={{
+              maskImage: "linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)",
+              WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)",
+            }}
+          >
+            {lyricLines.map((line, idx) => {
+              const isCurrent = idx === activeLineIdx;
+              return (
+                <div
+                  key={idx}
+                  className={`transition-all duration-300 px-2 py-0.5 rounded-lg ${
+                    isCurrent
+                      ? "font-extrabold text-sm scale-[1.03] bg-white/[0.04]"
+                      : "text-zinc-500 text-[11px] opacity-70"
+                  }`}
+                  style={isCurrent ? { color: accent, textShadow: `0 0 14px ${accent}88` } : undefined}
+                >
+                  {line}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     );
   }
@@ -2597,7 +2592,7 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
 
             <BioBlock />
             <LinksBlock links={links} align="center" />
-            <WidgetsBlock pill />
+            <WidgetsBlock />
             <AudioBlock />
 
             <div className="mt-2 border-t border-white/10 pt-3.5">

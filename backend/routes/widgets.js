@@ -375,7 +375,17 @@ function discordIcon(guild) {
   return guild?.icon ? `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png?size=256` : null;
 }
 function discordBanner(guild) {
-  return guild?.banner ? `https://cdn.discordapp.com/banners/${guild.id}/${guild.banner}.png?size=600` : null;
+  if (guild?.banner) {
+    const ext = guild.banner.startsWith('a_') ? 'gif' : 'png';
+    return `https://cdn.discordapp.com/banners/${guild.id}/${guild.banner}.${ext}?size=1024`;
+  }
+  if (guild?.splash) {
+    return `https://cdn.discordapp.com/splashes/${guild.id}/${guild.splash}.png?size=1024`;
+  }
+  if (guild?.discovery_splash) {
+    return `https://cdn.discordapp.com/discovery-splashes/${guild.id}/${guild.discovery_splash}.png?size=1024`;
+  }
+  return null;
 }
 
 router.get('/discord/server', async (req, res) => {
@@ -478,7 +488,7 @@ router.get('/discord/server', async (req, res) => {
         id: data.id,
         name: preview?.name || data.name,
         icon: preview?.icon ? discordIcon({ id: preview.id || data.id, icon: preview.icon }) : null,
-        banner: null,
+        banner: preview ? discordBanner(preview) : null,
         description: preview?.description || null,
         online,
         total_members: total,
@@ -520,12 +530,20 @@ router.get('/discord/profile', async (req, res) => {
       const u = d.discord_user;
       const avatar = discordAvatar(u.id, u.avatar);
       const activity = (d.activities || []).find((a) => a.type !== 3) || null;
+      let banner = null;
+      if (u.banner) {
+        const ext = u.banner.startsWith('a_') ? 'gif' : 'png';
+        banner = `https://cdn.discordapp.com/banners/${u.id}/${u.banner}.${ext}?size=1024`;
+      }
       return {
         kind: 'profile',
         id: u.id,
         username: u.username,
         global_name: u.global_name || u.username,
         avatar,
+        banner,
+        banner_color: u.banner_color || null,
+        accent_color: u.accent_color != null ? `#${u.accent_color.toString(16).padStart(6, '0')}` : null,
         status: d.discord_status || 'offline',
         custom_status: (d.activities || []).find((a) => a.type === 4)?.state || null,
         activity: activity

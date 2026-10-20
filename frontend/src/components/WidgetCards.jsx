@@ -1067,9 +1067,17 @@ function DiscordProfile({ w, accent, data, status, error, refresh }) {
 
   // Official Discord client popout style
   if (style === "discord") {
+    const bannerUrl = data.banner || "";
     return (
       <div className="-m-4 overflow-hidden rounded-2xl" style={{ background: DC.panel }} data-testid="discord-profile-style">
-        <div className="h-14" style={{ background: `linear-gradient(120deg, ${DC.blurple}, #8C71E8)` }} />
+        <div
+          className="h-16 w-full bg-cover bg-center relative"
+          style={{
+            backgroundImage: bannerUrl ? `url(${bannerUrl})` : undefined,
+            backgroundColor: data.banner_color || DC.blurple,
+            background: !bannerUrl && !data.banner_color ? `linear-gradient(120deg, ${DC.blurple}, #8C71E8)` : undefined,
+          }}
+        />
         <div className="px-3 pb-3">
           <span className="relative -mt-7 mb-1 inline-block">
             <span className="block rounded-full border-4" style={{ borderColor: DC.panel }}>
@@ -1256,6 +1264,12 @@ function DiscordServer({ w, accent, data, status, error, refresh }) {
   // Classic: Authentic Discord Invite Preview (Rich card matching Studio design)
   return (
     <div className="relative flex flex-col gap-2.5 py-1">
+      {bannerSrc && (
+        <div className="relative -mx-3.5 -mt-2.5 mb-2 h-20 overflow-hidden rounded-xl border border-white/10 shadow-inner">
+          <img src={bannerSrc} alt="" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0c0d12] via-transparent to-black/30" />
+        </div>
+      )}
       {/* Top Header Row with Platform Badge */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
