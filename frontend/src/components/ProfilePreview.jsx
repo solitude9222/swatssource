@@ -1297,7 +1297,11 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
   const accent = p.accent_color || "#A48DF4";
   const theme = p.theme_color || "#A48DF4";
   const links = p.links || [];
-  const widgets = p.widgets || [];
+  const widgets = Array.isArray(p.widgets)
+    ? p.widgets
+    : typeof p.widgets === "string"
+      ? (() => { try { const parsed = JSON.parse(p.widgets); return Array.isArray(parsed) ? parsed : []; } catch { return []; } })()
+      : [];
   const nameColor = p.name_color || "#ffffff";
   const aliasColor = p.alias_color || accent;
   const bioColor = p.bio_color || "#d4d4d8";

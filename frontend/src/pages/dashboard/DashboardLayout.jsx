@@ -163,7 +163,7 @@ function NavGroup({ group, open, onToggle, containsActive }) {
             <Icon className="h-3.5 w-3.5" />
           </span>
         )}
-        <span className="font-mono2 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 transition-colors duration-200 group-hover:text-zinc-200">
+        <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 transition-colors duration-200 group-hover:text-zinc-200">
           {group.label}
         </span>
         {containsActive && !open && <span className="h-1.5 w-1.5 rounded-full bg-brand-400 animate-pulse" />}
@@ -799,7 +799,7 @@ export default function DashboardLayout() {
           ))}
         </div>
 
-        <main id="dashboard-main" className="mx-auto w-full flex-1 p-5 sm:p-8">
+        <main id="dashboard-main" className="mx-auto w-full flex-1 min-w-0 p-5 sm:p-8">
           <Outlet />
         </main>
       </div>

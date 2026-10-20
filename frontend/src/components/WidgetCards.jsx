@@ -1663,7 +1663,7 @@ export function WidgetCard({ w, accent = "#A48DF4", ownerCreated, owner = "", pr
   }
 
   if (type === "discord") {
-    const isProfile = sub === "profile";
+    const isProfile = sub === "profile" || sub === "bot";
     const title = isProfile ? "Discord Presence Preview" : "Discord Invite Preview";
     return (
       <WidgetShell w={w} accent={accent} data={data} headerTitle={w.title || title} HeaderIcon={FaDiscord}>

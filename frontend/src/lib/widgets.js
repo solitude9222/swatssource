@@ -137,7 +137,7 @@ function baseWidgetRequest(w) {
   }
 
   if (type === "discord") {
-    if (sub === "profile") {
+    if (sub === "profile" || sub === "bot") {
       const id = digits(w.user_id || w.username || w.value);
       if (!id) return null;
       return { path: "/widgets/discord/profile", params: { id }, ttl: LIVE_TTL };

@@ -927,7 +927,7 @@ export default function Editor() {
         ))}
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-[1fr_440px]">
+      <div className="grid gap-8 xl:grid-cols-[1fr_420px] 2xl:grid-cols-[1fr_450px]">
         {/* Controls Column */}
         <div className="space-y-5">
           {sub === "profile" && (

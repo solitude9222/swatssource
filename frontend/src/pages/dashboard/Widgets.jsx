@@ -363,7 +363,7 @@ const blankWidget = (kind) => ({
   platform_badge: true,
   show_subtitle: true,
   stats_row: true,
-  invite_url: kind.id === "discord" ? "discord.gg/achern" : "",
+  invite_url: "",
   username: "",
   value: "",
 });
@@ -641,16 +641,35 @@ export default function Widgets() {
     setEditingWidget((prev) => (prev ? { ...prev, widget: { ...prev.widget, ...patch } } : prev));
   };
 
-  const saveWidgetEdit = () => {
+  const saveWidgetEdit = async () => {
     if (!editingWidget) return;
     const { isNew, index, widget } = editingWidget;
-    if (isNew) {
-      setWidgets([...widgets, widget]);
-    } else {
-      setWidgets(widgets.map((w, idx) => (idx === index ? widget : w)));
-    }
+    const next = isNew
+      ? [...widgets, widget]
+      : widgets.map((w, idx) => (idx === index ? widget : w));
+    setWidgets(next);
     setEditingWidget(null);
-    toast.success("Widget applied to draft — remember to save");
+    try {
+      const { data } = await api.put("/me/profile", {
+        widgets: next,
+        widget_border_width: borderWidth,
+        widget_border_opacity: borderOpacity,
+        widget_border_color: borderColor,
+        widget_bg_color: bgColor,
+        widget_bg_opacity: bgOpacity,
+        widget_bg_blur: bgBlur,
+        tracks,
+        track_style: trackStyle,
+        track_shuffle: shuffle,
+        track_volume: volume,
+        track_position: trackPosition,
+      });
+      setUser(data);
+      baseline.current = snapshot(next, currentShared, tracks, trackStyle, shuffle, volume, trackPosition);
+      toast.success("Widget saved to profile!");
+    } catch {
+      toast.success("Widget applied to draft — remember to save");
+    }
   };
 
   const moveWidget = (from, to) => {
@@ -809,29 +828,71 @@ export default function Widgets() {
 
           {/* Tailored fields for each widget */}
           {isDiscord ? (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="sm:col-span-2 space-y-1.5">
-                <label className="text-xs font-semibold text-zinc-200">Server Invite</label>
-                <input
-                  type="text"
-                  value={editingWidget.widget.invite_url || ""}
-                  onChange={(e) => patchEditingWidget({ invite_url: e.target.value })}
-                  placeholder="discord.gg/achern"
-                  className="w-full px-4 py-2.5 rounded-xl bg-black/50 border border-white/10 text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-brand-500/60"
-                />
-              </div>
+            <div className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-zinc-200">Type</label>
-                <SmartSelect
-                  value={editingWidget.widget.subtype || "server"}
-                  onChange={(val) => patchEditingWidget({ subtype: val })}
-                  options={[
-                    { value: "server", label: "server" },
-                    { value: "profile", label: "profile" },
-                    { value: "bot", label: "bot" },
-                  ]}
-                />
+                <label className="text-xs font-semibold text-zinc-200">Widget Mode</label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { id: "server", label: "Server" },
+                    { id: "profile", label: "User Profile" },
+                    { id: "bot", label: "Bot Presence" },
+                  ].map((st) => (
+                    <button
+                      key={st.id}
+                      type="button"
+                      onClick={() => patchEditingWidget({ subtype: st.id })}
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition cursor-pointer ${
+                        (editingWidget.widget.subtype || "server") === st.id
+                          ? "bg-brand-500/20 border-brand-500/50 text-brand-200"
+                          : "bg-white/[0.03] border-white/10 text-zinc-400 hover:text-white"
+                      }`}
+                    >
+                      {st.label}
+                    </button>
+                  ))}
+                </div>
               </div>
+
+              {(editingWidget.widget.subtype === "profile" || editingWidget.widget.subtype === "bot") ? (
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-zinc-200">Discord User ID</label>
+                  <input
+                    type="text"
+                    value={editingWidget.widget.user_id || editingWidget.widget.username || ""}
+                    onChange={(e) => patchEditingWidget({ user_id: e.target.value, username: e.target.value })}
+                    placeholder="e.g. 94490510688792576"
+                    className="w-full px-4 py-2.5 rounded-xl bg-black/50 border border-white/10 text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-brand-500/60"
+                  />
+                  <p className="text-[11px] text-zinc-500">
+                    Your numeric Discord user ID. Right-click your profile in Discord with Developer Mode on and select "Copy User ID".
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-zinc-200">Server Invite</label>
+                    <input
+                      type="text"
+                      value={editingWidget.widget.invite_url || ""}
+                      onChange={(e) => patchEditingWidget({ invite_url: e.target.value })}
+                      placeholder="discord.gg/yourinvite"
+                      className="w-full px-4 py-2.5 rounded-xl bg-black/50 border border-white/10 text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-brand-500/60"
+                    />
+                    <p className="text-[11px] text-zinc-500">The invite link or code (e.g. discord.gg/achern).</p>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-zinc-200">Server ID (Optional)</label>
+                    <input
+                      type="text"
+                      value={editingWidget.widget.server_id || ""}
+                      onChange={(e) => patchEditingWidget({ server_id: e.target.value })}
+                      placeholder="e.g. 613712999795015681"
+                      className="w-full px-4 py-2.5 rounded-xl bg-black/50 border border-white/10 text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-brand-500/60"
+                    />
+                    <p className="text-[11px] text-zinc-500">Pairs with the public Discord widget when enabled.</p>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="space-y-4">
@@ -1439,7 +1500,7 @@ export default function Widgets() {
 
                 {/* Title & subtitle */}
                 <div>
-                  <div className="text-sm font-bold text-white">cops.bio</div>
+                  <div className="text-sm font-bold text-white">swats.bio</div>
                   <div className="text-xs text-zinc-400 mt-0.5 line-clamp-2">
                     The modern solution for your personal biolink website. Simple, fast, and fully customizable.
                   </div>
