@@ -4,21 +4,22 @@ import { api, fileUrl } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { BADGE_CATALOG, badgeMeta } from "@/constants/badges";
 import { BadgeChip } from "@/components/BadgeChip";
-import { Paintbrush, Check, Lock, Plus, X, Shield, Upload, Eye, EyeOff, Loader2, Search } from "lucide-react";
+import {
+  Paintbrush, Check, Lock, Plus, X, Shield, Upload, Eye, EyeOff,
+  Loader2, Search, Info, HelpCircle, ArrowLeft, ArrowRight, GripVertical, Sparkles,
+} from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { toast } from "@/lib/notify";
 import { useEditGate } from "@/hooks/useEditGate";
 import { Switch } from "@/components/ui/switch";
 import { ColorPicker } from "@/components/ColorPicker";
 import { SmartSelect } from "@/components/ui-shared/SmartSelect";
-import { PageHeader, EmptyState } from "@/components/ui-shared/PageUI";
+import { EmptyState } from "@/components/ui-shared/PageUI";
 import { PremiumGate } from "@/components/ui-shared/PremiumGate";
 
-/* A faithful preview of the profile card's badge row, driven by the same
-   settings the card reads, so a change is visible here before it is saved. */
 function BadgePreviewRow({ ids, glowColor = "", glowIntensity = 60, glow = true, overlay = false, overlayColor = "", overlayStrength = 60 }) {
   return (
-    <div className="flex flex-wrap items-center justify-center gap-1.5">
+    <div className="flex flex-wrap items-center justify-center gap-2">
       {ids.map((id) => (
         <BadgeChip
           key={id}
@@ -41,33 +42,27 @@ export default function Badges() {
   const [catalog, setCatalog] = useState(BADGE_CATALOG);
   const [showPaintModal, setShowPaintModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  // Set to the feature name when a premium-only action is attempted, which pops
-  // the upsell dialog instead of navigating away from the page.
   const [premiumFeature, setPremiumFeature] = useState(null);
   const [iconUploading, setIconUploading] = useState(false);
 
-  // Custom Badge Form State
   const [customBadge, setCustomBadge] = useState({
     name: "",
     desc: "",
     icon_url: "",
-    color: "#A48DF4",
-    glow: "#A48DF466",
+    color: "#74578c",
+    glow: "hsla(272, 24%, 46%, 0.4)",
   });
 
   const [paintSettings, setPaintSettings] = useState({
     glow: user?.profile?.badge_glow !== false,
-    glow_color: user?.profile?.badge_glow_color || "#A48DF4",
+    glow_color: user?.profile?.badge_glow_color || user?.profile?.accent_color || "#A48DF4",
     glow_intensity: user?.profile?.badge_glow_intensity ?? 60,
-    // The colour laid over every badge, and how much of it. Off unless the owner
-    // turns it on: an overlay on by default would repaint everybody's badges.
     overlay: user?.profile?.badge_overlay === true,
-    overlay_color: user?.profile?.badge_overlay_color || "#A48DF4",
+    overlay_color: user?.profile?.badge_overlay_color || user?.profile?.accent_color || "#A48DF4",
     overlay_strength: user?.profile?.badge_overlay_strength ?? 60,
     badge_placement: user?.profile?.badge_placement || "next_to_name",
   });
 
-  // Whether the badges show on the card at all.
   const [showBadges, setShowBadges] = useState(user?.profile?.show_badges !== false);
 
   const [equippedList, setEquippedList] = useState(
@@ -82,18 +77,12 @@ export default function Badges() {
     api.get("/badges/catalog").then(({ data }) => { if (Array.isArray(data)) setCatalog(data); }).catch(() => {});
   }, []);
 
-  // Catalog names are better than raw ids ("bug_hunter" → "Bug Hunter").
-  // `badgeMeta`, not BADGE_META, so a seasonal badge (halloween_2026) resolves
-  // to its event's label and picture even though no registry lists that year.
   const nameOf = (id) => catalog.find((c) => c.id === id)?.name || badgeMeta(id)?.label || id.replace(/_/g, " ");
 
   const owned = new Set(user?.badges || []);
   const equippedSet = new Set(equippedList);
   const isPremium = user?.tier === "premium" || user?.tier === "admin" || user?.is_owner;
 
-  /* Two settings, both account-wide: how the row glows, and the colour laid over
-     the art. There is deliberately nothing per-badge and nothing that could put
-     a box behind a badge. */
   const globalChip = {
     glow: paintSettings.glow,
     glowColor: paintSettings.glow_color,
@@ -103,12 +92,6 @@ export default function Badges() {
     overlayStrength: paintSettings.overlay_strength,
   };
 
-  // Search + sort + filter for the catalog grid. "Owned first" is the default
-  // because the question a user actually has here is "what can I equip?".
-  /* Badges outside the platform catalogue — the Discord set — still belong to the
-     people who were granted them. They are added to the grid for those users, and
-     only for them, so a granted Discord badge can actually be equipped; a badge
-     nobody owns does not turn the grid into a wall of locked entries. */
   const gridCatalog = useMemo(() => {
     const known = new Set(catalog.map((c) => c.id));
     const extra = [...new Set([...(user?.badges || []), ...equippedList])]
@@ -163,11 +146,9 @@ export default function Badges() {
     }
   };
 
-  // Drag-to-reorder for the equipped badge strip. This order is exactly what the
-  // profile card renders, so it is persisted as soon as it changes.
   const reorderEquipped = async (from, to) => {
     if (gate.guard("reordering badges")) return;
-    if (from == null || from === to) return;
+    if (from == null || from === to || to < 0 || to >= equippedList.length) return;
     const next = [...equippedList];
     const [moved] = next.splice(from, 1);
     next.splice(to, 0, moved);
@@ -197,9 +178,6 @@ export default function Badges() {
     }
   };
 
-  /* The whole of badge styling: the glow, and the colour over the art. A save
-     also clears the keys the old customiser wrote, so a profile cannot keep
-     carrying a plate, a tint or a per-badge override that nothing reads. */
   const savePaintSettings = async () => {
     if (gate.guard("saving badge styling")) return;
     try {
@@ -213,8 +191,6 @@ export default function Badges() {
         badge_overlay_strength: paintSettings.overlay_strength,
         badge_placement: paintSettings.badge_placement || "next_to_name",
         show_badges: showBadges,
-        // Retired: plates, the old fixed wash, recolouring, thickness, size,
-        // one-pill, row overlap, and per-badge overrides.
         badge_style: "default",
         badge_size: "lg",
         badge_icon_weight: "normal",
@@ -238,322 +214,428 @@ export default function Badges() {
       const fd = new FormData();
       fd.append("file", file);
       fd.append("kind", "asset");
-      const { data } = await api.post("/upload", fd, { headers: { "Content-Type": "multipart/form-data" } });
-      setCustomBadge({ ...customBadge, icon_url: data.url });
-      toast.success("Custom badge icon uploaded!");
-    } catch {
-      toast.error("Icon upload failed");
+      const { data } = await api.post("/upload", fd, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      setCustomBadge((prev) => ({ ...prev, icon_url: data.url }));
+      toast.success("Badge icon uploaded!");
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Upload failed");
+    } finally {
+      setIconUploading(false);
     }
-    setIconUploading(false);
   };
 
   const handleCreateCustomBadge = async (e) => {
     e.preventDefault();
-    if (gate.guard("creating a badge")) return;
-    if (!customBadge.name.trim()) {
-      toast.error("Badge name is required");
+    if (gate.guard("creating custom badge")) return;
+    if (!customBadge.name || !customBadge.icon_url) {
+      toast.error("Badge title and icon are required");
       return;
     }
     try {
-      const newBadgeId = `custom_${customBadge.name.toLowerCase().replace(/[^a-z0-9_]/g, '_')}`;
-      const newBadges = [...(user.badges || []), newBadgeId];
-      const newEquipped = [...equippedList, newBadgeId];
-      const newCustomList = [...(user.profile?.custom_badges_data || []), { id: newBadgeId, ...customBadge }];
-
-      const { data } = await api.put("/me/profile", {
-        badges: newBadges,
-        equipped_badges: newEquipped,
-        custom_badges_data: newCustomList,
-      });
+      const nextBadges = [
+        ...(user.custom_badges || []),
+        {
+          id: `custom_${Date.now()}`,
+          name: customBadge.name,
+          desc: customBadge.desc,
+          icon: customBadge.icon_url,
+          color: customBadge.color,
+          glow: customBadge.glow,
+          created_at: new Date().toISOString(),
+        },
+      ];
+      const { data } = await api.put("/me/profile", { custom_badges: nextBadges });
       setUser(data);
-      setEquippedList(newEquipped);
-      toast.success(`Custom badge "${customBadge.name}" created & equipped!`);
+      toast.success("Custom badge created!");
       setShowCreateModal(false);
-      setCustomBadge({ name: "", desc: "", icon_url: "", color: "#A48DF4", glow: "#A48DF466" });
-    } catch {
-      toast.error("Failed to create custom badge");
+      setCustomBadge({
+        name: "",
+        desc: "",
+        icon_url: "",
+        color: "#74578c",
+        glow: "hsla(272, 24%, 46%, 0.4)",
+      });
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Failed to create badge");
     }
   };
 
+  const unlockedCount = owned.size;
+  const totalCount = gridCatalog.length;
+
   return (
-    <div className="w-full space-y-6 pb-32 text-left" data-testid="badges-page">
-      {/* Top Header */}
-      <div className="rounded-3xl border border-white/[0.08] bg-black/40 backdrop-blur-xl p-5 sm:p-7">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2.5">
-              <Shield className="h-6 w-6 text-brand-400" /> Badges &amp; Achievements
+    <div data-testid="badges-page" className="space-y-6 pb-24 text-left">
+      {/* Page Header */}
+      <div className="rounded-2xl border border-white/[0.08] bg-[#111111] p-5 sm:p-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between shadow-lg">
+        <div>
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[hsl(272,24%,46%)]/15 border border-[hsl(272,24%,46%)]/30 text-white">
+              <Shield className="h-4 w-4" />
+            </span>
+            <h1 className="text-xl font-bold tracking-tight text-white">
+              Badges
             </h1>
-            <p className="mt-1 text-xs text-zinc-400 max-w-xl leading-relaxed">
-              Earn badges through activity, get verified by staff, or craft custom badges with Premium.
+          </div>
+          <p className="mt-1 text-xs text-zinc-400">
+            Equip, organize, and inspect achievements displayed on your profile.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setShowPaintModal(true)}
+            data-testid="badge-style-open"
+            className="px-3.5 py-2 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.08] text-zinc-200 hover:text-white text-xs font-semibold flex items-center gap-2 transition cursor-pointer"
+            title="Badge Style"
+          >
+            <Paintbrush className="w-3.5 h-3.5 text-zinc-300" />
+            <span>Badge Style</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => (isPremium ? setShowCreateModal(true) : setPremiumFeature("Custom badges"))}
+            className="px-4 py-2 rounded-xl bg-[hsl(272,24%,46%)] hover:brightness-110 text-white text-xs font-bold flex items-center gap-2 transition shadow-md cursor-pointer"
+          >
+            {!isPremium && <Lock className="w-3 h-3 text-amber-300" />}
+            <Plus className="w-3.5 h-3.5" />
+            <span>Create Custom Badge</span>
+          </button>
+        </div>
+      </div>
+
+      {/* TOP SECTION: UNLOCKED BADGES (Section inside a Section with Organizing) */}
+      <section className="rounded-2xl border border-white/[0.08] bg-[#111111] p-5 sm:p-6 space-y-4 shadow-xl">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-white/[0.06]">
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-bold text-white uppercase tracking-wider">Unlocked Badges</h2>
+              <span className="px-2 py-0.5 rounded-full bg-[hsl(272,24%,46%)]/20 border border-[hsl(272,24%,46%)]/35 text-[10px] font-bold text-white font-mono">
+                {unlockedCount} / {totalCount}
+              </span>
+            </div>
+            <p className="text-xs text-zinc-400 mt-0.5">
+              Organize and prioritize your unlocked achievements on your profile card.
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5">
-            <button
-              onClick={() => setShowPaintModal(true)}
-              className="px-4 py-2.5 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.08] text-zinc-300 hover:text-white text-xs font-semibold flex items-center gap-2 transition cursor-pointer"
-              data-testid="badge-style-open"
-              title="Badge Style"
-            >
-              <Paintbrush className="w-4 h-4" /> Badge Style
-            </button>
-            <button
-              onClick={() => (isPremium ? setShowCreateModal(true) : setPremiumFeature("Custom badges"))}
-              className="px-5 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold flex items-center gap-2 transition shadow-lg shadow-brand-500/20 cursor-pointer"
-            >
-              {!isPremium && <Lock className="w-3.5 h-3.5 text-amber-400" />}
-              <Plus className="w-4 h-4" /> Create Custom Badge
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Catalog controls */}
-      <div className="flex flex-wrap items-center gap-2.5 p-3 rounded-2xl border border-white/[0.08] bg-black/40 backdrop-blur-xl">
-        <div className="relative min-w-[200px] flex-1">
-          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            data-testid="badges-search"
-            placeholder="Search badges…"
-            className="w-full rounded-xl border border-white/10 bg-black/50 py-2.5 pl-10 pr-3 text-xs font-medium text-white placeholder-zinc-500 outline-none transition focus:border-brand-500/60"
-          />
-        </div>
-
-        <div className="flex items-center gap-1 rounded-xl border border-white/10 bg-white/[0.02] p-1">
-          {[["all", "All"], ["owned", "Owned"], ["equipped", "Equipped"], ["locked", "Locked"]].map(([id, label]) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => setFilterBy(id)}
-              data-testid={`badges-filter-${id}`}
-              aria-pressed={filterBy === id}
-              className={`rounded-lg px-3 py-1.5 text-[11px] font-semibold transition cursor-pointer ${
-                filterBy === id ? "bg-brand-500/20 text-brand-200 border border-brand-500/30" : "text-zinc-400 hover:text-white"
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-
-        <SmartSelect
-          testid="badges-sort"
-          ariaLabel="Sort badges"
-          value={sortBy}
-          onChange={setSortBy}
-          options={[
-            { value: "owned", label: "Owned first" },
-            { value: "az", label: "A–Z" },
-            { value: "id", label: "Default order" },
-          ]}
-        />
-      </div>
-
-      {/* Live preview */}
-      <div className="rounded-3xl border border-white/[0.08] bg-black/40 backdrop-blur-xl p-5 sm:p-7 space-y-4" data-testid="badge-preview">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <h2 className="text-sm font-bold text-white tracking-tight uppercase">Live preview</h2>
-            <p className="text-xs text-zinc-400 mt-0.5">How visitors see your badges with active glow and overlay</p>
-          </div>
-        </div>
-
-        {(equippedList.length ? equippedList : (user?.badges || [])).length ? (
-          <div className="flex items-center justify-center rounded-2xl border border-white/5 bg-black/60 p-6">
-            <BadgePreviewRow
-              ids={equippedList.length ? equippedList : (user?.badges || [])}
-              glow={paintSettings.glow}
-              glowColor={paintSettings.glow_color}
-              glowIntensity={paintSettings.glow_intensity}
-              overlay={paintSettings.overlay}
-              overlayColor={paintSettings.overlay_color}
-              overlayStrength={paintSettings.overlay_strength}
-            />
-          </div>
-        ) : (
-          <p className="py-6 text-center text-xs text-zinc-500">Equip a badge to see it here.</p>
-        )}
-
-        {/* Badge Positioning / Placement */}
-        <div className="pt-3 border-t border-white/5 space-y-2">
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-xs font-semibold text-zinc-200">Badge Placement on Profile Card</span>
-            <span className="text-[11px] text-brand-300 font-mono2 font-semibold">
-              {{
-                next_to_name: "Next to Name",
-                below_name: "Below Name & Handle",
-                above_name: "Above Name",
-                card_bottom: "Bottom of Card",
-                card_top_right: "Top Right of Card",
-              }[paintSettings.badge_placement] || "Next to Name"}
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-zinc-400">Position:</span>
+            <span className="text-white font-semibold capitalize">
+              {(paintSettings.badge_placement || "next_to_name").replace(/_/g, " ")}
             </span>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-            {[
-              { id: "next_to_name", label: "Next to Name" },
-              { id: "below_name", label: "Below Name" },
-              { id: "above_name", label: "Above Name" },
-              { id: "card_top_right", label: "Top Right" },
-              { id: "card_bottom", label: "Bottom" },
-            ].map(({ id, label }) => {
-              const active = (paintSettings.badge_placement || "next_to_name") === id;
-              return (
-                <button
-                  key={id}
-                  type="button"
-                  data-testid={`badge-pos-${id}`}
-                  onClick={() => handlePlacementChange(id)}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition border cursor-pointer ${
-                    active
-                      ? "bg-brand-500/20 text-brand-200 border-brand-500/50 shadow-sm"
-                      : "bg-white/[0.03] text-zinc-400 border-white/10 hover:bg-white/[0.06] hover:text-white"
-                  }`}
-                >
-                  {label}
-                </button>
-              );
-            })}
-          </div>
         </div>
-      </div>
 
-      {/* Equipped order — drag a badge to reposition it on the card */}
-      {equippedList.length > 1 && (
-        <div className="rounded-3xl border border-white/[0.08] bg-black/40 backdrop-blur-xl p-5 sm:p-7 space-y-4" data-testid="equipped-order">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h2 className="text-sm font-bold text-white tracking-tight uppercase">Equipped order</h2>
-              <p className="text-xs text-zinc-400 mt-0.5">Drag, or focus a badge and press ← → to reorder</p>
+        {/* Section inside a Section with Organizing */}
+        <div className="rounded-xl border border-white/[0.06] bg-[#09090b] p-4 sm:p-5 space-y-4">
+          <div className="flex items-center justify-between text-xs text-zinc-400">
+            <span className="font-semibold text-zinc-300">Equipped Badge Preview & Order</span>
+            <span className="text-[11px] text-zinc-500">Drag or use arrow buttons to reorder</span>
+          </div>
+
+          {/* Live Preview Strip */}
+          <div className="min-h-[58px] rounded-xl border border-white/5 bg-[#111111] p-3 flex items-center justify-center">
+            {equippedList.length > 0 ? (
+              <BadgePreviewRow
+                ids={equippedList}
+                glow={paintSettings.glow}
+                glowColor={paintSettings.glow_color}
+                glowIntensity={paintSettings.glow_intensity}
+                overlay={paintSettings.overlay}
+                overlayColor={paintSettings.overlay_color}
+                overlayStrength={paintSettings.overlay_strength}
+              />
+            ) : (
+              <p className="text-xs text-zinc-500">No badges equipped yet. Choose from your unlocked badges below.</p>
+            )}
+          </div>
+
+          {/* Organizing Strip of Unlocked & Equipped Badges */}
+          <div className="space-y-2 pt-2">
+            <div className="text-xs font-semibold text-zinc-300">Active Badges Organizer:</div>
+            {equippedList.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {equippedList.map((id, i) => (
+                  <div
+                    key={`${id}-${i}`}
+                    draggable
+                    data-testid={`equipped-badge-${i}`}
+                    onDragStart={() => setDragIndex(i)}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={() => { reorderEquipped(dragIndex, i); setDragIndex(null); }}
+                    onDragEnd={() => setDragIndex(null)}
+                    className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold text-zinc-200 transition ${
+                      dragIndex === i ? "border-[hsl(272,24%,46%)] bg-[hsl(272,24%,46%)]/20" : "border-white/10 bg-[#111111] hover:border-white/20"
+                    }`}
+                  >
+                    <GripVertical className="w-3.5 h-3.5 text-zinc-500 cursor-grab" />
+                    <BadgeChip id={id} {...globalChip} size="sm" />
+                    <span className="truncate max-w-[120px]">{nameOf(id)}</span>
+
+                    {/* Move Controls */}
+                    <div className="flex items-center gap-0.5 ml-1 border-l border-white/10 pl-1.5">
+                      <button
+                        type="button"
+                        onClick={() => reorderEquipped(i, i - 1)}
+                        disabled={i === 0}
+                        title="Move left"
+                        className="p-1 rounded text-zinc-400 hover:text-white disabled:opacity-30 disabled:pointer-events-none transition cursor-pointer"
+                      >
+                        <ArrowLeft className="w-3 h-3" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => reorderEquipped(i, i + 1)}
+                        disabled={i === equippedList.length - 1}
+                        title="Move right"
+                        className="p-1 rounded text-zinc-400 hover:text-white disabled:opacity-30 disabled:pointer-events-none transition cursor-pointer"
+                      >
+                        <ArrowRight className="w-3 h-3" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => toggleEquip(id)}
+                        title="Unequip badge"
+                        className="p-1 rounded text-red-400 hover:text-red-300 ml-0.5 transition cursor-pointer"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-zinc-500 italic">No badges currently equipped.</p>
+            )}
+          </div>
+
+          {/* Quick Placement Selector */}
+          <div className="pt-3 border-t border-white/[0.06] flex flex-wrap items-center justify-between gap-3">
+            <span className="text-xs font-semibold text-zinc-300">Badge Placement on Card:</span>
+            <div className="flex flex-wrap gap-1.5">
+              {[
+                { id: "next_to_name", label: "Next to Name" },
+                { id: "below_name", label: "Below Name" },
+                { id: "above_name", label: "Above Name" },
+                { id: "card_top_right", label: "Top Right" },
+                { id: "card_bottom", label: "Bottom" },
+              ].map(({ id, label }) => {
+                const active = (paintSettings.badge_placement || "next_to_name") === id;
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    data-testid={`badge-pos-${id}`}
+                    onClick={() => handlePlacementChange(id)}
+                    className={`px-3 py-1.5 rounded-xl text-[11px] font-semibold transition border cursor-pointer ${
+                      active
+                        ? "bg-[hsl(272,24%,46%)]/25 text-white border-[hsl(272,24%,46%)]/60 shadow-sm"
+                        : "bg-[#111111] text-zinc-400 border-white/10 hover:bg-white/[0.05] hover:text-white"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
             </div>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {equippedList.map((id, i) => (
+        </div>
+      </section>
+
+      {/* BELOW SECTION: ALL ACTUAL BADGES (With Unlocked/Locked & Big Tooltip on Hover) */}
+      <section className="space-y-4">
+        {/* Search, Filter & Sort Controls */}
+        <div className="flex flex-wrap items-center gap-2.5 p-3 rounded-2xl border border-white/[0.08] bg-[#111111] shadow-lg">
+          <div className="relative min-w-[200px] flex-1">
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              data-testid="badges-search"
+              placeholder="Search badges…"
+              className="w-full rounded-xl border border-white/10 bg-[#09090b] py-2 pl-10 pr-3 text-xs font-medium text-white placeholder-zinc-500 outline-none transition focus:border-[hsl(272,24%,46%)]/60"
+            />
+          </div>
+
+          <div className="flex items-center gap-1 rounded-xl border border-white/10 bg-[#09090b] p-1">
+            {[["all", "All"], ["owned", "Unlocked"], ["locked", "Locked"], ["equipped", "Equipped"]].map(([id, label]) => (
               <button
-                key={`${id}-${i}`}
+                key={id}
                 type="button"
-                draggable
-                data-testid={`equipped-badge-${i}`}
-                onDragStart={() => setDragIndex(i)}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={() => { reorderEquipped(dragIndex, i); setDragIndex(null); }}
-                onDragEnd={() => setDragIndex(null)}
-                onKeyDown={(e) => {
-                  if (e.key === "ArrowLeft") { e.preventDefault(); reorderEquipped(i, i - 1); }
-                  else if (e.key === "ArrowRight") { e.preventDefault(); reorderEquipped(i, i + 1); }
-                }}
-                title={`${nameOf(id)} — drag, or use ← → to reorder`}
-                className={`flex cursor-grab items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold text-zinc-200 transition active:cursor-grabbing ${
-                  dragIndex === i ? "border-brand-500/60 bg-brand-500/20" : "border-white/10 bg-white/[0.03] hover:border-white/25 hover:text-white"
+                onClick={() => setFilterBy(id)}
+                data-testid={`badges-filter-${id}`}
+                aria-pressed={filterBy === id}
+                className={`rounded-lg px-3 py-1.5 text-[11px] font-semibold transition cursor-pointer ${
+                  filterBy === id ? "bg-[hsl(272,24%,46%)]/25 text-white border border-[hsl(272,24%,46%)]/50" : "text-zinc-400 hover:text-white"
                 }`}
               >
-                <BadgeChip id={id} {...globalChip} />
-                <span>{nameOf(id)}</span>
+                {label}
               </button>
             ))}
           </div>
+
+          <SmartSelect
+            testid="badges-sort"
+            ariaLabel="Sort badges"
+            value={sortBy}
+            onChange={setSortBy}
+            options={[
+              { value: "owned", label: "Owned first" },
+              { value: "az", label: "A–Z" },
+              { value: "id", label: "Default order" },
+            ]}
+          />
         </div>
-      )}
 
-      {/* Badges Grid */}
-      <div className="mb-2 flex items-center justify-between text-[11px] text-zinc-500">
-        <span>
-          Showing {visibleBadges.length} of {gridCatalog.length} badges
-        </span>
-        <span>
-          {owned.size} owned · {equippedList.length} equipped
-        </span>
-      </div>
-      {visibleBadges.length === 0 ? (
-        <div className="rounded-3xl border border-white/[0.08] bg-black/40 backdrop-blur-xl p-8">
-          <EmptyState icon={Search} title="No badges match" hint="Try a different search or clear the filter." />
+        {/* Badges Counter Line */}
+        <div className="flex items-center justify-between text-[11px] text-zinc-400 px-1">
+          <span>Showing {visibleBadges.length} of {gridCatalog.length} badges</span>
+          <span>{owned.size} unlocked · {equippedList.length} equipped</span>
         </div>
-      ) : (
-      <div className="grid sm:grid-cols-2 gap-3.5">
-        {visibleBadges.map((b) => {
-          const M = badgeMeta(b.id) || {};
-          const isOwned = owned.has(b.id);
-          const isEquipped = equippedSet.has(b.id);
 
-          return (
-            <div
-              key={b.id}
-              className={`group relative p-4 rounded-2xl border transition duration-300 flex items-center justify-between gap-4 ${
-                isOwned
-                  ? "border-white/[0.12] bg-white/[0.03] hover:bg-white/[0.06] hover:border-brand-500/40 shadow-lg shadow-black/40"
-                  : "bg-black/20 border-white/[0.06] opacity-70 hover:opacity-90 hover:border-white/15"
-              }`}
-            >
-              <div className="flex items-center gap-4 min-w-0 flex-1">
-                <div className={`relative flex h-13 w-13 shrink-0 items-center justify-center rounded-2xl border transition-all duration-300 ${
-                  isOwned
-                    ? "border-brand-500/30 bg-gradient-to-b from-brand-500/15 to-black/40 shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_0_20px_rgba(164,141,244,0.15)] group-hover:border-brand-400/60 group-hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_0_28px_rgba(164,141,244,0.3)]"
-                    : "border-white/10 bg-white/[0.03] group-hover:border-white/20"
-                }`}>
-                  <BadgeChip
-                    id={b.id}
-                    meta={M}
-                    {...globalChip}
-                    size="lg"
-                    className="shrink-0 transition-transform duration-300 group-hover:scale-115"
-                  />
-                </div>
+        {/* Badges Grid */}
+        {visibleBadges.length === 0 ? (
+          <div className="rounded-2xl border border-white/[0.08] bg-[#111111] p-8">
+            <EmptyState icon={Search} title="No badges match" hint="Try a different search or filter." />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {visibleBadges.map((b) => {
+              const M = badgeMeta(b.id) || {};
+              const isOwned = owned.has(b.id);
+              const isEquipped = equippedSet.has(b.id);
 
-                <div className="min-w-0 flex-1">
-                  <div className="text-xs font-bold text-zinc-100 flex items-center gap-2">
-                    <span className="font-display tracking-tight text-sm text-zinc-100 group-hover:text-white transition-colors">{b.name || M.label || b.id}</span>
-                    {isOwned && (
-                      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/35 bg-emerald-400/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-emerald-300 shadow-[0_0_12px_rgba(52,211,153,0.2)]">
-                        <Check className="h-2.5 w-2.5" /> Owned
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-[11px] text-zinc-400 mt-1 line-clamp-1 group-hover:text-zinc-300 transition-colors">{b.description || M.desc}</p>
-                </div>
-              </div>
-
-              {/* One action: equip it, or take it off the card. */}
-              {isOwned ? (
-                <button
-                  onClick={() => toggleEquip(b.id)}
-                  className={`flex shrink-0 items-center gap-1.5 rounded-xl text-xs font-bold transition cursor-pointer shadow-sm ${
-                    isEquipped
-                      ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.15)]"
-                      : "bg-white/[0.04] text-zinc-300 border border-white/10 hover:text-white hover:bg-white/[0.08] hover:border-white/20"
-                  } px-3.5 py-1.5`}
+              return (
+                <div
+                  key={b.id}
+                  className={`group relative p-3.5 rounded-2xl border transition duration-200 flex items-center justify-between gap-3 ${
+                    isOwned
+                      ? "border-white/[0.10] bg-[#111111] hover:border-[hsl(272,24%,46%)]/50 shadow-md"
+                      : "border-white/[0.05] bg-[#09090b]/60 opacity-80 hover:opacity-100 hover:border-white/10"
+                  }`}
                 >
-                  {isEquipped ? (
-                    <>
-                      <Eye className="w-3.5 h-3.5 text-emerald-400" /> Equipped
-                    </>
-                  ) : (
-                    <>
-                      <EyeOff className="w-3.5 h-3.5 text-zinc-400" /> Equip
-                    </>
-                  )}
-                </button>
-              ) : (
-                <span className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.03] px-2.5 py-1.5 text-[11px] font-medium text-zinc-500">
-                  <Lock className="h-3 w-3" /> Locked
-                </span>
-              )}
+                  {/* Left: Badge Icon + Info */}
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <div className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border transition-all duration-200 ${
+                      isOwned
+                        ? "border-[hsl(272,24%,46%)]/30 bg-[hsl(272,24%,46%)]/15 shadow-sm"
+                        : "border-white/10 bg-white/[0.02]"
+                    }`}>
+                      <BadgeChip
+                        id={b.id}
+                        meta={M}
+                        {...globalChip}
+                        size="md"
+                        className="shrink-0"
+                      />
+                    </div>
 
-              {/* Tooltip Box */}
-              <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:flex flex-col items-center z-50 animate-in fade-in duration-150">
-                <div className="px-3 py-1.5 rounded-xl bg-black/95 backdrop-blur-md border border-white/15 text-xs text-white shadow-2xl max-w-xs text-center">
-                  <div className="font-bold text-brand-300">{b.name || M.label}</div>
-                  <div className="text-[10px] text-zinc-300 mt-0.5">{b.description || M.desc}</div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-xs font-bold text-white flex items-center gap-1.5 truncate">
+                        <span className="truncate">{b.name || M.label || b.id}</span>
+                      </div>
+
+                      {/* Status row: Unlocked / Locked + Info indicator */}
+                      <div className="flex items-center gap-1.5 mt-1">
+                        {isOwned ? (
+                          <span className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
+                            <Check className="h-2.5 w-2.5" /> Unlocked
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-[#3f3f46]/30 border border-[#3f3f46]/50 text-zinc-400">
+                            <Lock className="h-2.5 w-2.5" /> Locked
+                          </span>
+                        )}
+
+                        {/* Indicator icon that triggers BIG TOOLTIP on hover */}
+                        <div className="relative group/info cursor-help inline-flex items-center justify-center text-zinc-500 hover:text-white transition">
+                          <HelpCircle className="w-3.5 h-3.5 text-zinc-400 hover:text-white" />
+
+                          {/* BIG TOOLTIP SECTION ABOVE IT WHEN HOVERED */}
+                          <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2.5 hidden group-hover/info:flex flex-col items-center z-50 w-64 sm:w-72 animate-in fade-in zoom-in-95 duration-150">
+                            <div className="w-full p-4 rounded-2xl bg-[#111111] backdrop-blur-2xl border border-white/20 text-white shadow-[0_15px_50px_rgba(0,0,0,0.9)] text-left space-y-2.5">
+                              {/* Tooltip Header */}
+                              <div className="flex items-center gap-2.5 pb-2 border-b border-white/10">
+                                <BadgeChip id={b.id} meta={M} {...globalChip} size="sm" />
+                                <div className="min-w-0 flex-1">
+                                  <div className="text-xs font-bold text-white truncate">{b.name || M.label}</div>
+                                  <div className="text-[10px] text-zinc-400 truncate">{b.type || M.group || "Badge"}</div>
+                                </div>
+                                <span className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded-full ${
+                                  isOwned ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40" : "bg-white/10 text-zinc-400"
+                                }`}>
+                                  {isOwned ? "Unlocked" : "Locked"}
+                                </span>
+                              </div>
+
+                              {/* Description */}
+                              <p className="text-[11px] leading-relaxed text-zinc-300">
+                                {b.description || M.desc || "Achievement badge displayed on public profile cards."}
+                              </p>
+
+                              {/* Statistics & Attributes Section */}
+                              <div className="pt-2 border-t border-white/10 space-y-1.5 text-[10px]">
+                                <div className="flex items-center justify-between text-zinc-400">
+                                  <span>Statistics & Rarity:</span>
+                                  <span className="font-semibold text-white">{M.rarity || "Standard"}</span>
+                                </div>
+                                <div className="flex items-center justify-between text-zinc-400">
+                                  <span>Category:</span>
+                                  <span className="font-semibold text-white capitalize">{b.group || M.group || "Platform"}</span>
+                                </div>
+                                <div className="flex items-center justify-between text-zinc-400">
+                                  <span>Card Status:</span>
+                                  <span className="font-semibold text-white">{isEquipped ? "Equipped on Card" : isOwned ? "Unlocked in Vault" : "Not Earned Yet"}</span>
+                                </div>
+                              </div>
+                            </div>
+                            {/* Downward triangle pointer */}
+                            <div className="w-2.5 h-2.5 bg-[#111111] rotate-45 -mt-1.5 border-r border-b border-white/20 shadow-lg" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Action: Equip / Equipped button */}
+                  {isOwned ? (
+                    <button
+                      type="button"
+                      onClick={() => toggleEquip(b.id)}
+                      className={`flex shrink-0 items-center gap-1.5 rounded-xl text-xs font-bold transition cursor-pointer px-3 py-1.5 ${
+                        isEquipped
+                          ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30 shadow-sm"
+                          : "bg-white/[0.04] text-zinc-200 border border-white/10 hover:text-white hover:bg-white/[0.08]"
+                      }`}
+                    >
+                      {isEquipped ? (
+                        <>
+                          <Eye className="w-3.5 h-3.5 text-emerald-400" />
+                          <span>Equipped</span>
+                        </>
+                      ) : (
+                        <>
+                          <EyeOff className="w-3.5 h-3.5 text-zinc-400" />
+                          <span>Equip</span>
+                        </>
+                      )}
+                    </button>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 rounded-xl border border-white/5 bg-white/[0.02] px-2.5 py-1 text-[11px] font-medium text-zinc-500">
+                      <Lock className="h-3 w-3" />
+                      <span>Locked</span>
+                    </span>
+                  )}
                 </div>
-                <div className="w-2 h-2 bg-black/95 rotate-45 -mt-1 border-r border-b border-white/15" />
-              </div>
-            </div>
-          );
-        })}
-      </div>
-      )}
+              );
+            })}
+          </div>
+        )}
+      </section>
 
       {/* Global Paint Styling Modal */}
       <PremiumGate
@@ -567,11 +649,11 @@ export default function Badges() {
           className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200"
           onClick={(e) => { if (e.target === e.currentTarget) setShowPaintModal(false); }}
         >
-          <div className="bg-[#0c0d14] backdrop-blur-2xl rounded-3xl p-6 sm:p-7 max-w-lg w-full relative border border-white/15 shadow-[0_25px_90px_rgba(0,0,0,0.95)] animate-in zoom-in-95 duration-200">
+          <div className="bg-[#111111] rounded-2xl p-6 sm:p-7 max-w-lg w-full relative border border-white/15 shadow-2xl animate-in zoom-in-95 duration-200 text-left">
             <div className="flex items-center justify-between pb-4 border-b border-white/10">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-brand-500/15 border border-brand-500/30 flex items-center justify-center">
-                  <Paintbrush className="w-4 h-4 text-brand-400" />
+                <div className="w-8 h-8 rounded-xl bg-[hsl(272,24%,46%)]/15 border border-[hsl(272,24%,46%)]/30 flex items-center justify-center">
+                  <Paintbrush className="w-4 h-4 text-white" />
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-white tracking-tight uppercase">Badge Style</h3>
@@ -584,7 +666,7 @@ export default function Badges() {
             </div>
 
             <div className="space-y-4 pt-4">
-              <label className="flex cursor-pointer items-center justify-between rounded-xl border border-white/10 bg-white/[0.02] px-3.5 py-3">
+              <label className="flex cursor-pointer items-center justify-between rounded-xl border border-white/10 bg-[#09090b] px-3.5 py-3">
                 <div>
                   <span className="text-xs font-bold text-white block">Glow</span>
                   <span className="text-[11px] text-zinc-400">Enable glowing aura around badges</span>
@@ -593,16 +675,15 @@ export default function Badges() {
                   data-testid="badge-glow-toggle"
                   checked={paintSettings.glow}
                   onCheckedChange={(v) => setPaintSettings({ ...paintSettings, glow: v })}
-                  className="data-[state=checked]:bg-brand-500"
                 />
               </label>
 
               <ColorPicker label="Glow Color" value={paintSettings.glow_color} onChange={(v) => setPaintSettings({ ...paintSettings, glow_color: v })} />
               
-              <div className="rounded-xl border border-white/10 bg-white/[0.02] p-3.5 space-y-2">
+              <div className="rounded-xl border border-white/10 bg-[#09090b] p-3.5 space-y-2">
                 <div className="flex items-center justify-between text-xs font-semibold text-zinc-300">
                   <span>Glow Intensity</span>
-                  <span className="font-mono text-brand-400 text-xs font-bold">{paintSettings.glow_intensity}%</span>
+                  <span className="font-mono text-white text-xs font-bold">{paintSettings.glow_intensity}%</span>
                 </div>
                 <Slider
                   data-testid="glow-intensity-slider"
@@ -611,30 +692,28 @@ export default function Badges() {
                   step={1}
                   value={[paintSettings.glow_intensity]}
                   onValueChange={([v]) => setPaintSettings({ ...paintSettings, glow_intensity: v })}
-                  className="[&_[role=slider]]:border-brand-400/60 [&_[role=slider]]:bg-brand-500 [&_.absolute]:bg-brand-500"
                   aria-label="Badge glow intensity"
                 />
               </div>
 
-              <label className="flex cursor-pointer items-center justify-between rounded-xl border border-white/10 bg-white/[0.02] px-3.5 py-3">
+              <label className="flex cursor-pointer items-center justify-between rounded-xl border border-white/10 bg-[#09090b] px-3.5 py-3">
                 <div>
                   <span className="text-xs font-bold text-white block">Overlay</span>
-                  <span className="text-[11px] text-zinc-400">Tint badge artwork with a custom colorway</span>
+                  <span className="text-[11px] text-zinc-400">Tint badge artwork with custom hue</span>
                 </div>
                 <Switch
                   data-testid="badge-overlay-toggle"
                   checked={paintSettings.overlay}
                   onCheckedChange={(v) => setPaintSettings({ ...paintSettings, overlay: v })}
-                  className="data-[state=checked]:bg-brand-500"
                 />
               </label>
 
               <ColorPicker label="Overlay Color" value={paintSettings.overlay_color} onChange={(v) => setPaintSettings({ ...paintSettings, overlay_color: v })} />
 
-              <div className="rounded-xl border border-white/10 bg-white/[0.02] p-3.5 space-y-2">
+              <div className="rounded-xl border border-white/10 bg-[#09090b] p-3.5 space-y-2">
                 <div className="flex items-center justify-between text-xs font-semibold text-zinc-300">
                   <span>Overlay Strength</span>
-                  <span className="font-mono text-brand-400 text-xs font-bold">{paintSettings.overlay_strength}%</span>
+                  <span className="font-mono text-white text-xs font-bold">{paintSettings.overlay_strength}%</span>
                 </div>
                 <Slider
                   data-testid="badge-overlay-slider"
@@ -643,71 +722,21 @@ export default function Badges() {
                   step={1}
                   value={[paintSettings.overlay_strength]}
                   onValueChange={([v]) => setPaintSettings({ ...paintSettings, overlay_strength: v })}
-                  className="[&_[role=slider]]:border-brand-400/60 [&_[role=slider]]:bg-brand-500 [&_.absolute]:bg-brand-500"
                   aria-label="Badge overlay strength"
                 />
-                <p className="mt-1 text-[11px] leading-relaxed text-zinc-400">
-                  Lays one colour over every badge and blends it in, so the badge takes the hue while the artwork underneath stays readable.
-                </p>
               </div>
-
-              {/* Badge Placement */}
-              <div className="rounded-xl border border-white/10 bg-white/[0.02] p-3.5 space-y-2">
-                <div className="flex items-center justify-between text-xs font-semibold text-zinc-300">
-                  <span>Badge Placement</span>
-                  <span className="font-mono text-brand-400 text-xs font-bold">
-                    {{
-                      next_to_name: "Next to Name",
-                      below_name: "Below Name",
-                      above_name: "Above Name",
-                      card_bottom: "Bottom of Card",
-                      card_top_right: "Top Right",
-                    }[paintSettings.badge_placement] || "Next to Name"}
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 gap-2 pt-1 sm:grid-cols-3">
-                  {[
-                    { id: "next_to_name", label: "Next to Name" },
-                    { id: "below_name", label: "Below Name" },
-                    { id: "above_name", label: "Above Name" },
-                    { id: "card_top_right", label: "Top Right" },
-                    { id: "card_bottom", label: "Bottom" },
-                  ].map(({ id, label }) => {
-                    const active = (paintSettings.badge_placement || "next_to_name") === id;
-                    return (
-                      <button
-                        key={id}
-                        type="button"
-                        onClick={() => setPaintSettings({ ...paintSettings, badge_placement: id })}
-                        className={`px-3 py-2 rounded-xl text-xs font-semibold transition border cursor-pointer ${
-                          active
-                            ? "bg-brand-500/20 text-white border-brand-500/60 shadow-[0_0_15px_rgba(164,141,244,0.25)]"
-                            : "bg-black/30 text-zinc-400 border-white/10 hover:bg-white/[0.05] hover:text-white"
-                        }`}
-                      >
-                        {label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <label className="flex cursor-pointer items-center justify-between rounded-xl border border-white/10 bg-white/[0.02] px-3.5 py-3">
-                <span className="text-xs font-bold text-white">Show badges on my profile card</span>
-                <Switch checked={showBadges} onCheckedChange={setShowBadges} className="data-[state=checked]:bg-brand-500" />
-              </label>
 
               <div className="pt-2 flex justify-end gap-2.5">
                 <button
                   type="button"
                   onClick={() => setShowPaintModal(false)}
-                  className="px-4 py-2.5 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.08] text-zinc-300 hover:text-white text-xs font-semibold transition cursor-pointer"
+                  className="px-4 py-2 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.08] text-zinc-300 hover:text-white text-xs font-semibold transition cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={savePaintSettings}
-                  className="px-5 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold transition shadow-lg shadow-brand-500/20 cursor-pointer"
+                  className="px-5 py-2 rounded-xl bg-[hsl(272,24%,46%)] hover:brightness-110 text-white text-xs font-bold transition shadow-md cursor-pointer"
                 >
                   Save Badge Styling
                 </button>
@@ -723,11 +752,11 @@ export default function Badges() {
           className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200"
           onClick={(e) => { if (e.target === e.currentTarget) setShowCreateModal(false); }}
         >
-          <div className="bg-[#0c0d14] backdrop-blur-2xl rounded-3xl p-6 sm:p-7 max-w-lg w-full relative border border-white/15 shadow-[0_25px_90px_rgba(0,0,0,0.95)] animate-in zoom-in-95 duration-200">
+          <div className="bg-[#111111] rounded-2xl p-6 sm:p-7 max-w-lg w-full relative border border-white/15 shadow-2xl animate-in zoom-in-95 duration-200 text-left">
             <div className="flex items-center justify-between pb-4 border-b border-white/10">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-brand-500/15 border border-brand-500/30 flex items-center justify-center">
-                  <Plus className="w-4 h-4 text-brand-400" />
+                <div className="w-8 h-8 rounded-xl bg-[hsl(272,24%,46%)]/15 border border-[hsl(272,24%,46%)]/30 flex items-center justify-center">
+                  <Plus className="w-4 h-4 text-white" />
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-white tracking-tight uppercase">Create Custom Badge</h3>
@@ -748,64 +777,63 @@ export default function Badges() {
                   placeholder="e.g. VIP Creator, Top Supporter"
                   value={customBadge.name}
                   onChange={(e) => setCustomBadge({ ...customBadge, name: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl bg-black/50 border border-white/10 text-xs font-medium text-white placeholder-zinc-500 outline-none transition focus:border-brand-500/60"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#09090b] border border-white/10 text-xs text-white placeholder-zinc-500 outline-none focus:border-[hsl(272,24%,46%)]"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-zinc-300 mb-1.5">Description</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Granted for taking part in the summer event"
+                <textarea
+                  rows={2}
+                  placeholder="Short description of this badge achievement…"
                   value={customBadge.desc}
                   onChange={(e) => setCustomBadge({ ...customBadge, desc: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl bg-black/50 border border-white/10 text-xs font-medium text-white placeholder-zinc-500 outline-none transition focus:border-brand-500/60"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#09090b] border border-white/10 text-xs text-white placeholder-zinc-500 outline-none focus:border-[hsl(272,24%,46%)] resize-none"
                 />
               </div>
 
-              {/* Upload Badge Icon Image */}
               <div>
-                <label className="block text-xs font-semibold text-zinc-300 mb-1.5">Upload Badge Icon</label>
+                <label className="block text-xs font-semibold text-zinc-300 mb-1.5">Badge Icon Image</label>
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-black/60 border border-white/10 flex items-center justify-center overflow-hidden shrink-0">
-                    {customBadge.icon_url ? (
-                      <img src={fileUrl(customBadge.icon_url)} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <Upload className="w-4 h-4 text-zinc-500" />
-                    )}
-                  </div>
-                  <label className="flex-1 px-4 py-2.5 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.08] text-xs font-semibold text-zinc-300 hover:text-white cursor-pointer flex items-center justify-center gap-2 transition">
-                    {iconUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                    Choose Icon PNG
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleIconUpload(e.target.files?.[0])}
-                      className="hidden"
-                    />
+                  {customBadge.icon_url ? (
+                    <div className="w-12 h-12 rounded-xl bg-[#09090b] border border-white/10 flex items-center justify-center overflow-hidden shrink-0">
+                      <img src={fileUrl(customBadge.icon_url)} alt="Badge preview" className="w-8 h-8 object-contain" />
+                    </div>
+                  ) : null}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    id="custom-badge-icon"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleIconUpload(file);
+                    }}
+                  />
+                  <label
+                    htmlFor="custom-badge-icon"
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-dashed border-white/15 bg-white/[0.02] hover:bg-white/[0.05] text-xs font-semibold text-zinc-300 cursor-pointer transition"
+                  >
+                    {iconUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4 text-zinc-400" />}
+                    <span>{customBadge.icon_url ? "Replace Icon Image" : "Upload Badge PNG/SVG"}</span>
                   </label>
                 </div>
-              </div>
-
-              {/* Color & Glow Customization */}
-              <div className="grid grid-cols-2 gap-3">
-                <ColorPicker label="Color Override" value={customBadge.color} onChange={(v) => setCustomBadge({ ...customBadge, color: v })} />
-                <ColorPicker label="Glow Override" value={customBadge.glow} onChange={(v) => setCustomBadge({ ...customBadge, glow: v })} />
               </div>
 
               <div className="pt-2 flex justify-end gap-2.5">
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2.5 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.08] text-zinc-300 hover:text-white text-xs font-semibold transition cursor-pointer"
+                  className="px-4 py-2 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.08] text-zinc-300 hover:text-white text-xs font-semibold transition cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold transition shadow-lg shadow-brand-500/20 cursor-pointer"
+                  disabled={iconUploading}
+                  className="px-5 py-2 rounded-xl bg-[hsl(272,24%,46%)] hover:brightness-110 text-white text-xs font-bold transition shadow-md cursor-pointer disabled:opacity-50"
                 >
-                  Create & Equip Badge
+                  Create Badge
                 </button>
               </div>
             </form>

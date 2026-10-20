@@ -11,8 +11,8 @@ import AuthGateNotice from "@/components/AuthGateNotice";
 import {
   LayoutDashboard, Paintbrush, Link2, Award, LayoutGrid, Settings, LayoutTemplate,
   Trophy, BarChart3, Users, Ticket, SlidersHorizontal, LineChart, LogOut,
-  ExternalLink, Crown,  ChevronDown, Sparkles, BellRing, Newspaper, ShieldCheck, Plus,
-  ScrollText, Loader2, Gift, ShoppingBag, Store, Search,
+  ExternalLink, Crown, ChevronDown, Sparkles, BellRing, Newspaper, ShieldCheck, Plus,
+  ScrollText, Loader2, Gift, ShoppingBag, Store, Search, User,
 } from "lucide-react";
 import PremiumPlansModal from "@/components/PremiumPlansModal";
 import DevlogFeedModal from "@/components/DevlogFeedModal";
@@ -35,15 +35,16 @@ const NAV_GROUPS = [
   },
   {
     id: "customization",
-    label: "Customization",
+    label: "Customize",
     icon: Paintbrush,
     expandable: true,
     tabs: [
+      { to: "/!/dashboard/editor?tab=appearance", label: "Appearance", icon: Paintbrush, testid: "tab-appearance" },
+      { to: "/!/dashboard/editor", label: "Profile", icon: User, testid: "tab-editor" },
+      { to: "/!/dashboard/editor?tab=layout", label: "Layout", icon: LayoutTemplate, testid: "tab-layout" },
       { to: "/!/dashboard/badges", label: "Badges", icon: Award, testid: "tab-badges" },
-      { to: "/!/dashboard/editor", label: "Card / Layout", icon: Paintbrush, testid: "tab-editor" },
       { to: "/!/dashboard/links", label: "Links", icon: Link2, testid: "tab-links" },
       { to: "/!/dashboard/widgets", label: "Widgets", icon: LayoutGrid, testid: "tab-widgets" },
-      { to: "/!/dashboard/effects", label: "Effects / Media", icon: Sparkles, testid: "tab-effects" },
     ],
   },
   {
@@ -108,8 +109,8 @@ const TabLink = ({ t }) => (
     end={t.end}
     data-testid={t.testid}
     className={({ isActive }) =>
-      `group relative flex w-[266px] h-[43px] shrink-0 items-center gap-3 rounded-xl px-3.5 text-[14px] font-semibold outline-none transition-all duration-200 focus-visible:ring-2 focus-visible:ring-brand-500/60 ${
-        isActive ? "text-white shadow-sm" : "text-zinc-400 hover:text-zinc-100 hover:bg-white/[0.04]"
+      `group relative flex w-[266px] h-[43px] shrink-0 items-center gap-3 rounded-xl px-3.5 text-[14px] font-semibold outline-none transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[hsl(272,24%,46%)]/60 ${
+        isActive ? "text-white shadow-sm" : "text-zinc-400 hover:text-white hover:bg-white/[0.04]"
       }`
     }
   >
@@ -119,14 +120,14 @@ const TabLink = ({ t }) => (
           <motion.span
             layoutId="dash-nav-active"
             transition={spring}
-            className="absolute inset-0 rounded-xl border border-brand-400/30 bg-gradient-to-r from-brand-500/20 to-brand-500/5 shadow-[0_0_16px_rgba(164,141,244,0.15)]"
+            className="absolute inset-0 rounded-xl border border-[hsl(272,24%,46%)]/40 bg-[hsl(272,24%,46%)]/20 shadow-[0_0_15px_hsla(272,24%,46%,0.2)]"
           />
         ) : (
           <span className="absolute inset-0 rounded-xl bg-white/0 transition-colors duration-200 group-hover:bg-white/[0.03]" />
         )}
         <t.icon
           className={`relative z-10 w-[18px] h-[18px] shrink-0 transition-transform duration-200 ${
-            isActive ? "scale-105 text-brand-300" : "group-hover:scale-105 text-zinc-400 group-hover:text-zinc-200"
+            isActive ? "scale-105 text-white" : "group-hover:scale-105 text-zinc-400 group-hover:text-zinc-200"
           }`}
         />
         <span className="relative z-10 truncate">{t.label}</span>
@@ -134,7 +135,7 @@ const TabLink = ({ t }) => (
           <motion.span
             layoutId="dash-nav-marker"
             transition={spring}
-            className="relative z-10 ml-auto h-2 w-2 rounded-full bg-brand-400 shadow-[0_0_8px_#a48df4]"
+            className="relative z-10 ml-auto h-2 w-2 rounded-full bg-[hsl(272,24%,46%)] shadow-[0_0_8px_hsl(272,24%,46%)]"
           />
         )}
       </>
@@ -210,19 +211,19 @@ function CommunityCard() {
       target="_blank"
       rel="noreferrer"
       data-testid="discord-card"
-      className="group block rounded-xl border border-white/[0.06] bg-gradient-to-br from-brand-500/[0.12] to-white/[0.02] p-2.5 transition-colors duration-200 hover:border-brand-400/30"
+      className="group block rounded-2xl border border-white/[0.08] bg-[#111111] p-3 transition-colors duration-200 hover:border-[hsl(272,24%,46%)]/40"
     >
-      <div className="flex items-center gap-2">
-        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-white/[0.08] border border-white/10 transition-transform duration-300 group-hover:scale-105">
-          <FaDiscord className="h-3.5 w-3.5 text-white" />
+      <div className="flex items-center gap-2.5">
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-white/[0.06] border border-white/10 transition-transform duration-300 group-hover:scale-105">
+          <FaDiscord className="h-4 w-4 text-white" />
         </span>
         <div className="min-w-0 flex-1">
-          <div className="truncate text-xs font-bold text-zinc-100">Join our Discord</div>
+          <div className="truncate text-xs font-bold text-white">Join our Discord</div>
         </div>
-        <ExternalLink className="h-3 w-3 shrink-0 text-zinc-500 transition-colors duration-200 group-hover:text-brand-300" />
+        <ExternalLink className="h-3.5 w-3.5 shrink-0 text-zinc-500 transition-colors duration-200 group-hover:text-white" />
       </div>
       {stats && Number.isFinite(stats.bio_links) && (
-        <div className="mt-1.5 flex items-center gap-1.5 text-[9px] text-zinc-400">
+        <div className="mt-2 flex items-center gap-1.5 text-[10px] text-zinc-400">
           <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400" />
           {stats.bio_links.toLocaleString()} bios · {Number(stats.total_views || 0).toLocaleString()} views
         </div>
@@ -235,14 +236,14 @@ function UserCard({ user, onLogout }) {
   const initial = (user.display_name || user.username || "?")[0]?.toUpperCase();
   const isPremium = user.tier === "premium" || user.tier === "admin" || user.is_owner;
   return (
-    <div className="w-[260px] h-[70px] min-h-[70px] mx-auto flex items-center gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.025] hover:bg-white/[0.04] hover:border-brand-500/30 px-3 transition-all duration-200 shadow-md shrink-0">
-      <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-xl bg-zinc-800 text-sm ring-2 ring-white/10 shadow-inner">
+    <div className="w-[260px] h-[70px] min-h-[70px] mx-auto flex items-center gap-3 rounded-2xl border border-white/[0.08] bg-[#111111] hover:border-[hsl(272,24%,46%)]/40 px-3.5 transition-all duration-200 shadow-sm shrink-0">
+      <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-xl bg-zinc-800 text-sm ring-1 ring-white/10 shadow-inner">
         {user.profile?.avatar_url ? (
           <img src={fileUrl(user.profile.avatar_url)} alt="" className="h-full w-full object-cover" />
         ) : (
           <span className="flex h-full w-full items-center justify-center font-bold text-zinc-300">{initial}</span>
         )}
-        <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-zinc-950" />
+        <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-[#111111]" />
       </div>
       <div className="min-w-0 flex-1">
         <div className="truncate text-xs font-bold text-white flex items-center gap-1.5">
@@ -612,13 +613,13 @@ export default function DashboardLayout() {
   return (
     /* sw-page-bg, not a flat fill: the page darkens from a lifted grey at the top
        to near-black at the bottom, so the rounded panels have something to sit on. */
-    <div className="dash-font flex min-h-screen sw-page-bg text-zinc-100">
-      {/* Sidebar - w-[304px] according to measurements */}
-      <aside className="sticky top-0 hidden h-screen w-[304px] min-w-[304px] max-w-[304px] shrink-0 flex-col border-r border-white/[0.08] bg-gradient-to-b from-[#11121d]/98 via-[#0c0d15]/98 to-[#06070a]/98 backdrop-blur-3xl px-[19px] pb-[18px] lg:flex shadow-[14px_0_45px_rgba(0,0,0,0.65)] overflow-hidden">
+    <div className="dash-font flex min-h-screen bg-[#09090b] text-zinc-100">
+      {/* Sidebar - w-[304px] */}
+      <aside className="sticky top-0 hidden h-screen w-[304px] min-w-[304px] max-w-[304px] shrink-0 flex-col border-r border-[#3f3f46]/30 bg-[#09090b] px-[19px] pb-[18px] lg:flex shadow-2xl overflow-hidden">
         {/* Logo/header: 304 × 88 px */}
-        <div className="w-[304px] -mx-[19px] h-[88px] min-h-[88px] px-6 flex items-center justify-between border-b border-white/[0.06] shrink-0">
+        <div className="w-[304px] -mx-[19px] h-[88px] min-h-[88px] px-6 flex items-center justify-between border-b border-[#3f3f46]/30 shrink-0">
           <Logo size="text-lg" />
-          <span className="px-2.5 py-0.5 rounded-full bg-brand-500/15 border border-brand-500/30 text-[10px] font-bold text-brand-300 uppercase tracking-widest shadow-sm">
+          <span className="px-2.5 py-0.5 rounded-full bg-[hsl(272,24%,46%)]/15 border border-[hsl(272,24%,46%)]/30 text-[10px] font-bold text-white uppercase tracking-widest shadow-sm">
             Studio
           </span>
         </div>
@@ -631,14 +632,14 @@ export default function DashboardLayout() {
         {/* Search bar: 260 × 38 px */}
         <div className="pt-3 pb-1 shrink-0 flex justify-center">
           <div className="relative w-[260px] h-[38px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
             <input
               type="text"
               data-testid="nav-search-bar"
               value={navQuery}
               onChange={(e) => setNavQuery(e.target.value)}
               placeholder="Search navigation…"
-              className="w-[260px] h-[38px] rounded-xl bg-white/[0.03] border border-white/10 pl-9 pr-3 text-xs text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:border-brand-500/50 transition-colors"
+              className="w-[260px] h-[38px] rounded-xl bg-[#111111] border border-[#3f3f46]/40 pl-9 pr-3 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-[hsl(272,24%,46%)] transition-colors"
             />
           </div>
         </div>
@@ -662,7 +663,7 @@ export default function DashboardLayout() {
           })}
 
           {/* Bottom section divider: 1 px */}
-          <div className="w-[260px] h-px bg-white/[0.08] my-2 shrink-0" />
+          <div className="w-[260px] h-px bg-[#3f3f46]/30 my-2 shrink-0" />
 
           <div className="space-y-[12px] w-[260px] flex flex-col items-center">
             {/* Premium upgrade card: 260 × 71 px */}
@@ -670,9 +671,9 @@ export default function DashboardLayout() {
               type="button"
               onClick={() => setPopup("premium")}
               data-testid="premium-link"
-              className="group relative flex w-[260px] h-[71px] min-h-[71px] items-center gap-3 rounded-2xl border border-brand-500/30 bg-gradient-to-r from-brand-500/15 via-brand-500/5 to-transparent px-3 text-left transition-all duration-200 hover:border-brand-500/60 hover:shadow-[0_0_20px_rgba(164,141,244,0.18)] cursor-pointer shrink-0"
+              className="group relative flex w-[260px] h-[71px] min-h-[71px] items-center gap-3 rounded-2xl border border-[hsl(272,24%,46%)]/30 bg-[#111111] px-3.5 text-left transition-all duration-200 hover:border-[hsl(272,24%,46%)]/70 hover:shadow-[0_0_20px_rgba(116,87,140,0.25)] cursor-pointer shrink-0"
             >
-              <div className="w-9 h-9 rounded-xl bg-brand-500/20 border border-brand-500/40 flex items-center justify-center text-brand-300 shadow-sm shrink-0">
+              <div className="w-9 h-9 rounded-xl bg-[hsl(272,24%,46%)]/20 border border-[hsl(272,24%,46%)]/40 flex items-center justify-center text-white shadow-sm shrink-0">
                 <Sparkles className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
               </div>
               <div className="min-w-0 flex-1">
@@ -688,7 +689,7 @@ export default function DashboardLayout() {
               type="button"
               onClick={() => setPopup("devlog")}
               data-testid="devlog-link"
-              className="group relative flex w-[260px] h-[38px] items-center gap-3 rounded-xl px-3 text-left text-xs font-semibold text-zinc-400 outline-none transition-all duration-200 hover:bg-white/[0.04] hover:text-white focus-visible:ring-2 focus-visible:ring-brand-500/50 cursor-pointer shrink-0"
+              className="group relative flex w-[260px] h-[38px] items-center gap-3 rounded-xl px-3 text-left text-xs font-semibold text-zinc-400 outline-none transition-all duration-200 hover:bg-white/[0.04] hover:text-white focus-visible:ring-2 focus-visible:ring-[hsl(272,24%,46%)]/50 cursor-pointer shrink-0"
             >
               <Newspaper className="h-4 w-4 shrink-0 text-zinc-500 transition-transform duration-200 group-hover:scale-110 group-hover:text-zinc-300" />
               <span className="truncate">Devlog</span>
@@ -699,7 +700,7 @@ export default function DashboardLayout() {
               to={`/${user.username}`}
               target="_blank"
               data-testid="view-public-btn"
-              className="group relative flex w-[260px] h-[38px] items-center gap-3 rounded-xl px-3 text-xs font-semibold text-zinc-400 outline-none transition-all duration-200 hover:bg-white/[0.04] hover:text-white focus-visible:ring-2 focus-visible:ring-brand-500/50 shrink-0"
+              className="group relative flex w-[260px] h-[38px] items-center gap-3 rounded-xl px-3 text-xs font-semibold text-zinc-400 outline-none transition-all duration-200 hover:bg-white/[0.04] hover:text-white focus-visible:ring-2 focus-visible:ring-[hsl(272,24%,46%)]/50 shrink-0"
             >
               <ExternalLink className="h-4 w-4 shrink-0 text-zinc-500 transition-transform duration-200 group-hover:scale-110 group-hover:text-zinc-300" />
               <span className="truncate">View public profile</span>
@@ -708,7 +709,7 @@ export default function DashboardLayout() {
         </nav>
 
         {/* Bottom section divider: 1 px */}
-        <div className="w-[260px] h-px bg-white/[0.08] my-2 shrink-0 mx-auto" />
+        <div className="w-[260px] h-px bg-[#3f3f46]/30 my-2 shrink-0 mx-auto" />
 
         <div className="w-[260px] mx-auto shrink-0">
           <CommunityCard />
@@ -716,8 +717,8 @@ export default function DashboardLayout() {
       </aside>
 
       {/* Main */}
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 border-b border-white/5 glass-strong">
+      <div className="flex min-w-0 flex-1 flex-col bg-[#09090b]">
+        <header className="sticky top-0 z-30 border-b border-[#3f3f46]/30 bg-[#09090b]/90 backdrop-blur-xl">
           <div className="flex items-center justify-between gap-3 px-6 pt-5">
             <div className="flex min-w-0 items-center gap-3">
               <div className="lg:hidden">
@@ -728,19 +729,18 @@ export default function DashboardLayout() {
                 initial={{ opacity: 0, x: -4 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-                className="truncate font-display text-2xl font-black tracking-tight text-zinc-50"
+                className="truncate font-display text-2xl font-black tracking-tight text-white"
               >
                 {isInsideAdmin ? "Admin" : (activeGroup?.label || activeTab?.label || "Dashboard")}
               </motion.h1>
             </div>
 
             <div className="flex shrink-0 items-center gap-3">
-              {/* The bell stays visible on mobile: a notification nobody sees on a
-                  phone may as well not exist. */}
+              {/* The bell stays visible on mobile */}
               <NotificationBell />
               {user.tier !== "free" && (
-                <span className="hidden items-center gap-1 rounded-full bg-brand-500/15 px-2.5 py-1 text-[10px] font-bold uppercase text-brand-300 sm:inline-flex">
-                  <Crown className="h-3 w-3" /> {user.tier}
+                <span className="hidden items-center gap-1 rounded-full bg-[hsl(272,24%,46%)]/20 px-2.5 py-1 text-[10px] font-bold uppercase text-white sm:inline-flex border border-[hsl(272,24%,46%)]/40">
+                  <Crown className="h-3 w-3 text-amber-400" /> {user.tier}
                 </span>
               )}
               <AccountMenu user={user} />
@@ -755,14 +755,12 @@ export default function DashboardLayout() {
                   key={t.to}
                   to={t.to}
                   end={t.end}
-                  // Prefixed so a strip tab is never confused with the sidebar item
-                  // that shares its testid (tab-overview exists in both places).
                   data-testid={t.testid ? `strip-${t.testid}` : undefined}
                   className={({ isActive }) =>
                     `relative shrink-0 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 outline-none ${
                       isActive
-                        ? "bg-brand-500/20 text-brand-200 border border-brand-500/40 shadow-[0_0_15px_rgba(164,141,244,0.15)]"
-                        : "bg-white/[0.03] text-zinc-400 hover:text-zinc-200 border border-white/5 hover:bg-white/[0.06]"
+                        ? "bg-[hsl(272,24%,46%)] text-white shadow-sm"
+                        : "bg-[#111111] text-zinc-400 hover:text-white border border-[#3f3f46]/30 hover:border-[#3f3f46]/60"
                     }`
                   }
                 >

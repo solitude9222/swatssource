@@ -4,22 +4,23 @@
 @tailwind components;
 @tailwind utilities;
 
-/* swats palette: Near-black #0A0A0D, Primary purple #A48DF4, and Light lavender #D3C4FF. */
+/* swats palette: Main #09090b, Secondary #111111, Accent hsl(272, 24%, 46%), Off #3f3f46, White #ffffff */
 :root {
-    --sw-bg: #0A0A0D;          /* near-black */
-    --sw-surface: #121217;     /* raised panel */
-    --sw-surface-2: #191922;   /* top border / overlay layer */
+    --sw-bg: #09090b;          /* main */
+    --sw-surface: #111111;     /* secondary */
+    --sw-surface-2: #18181b;   /* top border / overlay layer */
     --sw-border: rgba(255, 255, 255, 0.08);
-    --sw-border-active: rgba(164, 141, 244, 0.45);
-    --sw-accent: #A48DF4;      /* Primary purple (#A48DF4) */
-    --sw-accent-2: #8C71E8;    /* pressed purple */
-    --sw-cherry: #5938B8;      /* deep violet, gradient tails */
-    --sw-silver: #8D8D9E;      /* mid grey */
-    --sw-blush: #D3C4FF;       /* Light lavender (#D3C4FF) */
-    --sw-radius: 1rem;         /* section radius (same as rounded-2xl) */
-    --sw-text: #f4f4f7;
-    --sw-text-2: #a1a1b0;
-    --sw-text-3: #717182;
+    --sw-border-active: hsla(272, 24%, 46%, 0.5);
+    --sw-accent: hsl(272, 24%, 46%);      /* accent */
+    --sw-accent-2: hsl(272, 24%, 54%);    /* pressed / hover accent */
+    --sw-cherry: hsl(272, 24%, 38%);      /* deep violet tails */
+    --sw-silver: #8D8D9E;                 /* mid grey */
+    --sw-blush: hsl(272, 35%, 68%);       /* light lavender */
+    --sw-off: #3f3f46;                    /* off indicator */
+    --sw-radius: 1rem;                    /* section radius */
+    --sw-text: #ffffff;
+    --sw-text-2: #a1a1aa;
+    --sw-text-3: #71717a;
 }
 
 * { scroll-behavior: smooth; }
@@ -125,8 +126,8 @@ body {
    low alpha rather than an actual lighter colour. */
 
 .sw-page-bg {
-    background-color: var(--sw-bg);
-    background-image: linear-gradient(180deg, #131318 0%, #0b0b0f 42%, #060608 100%);
+    background-color: #09090b;
+    background-image: linear-gradient(180deg, #111111 0%, #0c0c0e 45%, #09090b 100%);
 }
 
 /* ── Slow background drift ───────────────────────────────────────────────────
