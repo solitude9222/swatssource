@@ -68,6 +68,281 @@ const LEGACY_EMPTY = {
   glow_on: false,
 };
 
+export const getWidgetArtworkOptions = (widget) => {
+  const type = widget?.type || "discord";
+  switch (type) {
+    case "youtube":
+      return [
+        { value: "none", label: "None" },
+        { value: "thumbnail", label: "Latest video thumbnail" },
+        { value: "banner", label: "Channel banner" },
+        { value: "avatar", label: "Channel avatar" },
+      ];
+    case "spotify":
+      return [
+        { value: "none", label: "None" },
+        { value: "thumbnail", label: "Album artwork / Cover" },
+        { value: "banner", label: "Artist banner" },
+        { value: "avatar", label: "Artist avatar" },
+      ];
+    case "steam":
+      return [
+        { value: "none", label: "None" },
+        { value: "game", label: "Current game backdrop" },
+        { value: "banner", label: "Steam profile background" },
+        { value: "avatar", label: "Profile avatar" },
+      ];
+    case "twitch":
+      return [
+        { value: "none", label: "None" },
+        { value: "thumbnail", label: "Stream preview thumbnail" },
+        { value: "banner", label: "Channel banner" },
+        { value: "avatar", label: "Channel avatar" },
+      ];
+    case "roblox":
+      return [
+        { value: "none", label: "None" },
+        { value: "thumbnail", label: "Game thumbnail" },
+        { value: "avatar", label: "Avatar full render" },
+        { value: "banner", label: "Group banner" },
+      ];
+    case "valorant":
+      return [
+        { value: "none", label: "None" },
+        { value: "banner", label: "Agent card backdrop" },
+        { value: "avatar", label: "Rank emblem / icon" },
+      ];
+    case "minecraft":
+      return [
+        { value: "none", label: "None" },
+        { value: "banner", label: "Server banner" },
+        { value: "avatar", label: "Server icon" },
+      ];
+    case "lastfm":
+    case "statsfm":
+      return [
+        { value: "none", label: "None" },
+        { value: "thumbnail", label: "Album / Track artwork" },
+        { value: "avatar", label: "Artist photo / Avatar" },
+      ];
+    case "clash-of-clans":
+    case "clash-royale":
+    case "brawl-stars":
+      return [
+        { value: "none", label: "None" },
+        { value: "banner", label: "Arena / Town Hall backdrop" },
+        { value: "avatar", label: "Badge / Player icon" },
+      ];
+    case "weather":
+      return [
+        { value: "none", label: "None" },
+        { value: "banner", label: "Sky & weather scenery" },
+        { value: "avatar", label: "Weather condition icon" },
+      ];
+    case "tiktok":
+    case "soundcloud":
+      return [
+        { value: "none", label: "None" },
+        { value: "thumbnail", label: "Media cover / thumbnail" },
+        { value: "avatar", label: "Creator avatar" },
+      ];
+    case "github":
+      return [
+        { value: "none", label: "None" },
+        { value: "avatar", label: "Avatar / Org logo" },
+        { value: "banner", label: "Repository social preview" },
+      ];
+    case "timezone":
+    case "countdown":
+      return [
+        { value: "none", label: "None" },
+        { value: "banner", label: "Themed gradient artwork" },
+      ];
+    case "discord":
+    default:
+      return [
+        { value: "none", label: "None" },
+        { value: "banner", label: "Server / Profile banner" },
+        { value: "splash", label: "Server splash artwork" },
+        { value: "avatar", label: "Server icon / avatar" },
+      ];
+  }
+};
+
+export const getWidgetDisplayOptions = (widget) => {
+  const type = widget?.type || "discord";
+  switch (type) {
+    case "youtube":
+      return [
+        { key: "show_online", label: "Subscribers count", desc: "Display total channel subscribers on the card." },
+        { key: "show_members", label: "Videos count", desc: "Display total published videos count." },
+        { key: "show_boost", label: "Total views", desc: "Display lifetime channel video views." },
+        { key: "info_modal", label: "Info modal", desc: "Open the channel info modal when clicked." },
+        { key: "view_button", label: "Watch button", desc: "Show direct YouTube channel link button." },
+        { key: "platform_badge", label: "YouTube badge", desc: "Show YouTube badge in top corner." },
+        { key: "show_subtitle", label: "Channel description", desc: "Show channel bio or description snippet." },
+        { key: "stats_row", label: "Stats row", desc: "Display compact channel statistics bar." },
+      ];
+    case "spotify":
+      return [
+        { key: "show_online", label: "Artist name", desc: "Show performing artist and album credit." },
+        { key: "show_members", label: "Track duration", desc: "Display track playtime length." },
+        { key: "show_boost", label: "Audio quality", desc: "Show streaming quality or bitrate badge." },
+        { key: "info_modal", label: "Music modal", desc: "Open audio details popup when clicked." },
+        { key: "view_button", label: "Listen button", desc: "Show open in Spotify button." },
+        { key: "platform_badge", label: "Spotify badge", desc: "Show Spotify platform indicator." },
+        { key: "show_subtitle", label: "Album title", desc: "Show album or playlist name below track." },
+        { key: "stats_row", label: "Playback stats", desc: "Display audio progress or listener metrics." },
+      ];
+    case "steam":
+      return [
+        { key: "show_online", label: "Online status", desc: "Display online / in-game presence status." },
+        { key: "show_members", label: "Current game", desc: "Show the game currently being played." },
+        { key: "show_boost", label: "Steam level", desc: "Display Steam account badge level." },
+        { key: "info_modal", label: "Profile modal", desc: "Open detailed Steam profile view." },
+        { key: "view_button", label: "Steam link", desc: "Show button to open Steam community page." },
+        { key: "platform_badge", label: "Steam badge", desc: "Show Steam branding badge." },
+        { key: "show_subtitle", label: "Status summary", desc: "Show player custom status or summary text." },
+        { key: "stats_row", label: "Activity row", desc: "Show game activity and playtime stats." },
+      ];
+    case "twitch":
+      return [
+        { key: "show_online", label: "Live status", desc: "Show glowing LIVE indicator or offline state." },
+        { key: "show_members", label: "Followers", desc: "Display total Twitch follower count." },
+        { key: "show_boost", label: "Viewer count", desc: "Display real-time live stream viewers." },
+        { key: "info_modal", label: "Stream modal", desc: "Open Twitch stream preview dialog." },
+        { key: "view_button", label: "Watch stream button", desc: "Show direct link to stream channel." },
+        { key: "platform_badge", label: "Twitch badge", desc: "Show Twitch platform tag." },
+        { key: "show_subtitle", label: "Stream category", desc: "Show currently streaming game or topic." },
+        { key: "stats_row", label: "Stream stats", desc: "Show live viewer count and uptime row." },
+      ];
+    case "roblox":
+      return [
+        { key: "show_online", label: "Online presence", desc: "Show Roblox online / studio presence." },
+        { key: "show_members", label: "Friends & Members", desc: "Display friends or group member count." },
+        { key: "show_boost", label: "Visits / Players", desc: "Show active player or visit count." },
+        { key: "info_modal", label: "Roblox modal", desc: "Open player or place info dialog." },
+        { key: "view_button", label: "Roblox link", desc: "Show link to join game or view profile." },
+        { key: "platform_badge", label: "Roblox badge", desc: "Show Roblox platform badge." },
+        { key: "show_subtitle", label: "About snippet", desc: "Show Roblox user or place description." },
+        { key: "stats_row", label: "Stats line", desc: "Show compact Roblox metrics." },
+      ];
+    case "valorant":
+      return [
+        { key: "show_online", label: "Competitive rank", desc: "Display Valorant competitive rank." },
+        { key: "show_members", label: "Account level", desc: "Show Valorant account progression level." },
+        { key: "show_boost", label: "Rank rating (RR)", desc: "Show ranked rating points." },
+        { key: "info_modal", label: "Career modal", desc: "Open detailed competitive record modal." },
+        { key: "view_button", label: "Tracker link", desc: "Show match history link button." },
+        { key: "platform_badge", label: "Valorant badge", desc: "Show Valorant logo badge." },
+        { key: "show_subtitle", label: "Tagline", desc: "Show Riot ID and tag identifier." },
+        { key: "stats_row", label: "Competitive stats", desc: "Show rank, level and rating bar." },
+      ];
+    case "minecraft":
+      return [
+        { key: "show_online", label: "Server status", desc: "Show online / offline ping status." },
+        { key: "show_members", label: "Player count", desc: "Show online players vs max slots." },
+        { key: "show_boost", label: "Server latency (Ping)", desc: "Display connection ping in ms." },
+        { key: "info_modal", label: "Server modal", desc: "Open Minecraft server modal." },
+        { key: "view_button", label: "Copy IP button", desc: "Show copy server address button." },
+        { key: "platform_badge", label: "Minecraft badge", desc: "Show Minecraft server badge." },
+        { key: "show_subtitle", label: "Server MOTD", desc: "Display message of the day line." },
+        { key: "stats_row", label: "Server stats", desc: "Show players and latency row." },
+      ];
+    case "lastfm":
+    case "statsfm":
+      return [
+        { key: "show_online", label: "Scrobbles count", desc: "Display total track plays count." },
+        { key: "show_members", label: "Top artist", desc: "Show most listened music artist." },
+        { key: "show_boost", label: "Recent track", desc: "Show last scrobbled music track." },
+        { key: "info_modal", label: "Listening modal", desc: "Open listening history dialog." },
+        { key: "view_button", label: "Profile link", desc: "Show button to open profile." },
+        { key: "platform_badge", label: "Service badge", desc: "Show music tracker badge." },
+        { key: "show_subtitle", label: "Now playing", desc: "Show live scrobble or artist bio." },
+        { key: "stats_row", label: "Music metrics", desc: "Show listening stats row." },
+      ];
+    case "clash-of-clans":
+    case "clash-royale":
+    case "brawl-stars":
+      return [
+        { key: "show_online", label: "Trophy count", desc: "Display current trophies achieved." },
+        { key: "show_members", label: "Clan / Club", desc: "Show clan name and membership status." },
+        { key: "show_boost", label: "Town Hall / Arena", desc: "Display level, arena, or highest tier." },
+        { key: "info_modal", label: "Stats modal", desc: "Open detailed Supercell player stats." },
+        { key: "view_button", label: "View link", desc: "Show external player profile link." },
+        { key: "platform_badge", label: "Game badge", desc: "Show game branding badge." },
+        { key: "show_subtitle", label: "Player title", desc: "Show player tag and role." },
+        { key: "stats_row", label: "Trophy & Clan bar", desc: "Display compact trophies and club row." },
+      ];
+    case "weather":
+      return [
+        { key: "show_online", label: "Temperature", desc: "Display current degrees in Celsius/Fahrenheit." },
+        { key: "show_members", label: "Condition", desc: "Show weather state (Sunny, Rain, Clear)." },
+        { key: "show_boost", label: "Humidity & Wind", desc: "Display humidity percentage and wind speed." },
+        { key: "info_modal", label: "Forecast modal", desc: "Open 7-day weather forecast dialog." },
+        { key: "view_button", label: "Details button", desc: "Show weather radar and map button." },
+        { key: "platform_badge", label: "Weather badge", desc: "Show live weather provider badge." },
+        { key: "show_subtitle", label: "Location name", desc: "Show city, state, or country name." },
+        { key: "stats_row", label: "Weather metrics", desc: "Show temperature and conditions row." },
+      ];
+    case "timezone":
+    case "countdown":
+      return [
+        { key: "show_online", label: "Live time / Timer", desc: "Display real-time ticking time or countdown." },
+        { key: "show_members", label: "Date / Target", desc: "Show calendar date or countdown destination." },
+        { key: "show_boost", label: "UTC offset / Days left", desc: "Display GMT difference or days remaining." },
+        { key: "info_modal", label: "Time modal", desc: "Open time zone or event schedule modal." },
+        { key: "view_button", label: "Calendar button", desc: "Show add to calendar or copy button." },
+        { key: "platform_badge", label: "Clock badge", desc: "Show Timezone or Countdown badge." },
+        { key: "show_subtitle", label: "Timezone title", desc: "Show selected city or event title." },
+        { key: "stats_row", label: "Time row", desc: "Display time and date status line." },
+      ];
+    case "tiktok":
+    case "soundcloud":
+      return [
+        { key: "show_online", label: "Creator name", desc: "Show author or video producer." },
+        { key: "show_members", label: "Plays / Likes", desc: "Display play or view engagement count." },
+        { key: "show_boost", label: "Audio track", desc: "Show background sound or track name." },
+        { key: "info_modal", label: "Media modal", desc: "Open media playback modal." },
+        { key: "view_button", label: "Watch / Listen", desc: "Show link to watch or stream." },
+        { key: "platform_badge", label: "App badge", desc: "Show platform badge in corner." },
+        { key: "show_subtitle", label: "Caption", desc: "Show video caption or track info." },
+        { key: "stats_row", label: "Engagement row", desc: "Display likes and views summary." },
+      ];
+    case "github":
+      return [
+        { key: "show_online", label: "Show followers", desc: "Display your GitHub follower count on the card." },
+        { key: "show_members", label: "Show repositories", desc: "Display total public repositories count." },
+        { key: "show_boost", label: "Show stars", desc: "Display total star count across your repositories." },
+        { key: "info_modal", label: "Info modal", desc: "Open the detailed widget modal when the card is clicked." },
+        { key: "view_button", label: "View button", desc: "Show the small external-link button on the card." },
+        { key: "platform_badge", label: "Platform badge", desc: "Show the platform label in the top-right corner." },
+        { key: "show_subtitle", label: "Subtitle", desc: "Show the secondary bio text below the title." },
+        { key: "stats_row", label: "Stats row", desc: "Show the compact stats line on the card." },
+      ];
+    case "discord":
+    default:
+      return [
+        { key: "show_online", label: "Show online", desc: "Display current online member count for servers." },
+        { key: "show_members", label: "Show members", desc: "Display total member count for servers." },
+        { key: "show_boost", label: "Show boost level", desc: "Display the Discord server boost level." },
+        { key: "info_modal", label: "Info modal", desc: "Open the detailed widget modal when the card is clicked." },
+        { key: "view_button", label: "View button", desc: "Show the small external-link button on the card." },
+        { key: "platform_badge", label: "Platform badge", desc: "Show the platform label in the top-right corner." },
+        { key: "show_subtitle", label: "Subtitle", desc: "Show the secondary text below the widget title." },
+        { key: "stats_row", label: "Stats row", desc: "Show the compact stats line on the card." },
+      ];
+  }
+};
+
+const getInitialArtworkBg = (kindId) => {
+  if (kindId === "discord") return "splash";
+  if (["youtube", "spotify", "twitch", "tiktok", "soundcloud", "lastfm", "statsfm", "roblox"].includes(kindId)) return "thumbnail";
+  if (kindId === "steam") return "game";
+  if (["github", "minecraft"].includes(kindId)) return "avatar";
+  return "banner";
+};
+
 const blankWidget = (kind) => ({
   type: kind.id,
   subtype: kind.subtypes?.[0]?.id || "",
@@ -78,7 +353,7 @@ const blankWidget = (kind) => ({
   enabled: true,
   ...LEGACY_EMPTY,
   // Display options
-  artwork_bg: "splash",
+  artwork_bg: getInitialArtworkBg(kind.id),
   bg_filter: "dark",
   show_online: true,
   show_members: true,
@@ -116,12 +391,16 @@ function RealLiveWidgetPreview({ widget, kind, styleOverride }) {
 
   // Background artwork
   let bgImage = "";
-  if (widget.artwork_bg === "banner" && (data?.banner || data?.banner_url)) {
-    bgImage = data.banner || data.banner_url;
-  } else if (widget.artwork_bg === "splash" && data?.splash) {
-    bgImage = data.splash;
-  } else if (widget.artwork_bg === "avatar" && (data?.icon || data?.avatar)) {
-    bgImage = data.icon || data.avatar;
+  if (widget.artwork_bg === "banner") {
+    bgImage = data?.banner || data?.banner_url || data?.backdrop || (widget.type === "youtube" ? "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80" : "");
+  } else if (widget.artwork_bg === "splash") {
+    bgImage = data?.splash || data?.banner;
+  } else if (widget.artwork_bg === "thumbnail") {
+    bgImage = data?.thumbnail || data?.latest?.thumbnail || data?.album_art || data?.cover || (widget.type === "youtube" ? "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80" : (widget.type === "spotify" ? "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&auto=format&fit=crop&q=80" : ""));
+  } else if (widget.artwork_bg === "game") {
+    bgImage = data?.game_image || data?.current_game?.image || "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&auto=format&fit=crop&q=80";
+  } else if (widget.artwork_bg === "avatar") {
+    bgImage = data?.icon || data?.avatar;
   }
 
   // Filter overlays
@@ -139,17 +418,35 @@ function RealLiveWidgetPreview({ widget, kind, styleOverride }) {
   let title = data?.name || data?.global_name || data?.username || data?.title || widget.title || kind.label;
   if (isDiscord && widget.subtype === "server") {
     title = data?.name || (widget.invite_url ? `/${widget.invite_url.replace(/.*discord\.gg\//, "").replace(/^\/+/, "")}` : "/acheron");
+  } else if (widget.type === "youtube") {
+    title = data?.title || (widget.channel ? widget.channel.replace(/.*youtube\.com\/(@?)/, "@") : "@creator");
+  } else if (widget.type === "spotify") {
+    title = data?.title || "Starboy (feat. Daft Punk)";
+  } else if (widget.type === "steam") {
+    title = data?.persona || widget.username || "GabeLoganNewell";
+  } else if (widget.type === "roblox") {
+    title = data?.name || widget.username || "Builderman";
+  } else if (widget.type === "valorant") {
+    title = data?.name ? `${data.name}#${data.tag || "NA1"}` : (widget.riot_id || "TenZ#0001");
   }
 
   let subtitle = data?.description || data?.bio || (widget.show_subtitle !== false ? kind.desc : "");
   if (isDiscord && widget.subtype === "server" && !data?.description) {
     subtitle = "The modern solution for your personal biolink website. Simple, fast, and fully customizable.";
+  } else if (widget.type === "youtube" && !data?.description) {
+    subtitle = "Official YouTube Channel • Daily high quality content & streams";
+  } else if (widget.type === "spotify" && !data?.description) {
+    subtitle = data?.author || "The Weeknd • Starboy";
+  } else if (widget.type === "steam" && !data?.description) {
+    subtitle = data?.state_message || "Currently in-game: Counter-Strike 2";
   }
 
-  const onlineCount = data?.online != null ? formatCount(data.online) : (widget.online_count || "13");
-  const memberCount = (data?.total_members != null ? formatCount(data.total_members) : (data?.members != null ? formatCount(data.members) : (widget.member_count || "88")));
-  const boostLevel = data?.premium_tier != null ? `Level ${data.premium_tier}` : (data?.boost_level ? `Level ${data.boost_level}` : "Level 3");
-  const avatarUrl = data?.icon || data?.avatar || "";
+  const avatarUrl = data?.icon || data?.avatar || data?.thumbnail || "";
+  const stats = (typeof getPreviewStats === "function") ? getPreviewStats(widget, kind, data) : {
+    stat1: { label: "13 Online", color: "text-emerald-400", dot: "bg-emerald-400" },
+    stat2: { label: "88 Members", color: "text-zinc-300" },
+    stat3: { label: "Level 3", color: "text-purple-400" },
+  };
 
   return (
     <div
@@ -214,20 +511,20 @@ function RealLiveWidgetPreview({ widget, kind, styleOverride }) {
         {widget.stats_row !== false && (
           <div className="flex flex-wrap items-center gap-3 pt-1 text-xs">
             {widget.show_online !== false && (
-              <span className="flex items-center gap-1.5 text-emerald-400 font-medium">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#34d399]" />
-                {onlineCount} Online
+              <span className={`flex items-center gap-1.5 font-medium ${stats.stat1.color}`}>
+                <span className={`w-2 h-2 rounded-full ${stats.stat1.dot}`} />
+                {stats.stat1.label}
               </span>
             )}
             {widget.show_members !== false && (
-              <span className="text-zinc-300 font-medium">
-                {memberCount} Members
+              <span className={`font-medium ${stats.stat2.color}`}>
+                {stats.stat2.label}
               </span>
             )}
             {widget.show_boost !== false && (
-              <span className="text-purple-400 font-medium flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />
-                {boostLevel}
+              <span className={`font-medium flex items-center gap-1 ${stats.stat3.color}`}>
+                <span className="w-1.5 h-1.5 rounded-full bg-current opacity-70" />
+                {stats.stat3.label}
               </span>
             )}
             {status === "loading" && (
@@ -604,18 +901,13 @@ export default function Widgets() {
             <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06] space-y-1.5">
               <label className="text-xs font-semibold text-zinc-200">Background</label>
               <p className="text-[11px] text-zinc-400">
-                Use {kind.label} banner, splash, icon, or avatar artwork.
+                Use {kind.label} artwork for card backdrop.
               </p>
               <div className="pt-1">
                 <SmartSelect
-                  value={editingWidget.widget.artwork_bg || "splash"}
+                  value={editingWidget.widget.artwork_bg || getWidgetArtworkOptions(editingWidget.widget)[1]?.value || "none"}
                   onChange={(val) => patchEditingWidget({ artwork_bg: val })}
-                  options={[
-                    { value: "none", label: "None" },
-                    { value: "banner", label: "Banner" },
-                    { value: "splash", label: "Server splash" },
-                    { value: "avatar", label: "Icon / avatar" },
-                  ]}
+                  options={getWidgetArtworkOptions(editingWidget.widget)}
                 />
               </div>
             </div>
@@ -644,34 +936,7 @@ export default function Widgets() {
 
           {/* Tailored Toggle options */}
           <div className="space-y-2.5 pt-2">
-            {(isDiscord ? [
-              { key: "show_online", label: "Show online", desc: "Display current online member count for servers." },
-              { key: "show_members", label: "Show members", desc: "Display total member count for servers." },
-              { key: "show_boost", label: "Show boost level", desc: "Display the Discord server boost level." },
-              { key: "info_modal", label: "Info modal", desc: "Open the detailed widget modal when the card is clicked." },
-              { key: "view_button", label: "View button", desc: "Show the small external-link button on the card." },
-              { key: "platform_badge", label: "Platform badge", desc: "Show the platform label in the top-right corner." },
-              { key: "show_subtitle", label: "Subtitle", desc: "Show the secondary text below the widget title." },
-              { key: "stats_row", label: "Stats row", desc: "Show the compact stats line on the card." },
-            ] : isGitHub ? [
-              { key: "show_online", label: "Show followers", desc: "Display your GitHub follower count on the card." },
-              { key: "show_members", label: "Show repositories", desc: "Display total public repositories count." },
-              { key: "show_boost", label: "Show stars", desc: "Display total star count across your repositories." },
-              { key: "info_modal", label: "Info modal", desc: "Open the detailed widget modal when the card is clicked." },
-              { key: "view_button", label: "View button", desc: "Show the small external-link button on the card." },
-              { key: "platform_badge", label: "Platform badge", desc: "Show the platform label in the top-right corner." },
-              { key: "show_subtitle", label: "Subtitle", desc: "Show the secondary bio text below the title." },
-              { key: "stats_row", label: "Stats row", desc: "Show the compact stats line on the card." },
-            ] : [
-              { key: "show_online", label: `Show online status`, desc: `Display live online status or viewer activity.` },
-              { key: "show_members", label: `Show stats`, desc: `Display follower, member or subscriber counts.` },
-              { key: "show_boost", label: `Show level / rank`, desc: `Display tier, level or rank indicators.` },
-              { key: "info_modal", label: "Info modal", desc: "Open the detailed widget modal when the card is clicked." },
-              { key: "view_button", label: "View button", desc: "Show the small external-link button on the card." },
-              { key: "platform_badge", label: "Platform badge", desc: "Show the platform label in the top-right corner." },
-              { key: "show_subtitle", label: "Subtitle", desc: "Show the secondary text below the widget title." },
-              { key: "stats_row", label: "Stats row", desc: "Show the compact stats line on the card." },
-            ]).map((item) => (
+            {getWidgetDisplayOptions(editingWidget.widget).map((item) => (
               <div key={item.key} className="flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
                 <div>
                   <div className="text-xs font-semibold text-zinc-200">{item.label}</div>

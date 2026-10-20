@@ -130,7 +130,8 @@ export function SmartSelect({
         <ul
           role="listbox"
           aria-label={ariaLabel}
-          className={`absolute z-[100] mt-1.5 max-h-64 min-w-full overflow-y-auto rounded-xl border border-white/10 bg-[#0A0A0D]/98 p-1 shadow-[0_20px_60px_rgba(0,0,0,0.85)] backdrop-blur-xl animate-in fade-in zoom-in-95 duration-100 ${
+          style={{ backgroundColor: "#10111a" }}
+          className={`absolute z-[100] mt-1.5 max-h-64 min-w-full overflow-y-auto rounded-xl border border-white/20 bg-[#10111a] p-1.5 shadow-[0_20px_70px_rgba(0,0,0,0.98)] backdrop-blur-2xl animate-in fade-in zoom-in-95 duration-100 ${
             align === "right" ? "right-0" : "left-0"
           }`}
         >
