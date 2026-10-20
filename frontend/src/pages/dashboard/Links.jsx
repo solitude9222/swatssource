@@ -255,17 +255,16 @@ export default function Links() {
   const ActiveIcon = activeMeta.Icon || LinkIcon;
 
   return (
-    <div data-testid="links-page" className="space-y-8">
+    <div data-testid="links-page" className="w-full space-y-6 pb-32 text-left">
       {/* Header */}
-      <div className="glass rounded-3xl p-7">
-        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+      <div className="rounded-3xl border border-white/[0.08] bg-black/40 backdrop-blur-xl p-5 sm:p-7">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="flex items-center gap-2.5 font-display text-xl font-bold text-zinc-100">
-              <LinkIcon className="h-5 w-5 text-brand-400" /> Links &amp; Social Media
-            </h2>
-            <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-zinc-400">
-              Show a link as a full card or just its icon, pick a card or icon style, and give each one
-              its own colour, glow and hover note. Ordering is yours.
+            <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2.5">
+              <LinkIcon className="h-6 w-6 text-brand-400" /> Links &amp; Socials
+            </h1>
+            <p className="mt-1 text-xs text-zinc-400 max-w-xl leading-relaxed">
+              Show a link as a full card or just its icon, customize styles, colors, glow and ordering.
             </p>
           </div>
 
@@ -273,7 +272,7 @@ export default function Links() {
             <button
               data-testid="link-global-styles-btn"
               onClick={() => setShowGlobalModal(true)}
-              className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-semibold text-brand-200 glass transition-colors duration-200 hover:bg-white/10"
+              className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-semibold text-zinc-300 border border-white/10 bg-white/[0.03] hover:bg-white/[0.08] hover:text-white transition cursor-pointer"
               title="Global Colors & Styles"
             >
               <Paintbrush className="h-4 w-4" /> Global Styles
@@ -281,7 +280,7 @@ export default function Links() {
             <button
               data-testid="add-link-btn"
               onClick={() => openAddLinkModal("discord")}
-              className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 px-4 py-2.5 text-xs font-semibold text-white shadow-md transition-colors duration-200 hover:brightness-110"
+              className="flex items-center gap-2 rounded-xl bg-brand-500 hover:bg-brand-600 px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-brand-500/20 transition cursor-pointer"
             >
               <Plus className="h-4 w-4" /> Add Link
             </button>
@@ -290,11 +289,13 @@ export default function Links() {
       </div>
 
       {/* Preset quick-add */}
-      <div className="glass rounded-3xl p-7" data-testid="link-presets">
-        <h3 className="font-display text-base font-bold text-zinc-100">Quick add a preset</h3>
-        <p className="mt-1.5 mb-5 text-sm text-zinc-400">
-          One click fills in the icon, name and colours for you — no dropdown required.
-        </p>
+      <div className="rounded-3xl border border-white/[0.08] bg-black/40 backdrop-blur-xl p-5 sm:p-7 space-y-4" data-testid="link-presets">
+        <div>
+          <h2 className="text-sm font-bold text-white tracking-tight uppercase">Quick add a preset</h2>
+          <p className="text-xs text-zinc-400 mt-0.5">
+            One click fills in the icon, name and colours for you — no dropdown required.
+          </p>
+        </div>
 
         <div className="flex flex-wrap gap-2.5">
           {QUICK_PRESETS.map((id) => {
@@ -307,7 +308,7 @@ export default function Links() {
                 data-testid={`link-preset-${id}`}
                 onClick={() => openAddLinkModal(id)}
                 title={`Add ${preset.name}`}
-                className="group flex items-center gap-2.5 rounded-2xl border border-white/10 bg-white/[0.02] px-3.5 py-2.5 transition-colors duration-200 hover:border-white/25 hover:bg-white/[0.07]"
+                className="group flex items-center gap-2.5 rounded-2xl border border-white/[0.07] bg-white/[0.02] hover:bg-white/[0.05] hover:border-brand-500/40 px-3.5 py-2.5 transition cursor-pointer"
               >
                 <span
                   className="flex h-8 w-8 items-center justify-center rounded-xl"
@@ -315,10 +316,10 @@ export default function Links() {
                 >
                   <preset.Icon className="h-4 w-4" style={{ color: preset.color }} />
                 </span>
-                <span className="text-xs font-semibold text-zinc-300 transition-colors duration-200 group-hover:text-zinc-50">
+                <span className="text-xs font-semibold text-zinc-300 transition group-hover:text-white">
                   {preset.name}
                 </span>
-                <Plus className="h-3 w-3 text-zinc-600 transition-colors duration-200 group-hover:text-brand-300" />
+                <Plus className="h-3 w-3 text-zinc-500 transition group-hover:text-brand-300" />
               </button>
             );
           })}
@@ -326,20 +327,23 @@ export default function Links() {
       </div>
 
       {/* Links list */}
-      <div className="glass rounded-3xl p-7">
-        <div className="mb-5 flex items-center justify-between">
-          <h3 className="font-display text-base font-bold text-zinc-100">Your links</h3>
-          <span className="font-mono2 text-xs text-zinc-500">
+      <div className="rounded-3xl border border-white/[0.08] bg-black/40 backdrop-blur-xl p-5 sm:p-7 space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-sm font-bold text-white tracking-tight uppercase">Your links</h2>
+            <p className="text-xs text-zinc-400 mt-0.5">Manage and reorder your active link cards</p>
+          </div>
+          <span className="text-xs font-mono2 text-zinc-400 px-2.5 py-1 rounded-lg bg-white/5 border border-white/10">
             {links.length} {links.length === 1 ? "link" : "links"}
           </span>
         </div>
 
-        <div className="space-y-3.5">
+        <div className="space-y-3">
           {links.length === 0 && (
-            <div className="rounded-2xl border border-dashed border-white/12 px-6 py-12 text-center">
+            <div className="rounded-2xl border border-dashed border-white/10 p-10 text-center bg-white/[0.01]">
               <LinkIcon className="mx-auto mb-3 h-6 w-6 text-zinc-600" />
-              <p className="text-sm text-zinc-400">No links yet.</p>
-              <p className="mt-1 font-mono2 text-xs text-zinc-600">
+              <p className="text-sm font-semibold text-zinc-300">No links yet</p>
+              <p className="mt-1 text-xs text-zinc-500">
                 Choose a preset above to create your first link card.
               </p>
             </div>
@@ -360,8 +364,8 @@ export default function Links() {
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={() => { moveLink(dragIndex, i); setDragIndex(null); }}
                 onDragEnd={() => setDragIndex(null)}
-                className={`flex cursor-grab items-center justify-between gap-4 rounded-2xl border bg-white/[0.03] p-5 transition-colors duration-200 active:cursor-grabbing ${
-                  dragIndex === i ? "border-brand-500/60 opacity-60" : "border-white/10 hover:border-brand-500/40"
+                className={`flex cursor-grab items-center justify-between gap-4 rounded-2xl border p-4 transition active:cursor-grabbing ${
+                  dragIndex === i ? "border-brand-500/60 opacity-60 bg-black/60" : "border-white/[0.07] bg-white/[0.02] hover:bg-white/[0.05] hover:border-brand-500/40"
                 }`}
               >
                 <div className="flex min-w-0 flex-1 items-center gap-4">
@@ -430,7 +434,7 @@ export default function Links() {
                     type="button"
                     data-testid={`link-edit-${i}`}
                     onClick={() => openEditLinkModal(i)}
-                    className="flex items-center gap-1.5 rounded-xl bg-brand-500/15 px-3.5 py-2 text-xs font-semibold text-brand-300 transition-colors duration-200 hover:bg-brand-500/30"
+                    className="flex items-center gap-1.5 rounded-xl border border-brand-500/30 bg-brand-500/15 px-3.5 py-2 text-xs font-semibold text-brand-200 transition hover:bg-brand-500/25 cursor-pointer"
                   >
                     <Edit2 className="h-3.5 w-3.5" /> Edit
                   </button>
@@ -438,7 +442,7 @@ export default function Links() {
                     type="button"
                     data-testid={`link-delete-${i}`}
                     onClick={() => removeLink(i)}
-                    className="rounded-xl bg-red-500/10 p-2 text-red-400 transition-colors duration-200 hover:bg-red-500/20"
+                    className="rounded-xl border border-red-500/20 bg-red-500/10 p-2 text-red-400 transition hover:bg-red-500/20 cursor-pointer"
                     title="Delete Link"
                     aria-label={`Delete ${l.label || l.platform || "link"}`}
                   >
@@ -455,7 +459,7 @@ export default function Links() {
           it only exists while there is something to save (or just afterwards,
           as the confirmation). */}
       <div className={`${dirty || justSaved ? "block" : "hidden"} sticky bottom-4 z-20`} data-testid="links-save-bar">
-        <div className="glass-strong flex items-center justify-between gap-4 rounded-2xl border border-white/10 p-3.5 shadow-[0_10px_40px_rgba(0,0,0,0.6)]">
+        <div className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-black/85 backdrop-blur-xl p-4 shadow-2xl">
           <div className="flex items-center gap-2 text-xs">
             {dirty ? (
               <>
@@ -474,7 +478,7 @@ export default function Links() {
             data-testid="links-save-btn"
             onClick={saveAll}
             disabled={saving}
-            className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 px-5 py-2.5 text-xs font-bold text-white shadow-[0_0_24px_rgba(164, 141, 244,0.35)] transition-colors duration-200 hover:brightness-110 disabled:opacity-50"
+            className="flex items-center gap-2 rounded-xl bg-brand-500 hover:bg-brand-600 px-6 py-2.5 text-xs font-bold text-white shadow-lg shadow-brand-500/20 transition cursor-pointer disabled:opacity-50"
           >
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
             {saving ? "Saving…" : "Save Links"}
@@ -488,7 +492,7 @@ export default function Links() {
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md animate-in fade-in duration-200"
           onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null); }}
         >
-          <div className="bg-[#0A0A0D]/95 backdrop-blur-2xl relative max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-3xl border border-white/15 p-7 shadow-[0_25px_90px_rgba(0,0,0,0.95),0_0_40px_rgba(164, 141, 244,0.15)] animate-in zoom-in-95 duration-200">
+          <div className="bg-[#0c0d14] backdrop-blur-2xl relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl border border-white/15 p-6 sm:p-8 shadow-[0_25px_90px_rgba(0,0,0,0.95)] animate-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between border-b border-white/10 pb-5">
               <div className="flex items-center gap-2.5">
                 <span
@@ -497,34 +501,34 @@ export default function Links() {
                 >
                   <ActiveIcon className="h-4 w-4" style={{ color: activeMeta.color || "#A48DF4" }} />
                 </span>
-                <h3 className="font-display text-lg font-bold text-zinc-100">
+                <h3 className="text-lg font-bold text-white tracking-tight">
                   {activeModal.isNew ? "Add Link Card" : "Edit Link Card"}
                 </h3>
               </div>
               <button
                 data-testid="link-modal-close"
                 onClick={() => setActiveModal(null)}
-                className="rounded-lg p-1.5 text-zinc-500 transition-colors duration-200 hover:text-zinc-200"
+                className="rounded-lg p-1.5 text-zinc-400 hover:text-white transition cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="grid gap-8 pt-6">
+            <div className="grid gap-6 pt-6">
               {/* Config */}
-              <div className="space-y-5">
+              <div className="space-y-4">
                 <div>
-                  <label className="mb-2 block text-xs font-semibold text-zinc-300">Platform</label>
+                  <label className="mb-2 block text-xs font-semibold text-zinc-200">Platform</label>
 
                   <div className="relative mb-3">
-                    <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-500" />
+                    <Search className="absolute left-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-500" />
                     <input
                       data-testid="link-platform-search"
                       type="text"
                       value={platformQuery}
                       onChange={(e) => setPlatformQuery(e.target.value)}
                       placeholder={`Search ${PLATFORM_PRESETS.length} platforms…`}
-                      className="w-full rounded-xl border border-white/10 bg-white/[0.04] py-2.5 pl-9 pr-3 text-xs text-zinc-100 outline-none transition-colors duration-200 focus:border-brand-500/50"
+                      className="w-full rounded-xl border border-white/10 bg-black/50 py-2.5 pl-9 pr-3 text-xs font-medium text-white placeholder-zinc-500 outline-none transition focus:border-brand-500/60"
                     />
                   </div>
 
@@ -541,10 +545,10 @@ export default function Links() {
                           data-testid={`link-platform-option-${p.id}`}
                           onClick={() => selectPlatform(p)}
                           title={p.name}
-                          className={`flex flex-col items-center gap-1.5 rounded-xl border p-2.5 text-[10px] font-semibold transition-colors duration-200 ${
+                          className={`flex flex-col items-center gap-1.5 rounded-xl border p-2.5 text-[10px] font-semibold transition cursor-pointer ${
                             selected
-                              ? "border-brand-500 bg-brand-500/15 text-brand-100"
-                              : "border-white/10 bg-white/[0.02] text-zinc-400 hover:border-white/25 hover:bg-white/[0.06]"
+                              ? "border-brand-500/50 bg-brand-500/20 text-brand-200 shadow-sm"
+                              : "border-white/10 bg-white/[0.02] text-zinc-400 hover:border-white/25 hover:bg-white/[0.06] hover:text-zinc-200"
                           }`}
                         >
                           <p.Icon className="h-5 w-5" style={{ color: selected ? "#c4b5fd" : p.color }} />
@@ -562,31 +566,31 @@ export default function Links() {
                 </div>
 
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold text-zinc-300">Display Label</label>
+                  <label className="mb-1.5 block text-xs font-semibold text-zinc-200">Display Label</label>
                   <input
                     data-testid="link-label-input"
                     type="text"
                     value={activeModal.link.label || ""}
                     onChange={(e) => patchLink({ label: e.target.value })}
                     placeholder="e.g. Join Official Discord"
-                    className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-3.5 py-2.5 text-xs text-zinc-100 outline-none transition-colors duration-200 focus:border-brand-500/50"
+                    className="w-full rounded-xl border border-white/10 bg-black/50 px-4 py-2.5 text-xs font-medium text-white placeholder-zinc-500 outline-none transition focus:border-brand-500/60"
                   />
                 </div>
 
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold text-zinc-300">URL / Handle</label>
+                  <label className="mb-1.5 block text-xs font-semibold text-zinc-200">URL / Handle</label>
                   <input
                     data-testid="link-url-input"
                     type="text"
                     value={activeModal.link.url || ""}
                     onChange={(e) => patchLink({ url: e.target.value })}
                     placeholder={placeholderFor(activeModal.link.platform)}
-                    className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-3.5 py-2.5 text-xs text-zinc-100 outline-none transition-colors duration-200 focus:border-brand-500/50"
+                    className="w-full rounded-xl border border-white/10 bg-black/50 px-4 py-2.5 text-xs font-medium text-white placeholder-zinc-500 outline-none transition focus:border-brand-500/60"
                   />
                 </div>
 
                 {/* Display style */}
-                <div className="space-y-4 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
+                <div className="space-y-4 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4 sm:p-5">
                   <div className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Display style</div>
                   <ChipRow
                     label="Show as"
@@ -627,7 +631,7 @@ export default function Links() {
                 </div>
 
                 {/* Custom icon, description & glow */}
-                <div className="space-y-4 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
+                <div className="space-y-4 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4 sm:p-5">
                   <div className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Custom icon &amp; description</div>
                   <div className="flex items-center gap-3">
                     <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-white/[0.04]">
@@ -654,7 +658,7 @@ export default function Links() {
                         <button
                           type="button"
                           onClick={() => patchLink({ icon_url: "" })}
-                          className="rounded-xl bg-red-500/10 p-2 text-red-400 transition-colors duration-200 hover:bg-red-500/20"
+                          className="rounded-xl border border-red-500/20 bg-red-500/10 p-2 text-red-400 transition hover:bg-red-500/20 cursor-pointer"
                           aria-label="Remove custom icon"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
@@ -666,26 +670,26 @@ export default function Links() {
                   </div>
 
                   <div>
-                    <label className="mb-1.5 block text-xs font-semibold text-zinc-300">Short description</label>
+                    <label className="mb-1.5 block text-xs font-semibold text-zinc-200">Short description</label>
                     <input
                       data-testid="link-desc-input"
                       type="text"
                       value={activeModal.link.desc || ""}
                       onChange={(e) => patchLink({ desc: e.target.value })}
                       placeholder="e.g. Our community · 40k members"
-                      className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-3.5 py-2.5 text-xs text-zinc-100 outline-none transition-colors duration-200 focus:border-brand-500/50"
+                      className="w-full rounded-xl border border-white/10 bg-black/50 px-4 py-2.5 text-xs font-medium text-white placeholder-zinc-500 outline-none transition focus:border-brand-500/60"
                     />
                   </div>
 
                   <div>
-                    <label className="mb-1.5 block text-xs font-semibold text-zinc-300">Tooltip</label>
+                    <label className="mb-1.5 block text-xs font-semibold text-zinc-200">Tooltip</label>
                     <input
                       data-testid="link-tooltip-input"
                       type="text"
                       value={activeModal.link.tooltip || ""}
                       onChange={(e) => patchLink({ tooltip: e.target.value })}
                       placeholder="Shown when a visitor hovers this link"
-                      className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-3.5 py-2.5 text-xs text-zinc-100 outline-none transition-colors duration-200 focus:border-brand-500/50"
+                      className="w-full rounded-xl border border-white/10 bg-black/50 px-4 py-2.5 text-xs font-medium text-white placeholder-zinc-500 outline-none transition focus:border-brand-500/60"
                     />
                   </div>
 
@@ -712,21 +716,20 @@ export default function Links() {
                   <ColorPicker label="Custom Glow" value={activeModal.link.glow || "#A48DF4"} onChange={(v) => patchLink({ glow: v })} />
                 </div>
               </div>
-
             </div>
 
-            <div className="mt-6 flex justify-end gap-2 border-t border-white/10 pt-5">
+            <div className="mt-6 flex justify-end gap-2.5 border-t border-white/10 pt-5">
               <button
                 data-testid="link-modal-cancel"
                 onClick={() => setActiveModal(null)}
-                className="rounded-xl px-4 py-2.5 text-xs font-semibold text-zinc-400 glass transition-colors duration-200 hover:text-white"
+                className="rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.08] hover:text-white px-4 py-2.5 text-xs font-semibold text-zinc-300 transition cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 data-testid="link-modal-apply"
                 onClick={saveModalLink}
-                className="rounded-xl bg-brand-500 px-5 py-2.5 text-xs font-semibold text-white transition-colors duration-200 hover:bg-brand-600"
+                className="rounded-xl bg-brand-500 hover:bg-brand-600 px-6 py-2.5 text-xs font-bold text-white shadow-lg shadow-brand-500/20 transition cursor-pointer"
               >
                 Apply Link Card
               </button>
@@ -741,22 +744,22 @@ export default function Links() {
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md animate-in fade-in duration-200"
           onClick={(e) => { if (e.target === e.currentTarget) setShowGlobalModal(false); }}
         >
-          <div className="glass-strong relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-white/15 p-7 shadow-[0_20px_80px_rgba(0,0,0,0.9)] animate-in zoom-in-95 duration-200">
+          <div className="bg-[#0c0d14] backdrop-blur-2xl relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-white/15 p-6 sm:p-8 shadow-[0_25px_90px_rgba(0,0,0,0.95)] animate-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between border-b border-white/10 pb-5">
               <div className="flex items-center gap-2.5">
                 <Paintbrush className="h-5 w-5 text-brand-400" />
-                <h3 className="font-display text-base font-bold text-zinc-100">Global Link Styles</h3>
+                <h3 className="text-lg font-bold text-white tracking-tight">Global Link Styles</h3>
               </div>
               <button
                 data-testid="link-global-modal-close"
                 onClick={() => setShowGlobalModal(false)}
-                className="rounded-lg p-1.5 text-zinc-500 transition-colors duration-200 hover:text-zinc-200"
+                className="rounded-lg p-1.5 text-zinc-400 hover:text-white transition cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="space-y-5 pt-5">
+            <div className="space-y-4 pt-5">
               <ChipRow
                 label="Default display"
                 options={LINK_MODES}
@@ -822,7 +825,7 @@ export default function Links() {
                 <button
                   data-testid="link-global-modal-done"
                   onClick={() => setShowGlobalModal(false)}
-                  className="rounded-xl bg-brand-500 px-5 py-2.5 text-xs font-semibold text-white transition-colors duration-200 hover:bg-brand-600"
+                  className="rounded-xl bg-brand-500 hover:bg-brand-600 px-6 py-2.5 text-xs font-bold text-white shadow-lg shadow-brand-500/20 transition cursor-pointer"
                 >
                   Done
                 </button>
