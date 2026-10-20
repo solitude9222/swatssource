@@ -134,7 +134,7 @@ const groupFor = (pathname, search = "") => {
 
 /* Shared look of a top-level sidebar row (Home and the category headers). */
 const rowBase =
-  "group relative flex h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-sm font-medium outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-[#3f62e2]/60";
+  "group relative flex h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-sm font-medium outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-[#a48df4]/60";
 
 /* A sub-page link inside an open category (or the flat Home link). */
 const TabLink = ({ t, sub = true, label }) => {
@@ -147,17 +147,17 @@ const TabLink = ({ t, sub = true, label }) => {
       aria-current={active ? "page" : undefined}
       className={
         sub
-          ? `group relative flex h-9 w-full items-center gap-2.5 rounded-lg border px-3 text-[13px] font-medium outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-[#3f62e2]/60 ${
+          ? `group relative flex h-9 w-full items-center gap-2.5 rounded-lg border px-3 text-[13px] font-medium outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-[#a48df4]/60 ${
               active
-                ? "border-[#3f62e2]/60 bg-[#191f2f] text-white"
+                ? "border-[#a48df4]/60 bg-[#25183e] text-white"
                 : "border-transparent text-zinc-400 hover:bg-white/[0.04] hover:text-white"
             }`
-          : `${rowBase} ${active ? "bg-[#1d243b] text-[#7f9bf2]" : "text-zinc-400 hover:bg-white/[0.04] hover:text-white"}`
+          : `${rowBase} ${active ? "bg-[#2e1b4d] text-[#d8b4fe]" : "text-zinc-400 hover:bg-white/[0.04] hover:text-white"}`
       }
     >
       <t.icon
         className={`${sub ? "h-4 w-4" : "h-[18px] w-[18px]"} shrink-0 transition-colors duration-200 ${
-          active ? (sub ? "text-[#587fee]" : "text-[#7f9bf2]") : "text-zinc-500 group-hover:text-zinc-200"
+          active ? (sub ? "text-[#c084fc]" : "text-[#d8b4fe]") : "text-zinc-500 group-hover:text-zinc-200"
         }`}
       />
       <span className="truncate">{label || t.label}</span>
@@ -178,15 +178,15 @@ function NavGroup({ group, open, onToggle, containsActive }) {
         onClick={onToggle}
         aria-expanded={open}
         data-testid={`navgroup-${group.id}`}
-        className={`${rowBase} ${lit ? "bg-[#1d243b] text-[#7f9bf2]" : containsActive ? "bg-white/[0.03] text-zinc-200" : "text-zinc-400 hover:bg-white/[0.04] hover:text-white"}`}
+        className={`${rowBase} ${lit ? "bg-[#2e1b4d] text-[#d8b4fe]" : containsActive ? "bg-white/[0.03] text-zinc-200" : "text-zinc-400 hover:bg-white/[0.04] hover:text-white"}`}
       >
         {Icon && (
-          <Icon className={`h-[18px] w-[18px] shrink-0 ${lit ? "text-[#7f9bf2]" : "text-zinc-500 group-hover:text-zinc-200"}`} />
+          <Icon className={`h-[18px] w-[18px] shrink-0 ${lit ? "text-[#d8b4fe]" : "text-zinc-500 group-hover:text-zinc-200"}`} />
         )}
         <span className="truncate">{group.label}</span>
-        {containsActive && !open && <span className="h-1.5 w-1.5 rounded-full bg-[#587fee] animate-pulse" />}
+        {containsActive && !open && <span className="h-1.5 w-1.5 rounded-full bg-[#c084fc] animate-pulse" />}
         <ChevronDown
-          className={`ml-auto h-4 w-4 shrink-0 transition-transform duration-300 ${lit ? "text-[#7f9bf2]" : "text-zinc-500"} ${
+          className={`ml-auto h-4 w-4 shrink-0 transition-transform duration-300 ${lit ? "text-[#d8b4fe]" : "text-zinc-500"} ${
             open ? "rotate-180" : "rotate-0"
           }`}
         />
@@ -228,7 +228,7 @@ function CommunityCard() {
       target="_blank"
       rel="noreferrer"
       data-testid="discord-card"
-      className="group block rounded-2xl border border-[#1f1f1f] bg-[#111111] px-3 py-2.5 transition-colors duration-200 hover:border-[#3f62e2]/50"
+      className="group block rounded-2xl border border-[#1f1f1f] bg-[#111111] px-3 py-2.5 transition-colors duration-200 hover:border-[#a48df4]/50"
     >
       <div className="flex items-center gap-2.5">
         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-[#1f1f1f] bg-[#0d0d0d] transition-transform duration-300 group-hover:scale-105">
@@ -293,7 +293,7 @@ function UserCard({ user, onLogout }) {
 
 /* Round-cornered icon button used in the header's top-right cluster. */
 const headerBtn =
-  "flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-[#1f1f1f] bg-[#111111] text-[#587fee] outline-none transition-colors duration-200 hover:border-[#3f62e2]/50 hover:bg-[#151722] focus-visible:ring-2 focus-visible:ring-[#3f62e2]/60";
+  "flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-[#1f1f1f] bg-[#111111] text-[#c084fc] outline-none transition-colors duration-200 hover:border-[#a48df4]/50 hover:bg-[#1d132e] focus-visible:ring-2 focus-visible:ring-[#a48df4]/60";
 
 /* The top-right account menu: a click on the avatar opens every account this
    session can reach — the current one, the paired accounts to swap between,
@@ -676,7 +676,7 @@ export default function DashboardLayout() {
                 value={navQuery}
                 onChange={(e) => setNavQuery(e.target.value)}
                 placeholder="search dashboard…"
-                className="h-10 w-full rounded-xl border border-[#2a2a2e] bg-[#0d0d0d] pl-9 pr-3 text-[13px] text-white outline-none transition-colors placeholder:text-zinc-500 focus:border-[#3f62e2]"
+                className="h-10 w-full rounded-xl border border-[#2a2a2e] bg-[#0d0d0d] pl-9 pr-3 text-[13px] text-white outline-none transition-colors placeholder:text-zinc-500 focus:border-[#a48df4]"
               />
             </div>
           </div>
@@ -712,9 +712,9 @@ export default function DashboardLayout() {
               type="button"
               onClick={() => setPopup("premium")}
               data-testid="premium-link"
-              className="group flex h-[58px] w-full cursor-pointer items-center gap-3 rounded-2xl border border-[#1f1f1f] bg-[#111111] px-3 text-left outline-none transition-colors duration-200 hover:border-[#3f62e2]/50 focus-visible:ring-2 focus-visible:ring-[#3f62e2]/60"
+              className="group flex h-[58px] w-full cursor-pointer items-center gap-3 rounded-2xl border border-[#1f1f1f] bg-[#111111] px-3 text-left outline-none transition-colors duration-200 hover:border-[#a48df4]/50 focus-visible:ring-2 focus-visible:ring-[#a48df4]/60"
             >
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#1d243b] text-[#587fee]">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#2e1b4d] text-[#c084fc]">
                 <Star className="h-4 w-4 fill-current transition-transform duration-200 group-hover:scale-110" />
               </span>
               <span className="min-w-0 flex-1">
@@ -783,7 +783,7 @@ export default function DashboardLayout() {
               {/* The bell stays visible on mobile */}
               <NotificationBell />
               {user.tier !== "free" && (
-                <span className="hidden items-center gap-1 rounded-full border border-[#3f62e2]/40 bg-[#3f62e2]/15 px-2.5 py-1 text-[10px] font-bold uppercase text-white sm:inline-flex">
+                <span className="hidden items-center gap-1 rounded-full border border-[#a48df4]/40 bg-[#a48df4]/15 px-2.5 py-1 text-[10px] font-bold uppercase text-white sm:inline-flex">
                   <Crown className="h-3 w-3 text-amber-400" /> {user.tier}
                 </span>
               )}
@@ -795,7 +795,7 @@ export default function DashboardLayout() {
           {!ownHeader && (
             <div className="mt-5 flex items-center gap-4" data-testid="dash-page-header">
               <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-[#1f1f1f] bg-[#111111]">
-                <PageIcon className="h-6 w-6 text-[#587fee]" />
+                <PageIcon className="h-6 w-6 text-[#c084fc]" />
               </div>
               <div className="min-w-0">
                 <motion.h1
@@ -827,7 +827,7 @@ export default function DashboardLayout() {
                   className={({ isActive }) =>
                     `flex min-w-[96px] flex-1 shrink-0 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-semibold outline-none transition-colors duration-200 ${
                       isActive
-                        ? "bg-[#3f62e2] text-white shadow-sm"
+                        ? "bg-[#a48df4] text-black shadow-sm"
                         : "text-zinc-400 hover:bg-white/[0.04] hover:text-white"
                     }`
                   }
@@ -856,7 +856,7 @@ export default function DashboardLayout() {
                 to={t.to}
                 className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium outline-none transition-colors duration-200 ${
                   active
-                    ? "border-[#3f62e2]/60 bg-[#191f2f] text-white"
+                    ? "border-[#a48df4]/60 bg-[#25183e] text-white"
                     : "border-[#1f1f1f] bg-[#111111] text-zinc-400 hover:text-zinc-100"
                 }`}
               >

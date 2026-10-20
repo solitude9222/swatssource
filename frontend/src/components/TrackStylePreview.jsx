@@ -134,23 +134,31 @@ export function TrackStylePreview({ id, accent = "#A48DF4", size = "sm" }) {
   // Vinyl: revolving vinyl record disc + tonearm
   if (id === "vinyl") {
     return shell(
-      <div className="flex h-full items-center justify-between gap-2">
-        <div
-          className="relative flex shrink-0 items-center justify-center rounded-full border border-zinc-700 bg-gradient-to-tr from-zinc-900 to-black shadow-md"
-          style={{ width: S.line * 3.4, height: S.line * 3.4 }}
-        >
-          <span className="absolute inset-1 rounded-full border border-zinc-800" />
-          <span
-            className="flex items-center justify-center rounded-full"
-            style={{ width: S.line * 1.4, height: S.line * 1.4, background: accent }}
+      <div className="flex h-full items-center justify-between gap-2.5">
+        <div className="relative flex shrink-0 items-center justify-center">
+          <div
+            className="relative flex items-center justify-center rounded-full border border-zinc-700/80 shadow-md"
+            style={{
+              width: S.line * 3.6,
+              height: S.line * 3.6,
+              background: "repeating-radial-gradient(circle at center, #1a1a1e 0px, #1a1a1e 1.5px, #0d0d10 2px, #0d0d10 3px)",
+            }}
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-black" />
-          </span>
+            <span className="absolute inset-1 rounded-full border border-zinc-800" />
+            <span
+              className="flex items-center justify-center rounded-full shadow-inner"
+              style={{ width: S.line * 1.5, height: S.line * 1.5, background: accent }}
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-black" />
+            </span>
+          </div>
+          {/* Tonearm */}
+          <div className="absolute top-0 right-0 w-2 h-4 border-r border-t border-zinc-300 origin-top-right rotate-12" />
         </div>
         <div className="min-w-0 flex-1 space-y-1.5">
-          <Bar w="70%" h={S.line} className="bg-white/60" />
-          <Bar w="45%" h={S.line - 3} className="bg-white/30" />
-          <Bar w="100%" h={S.bar - 1} style={{ background: `${accent}44` }} />
+          <Bar w="70%" h={S.line} className="bg-white/70" />
+          <Bar w="45%" h={S.line - 3} className="bg-white/35" />
+          <Bar w="100%" h={S.bar - 1} style={{ background: `${accent}55` }} />
         </div>
       </div>,
     );
@@ -160,22 +168,22 @@ export function TrackStylePreview({ id, accent = "#A48DF4", size = "sm" }) {
   return shell(
     <div className="flex h-full items-center gap-2.5">
       <span
-        className="flex shrink-0 items-center justify-center rounded-lg border"
+        className="flex shrink-0 items-center justify-center rounded-lg border shadow-sm"
         style={{
           width: S.line * 2.2,
           height: S.line * 2.2,
-          background: `linear-gradient(135deg, ${accent}55, ${accent}18)`,
-          borderColor: `${accent}44`,
+          background: `linear-gradient(135deg, ${accent}66, ${accent}22)`,
+          borderColor: `${accent}55`,
         }}
         aria-hidden
       >
-        <Play width={S.line} height={S.line} style={{ color: accent }} aria-hidden />
+        <Play width={S.line} height={S.line} style={{ color: "#fff" }} aria-hidden />
       </span>
       <div className="min-w-0 flex-1 space-y-1.5">
-        <Bar w="62%" h={S.line} className="bg-white/45" />
-        <Bar w="100%" h={S.bar - 1} style={{ background: `${accent}44` }} />
+        <Bar w="62%" h={S.line} className="bg-white/60" />
+        <Bar w="100%" h={S.bar - 1} style={{ background: `${accent}55` }} />
       </div>
-      <Bar w="16%" h={S.line - 3} className="bg-white/20" />
+      <Bar w="16%" h={S.line - 3} className="bg-white/25" />
     </div>,
   );
 }

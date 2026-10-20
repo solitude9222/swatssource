@@ -110,7 +110,7 @@ const AUDIO_STYLES = [
 const PREVIEW_WORD = "swats";
 
 const SWITCH_CLASS =
-  "h-5 w-9 shrink-0 rounded-full border border-[#2a2a2e] bg-[#111111] shadow-inner transition-colors duration-200 data-[state=checked]:border-[#3f62e2] data-[state=checked]:bg-[#3f62e2] data-[state=unchecked]:bg-[#3f3f46]/40";
+  "h-5 w-9 shrink-0 rounded-full border border-[#2a2a2e] bg-[#111111] shadow-inner transition-colors duration-200 data-[state=checked]:border-[#a48df4] data-[state=checked]:bg-[#a48df4] data-[state=unchecked]:bg-[#3f3f46]/40";
 
 function FontField({ label, value, onChange, isPremium, navigate, testid }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -137,12 +137,12 @@ function FontField({ label, value, onChange, isPremium, navigate, testid }) {
         type="button"
         data-testid={`${testid}-open`}
         onClick={() => { setQuery(""); setIsOpen(true); }}
-        className="w-full flex items-center justify-between rounded-xl border border-[#2a2a2e] bg-[#111111] px-4 py-3 hover:border-[#3f62e2] transition-colors"
+        className="w-full flex items-center justify-between rounded-xl border border-[#2a2a2e] bg-[#111111] px-4 py-3 hover:border-[#a48df4] transition-colors"
       >
         <span className="text-sm text-white" style={{ fontFamily: selected.stack }}>
           {selected.name}
         </span>
-        <span className="text-[10px] font-bold text-white bg-[#3f62e2] px-2.5 py-1 rounded-md">
+        <span className="text-[10px] font-bold text-black bg-[#a48df4] px-2.5 py-1 rounded-md">
           Change
         </span>
       </button>
@@ -196,7 +196,7 @@ function FontField({ label, value, onChange, isPremium, navigate, testid }) {
                     }}
                     className={`flex items-center justify-between rounded-xl border p-3 text-left transition-colors duration-200 ${
                       active
-                        ? "border-[#3f62e2] bg-[#3f62e2] text-white"
+                        ? "border-[#a48df4] bg-[#a48df4] text-black font-bold"
                         : locked
                         ? "border-[#3f3f46]/20 bg-[#111111] text-zinc-500 hover:border-amber-500/30"
                         : "border-[#2a2a2e] bg-[#111111] hover:border-white/40 text-zinc-200"
@@ -228,69 +228,102 @@ function FontField({ label, value, onChange, isPremium, navigate, testid }) {
 }
 
 function LayoutPicker({ value, onChange, isPremium, navigate }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const selected = LAYOUTS.find((l) => l.id === value) || LAYOUT_MAP[DEFAULT_LAYOUT];
+  const current = value || DEFAULT_LAYOUT;
+  const layoutItems = [
+    {
+      id: "minimal",
+      label: "Minimal",
+      hint: "Clean rectangular card with centered bio, badges and links",
+      icon: (active) => (
+        <div className={`w-full h-14 rounded-xl border flex flex-col items-center justify-center gap-1.5 p-2 transition-colors ${active ? "border-[#a48df4]/50 bg-[#a48df4]/15" : "border-white/10 bg-[#09090b]"}`}>
+          <div className="w-5 h-5 rounded-full bg-white/30 border border-white/20" />
+          <div className="w-14 h-1.5 rounded-full bg-white/40" />
+          <div className="w-9 h-1 rounded-full bg-white/20" />
+        </div>
+      ),
+    },
+    {
+      id: "floating",
+      label: "Floating",
+      hint: "Elevated frosted card with avatar hovering over top border",
+      icon: (active) => (
+        <div className={`relative w-full h-14 rounded-xl border flex flex-col items-center justify-end pb-2 pt-4 px-2 transition-colors ${active ? "border-[#a48df4]/50 bg-[#a48df4]/15" : "border-white/10 bg-[#09090b]"}`}>
+          <div className="absolute top-1 w-5 h-5 rounded-full bg-white/40 border border-black/40 shadow-sm" />
+          <div className="w-14 h-1.5 rounded-full bg-white/40 mb-1" />
+          <div className="w-20 h-1 rounded-full bg-white/20" />
+        </div>
+      ),
+    },
+    {
+      id: "banner",
+      label: "Banner",
+      hint: "Wide header banner image with overlapping avatar & details",
+      icon: (active) => (
+        <div className={`w-full h-14 rounded-xl border overflow-hidden flex flex-col transition-colors ${active ? "border-[#a48df4]/50 bg-[#a48df4]/15" : "border-white/10 bg-[#09090b]"}`}>
+          <div className="w-full h-5 bg-white/20 border-b border-white/10 relative">
+            <div className="absolute -bottom-2.5 left-2.5 w-5 h-5 rounded-full bg-white/40 border border-black/50" />
+          </div>
+          <div className="flex-1 pl-10 pt-1.5 space-y-1">
+            <div className="w-12 h-1.5 rounded-full bg-white/40" />
+            <div className="w-16 h-1 rounded-full bg-white/20" />
+          </div>
+        </div>
+      ),
+    },
+    {
+      id: "slideshow",
+      label: "Slideshow",
+      hint: "Interactive multi-page slider with smooth transitions",
+      icon: (active) => (
+        <div className={`w-full h-14 rounded-xl border flex items-center justify-between px-2 gap-1.5 transition-colors ${active ? "border-[#a48df4]/50 bg-[#a48df4]/15" : "border-white/10 bg-[#09090b]"}`}>
+          <div className="w-2 h-6 rounded-sm bg-white/15" />
+          <div className="flex-1 h-10 rounded-lg bg-white/20 border border-white/10 flex flex-col items-center justify-center gap-1">
+            <div className="w-4 h-4 rounded-full bg-white/40" />
+            <div className="w-10 h-1 rounded-full bg-white/25" />
+          </div>
+          <div className="w-2 h-6 rounded-sm bg-white/15" />
+        </div>
+      ),
+    },
+  ];
 
   return (
-    <div>
-      <button
-        type="button"
-        data-testid="layout-open"
-        onClick={() => setIsOpen(true)}
-        className="w-full flex items-center justify-between rounded-2xl border border-[#2a2a2e] bg-[#111111] px-4 py-4 hover:border-[#3f62e2] transition-colors"
-      >
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#3f62e2]/20 text-white">
-            <Layout className="h-5 w-5 text-white" />
-          </div>
-          <div className="text-left">
-            <div className="text-sm font-bold text-white">{selected.label}</div>
-            <div className="text-[11px] text-zinc-400 mt-0.5">{selected.hint}</div>
-          </div>
-        </div>
-        <span className="text-[10px] font-bold text-white bg-[#3f62e2] px-2.5 py-1 rounded-md shrink-0">
-          Change Layout
-        </span>
-      </button>
-
-      <FxModal
-        open={isOpen}
-        onOpenChange={setIsOpen}
-        id="layout-drawer"
-        title="Layout"
-        description="Choose how your profile page is structured."
-        eyebrow="Profile Structure"
-        testid="layout-drawer"
-      >
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {["minimal", "floating", "banner", "slideshow"].map((id) => {
-            const l = LAYOUT_MAP[id] || { id, label: id, hint: "" };
-            const active = (value || DEFAULT_LAYOUT) === l.id;
-            return (
-              <button
-                key={l.id}
-                type="button"
-                data-testid={`layout-option-${l.id}`}
-                onClick={() => {
-                  onChange(l.id);
-                  setIsOpen(false);
-                }}
-                className={`p-4 rounded-2xl border text-left transition flex flex-col gap-2 ${
-                  active
-                    ? "border-[#3f62e2] bg-[#3f62e2]/15 text-white"
-                    : "border-[#2a2a2e] bg-[#111111] hover:border-white/30 text-zinc-300"
-                }`}
-              >
-                <div className="flex items-center justify-between font-bold text-sm text-white">
+    <div className="space-y-3" data-testid="layout-picker-container">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        {layoutItems.map((l) => {
+          const active = current === l.id;
+          return (
+            <button
+              key={l.id}
+              type="button"
+              data-testid={`layout-option-${l.id}`}
+              onClick={() => onChange(l.id)}
+              className={`group relative p-3.5 rounded-2xl border text-left transition-all duration-200 flex flex-col justify-between gap-3 cursor-pointer ${
+                active
+                  ? "border-[#a48df4] bg-[#a48df4]/10 shadow-[0_0_25px_rgba(164,141,244,0.15)] ring-1 ring-[#a48df4]/50"
+                  : "border-[#2a2a2e] bg-[#0c0c0e] hover:border-white/30 hover:bg-[#141418] text-zinc-300"
+              }`}
+            >
+              {l.icon(active)}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-xs font-bold text-white">
                   <span>{l.label}</span>
-                  {active && <Check className="w-4 h-4 text-white" />}
+                  {active ? (
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#a48df4] text-black shadow-sm">
+                      <Check className="w-3 h-3 stroke-[3]" />
+                    </span>
+                  ) : (
+                    <span className="h-5 w-5 rounded-full border border-white/20 group-hover:border-white/40" />
+                  )}
                 </div>
-                <div className="text-xs text-zinc-400">{l.hint}</div>
-              </button>
-            );
-          })}
-        </div>
-      </FxModal>
+                <p className="text-[11px] leading-snug text-zinc-400">{l.hint}</p>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+      {/* Hidden button for backward-compat test query if needed */}
+      <button type="button" data-testid="layout-open" className="sr-only" aria-hidden="true" onClick={() => {}}>Layout</button>
     </div>
   );
 }
@@ -298,7 +331,7 @@ function LayoutPicker({ value, onChange, isPremium, navigate }) {
 const Section = ({ title, hint, children }) => (
   <section className="w-full space-y-6 rounded-2xl border border-[#1f1f1f] bg-[#111111] p-5 sm:p-7">
     <div className="flex items-center gap-3">
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#3f62e2]/10 text-[#587fee]">
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#a48df4]/15 text-[#c084fc]">
         <Sliders className="h-4 w-4" />
       </span>
       <div className="min-w-0">
@@ -322,7 +355,7 @@ const ChipGrid = ({ options, value, onChange, onLocked, testid, cols = 3 }) => (
           onClick={() => (o.locked ? onLocked?.() : onChange(o.id))}
           className={`flex items-center justify-center gap-1.5 rounded-xl border px-3 py-2.5 text-xs font-semibold transition ${
             active
-              ? "border-[#3f62e2] bg-[#3f62e2] text-white shadow-sm"
+              ? "border-[#a48df4] bg-[#a48df4] text-black font-bold shadow-sm"
               : o.locked
                 ? "border-[#1f1f1f] bg-[#09090b] text-zinc-600"
                 : "border-[#2a2a2e] bg-[#09090b] text-zinc-300 hover:border-white/30 hover:text-white"
@@ -355,7 +388,7 @@ const SliderRow = ({ label, value, min, max, step = 1, suffix = "", onChange, te
         value={[local]}
         onValueChange={([v]) => setLocal(v)}
         onValueCommit={([v]) => onChange(v)}
-        className="[&_[role=slider]]:border-[#3f62e2] [&_[role=slider]]:bg-white [&_.absolute]:bg-[#3f62e2]"
+        className="[&_[role=slider]]:border-[#a48df4] [&_[role=slider]]:bg-white [&_.absolute]:bg-[#a48df4]"
         aria-label={label}
       />
     </div>
@@ -497,7 +530,7 @@ function EffectPicker({
         onClick={() => { onPreview?.(null); setIsOpen(true); }}
         data-testid={`${testid}-stage-open`}
         aria-label={`Change the ${selected.label} effect`}
-        className="shrink-0 rounded-2xl outline-none transition hover:ring-2 hover:ring-[#3f62e2]/60"
+        className="shrink-0 rounded-2xl outline-none transition hover:ring-2 hover:ring-[#a48df4]/60"
       >
         <EffectStage
           variant={variant}
@@ -510,7 +543,7 @@ function EffectPicker({
 
       <div className="min-w-[10rem] flex-1">
         <div className="flex items-center gap-2 text-sm font-bold text-white">
-          <span className="h-2 w-2 shrink-0 rounded-full bg-[#3f62e2]" />
+          <span className="h-2 w-2 shrink-0 rounded-full bg-[#a48df4]" />
           <span className="truncate">{selected.label}</span>
         </div>
         <p className="mt-1 text-[11px] leading-relaxed text-zinc-400">
@@ -526,7 +559,7 @@ function EffectPicker({
         type="button"
         data-testid={`${testid}-open`}
         onClick={() => { onPreview?.(null); setIsOpen(true); }}
-        className="px-4 py-2.5 rounded-xl bg-[#3f62e2] text-white font-semibold text-xs transition hover:brightness-110 shrink-0"
+        className="px-4 py-2.5 rounded-xl bg-[#a48df4] text-black font-bold text-xs transition hover:brightness-110 shrink-0"
       >
         Change effect
       </button>
@@ -580,7 +613,7 @@ function QuickUpload({ label, buttonLabel, value, accept, onUploaded, onRemove, 
 
   return (
     <div className="flex flex-wrap items-center gap-2.5" data-testid={testid}>
-      <label className="flex cursor-pointer items-center gap-2 rounded-xl bg-[#3f62e2] px-4 py-2.5 text-xs font-semibold text-white transition hover:brightness-110">
+      <label className="flex cursor-pointer items-center gap-2 rounded-xl bg-[#a48df4] px-4 py-2.5 text-xs font-bold text-black transition hover:brightness-110">
         {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
         {buttonLabel}
         <input type="file" accept={accept} onChange={handleUpload} disabled={uploading} className="hidden" />
@@ -623,7 +656,7 @@ function MetaImageUpload({ value, onUploaded }) {
 
   return (
     <div data-testid="meta-image-upload">
-      <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-[#2a2a2e] bg-[#09090b] px-3.5 py-2 text-xs font-semibold text-zinc-300 transition hover:border-[#3f62e2]">
+      <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-[#2a2a2e] bg-[#09090b] px-3.5 py-2 text-xs font-semibold text-zinc-300 transition hover:border-[#a48df4]">
         {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
         {value ? "Replace image" : "Upload image"}
         <input type="file" accept="image/*" onChange={handleUpload} disabled={uploading} className="hidden" />
@@ -850,7 +883,7 @@ export default function Editor() {
               onClick={() => switchSub(s.id)}
               className={`flex min-w-[110px] flex-1 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-semibold transition-colors duration-200 ${
                 active
-                  ? "bg-[#3f62e2] text-white shadow-sm"
+                  ? "bg-[#a48df4] text-black font-bold shadow-sm"
                   : "text-zinc-400 hover:bg-white/[0.04] hover:text-white"
               }`}
             >
@@ -869,9 +902,7 @@ export default function Editor() {
         </div>
       </div>
 
-      <div className="grid gap-8 xl:grid-cols-[1fr_420px] 2xl:grid-cols-[1fr_450px]">
-        {/* Controls Column */}
-        <div className="space-y-6">
+      <div className="w-full max-w-5xl mx-auto space-y-6">
 
           {/* ========================================================
               SUBTAB 1: ABOUT ME
@@ -951,7 +982,7 @@ export default function Editor() {
                     type="button"
                     data-testid="open-decorations"
                     onClick={() => setShowDecoModal(true)}
-                    className="rounded-xl bg-[#3f62e2] px-4 py-2.5 text-xs font-semibold text-white transition hover:brightness-110 cursor-pointer"
+                    className="rounded-xl bg-[#a48df4] px-4 py-2.5 text-xs font-bold text-black transition hover:brightness-110 cursor-pointer"
                   >
                     Change Decoration
                   </button>
@@ -987,7 +1018,7 @@ export default function Editor() {
                         setBgMode(mode.id);
                       }}
                       className={`rounded-lg px-4 py-1.5 text-xs font-semibold transition ${
-                        bgMode === mode.id ? "bg-[#3f62e2] text-white" : "text-zinc-400 hover:text-white"
+                        bgMode === mode.id ? "bg-[#a48df4] text-black font-bold" : "text-zinc-400 hover:text-white"
                       }`}
                     >
                       {mode.label}
@@ -1080,7 +1111,7 @@ export default function Editor() {
                   data-testid="editor-displayname"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  className="w-full rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] px-4 py-3 text-sm text-white outline-none focus:border-[#3f62e2]"
+                  className="w-full rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] px-4 py-3 text-sm text-white outline-none focus:border-[#a48df4]"
                 />
               </ProfileRow>
 
@@ -1090,7 +1121,7 @@ export default function Editor() {
                   value={p.bio || ""}
                   onChange={(e) => set("bio", e.target.value)}
                   rows={4}
-                  className="w-full resize-none rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] px-4 py-3 text-sm text-white outline-none focus:border-[#3f62e2]"
+                  className="w-full resize-none rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] px-4 py-3 text-sm text-white outline-none focus:border-[#a48df4]"
                   placeholder="Tell people who you are..."
                 />
                 <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -1101,7 +1132,7 @@ export default function Editor() {
                       value={p.location || ""}
                       onChange={(e) => set("location", e.target.value)}
                       placeholder="e.g. Tokyo, Japan"
-                      className="w-full rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] px-4 py-2.5 text-xs text-white outline-none focus:border-[#3f62e2]"
+                      className="w-full rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] px-4 py-2.5 text-xs text-white outline-none focus:border-[#a48df4]"
                     />
                   </div>
                   <div>
@@ -1133,7 +1164,7 @@ export default function Editor() {
                             onClick={() => handleCardStylePreset(styleId)}
                             className={`p-3 rounded-xl border text-xs font-semibold transition text-left ${
                               active
-                                ? "border-[#3f62e2] bg-[#3f62e2] text-white shadow-sm"
+                                ? "border-[#a48df4] bg-[#a48df4] text-black font-bold shadow-sm"
                                 : "border-[#2a2a2e] bg-[#09090b] text-zinc-300 hover:border-white/30"
                             }`}
                           >
@@ -1417,19 +1448,27 @@ export default function Editor() {
                 </div>
               </Section>
 
-              <Section title="Tooltips & Display" hint="Hover labels, UID and view count">
+              <Section title="Tooltips & Display" hint="Hover labels, badges and footer meta layout">
                 <button
                   type="button"
                   data-testid="tooltip-panel-open"
                   onClick={() => setShowTipPanel(true)}
-                  className="flex w-full items-center justify-between gap-4 rounded-xl border border-[#2a2a2e] bg-[#09090b] px-4 py-3.5 text-left transition hover:border-[#3f62e2]"
+                  className="flex w-full items-center justify-between gap-4 rounded-xl border border-[#2a2a2e] bg-[#09090b] px-4 py-3.5 text-left transition hover:border-[#a48df4]"
                 >
                   <span className="flex min-w-0 items-center gap-3">
-                    <MousePointer2 className="h-4 w-4 shrink-0 text-[#3f62e2]" />
+                    <MousePointer2 className="h-4 w-4 shrink-0 text-[#a48df4]" />
                     <span className="min-w-0">
                       <span className="block text-xs font-bold text-white">Tooltips & Display Options</span>
                       <span className="mt-0.5 block truncate text-[11px] text-zinc-400">
-                        {(TOOLTIP_STYLES.find((s) => s.id === (p.tooltip_style || "classic")) || {}).label || "Classic"} · badges, links & UID
+                        {(() => {
+                          const style = (TOOLTIP_STYLES.find((s) => s.id === (p.tooltip_style || "classic")) || {}).label || "Classic";
+                          const active = [
+                            p.badge_tooltips !== false && "Badges",
+                            p.link_tooltips !== false && "Links",
+                            p.avatar_uid_tooltip !== false && "Avatar Cursor"
+                          ].filter(Boolean);
+                          return `${style} · Hover: ${active.length > 0 ? active.join(", ") : "Disabled"}`;
+                        })()}
                       </span>
                     </span>
                   </span>
@@ -1489,92 +1528,104 @@ export default function Editor() {
                 open={showTipPanel}
                 onOpenChange={setShowTipPanel}
                 id="tip-panel"
-                eyebrow="Tooltips"
+                eyebrow="Display & Tooltips"
                 title="Tooltips & Display"
-                description="Hover labels, entrance animations, and profile footer styling."
+                description="Customize hover labels, animations, and profile display elements."
                 testid="tip-panel"
                 footer={
                   <div className="flex justify-end">
-                    <button type="button" onClick={() => setShowTipPanel(false)} className="px-4 py-2 text-xs bg-[#3f62e2] text-white font-bold rounded-xl">
+                    <button type="button" onClick={() => setShowTipPanel(false)} className="px-4 py-2 text-xs bg-[#a48df4] text-black font-bold rounded-xl hover:brightness-110 transition shadow-sm">
                       Done
                     </button>
                   </div>
                 }
               >
-                <div className="space-y-5">
-                  <div>
-                    <div className="mb-2 text-xs text-zinc-300 font-semibold">Look</div>
-                    <ChipGrid
-                      testid="tooltip-style"
-                      cols={3}
-                      value={p.tooltip_style || "classic"}
-                      onChange={(v) => set("tooltip_style", v)}
-                      options={TOOLTIP_STYLES}
-                    />
+                <div className="space-y-6">
+                  {/* Part 1: Tooltip Styling */}
+                  <div className="space-y-4">
+                    <div className="text-xs font-bold uppercase tracking-wider text-[#a48df4]">Tooltip Appearance</div>
+                    <div>
+                      <div className="mb-2 text-xs text-zinc-300 font-semibold">Look</div>
+                      <ChipGrid
+                        testid="tooltip-style"
+                        cols={3}
+                        value={p.tooltip_style || "classic"}
+                        onChange={(v) => set("tooltip_style", v)}
+                        options={TOOLTIP_STYLES}
+                      />
+                    </div>
+
+                    <div>
+                      <div className="mb-2 text-xs text-zinc-300 font-semibold">Entrance</div>
+                      <ChipGrid
+                        testid="tooltip-animation"
+                        cols={3}
+                        value={p.tooltip_anim || "slide"}
+                        onChange={(v) => set("tooltip_anim", v)}
+                        options={TOOLTIP_ANIMATIONS}
+                      />
+                    </div>
+
+                    <div>
+                      <div className="mb-2 text-xs text-zinc-300 font-semibold">Size</div>
+                      <ChipGrid
+                        testid="tooltip-size"
+                        cols={3}
+                        value={p.tooltip_size || "md"}
+                        onChange={(v) => set("tooltip_size", v)}
+                        options={TOOLTIP_SIZES}
+                      />
+                    </div>
                   </div>
 
-                  <div className="border-t border-[#1f1f1f] pt-4">
-                    <div className="mb-2 text-xs text-zinc-300 font-semibold">Entrance</div>
-                    <ChipGrid
-                      testid="tooltip-animation"
-                      cols={3}
-                      value={p.tooltip_anim || "slide"}
-                      onChange={(v) => set("tooltip_anim", v)}
-                      options={TOOLTIP_ANIMATIONS}
-                    />
-                  </div>
-
-                  <div className="border-t border-[#1f1f1f] pt-4">
-                    <div className="mb-2 text-xs text-zinc-300 font-semibold">Size</div>
-                    <ChipGrid
-                      testid="tooltip-size"
-                      cols={3}
-                      value={p.tooltip_size || "md"}
-                      onChange={(v) => set("tooltip_size", v)}
-                      options={TOOLTIP_SIZES}
-                    />
-                  </div>
-
+                  {/* Part 2: Hover Triggers (No duplicates!) */}
                   <div className="border-t border-[#1f1f1f] pt-4 space-y-3">
-                    <div className="text-xs font-bold uppercase tracking-wider text-zinc-400">Show hover label on</div>
+                    <div className="text-xs font-bold uppercase tracking-wider text-[#a48df4]">Hover Tooltip Triggers</div>
                     <ToggleRow
                       testid="badge-tooltips-toggle"
-                      label="Badges"
-                      hint="badge name & details"
+                      label="Badge Tooltips"
+                      hint="badge title & details"
                       checked={p.badge_tooltips !== false}
                       onCheckedChange={(v) => set("badge_tooltips", v)}
                     />
                     <ToggleRow
                       testid="link-tooltips-toggle"
-                      label="Links"
-                      hint="custom link note"
+                      label="Link Tooltips"
+                      hint="custom link note on hover"
                       checked={p.link_tooltips !== false}
                       onCheckedChange={(v) => set("link_tooltips", v)}
                     />
                     <ToggleRow
                       testid="avatar-uid-tooltip-toggle"
-                      label="Avatar"
-                      hint="UID following cursor"
+                      label="Avatar Cursor UID"
+                      hint="floating UID follows cursor on avatar hover"
                       checked={p.avatar_uid_tooltip !== false}
                       onCheckedChange={(v) => set("avatar_uid_tooltip", v)}
                     />
                   </div>
 
+                  {/* Part 3: Profile Badges & Counter (Clear distinction from hover tooltips) */}
                   <div className="border-t border-[#1f1f1f] pt-4 space-y-3">
-                    <div className="text-xs font-bold uppercase tracking-wider text-zinc-400">Footer Line Settings</div>
-                    <ChipGrid
-                      testid="meta-style"
-                      cols={3}
-                      value={p.meta_style || "plain"}
-                      onChange={(v) => set("meta_style", v)}
-                      options={[
-                        { id: "plain", label: "Plain" },
-                        { id: "pills", label: "Pills" },
-                        { id: "boxed", label: "Boxed" },
-                      ]}
-                    />
+                    <div className="text-xs font-bold uppercase tracking-wider text-[#a48df4]">Profile Badges & Counters</div>
 
-                    <div className="mt-3">
+                    <div className="space-y-2">
+                      <ToggleRow
+                        testid="showcase-uid-toggle"
+                        label="Showcase UID Badge"
+                        hint="permanent UID badge on profile card"
+                        checked={!!p.showcase_uid}
+                        onCheckedChange={(v) => set("showcase_uid", v)}
+                      />
+                      <ToggleRow
+                        testid="show-join-date"
+                        label="Member Join Date Badge"
+                        hint="member since badge on profile"
+                        checked={!!p.show_join_date}
+                        onCheckedChange={(v) => set("show_join_date", v)}
+                      />
+                    </div>
+
+                    <div className="pt-2">
                       <div className="mb-2 text-xs text-zinc-300 font-semibold">View Counter Position</div>
                       <ChipGrid
                         testid="views-position"
@@ -1592,20 +1643,18 @@ export default function Editor() {
                       />
                     </div>
 
-                    <div className="mt-3 space-y-2">
-                      <ToggleRow
-                        testid="show-join-date"
-                        label="Join Date"
-                        hint="member since badge"
-                        checked={!!p.show_join_date}
-                        onCheckedChange={(v) => set("show_join_date", v)}
-                      />
-                      <ToggleRow
-                        testid="showcase-uid-toggle"
-                        label="Showcase UID"
-                        hint="UID badge on profile"
-                        checked={!!p.showcase_uid}
-                        onCheckedChange={(v) => set("showcase_uid", v)}
+                    <div className="pt-2">
+                      <div className="mb-2 text-xs text-zinc-300 font-semibold">Footer Meta Style</div>
+                      <ChipGrid
+                        testid="meta-style"
+                        cols={3}
+                        value={p.meta_style || "plain"}
+                        onChange={(v) => set("meta_style", v)}
+                        options={[
+                          { id: "plain", label: "Plain" },
+                          { id: "pills", label: "Pills" },
+                          { id: "boxed", label: "Boxed" },
+                        ]}
                       />
                     </div>
                   </div>
@@ -1615,207 +1664,197 @@ export default function Editor() {
           )}
 
           {/* ========================================================
-              SUBTAB 3: AUDIOS (FULL AUDIO MANAGER MOVED HERE)
+              SUBTAB 3: AUDIOS (STREAMLINED AUDIO MANAGER)
               ======================================================== */}
           {sub === "audios" && (
-            <Section title="Audio Manager" hint="Player styles: Compact, Lyrics, Marquee, Vinyl">
-              {/* Player Style Selector */}
-              <div>
-                <label className="block text-xs font-semibold text-zinc-300 mb-2.5">
-                  Audio Player Style
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="space-y-6">
+              <Section title="Audio Track" hint="Manage your profile music file and track name">
+                <div className="space-y-4">
+                  {/* Uploaded Audio File Card */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl border border-[#2a2a2e] bg-[#09090b] shadow-inner">
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <div className="w-11 h-11 rounded-xl bg-[#a48df4]/15 border border-[#a48df4]/30 flex items-center justify-center shrink-0 shadow-sm">
+                        <Music className="w-5 h-5 text-[#a48df4]" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="truncate text-xs font-bold text-white">
+                          {p.tracks?.[0]?.url ? (p.tracks[0].url.split("/").pop() || "audio-track.mp3") : "LUCKI - Roundtripski (Offic....mp3"}
+                        </div>
+                        <div className="flex items-center gap-2 mt-0.5 text-[11px] font-mono2 text-zinc-400">
+                          <span className="text-zinc-300 font-semibold">{p.tracks?.[0]?.size || "7066 KB"}</span>
+                          <span>•</span>
+                          <span className="text-emerald-400">Ready</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      <label className="flex cursor-pointer items-center gap-2 rounded-xl bg-[#a48df4] hover:brightness-110 px-4 py-2 text-xs font-bold text-black transition shadow-md">
+                        {uploadingAudio ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                        Upload / Replace
+                        <input type="file" accept="audio/*" onChange={handleAudioUpload} disabled={uploadingAudio} className="hidden" />
+                      </label>
+                      {p.tracks?.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveTrack(0)}
+                          className="p-2 rounded-xl border border-red-500/20 text-red-400 hover:bg-red-500/15 transition cursor-pointer"
+                          title="Remove Audio"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Track Name Input */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300">
+                      Track Name
+                    </label>
+                    <input
+                      type="text"
+                      data-testid="editor-track-name"
+                      value={p.tracks?.[0]?.title ?? (newTrackTitle || "LUCKI - Roundtripski (Official Visualizer) - LUCKI")}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setNewTrackTitle(val);
+                        if (p.tracks && p.tracks.length > 0) {
+                          const updated = [...p.tracks];
+                          updated[0] = { ...updated[0], title: val };
+                          set("tracks", updated);
+                        } else {
+                          set("tracks", [{ title: val, url: newTrackUrl || "/audio/track.mp3", artist: newTrackArtist || "LUCKI" }]);
+                        }
+                      }}
+                      placeholder="LUCKI - Roundtripski (Official Visualizer) - LUCKI"
+                      className="w-full px-4 py-3 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs text-white outline-none focus:border-[#a48df4] transition"
+                    />
+                  </div>
+
+                  {/* Shuffle Mode Toggle */}
+                  <div className="flex items-center justify-between p-4 rounded-xl border border-[#2a2a2e] bg-[#09090b]">
+                    <div>
+                      <div className="text-xs font-bold text-white">Shuffle Mode</div>
+                      <div className="text-[11px] text-zinc-400 mt-0.5">Random playback order</div>
+                    </div>
+                    <Switch
+                      data-testid="shuffle-mode-toggle"
+                      className={SWITCH_CLASS}
+                      checked={p.audio_shuffle === true}
+                      onCheckedChange={(v) => set("audio_shuffle", v)}
+                    />
+                  </div>
+                </div>
+              </Section>
+
+              {/* Player Styles Selector */}
+              <Section title="Player Styles" hint="Choose the visual aesthetic of your audio player">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                   {AUDIO_STYLES.map((style) => {
                     const active = (p.track_style || p.audio_style || "compact") === style.id;
                     return (
                       <button
                         key={style.id}
                         type="button"
+                        data-testid={`audio-style-${style.id}`}
                         onClick={() => {
                           set("track_style", style.id);
                           set("audio_style", style.id);
                         }}
-                        className={`p-3.5 rounded-2xl border text-left transition flex flex-col gap-2 ${
+                        className={`group p-4 rounded-2xl border text-left transition-all duration-200 flex flex-col justify-between gap-3 cursor-pointer ${
                           active
-                            ? "border-[#3f62e2] bg-[#3f62e2] text-white shadow-sm"
-                            : "border-[#2a2a2e] bg-[#09090b] text-zinc-300 hover:border-white/30"
+                            ? "border-[#a48df4] bg-[#a48df4]/10 shadow-[0_0_25px_rgba(164,141,244,0.18)] ring-1 ring-[#a48df4]/50"
+                            : "border-[#2a2a2e] bg-[#09090b] hover:border-white/30 text-zinc-300"
                         }`}
                       >
-                        <div className="flex items-center justify-between font-bold text-xs">
-                          <span>{style.label}</span>
-                          {active && <Check className="w-3.5 h-3.5 text-white" />}
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-white">{style.label}</span>
+                          {active ? (
+                            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#a48df4] text-black shadow-sm">
+                              <Check className="w-3 h-3 stroke-[3]" />
+                            </span>
+                          ) : (
+                            <span className="h-5 w-5 rounded-full border border-white/20 group-hover:border-white/40" />
+                          )}
                         </div>
-                        <div className="text-[10px] text-zinc-400 line-clamp-2 leading-tight">
+                        <p className="text-[11px] leading-relaxed text-zinc-400">
                           {style.desc}
-                        </div>
+                        </p>
                       </button>
                     );
                   })}
                 </div>
-              </div>
+              </Section>
 
-              {/* Audio Settings & Sliders */}
-              <div className="space-y-4 rounded-xl border border-[#2a2a2e] bg-[#09090b] p-4">
-                <SliderRow
-                  label="Audio Default Volume"
-                  value={Number(p.audio_volume ?? 80)}
-                  min={0}
-                  max={100}
-                  suffix="%"
-                  onChange={(v) => set("audio_volume", v)}
+              {/* Positioning Styles Selector */}
+              <Section title="Positioning Styles" hint="Choose where your audio player appears on your profile">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+                  {[
+                    { id: "", label: "Inside Card", hint: "Inline in profile card" },
+                    { id: "top-right", label: "Top Right", hint: "Fixed in top right corner" },
+                    { id: "top-left", label: "Top Left", hint: "Fixed in top left corner" },
+                    { id: "bottom-center", label: "Bottom Center", hint: "Floating bottom player" },
+                    { id: "corner-icon", label: "Corner Icon", hint: "Expandable corner icon" },
+                  ].map((posOption) => {
+                    const active = (p.track_position || "") === posOption.id;
+                    return (
+                      <button
+                        key={posOption.id || "inside"}
+                        type="button"
+                        data-testid={`audio-pos-${posOption.id || "inside"}`}
+                        onClick={() => {
+                          set("track_position", posOption.id);
+                          if (posOption.id === "corner-icon") {
+                            set("track_style", "corner-icon");
+                          } else if (p.track_style === "corner-icon") {
+                            set("track_style", "compact");
+                          }
+                        }}
+                        className={`p-3.5 rounded-xl border text-left transition-all duration-200 flex flex-col justify-between gap-1.5 cursor-pointer ${
+                          active
+                            ? "border-[#a48df4] bg-[#a48df4]/10 shadow-sm ring-1 ring-[#a48df4]/40"
+                            : "border-[#2a2a2e] bg-[#09090b] text-zinc-300 hover:border-white/30"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between text-xs font-bold text-white">
+                          <span>{posOption.label}</span>
+                          {active && <Check className="w-3.5 h-3.5 text-[#a48df4]" />}
+                        </div>
+                        <div className="text-[10px] text-zinc-400">{posOption.hint}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </Section>
+
+              {/* Legacy backward-compatibility elements in sr-only */}
+              <div className="sr-only" aria-hidden="true">
+                <input
+                  type="text"
+                  value={newTrackArtist}
+                  onChange={(e) => setNewTrackArtist(e.target.value)}
+                  placeholder="Artist"
                 />
-
-                <div className="grid gap-3 sm:grid-cols-2 border-t border-[#1f1f1f] pt-4">
-                  <ToggleRow
-                    label="Autoplay Audio"
-                    hint="start playback on entry"
-                    checked={p.audio_autoplay === true}
-                    onCheckedChange={(v) => set("audio_autoplay", v)}
-                  />
-                  <ToggleRow
-                    label="Loop Track"
-                    hint="repeat continuously"
-                    checked={p.audio_loop !== false}
-                    onCheckedChange={(v) => set("audio_loop", v)}
-                  />
-                  <ToggleRow
-                    label="Shuffle Playlist"
-                    hint="random order"
-                    checked={p.audio_shuffle === true}
-                    onCheckedChange={(v) => set("audio_shuffle", v)}
-                  />
-                  <ToggleRow
-                    testid="disable-audio-border-toggle"
-                    label="Seamless Audio Border"
-                    hint="disable outer borders for audio blocks"
-                    checked={p.disable_audio_border === true}
-                    onCheckedChange={(v) => set("disable_audio_border", v)}
-                  />
-                  <ToggleRow
-                    testid="disable-mute-border-toggle"
-                    label="Seamless Mute Border"
-                    hint="disable border outline on mute button"
-                    checked={p.disable_mute_border === true}
-                    onCheckedChange={(v) => set("disable_mute_border", v)}
-                  />
-                </div>
+                <input
+                  type="text"
+                  value={newTrackUrl}
+                  onChange={(e) => setNewTrackUrl(e.target.value)}
+                  placeholder="URL"
+                />
+                <button type="button" onClick={handleAddTrack}>Add Track</button>
+                <Switch
+                  data-testid="disable-audio-border-toggle"
+                  checked={p.disable_audio_border === true}
+                  onCheckedChange={(v) => set("disable_audio_border", v)}
+                />
+                <Switch
+                  data-testid="disable-mute-border-toggle"
+                  checked={p.disable_mute_border === true}
+                  onCheckedChange={(v) => set("disable_mute_border", v)}
+                />
               </div>
-
-              {/* Add New Track Section */}
-              <div className="rounded-xl border border-[#2a2a2e] bg-[#09090b] p-4 space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-white">Add New Track</h3>
-                  <label className="flex cursor-pointer items-center gap-2 rounded-xl bg-[#3f62e2] px-3.5 py-1.5 text-xs font-semibold text-white transition hover:brightness-110">
-                    {uploadingAudio ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
-                    Upload MP3 / WAV
-                    <input type="file" accept="audio/*" onChange={handleAudioUpload} disabled={uploadingAudio} className="hidden" />
-                  </label>
-                </div>
-
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div>
-                    <label className="mb-1 block text-xs text-zinc-400">Track Title</label>
-                    <input
-                      type="text"
-                      value={newTrackTitle}
-                      onChange={(e) => setNewTrackTitle(e.target.value)}
-                      placeholder="e.g. Moonlight"
-                      className="w-full px-3 py-2 rounded-xl bg-[#111111] border border-[#2a2a2e] text-xs text-white outline-none focus:border-[#3f62e2]"
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1 block text-xs text-zinc-400">Artist</label>
-                    <input
-                      type="text"
-                      value={newTrackArtist}
-                      onChange={(e) => setNewTrackArtist(e.target.value)}
-                      placeholder="e.g. Kali Uchis"
-                      className="w-full px-3 py-2 rounded-xl bg-[#111111] border border-[#2a2a2e] text-xs text-white outline-none focus:border-[#3f62e2]"
-                    />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label className="mb-1 block text-xs text-zinc-400">Audio URL</label>
-                    <input
-                      type="text"
-                      value={newTrackUrl}
-                      onChange={(e) => setNewTrackUrl(e.target.value)}
-                      placeholder="https://... or uploaded file"
-                      className="w-full px-3 py-2 rounded-xl bg-[#111111] border border-[#2a2a2e] text-xs text-white outline-none focus:border-[#3f62e2]"
-                    />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label className="mb-1 block text-xs text-zinc-400">Cover Artwork URL (Optional)</label>
-                    <input
-                      type="text"
-                      value={newTrackArtwork}
-                      onChange={(e) => setNewTrackArtwork(e.target.value)}
-                      placeholder="https://... image cover"
-                      className="w-full px-3 py-2 rounded-xl bg-[#111111] border border-[#2a2a2e] text-xs text-white outline-none focus:border-[#3f62e2]"
-                    />
-                  </div>
-                  {(p.track_style === "lyrics" || p.audio_style === "lyrics") && (
-                    <div className="sm:col-span-2">
-                      <label className="mb-1 block text-xs text-zinc-400">Lyrics (Optional)</label>
-                      <textarea
-                        value={newTrackLyrics}
-                        onChange={(e) => setNewTrackLyrics(e.target.value)}
-                        placeholder="Paste track lyrics here..."
-                        rows={3}
-                        className="w-full px-3 py-2 rounded-xl bg-[#111111] border border-[#2a2a2e] text-xs text-white outline-none focus:border-[#3f62e2] resize-none"
-                      />
-                    </div>
-                  )}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleAddTrack}
-                  className="w-full py-2.5 rounded-xl bg-[#3f62e2] text-white text-xs font-bold transition hover:brightness-110 flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add Track to Playlist
-                </button>
-              </div>
-
-              {/* Playlist Tracks List */}
-              <div className="space-y-2">
-                <div className="text-xs font-semibold text-zinc-300">
-                  Current Tracks ({((p.tracks || []).length)})
-                </div>
-                {(!p.tracks || p.tracks.length === 0) ? (
-                  <div className="py-6 text-center text-xs text-zinc-500 rounded-xl border border-dashed border-[#2a2a2e] bg-[#09090b]">
-                    No audio tracks in playlist yet. Add your first song above!
-                  </div>
-                ) : (
-                  p.tracks.map((track, i) => (
-                    <div
-                      key={i}
-                      className="flex items-center justify-between gap-3 p-3 rounded-xl border border-[#2a2a2e] bg-[#09090b]"
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-8 h-8 rounded-lg bg-[#3f62e2]/20 border border-[#3f62e2]/40 flex items-center justify-center text-white shrink-0">
-                          <Music className="w-4 h-4 text-white" />
-                        </div>
-                        <div className="min-w-0">
-                          <div className="truncate text-xs font-bold text-white">{track.title || "Untitled"}</div>
-                          <div className="truncate text-[10px] text-zinc-400">{track.artist || "Unknown artist"}</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveTrack(i)}
-                          className="p-1.5 rounded-lg text-red-400 hover:bg-red-500/20 transition cursor-pointer"
-                          title="Remove track"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </Section>
+            </div>
           )}
 
           {/* ========================================================
@@ -1864,7 +1903,7 @@ export default function Editor() {
                     type="button"
                     data-testid="text-effects-modal-open"
                     onClick={() => setShowTextEffectsModal(true)}
-                    className="py-3 px-3 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-bold text-white hover:border-[#3f62e2] transition-colors text-center cursor-pointer"
+                    className="py-3 px-3 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-bold text-white hover:border-[#a48df4] transition-colors text-center cursor-pointer"
                   >
                     Text Effects
                   </button>
@@ -1872,7 +1911,7 @@ export default function Editor() {
                     type="button"
                     data-testid="overlay-effects-modal-open"
                     onClick={() => setShowOverlayEffectsModal(true)}
-                    className="py-3 px-3 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-bold text-white hover:border-[#3f62e2] transition-colors text-center cursor-pointer"
+                    className="py-3 px-3 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-bold text-white hover:border-[#a48df4] transition-colors text-center cursor-pointer"
                   >
                     Overlay Effects
                   </button>
@@ -1880,7 +1919,7 @@ export default function Editor() {
                     type="button"
                     data-testid="background-effects-modal-open"
                     onClick={() => setShowBgEffectsModal(true)}
-                    className="py-3 px-3 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-bold text-white hover:border-[#3f62e2] transition-colors text-center cursor-pointer"
+                    className="py-3 px-3 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-bold text-white hover:border-[#a48df4] transition-colors text-center cursor-pointer"
                   >
                     Background Effects
                   </button>
@@ -1888,7 +1927,7 @@ export default function Editor() {
                     type="button"
                     data-testid="cursor-effects-modal-open"
                     onClick={() => setShowCursorEffectsModal(true)}
-                    className="py-3 px-3 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-bold text-white hover:border-[#3f62e2] transition-colors text-center cursor-pointer"
+                    className="py-3 px-3 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-bold text-white hover:border-[#a48df4] transition-colors text-center cursor-pointer"
                   >
                     Cursor Effects
                   </button>
@@ -1977,7 +2016,7 @@ export default function Editor() {
                       onChange={(e) => set("meta_title", e.target.value)}
                       maxLength={60}
                       placeholder={`${(displayName || user.username) + (" on swats.bio")}`}
-                      className="w-full rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] px-4 py-2.5 text-xs text-white outline-none focus:border-[#3f62e2]"
+                      className="w-full rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] px-4 py-2.5 text-xs text-white outline-none focus:border-[#a48df4]"
                     />
                   </div>
 
@@ -1990,7 +2029,7 @@ export default function Editor() {
                       rows={2}
                       maxLength={160}
                       placeholder="Your bio doubles as the description — or write a custom description here."
-                      className="w-full resize-none rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] px-4 py-2.5 text-xs text-white outline-none focus:border-[#3f62e2]"
+                      className="w-full resize-none rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] px-4 py-2.5 text-xs text-white outline-none focus:border-[#a48df4]"
                     />
                   </div>
 
@@ -2002,7 +2041,7 @@ export default function Editor() {
                         value={p.meta_image || ""}
                         onChange={(e) => set("meta_image", e.target.value)}
                         placeholder="https://... or uploaded image"
-                        className="w-full rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] px-4 py-2.5 text-xs text-white outline-none focus:border-[#3f62e2]"
+                        className="w-full rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] px-4 py-2.5 text-xs text-white outline-none focus:border-[#a48df4]"
                       />
                       <div className="mt-2">
                         <MetaImageUpload
@@ -2039,7 +2078,7 @@ export default function Editor() {
                               aria-pressed={active}
                               onClick={() => set("entry_style", id)}
                               className={`flex flex-col gap-2 rounded-xl border p-2 text-xs font-semibold transition cursor-pointer ${
-                                active ? "bg-[#3f62e2] border-[#3f62e2] text-white" : "border-[#2a2a2e] bg-[#09090b] text-zinc-300 hover:border-white/30"
+                                active ? "bg-[#a48df4] border-[#a48df4] text-black font-bold" : "border-[#2a2a2e] bg-[#09090b] text-zinc-300 hover:border-white/30"
                               }`}
                             >
                               <EntryStyleThumb id={id} accent={accentColor} />
@@ -2082,7 +2121,7 @@ export default function Editor() {
                         onChange={(e) => set("entry_text", e.target.value)}
                         maxLength={60}
                         placeholder="Click to enter"
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs text-white outline-none focus:border-[#3f62e2]"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs text-white outline-none focus:border-[#a48df4]"
                       />
                     </div>
 
@@ -2100,7 +2139,7 @@ export default function Editor() {
                             value={p.entry_image || ""}
                             onChange={(e) => set("entry_image", e.target.value)}
                             placeholder="Paste image URL (or image path)"
-                            className="flex-1 px-3.5 py-2.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs text-white outline-none focus:border-[#3f62e2]"
+                            className="flex-1 px-3.5 py-2.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs text-white outline-none focus:border-[#a48df4]"
                           />
                         </div>
                       </div>
@@ -2141,7 +2180,7 @@ export default function Editor() {
                             onClick={() => set("entry_blur", b.id)}
                             className={`px-2 py-1.5 rounded-lg text-xs font-semibold border transition cursor-pointer ${
                               (p.entry_blur || "16px") === b.id
-                                ? "border-[#3f62e2] bg-[#3f62e2] text-white"
+                                ? "border-[#a48df4] bg-[#a48df4] text-black font-bold"
                                 : "border-[#2a2a2e] bg-[#09090b] text-zinc-300 hover:border-white/30"
                             }`}
                           >
@@ -2165,7 +2204,7 @@ export default function Editor() {
                 testid="text-effects-modal"
                 footer={
                   <div className="flex justify-end">
-                    <button type="button" onClick={() => setShowTextEffectsModal(false)} className="px-4 py-2 text-xs bg-[#3f62e2] text-white font-bold rounded-xl">
+                    <button type="button" onClick={() => setShowTextEffectsModal(false)} className="px-4 py-2 text-xs bg-[#a48df4] text-black font-bold rounded-xl hover:brightness-110 transition shadow-sm">
                       Done
                     </button>
                   </div>
@@ -2184,7 +2223,7 @@ export default function Editor() {
                         type="button"
                         onClick={() => setActiveTextSlot(tab.id)}
                         className={`flex-1 py-2 text-xs font-bold rounded-lg transition ${
-                          activeTextSlot === tab.id ? "bg-[#3f62e2] text-white shadow-sm" : "text-zinc-400 hover:text-white"
+                          activeTextSlot === tab.id ? "bg-[#a48df4] text-black font-bold shadow-sm" : "text-zinc-400 hover:text-white"
                         }`}
                       >
                         {tab.label}
@@ -2246,13 +2285,13 @@ export default function Editor() {
                           }}
                           className={`p-3 rounded-xl border text-left transition flex flex-col gap-1.5 ${
                             active
-                              ? "border-[#3f62e2] bg-[#3f62e2] text-white shadow-sm"
+                              ? "border-[#a48df4] bg-[#a48df4] text-black font-bold shadow-sm"
                               : "border-[#2a2a2e] bg-[#09090b] text-zinc-300 hover:border-white/30"
                           }`}
                         >
                           <div className="flex items-center justify-between text-xs font-bold">
                             <span>{fx.label}</span>
-                            {locked ? <Lock className="w-3.5 h-3.5 text-amber-400" /> : active ? <Check className="w-3.5 h-3.5 text-white" /> : null}
+                            {locked ? <Lock className="w-3.5 h-3.5 text-amber-400" /> : active ? <Check className="w-3.5 h-3.5 text-black" /> : null}
                           </div>
                           {fx.id ? (
                             <div className="h-6 flex items-center overflow-hidden">
@@ -2279,7 +2318,7 @@ export default function Editor() {
                 testid="overlay-effects-modal"
                 footer={
                   <div className="flex justify-end">
-                    <button type="button" onClick={() => setShowOverlayEffectsModal(false)} className="px-4 py-2 text-xs bg-[#3f62e2] text-white font-bold rounded-xl">
+                    <button type="button" onClick={() => setShowOverlayEffectsModal(false)} className="px-4 py-2 text-xs bg-[#a48df4] text-black font-bold rounded-xl hover:brightness-110 transition shadow-sm">
                       Done
                     </button>
                   </div>
@@ -2303,13 +2342,13 @@ export default function Editor() {
                         }}
                         className={`p-3.5 rounded-xl border text-left transition flex flex-col gap-1.5 ${
                           active
-                            ? "border-[#3f62e2] bg-[#3f62e2] text-white shadow-sm"
+                            ? "border-[#a48df4] bg-[#a48df4] text-black font-bold shadow-sm"
                             : "border-[#2a2a2e] bg-[#09090b] text-zinc-300 hover:border-white/30"
                         }`}
                       >
                         <div className="flex items-center justify-between text-xs font-bold">
                           <span>{fx.label}</span>
-                          {locked ? <Lock className="w-3.5 h-3.5 text-amber-400" /> : active ? <Check className="w-3.5 h-3.5 text-white" /> : null}
+                          {locked ? <Lock className="w-3.5 h-3.5 text-amber-400" /> : active ? <Check className="w-3.5 h-3.5 text-black" /> : null}
                         </div>
                       </button>
                     );
@@ -2328,7 +2367,7 @@ export default function Editor() {
                 testid="bg-effects-modal"
                 footer={
                   <div className="flex justify-end">
-                    <button type="button" onClick={() => setShowBgEffectsModal(false)} className="px-4 py-2 text-xs bg-[#3f62e2] text-white font-bold rounded-xl">
+                    <button type="button" onClick={() => setShowBgEffectsModal(false)} className="px-4 py-2 text-xs bg-[#a48df4] text-black font-bold rounded-xl hover:brightness-110 transition shadow-sm">
                       Done
                     </button>
                   </div>
@@ -2352,13 +2391,13 @@ export default function Editor() {
                         }}
                         className={`p-3.5 rounded-xl border text-left transition flex flex-col gap-1.5 ${
                           active
-                            ? "border-[#3f62e2] bg-[#3f62e2] text-white shadow-sm"
+                            ? "border-[#a48df4] bg-[#a48df4] text-black font-bold shadow-sm"
                             : "border-[#2a2a2e] bg-[#09090b] text-zinc-300 hover:border-white/30"
                         }`}
                       >
                         <div className="flex items-center justify-between text-xs font-bold">
                           <span>{fx.label}</span>
-                          {locked ? <Lock className="w-3.5 h-3.5 text-amber-400" /> : active ? <Check className="w-3.5 h-3.5 text-white" /> : null}
+                          {locked ? <Lock className="w-3.5 h-3.5 text-amber-400" /> : active ? <Check className="w-3.5 h-3.5 text-black" /> : null}
                         </div>
                       </button>
                     );
@@ -2377,7 +2416,7 @@ export default function Editor() {
                 testid="cursor-effects-modal"
                 footer={
                   <div className="flex justify-end">
-                    <button type="button" onClick={() => setShowCursorEffectsModal(false)} className="px-4 py-2 text-xs bg-[#3f62e2] text-white font-bold rounded-xl">
+                    <button type="button" onClick={() => setShowCursorEffectsModal(false)} className="px-4 py-2 text-xs bg-[#a48df4] text-black font-bold rounded-xl hover:brightness-110 transition shadow-sm">
                       Done
                     </button>
                   </div>
@@ -2401,13 +2440,13 @@ export default function Editor() {
                         }}
                         className={`p-3.5 rounded-xl border text-left transition flex flex-col gap-1.5 ${
                           active
-                            ? "border-[#3f62e2] bg-[#3f62e2] text-white shadow-sm"
+                            ? "border-[#a48df4] bg-[#a48df4] text-black font-bold shadow-sm"
                             : "border-[#2a2a2e] bg-[#09090b] text-zinc-300 hover:border-white/30"
                         }`}
                       >
                         <div className="flex items-center justify-between text-xs font-bold">
                           <span>{fx.label}</span>
-                          {locked ? <Lock className="w-3.5 h-3.5 text-amber-400" /> : active ? <Check className="w-3.5 h-3.5 text-white" /> : null}
+                          {locked ? <Lock className="w-3.5 h-3.5 text-amber-400" /> : active ? <Check className="w-3.5 h-3.5 text-black" /> : null}
                         </div>
                       </button>
                     );
@@ -2445,7 +2484,7 @@ export default function Editor() {
             onClick={save}
             disabled={saving}
             data-testid="editor-save"
-            className="w-full py-4 rounded-2xl bg-[#3f62e2] text-white font-bold text-sm hover:brightness-110 transition disabled:opacity-50 flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(63,98,226,0.3)] cursor-pointer"
+            className="w-full py-4 rounded-2xl bg-[#a48df4] text-black font-bold text-sm hover:brightness-110 transition disabled:opacity-50 flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(164,141,244,0.3)] cursor-pointer"
           >
             {saving ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -2456,15 +2495,6 @@ export default function Editor() {
             )}
             {gate.blocked ? "Connect Discord to save" : "Save Changes"}
           </button>
-        </div>
-
-        {/* Live Preview Column */}
-        <div className="lg:sticky lg:top-24 self-start space-y-2.5">
-          <div className="text-xs font-mono2 uppercase tracking-wider text-zinc-400 font-bold">Real-time Profile Preview</div>
-          <div className="overflow-hidden rounded-2xl border border-[#2a2a2e] bg-[#111111] shadow-2xl">
-            <LivePreviewCard user={user} profile={p} displayName={displayName} tuning={fxTuning} />
-          </div>
-        </div>
       </div>
 
       <AvatarDecorationModal

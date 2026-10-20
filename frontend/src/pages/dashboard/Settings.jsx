@@ -205,7 +205,7 @@ export default function Settings() {
                 onClick={() => setActiveTab(t.id)}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 shrink-0 cursor-pointer ${
                   active
-                    ? "bg-brand-500/20 text-brand-200 border border-brand-500/40 shadow-[0_0_15px_rgba(63,98,226,0.15)]"
+                    ? "bg-brand-500/20 text-brand-200 border border-brand-500/40 shadow-[0_0_15px_rgba(164, 141, 244,0.15)]"
                     : "bg-white/[0.03] text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.06] border border-white/5"
                 }`}
               >
@@ -268,7 +268,7 @@ export default function Settings() {
                 onClick={saveUsername}
                 disabled={savingUser}
                 data-testid="settings-save-username"
-                className="px-5 py-3 rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 hover:brightness-110 text-white text-sm font-semibold flex items-center justify-center gap-2 transition disabled:opacity-50 shadow-[0_0_20px_rgba(63,98,226,0.3)]"
+                className="px-5 py-3 rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 hover:brightness-110 text-white text-sm font-semibold flex items-center justify-center gap-2 transition disabled:opacity-50 shadow-[0_0_20px_rgba(164, 141, 244,0.3)]"
               >
                 {savingUser ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Save Handle
               </button>
@@ -449,7 +449,7 @@ export default function Settings() {
                 <button
                   type="submit"
                   disabled={savingPw}
-                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 hover:brightness-110 text-white text-sm font-semibold transition disabled:opacity-50 flex items-center gap-1.5 shadow-[0_0_20px_rgba(63,98,226,0.25)]"
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 hover:brightness-110 text-white text-sm font-semibold transition disabled:opacity-50 flex items-center gap-1.5 shadow-[0_0_20px_rgba(164, 141, 244,0.25)]"
                 >
                   {savingPw ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Update Password
                 </button>
@@ -605,7 +605,7 @@ export default function Settings() {
                 onClick={saveKeys}
                 disabled={savingKeys}
                 data-testid="settings-save-api-keys"
-                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 hover:brightness-110 disabled:opacity-50 text-white text-sm font-semibold flex items-center gap-1.5 transition shadow-[0_0_20px_rgba(63,98,226,0.3)]"
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 hover:brightness-110 disabled:opacity-50 text-white text-sm font-semibold flex items-center gap-1.5 transition shadow-[0_0_20px_rgba(164, 141, 244,0.3)]"
               >
                 {savingKeys ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Save Keys
               </button>

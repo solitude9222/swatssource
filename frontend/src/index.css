@@ -40,40 +40,40 @@
 }
 
 body.dash-theme {
-    --brand-50: 242 245 254;
-    --brand-100: 224 231 252;
-    --brand-200: 188 202 249;
-    --brand-300: 138 166 245;
-    --brand-400: 88 127 238;
-    --brand-500: 63 98 226;
-    --brand-600: 53 80 200;
-    --brand-700: 43 64 163;
-    --brand-800: 34 50 130;
-    --brand-900: 26 38 98;
-    --brand-950: 15 22 56;
+    --brand-50: 250 248 255;
+    --brand-100: 242 237 255;
+    --brand-200: 228 218 255;
+    --brand-300: 211 196 255;
+    --brand-400: 188 172 248;
+    --brand-500: 164 141 244;
+    --brand-600: 140 113 232;
+    --brand-700: 115 84 212;
+    --brand-800: 89 56 184;
+    --brand-900: 62 34 139;
+    --brand-950: 31 14 84;
 
-    /* dashboard surfaces, sampled from the reference design */
+    /* dashboard surfaces, sleek obsidian with vibrant purple accent */
     --sw-bg: #09090b;
     --sw-surface: #111111;
-    --sw-accent: #3f62e2;
-    --sw-accent-2: #587fee;
+    --sw-accent: #a48df4;
+    --sw-accent-2: #8c71e8;
     --sw-border: #1f1f1f;
-    --sw-border-active: rgba(63, 98, 226, 0.5);
+    --sw-border-active: rgba(164, 141, 244, 0.5);
 
     /* shadcn tokens used by the ui/* primitives (selects, switches, dialogs...) */
     --background: 240 13% 4%;
     --card: 0 0% 7%;
     --popover: 0 0% 7%;
-    --primary: 226 74% 56%;
+    --primary: 258 83% 75%;
     --primary-foreground: 0 0% 100%;
-    --accent: 226 74% 56%;
+    --accent: 258 83% 75%;
     --accent-foreground: 0 0% 100%;
-    --ring: 226 74% 56%;
+    --ring: 258 83% 75%;
     --border: 0 0% 12%;
     --input: 0 0% 12%;
 }
 
-body.dash-theme ::selection { background: rgba(63, 98, 226, 0.4); color: #fff; }
+body.dash-theme ::selection { background: rgba(164, 141, 244, 0.4); color: #fff; }
 body.dash-theme ::-webkit-scrollbar-track { background: #09090b; }
 body.dash-theme ::-webkit-scrollbar-thumb { background: #1f1f1f; border-color: #09090b; }
 body.dash-theme ::-webkit-scrollbar-thumb:hover { background: #2c2c30; }
@@ -83,17 +83,17 @@ body.dash-theme input:focus-visible,
 body.dash-theme textarea:focus-visible,
 body.dash-theme select:focus-visible,
 body.dash-theme [tabindex]:focus-visible {
-    outline-color: #3f62e2;
+    outline-color: #a48df4;
 }
 
-/* Dashboard form controls: #0d0d0d fill, #1f1f1f hairline, blue focus ring. */
+/* Dashboard form controls: #0d0d0d fill, #1f1f1f hairline, purple focus ring. */
 .dash-font input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]),
 .dash-font textarea {
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .dash-font input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):focus,
 .dash-font textarea:focus {
-    box-shadow: 0 0 0 3px rgba(63, 98, 226, 0.15);
+    box-shadow: 0 0 0 3px rgba(164, 141, 244, 0.2);
 }
 
 /* The floating sidebar panel and the cards share one hairline + soft drop. */

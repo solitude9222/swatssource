@@ -525,16 +525,36 @@ function TrackCardPreview({ track, style, accent, volume = 0.8, onTime, autoPlay
     return (
       <div
         data-testid="track-compact"
-        className="w-full rounded-2xl border px-3.5 py-2.5 text-left transition duration-300 shadow-xl"
+        className="w-full rounded-2xl border px-3.5 py-3 text-left transition duration-300 shadow-xl overflow-hidden"
         style={{
-          background: "linear-gradient(135deg, rgba(20, 20, 28, 0.75), rgba(10, 10, 16, 0.85))",
-          backdropFilter: "blur(16px)",
-          WebkitBackdropFilter: "blur(16px)",
-          borderColor: `${accent}44`,
-          boxShadow: `0 8px 30px rgba(0,0,0,0.5), 0 0 25px ${accent}22`,
+          background: "linear-gradient(135deg, rgba(22, 20, 32, 0.85), rgba(10, 10, 16, 0.95))",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          borderColor: `${accent}40`,
+          boxShadow: `0 12px 35px rgba(0,0,0,0.6), 0 0 25px ${accent}18`,
         }}
       >
         <div className="flex items-center gap-3">
+          {cover ? (
+            <img src={cover} alt="" className="w-10 h-10 rounded-xl object-cover shrink-0 border border-white/10 shadow-md" />
+          ) : (
+            <div
+              className="w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 shadow-inner"
+              style={{ background: `${accent}18`, borderColor: `${accent}33` }}
+            >
+              <Music className="w-4 h-4" style={{ color: accent }} />
+            </div>
+          )}
+
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-xs font-bold text-white leading-tight">
+              <Value v={track.title} empty="Untitled track" />
+            </div>
+            <div className="truncate text-[10px] text-zinc-400 font-medium mt-0.5">
+              <Value v={track.artist} empty="Unknown artist" />
+            </div>
+          </div>
+
           <button
             type="button"
             data-testid="track-play-btn"
@@ -542,17 +562,22 @@ function TrackCardPreview({ track, style, accent, volume = 0.8, onTime, autoPlay
             aria-label={playing ? "Pause track" : "Play track"}
             className="w-8 h-8 shrink-0 rounded-full flex items-center justify-center text-white shadow-lg transition-transform duration-200 hover:scale-105 active:scale-95"
             style={{
-              background: `linear-gradient(135deg, ${accent}, ${accent}cc)`,
-              boxShadow: `0 0 16px ${accent}66`,
+              background: `linear-gradient(135deg, ${accent}, #7354D4)`,
+              boxShadow: `0 0 16px ${accent}55`,
             }}
           >
             {playing ? <Pause className="w-3.5 h-3.5 fill-white" /> : <Play className="w-3.5 h-3.5 fill-white translate-x-px" />}
           </button>
-          <div className="min-w-0 flex-1">
-            <div className="truncate text-xs font-bold text-zinc-100 leading-tight">
-              <Value v={track.title} empty="Untitled track" />
-            </div>
-            <div className="truncate text-[10px] text-zinc-400 font-medium mt-0.5"><Value v={track.artist} empty="Unknown artist" /></div>
+        </div>
+
+        <div className="flex items-center gap-2 mt-2.5 pt-2 border-t border-white/[0.06]">
+          <div
+            data-testid="track-scrubber"
+            className="h-1.5 flex-1 cursor-pointer overflow-hidden rounded-full bg-white/10"
+            onClick={seekAt}
+            role="presentation"
+          >
+            <div className="h-full rounded-full transition-all duration-150" style={{ width: `${progress}%`, background: `linear-gradient(90deg, ${accent}, #c084fc)` }} />
           </div>
           <span className="shrink-0 font-mono2 text-[9px] tabular-nums text-zinc-400">{timeLabel}</span>
           <div className="flex items-center gap-1.5 shrink-0 group/vol">
@@ -571,7 +596,7 @@ function TrackCardPreview({ track, style, accent, volume = 0.8, onTime, autoPlay
               aria-valuenow={muted ? 0 : Math.round(visitorVolume * 100)}
               aria-valuemin={0}
               aria-valuemax={100}
-              className="relative h-1.5 w-14 sm:w-16 cursor-pointer rounded-full bg-white/10 overflow-hidden"
+              className="relative h-1.5 w-12 sm:w-14 cursor-pointer rounded-full bg-white/10 overflow-hidden"
               onClick={(e) => {
                 const rect = e.currentTarget.getBoundingClientRect();
                 const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
@@ -582,19 +607,11 @@ function TrackCardPreview({ track, style, accent, volume = 0.8, onTime, autoPlay
                 className="h-full rounded-full transition-all duration-75"
                 style={{
                   width: `${(muted ? 0 : visitorVolume) * 100}%`,
-                  background: `linear-gradient(90deg, ${accent}, ${accent}dd)`,
+                  background: `linear-gradient(90deg, ${accent}, #c084fc)`,
                 }}
               />
             </div>
           </div>
-        </div>
-        <div
-          data-testid="track-scrubber"
-          className="mt-2.5 h-1.5 cursor-pointer overflow-hidden rounded-full bg-white/10"
-          onClick={seekAt}
-          role="presentation"
-        >
-          <div className="h-full rounded-full transition-all duration-150" style={{ width: `${progress}%`, background: `linear-gradient(90deg, ${accent}, ${accent}dd)`, boxShadow: `0 0 8px ${accent}` }} />
         </div>
       </div>
     );
@@ -607,19 +624,22 @@ function TrackCardPreview({ track, style, accent, volume = 0.8, onTime, autoPlay
         data-testid="track-marquee"
         className="w-full rounded-2xl border px-4 py-3 text-left transition duration-300 shadow-xl overflow-hidden"
         style={{
-          background: "linear-gradient(135deg, rgba(20, 20, 28, 0.85), rgba(10, 10, 16, 0.95))",
-          backdropFilter: "blur(16px)",
-          WebkitBackdropFilter: "blur(16px)",
-          borderColor: `${accent}44`,
-          boxShadow: `0 8px 30px rgba(0,0,0,0.5), 0 0 25px ${accent}22`,
+          background: "linear-gradient(135deg, rgba(22, 20, 32, 0.85), rgba(10, 10, 16, 0.95))",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          borderColor: `${accent}40`,
+          boxShadow: `0 12px 35px rgba(0,0,0,0.6), 0 0 25px ${accent}18`,
         }}
       >
         <div className="flex items-center gap-3">
           {cover ? (
             <img src={cover} alt="" className="w-10 h-10 rounded-xl object-cover shrink-0 border border-white/10 shadow-md" />
           ) : (
-            <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
-              <Music className="w-5 h-5 text-zinc-400" />
+            <div
+              className="w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 shadow-inner"
+              style={{ background: `${accent}18`, borderColor: `${accent}33` }}
+            >
+              <Music className="w-5 h-5" style={{ color: accent }} />
             </div>
           )}
 
@@ -631,11 +651,13 @@ function TrackCardPreview({ track, style, accent, volume = 0.8, onTime, autoPlay
             </div>
             <div className="flex items-center justify-between text-[10px] text-zinc-400 font-medium mt-0.5">
               <span className="truncate">{track.artist || "Unknown artist"}</span>
-              <div className="flex items-end gap-0.5 h-3 ml-2 shrink-0">
-                <span className={`w-0.5 rounded-full transition-all duration-300 ${playing ? "h-3 animate-pulse" : "h-1 bg-zinc-600"}`} style={playing ? { background: accent } : undefined} />
-                <span className={`w-0.5 rounded-full transition-all duration-200 ${playing ? "h-2.5 animate-bounce" : "h-1.5 bg-zinc-600"}`} style={playing ? { background: accent } : undefined} />
-                <span className={`w-0.5 rounded-full transition-all duration-300 ${playing ? "h-3.5 animate-pulse" : "h-1 bg-zinc-600"}`} style={playing ? { background: accent } : undefined} />
-                <span className={`w-0.5 rounded-full transition-all duration-150 ${playing ? "h-2 animate-bounce" : "h-1.5 bg-zinc-600"}`} style={playing ? { background: accent } : undefined} />
+              {/* Equalizer Visualizer Waves */}
+              <div className="flex items-end gap-1 h-3.5 ml-2 shrink-0">
+                <span className={`w-1 rounded-full transition-all duration-300 ${playing ? "h-3.5 animate-pulse" : "h-1 bg-zinc-600"}`} style={playing ? { background: accent } : undefined} />
+                <span className={`w-1 rounded-full transition-all duration-200 ${playing ? "h-2.5 animate-bounce" : "h-1.5 bg-zinc-600"}`} style={playing ? { background: accent } : undefined} />
+                <span className={`w-1 rounded-full transition-all duration-300 ${playing ? "h-4 animate-pulse" : "h-1 bg-zinc-600"}`} style={playing ? { background: accent } : undefined} />
+                <span className={`w-1 rounded-full transition-all duration-150 ${playing ? "h-2 animate-bounce" : "h-1.5 bg-zinc-600"}`} style={playing ? { background: accent } : undefined} />
+                <span className={`w-1 rounded-full transition-all duration-200 ${playing ? "h-3 animate-pulse" : "h-1 bg-zinc-600"}`} style={playing ? { background: accent } : undefined} />
               </div>
             </div>
           </div>
@@ -647,8 +669,8 @@ function TrackCardPreview({ track, style, accent, volume = 0.8, onTime, autoPlay
             aria-label={playing ? "Pause track" : "Play track"}
             className="w-8 h-8 shrink-0 rounded-full flex items-center justify-center text-white shadow-lg transition-transform duration-200 hover:scale-105 active:scale-95"
             style={{
-              background: `linear-gradient(135deg, ${accent}, ${accent}cc)`,
-              boxShadow: `0 0 16px ${accent}66`,
+              background: `linear-gradient(135deg, ${accent}, #7354D4)`,
+              boxShadow: `0 0 16px ${accent}55`,
             }}
           >
             {playing ? <Pause className="w-3.5 h-3.5 fill-white" /> : <Play className="w-3.5 h-3.5 fill-white translate-x-px" />}
@@ -662,7 +684,7 @@ function TrackCardPreview({ track, style, accent, volume = 0.8, onTime, autoPlay
             onClick={seekAt}
             role="presentation"
           >
-            <div className="h-full rounded-full transition-all duration-150" style={{ width: `${progress}%`, background: `linear-gradient(90deg, ${accent}, ${accent}dd)`, boxShadow: `0 0 8px ${accent}` }} />
+            <div className="h-full rounded-full transition-all duration-150" style={{ width: `${progress}%`, background: `linear-gradient(90deg, ${accent}, #c084fc)` }} />
           </div>
           <span className="shrink-0 font-mono2 text-[9px] tabular-nums text-zinc-400">{timeLabel}</span>
           <div className="flex items-center gap-1 shrink-0">
@@ -692,7 +714,7 @@ function TrackCardPreview({ track, style, accent, volume = 0.8, onTime, autoPlay
                 className="h-full rounded-full transition-all duration-75"
                 style={{
                   width: `${(muted ? 0 : visitorVolume) * 100}%`,
-                  background: `linear-gradient(90deg, ${accent}, ${accent}dd)`,
+                  background: `linear-gradient(90deg, ${accent}, #c084fc)`,
                 }}
               />
             </div>
@@ -713,19 +735,22 @@ function TrackCardPreview({ track, style, accent, volume = 0.8, onTime, autoPlay
         data-testid="track-lyrics"
         className="w-full rounded-2xl border p-4 text-left transition duration-300 shadow-xl overflow-hidden"
         style={{
-          background: "linear-gradient(135deg, rgba(20, 20, 28, 0.85), rgba(10, 10, 16, 0.95))",
-          backdropFilter: "blur(16px)",
-          WebkitBackdropFilter: "blur(16px)",
-          borderColor: `${accent}44`,
-          boxShadow: `0 8px 30px rgba(0,0,0,0.5), 0 0 25px ${accent}22`,
+          background: "linear-gradient(135deg, rgba(22, 20, 32, 0.9), rgba(10, 10, 16, 0.98))",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          borderColor: `${accent}40`,
+          boxShadow: `0 12px 35px rgba(0,0,0,0.6), 0 0 25px ${accent}18`,
         }}
       >
         <div className="flex items-center gap-3">
           {cover ? (
             <img src={cover} alt="" className="w-10 h-10 rounded-xl object-cover shrink-0 border border-white/10 shadow-md" />
           ) : (
-            <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
-              <Music className="w-5 h-5 text-zinc-400" />
+            <div
+              className="w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 shadow-inner"
+              style={{ background: `${accent}18`, borderColor: `${accent}33` }}
+            >
+              <Music className="w-5 h-5" style={{ color: accent }} />
             </div>
           )}
           <div className="min-w-0 flex-1">
@@ -739,8 +764,8 @@ function TrackCardPreview({ track, style, accent, volume = 0.8, onTime, autoPlay
             aria-label={playing ? "Pause track" : "Play track"}
             className="w-8 h-8 shrink-0 rounded-full flex items-center justify-center text-white shadow-lg transition-transform duration-200 hover:scale-105 active:scale-95"
             style={{
-              background: `linear-gradient(135deg, ${accent}, ${accent}cc)`,
-              boxShadow: `0 0 16px ${accent}66`,
+              background: `linear-gradient(135deg, ${accent}, #7354D4)`,
+              boxShadow: `0 0 16px ${accent}55`,
             }}
           >
             {playing ? <Pause className="w-3.5 h-3.5 fill-white" /> : <Play className="w-3.5 h-3.5 fill-white translate-x-px" />}
@@ -754,7 +779,7 @@ function TrackCardPreview({ track, style, accent, volume = 0.8, onTime, autoPlay
             onClick={seekAt}
             role="presentation"
           >
-            <div className="h-full rounded-full transition-all duration-150" style={{ width: `${progress}%`, background: `linear-gradient(90deg, ${accent}, ${accent}dd)` }} />
+            <div className="h-full rounded-full transition-all duration-150" style={{ width: `${progress}%`, background: `linear-gradient(90deg, ${accent}, #c084fc)` }} />
           </div>
           <span className="shrink-0 font-mono2 text-[9px] tabular-nums text-zinc-400">{timeLabel}</span>
           <div className="flex items-center gap-1 shrink-0">
@@ -784,25 +809,32 @@ function TrackCardPreview({ track, style, accent, volume = 0.8, onTime, autoPlay
                 className="h-full rounded-full transition-all duration-75"
                 style={{
                   width: `${(muted ? 0 : visitorVolume) * 100}%`,
-                  background: `linear-gradient(90deg, ${accent}, ${accent}dd)`,
+                  background: `linear-gradient(90deg, ${accent}, #c084fc)`,
                 }}
               />
             </div>
           </div>
         </div>
 
-        <div className="mt-3 max-h-24 overflow-y-auto space-y-1 rounded-xl bg-black/40 p-2.5 border border-white/5 text-center text-xs no-scrollbar">
+        {/* Real-time Lyrics Scrollable Window with Fade Masks */}
+        <div
+          className="mt-3 max-h-28 overflow-y-auto space-y-1.5 rounded-xl bg-black/50 p-3 border border-white/5 text-center text-xs no-scrollbar"
+          style={{
+            maskImage: "linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)",
+            WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)",
+          }}
+        >
           {lyricLines.map((line, idx) => {
             const isCurrent = idx === activeLineIdx;
             return (
               <div
                 key={idx}
-                className={`transition-all duration-200 ${
+                className={`transition-all duration-300 px-2 py-0.5 rounded-lg ${
                   isCurrent
-                    ? "font-bold scale-105"
-                    : "text-zinc-500 text-[11px] opacity-75"
+                    ? "font-extrabold text-sm scale-[1.03] bg-white/[0.04]"
+                    : "text-zinc-500 text-[11px] opacity-70"
                 }`}
-                style={isCurrent ? { color: accent, textShadow: `0 0 10px ${accent}66` } : undefined}
+                style={isCurrent ? { color: accent, textShadow: `0 0 14px ${accent}88` } : undefined}
               >
                 {line}
               </div>
@@ -820,41 +852,67 @@ function TrackCardPreview({ track, style, accent, volume = 0.8, onTime, autoPlay
         data-testid="track-vinyl"
         className="w-full rounded-2xl border p-4 text-left transition duration-300 shadow-xl overflow-hidden"
         style={{
-          background: "linear-gradient(135deg, rgba(20, 20, 28, 0.85), rgba(10, 10, 16, 0.95))",
-          backdropFilter: "blur(16px)",
-          WebkitBackdropFilter: "blur(16px)",
-          borderColor: `${accent}44`,
-          boxShadow: `0 8px 30px rgba(0,0,0,0.5), 0 0 25px ${accent}22`,
+          background: "linear-gradient(135deg, rgba(22, 20, 32, 0.9), rgba(10, 10, 16, 0.98))",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          borderColor: `${accent}40`,
+          boxShadow: `0 12px 35px rgba(0,0,0,0.6), 0 0 25px ${accent}18`,
         }}
       >
         <div className="flex items-center gap-4">
-          <div className="relative shrink-0 flex items-center justify-center">
+          {/* Authentic Revolving Vinyl Record & Turntable Tonearm */}
+          <div className="relative shrink-0 flex items-center justify-center p-1">
+            {/* Spinning Vinyl Record */}
             <div
-              className={`w-16 h-16 rounded-full border-2 border-zinc-700/80 bg-gradient-to-tr from-zinc-950 via-zinc-900 to-zinc-950 shadow-2xl flex items-center justify-center transition-transform ${
+              className={`w-20 h-20 rounded-full border border-zinc-700/80 shadow-[0_4px_20px_rgba(0,0,0,0.8)] flex items-center justify-center relative overflow-hidden ${
                 playing ? "animate-spin" : ""
               }`}
-              style={{ animationDuration: "5s" }}
+              style={{
+                animationDuration: "3.5s",
+                background: "repeating-radial-gradient(circle at center, #141416 0px, #141416 2px, #0a0a0c 3px, #0a0a0c 4px)",
+              }}
             >
-              <div className="absolute inset-2 rounded-full border border-zinc-800/80 pointer-events-none" />
-              <div className="absolute inset-3.5 rounded-full border border-zinc-800/60 pointer-events-none" />
+              {/* Specular Vinyl Reflection Sheen */}
+              <div className="absolute inset-0 bg-gradient-to-tr from-white/[0.06] via-transparent to-white/[0.08] pointer-events-none" />
+              <div className="absolute inset-2.5 rounded-full border border-zinc-800/80 pointer-events-none" />
+              <div className="absolute inset-5 rounded-full border border-zinc-800/60 pointer-events-none" />
+              {/* Center Label with Artwork */}
               <div
-                className="w-6 h-6 rounded-full border border-white/20 overflow-hidden flex items-center justify-center shadow-inner"
+                className="w-8 h-8 rounded-full border border-white/30 overflow-hidden flex items-center justify-center shadow-lg relative z-10"
                 style={{ background: accent }}
               >
                 {cover ? (
                   <img src={cover} alt="" className="w-full h-full object-cover" />
                 ) : (
-                  <span className="w-1.5 h-1.5 rounded-full bg-black shadow-sm" />
+                  <span className="w-2 h-2 rounded-full bg-black border border-white/20 shadow-inner" />
                 )}
+                {/* Center spindle hole */}
+                <div className="absolute w-1.5 h-1.5 rounded-full bg-black border border-white/30" />
               </div>
             </div>
+
+            {/* Realistic Turntable Tonearm that Swivels onto Record when Playing */}
             <div
-              className={`absolute top-0 right-0 w-4 h-6 border-r-2 border-t-2 border-zinc-400 origin-top-right transition-transform duration-300 pointer-events-none ${
-                playing ? "rotate-12 translate-x-0.5" : "-rotate-12"
-              }`}
-            />
+              className="absolute top-0 right-0 pointer-events-none transition-transform duration-500 ease-out origin-top-right"
+              style={{
+                transform: playing ? "rotate(24deg) translate(-2px, 3px)" : "rotate(0deg) translate(0, 0)",
+              }}
+            >
+              {/* Tonearm Pivot Base */}
+              <div className="w-3.5 h-3.5 rounded-full bg-gradient-to-b from-zinc-300 to-zinc-600 border border-zinc-700 shadow-md flex items-center justify-center">
+                <div className="w-1.5 h-1.5 rounded-full bg-zinc-900" />
+              </div>
+              {/* Metallic Arm Rod */}
+              <div className="w-0.5 h-12 bg-gradient-to-r from-zinc-300 via-zinc-100 to-zinc-400 ml-1.5 shadow-sm relative">
+                {/* Cartridge & Needle Headshell */}
+                <div className="absolute -bottom-2 -left-1 w-2.5 h-3 rounded-sm bg-zinc-800 border border-zinc-600 flex items-center justify-center">
+                  <div className="w-0.5 h-1 bg-amber-400" />
+                </div>
+              </div>
+            </div>
           </div>
 
+          {/* Track Info & Scrubber */}
           <div className="min-w-0 flex-1">
             <div className="truncate text-xs font-bold text-white"><Value v={track.title} empty="Untitled track" /></div>
             <div className="truncate text-[10px] text-zinc-400 font-medium mt-0.5"><Value v={track.artist} empty="Unknown artist" /></div>
@@ -866,12 +924,13 @@ function TrackCardPreview({ track, style, accent, volume = 0.8, onTime, autoPlay
                 onClick={seekAt}
                 role="presentation"
               >
-                <div className="h-full rounded-full transition-all duration-150" style={{ width: `${progress}%`, background: `linear-gradient(90deg, ${accent}, ${accent}dd)` }} />
+                <div className="h-full rounded-full transition-all duration-150" style={{ width: `${progress}%`, background: `linear-gradient(90deg, ${accent}, #c084fc)` }} />
               </div>
               <span className="shrink-0 font-mono2 text-[9px] tabular-nums text-zinc-400">{timeLabel}</span>
             </div>
           </div>
 
+          {/* Play Button & Volume */}
           <div className="flex flex-col items-center gap-2 shrink-0">
             <button
               type="button"
@@ -880,8 +939,8 @@ function TrackCardPreview({ track, style, accent, volume = 0.8, onTime, autoPlay
               aria-label={playing ? "Pause track" : "Play track"}
               className="w-8 h-8 rounded-full flex items-center justify-center text-white shadow-lg transition-transform duration-200 hover:scale-105 active:scale-95"
               style={{
-                background: `linear-gradient(135deg, ${accent}, ${accent}cc)`,
-                boxShadow: `0 0 16px ${accent}66`,
+                background: `linear-gradient(135deg, ${accent}, #7354D4)`,
+                boxShadow: `0 0 16px ${accent}55`,
               }}
             >
               {playing ? <Pause className="w-3.5 h-3.5 fill-white" /> : <Play className="w-3.5 h-3.5 fill-white translate-x-px" />}
@@ -913,7 +972,7 @@ function TrackCardPreview({ track, style, accent, volume = 0.8, onTime, autoPlay
                   className="h-full rounded-full transition-all duration-75"
                   style={{
                     width: `${(muted ? 0 : visitorVolume) * 100}%`,
-                    background: `linear-gradient(90deg, ${accent}, ${accent}dd)`,
+                    background: `linear-gradient(90deg, ${accent}, #c084fc)`,
                   }}
                 />
               </div>
@@ -1736,11 +1795,14 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
   // switch. Inside the editor's embedded preview the player still lifts out
   // of the card — the pin is ABSOLUTE there, to the preview panel's corner,
   // so what the editor shows is what the public page does.
-  const pagePin = p.track_position === "top-right" || p.track_position === "top-left";
+  const pos = p.track_position || "";
+  const pagePin = pos === "top-right" || pos === "top-left" || pos === "bottom-center" || pos === "bottom-right";
   const pinnedPlayer = !cornerStyle && pagePin && tracks.length > 0;
-  const pinClass = p.track_position === "top-left"
-    ? "left-3"
-    : "right-3";
+  const pinClass =
+    pos === "top-left" ? "top-3 left-3 w-64 sm:w-72" :
+    pos === "bottom-center" ? "bottom-4 left-1/2 -translate-x-1/2 w-[92%] max-w-sm sm:max-w-md" :
+    pos === "bottom-right" ? "bottom-4 right-4 w-64 sm:w-72" :
+    "top-3 right-3 w-64 sm:w-72";
   const pinKind = embedded ? "absolute" : "fixed";
 
   const BgLayers = (
@@ -1755,14 +1817,14 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
       {/* Overlays sit above cards with pointer-events-none so all interactive elements remain clickable */}
       {p.overlay && <OverlayEffect effect={p.overlay} color={accent} opacity={p.overlay_opacity ?? 100} zIndex="z-[25]" />}
       {p.overlay_enabled && <div className="absolute inset-0 pointer-events-none z-[25]" style={{ background: withA(p.overlay_color || accent, 18) }} />}
-      {/* The lifted player: fixed to the page's top-right corner, above the
+      {/* The lifted player: fixed to page coordinates, above the
           card. Every layout includes BgLayers, so the pin works on Minimal,
           Banner and Floating alike. The widget cards stay (tracks.slice(1))
           inside the card's own audio block. */}
       {pinnedPlayer && (
         <div
           data-testid="track-pinned-player"
-          className={`${pinKind} top-3 ${pinClass} z-[80] w-64 sm:w-72`}
+          className={`${pinKind} ${pinClass} z-[80]`}
         >
           <TrackCardPreview
             track={tracks[0]}
