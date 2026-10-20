@@ -606,7 +606,7 @@ export default function DashboardLayout() {
   const activeGroup = groupFor(pathname);
   const activeTab = tabFor(pathname);
   const isInsideAdmin = pathname.startsWith("/!/dashboard/admin");
-  const strip = isInsideAdmin ? adminTabs : (activeGroup?.tabs || []);
+  const strip = isInsideAdmin ? adminTabs : [];
 
   const handleLogout = () => { logout(); navigate("/"); };
 
@@ -715,7 +715,7 @@ export default function DashboardLayout() {
       {/* Main */}
       <div className="flex min-w-0 flex-1 flex-col bg-[#09090b]">
         <header className="sticky top-0 z-30 border-b border-[#3f3f46]/30 bg-[#09090b]/90 backdrop-blur-xl">
-          <div className="flex items-center justify-between gap-3 px-6 pt-5">
+          <div className="flex items-center justify-between gap-3 px-6 py-4">
             <div className="flex min-w-0 items-center gap-3">
               <div className="lg:hidden">
                 <Logo size="text-base" />

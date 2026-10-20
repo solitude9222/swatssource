@@ -1150,7 +1150,11 @@ function DiscordServer({ w, accent, data, status, error, refresh }) {
   const name = data.name || w.title || w.server_name || "swats.bio";
   const members = data.total_members != null ? formatCount(data.total_members) : "—";
   const online = data.online != null ? formatCount(data.online) : "—";
-  const offline = data.offline != null ? formatCount(data.offline) : "—";
+  const offline = data.offline != null
+    ? formatCount(data.offline)
+    : (data.total_members != null && data.online != null
+        ? formatCount(Math.max(0, data.total_members - data.online))
+        : null);
   const joinHref = w.invite_url || data.invite_url || data.url || "";
   const bannerSrc = fileUrl(w.banner_url) || data.banner || "";
   const rawDesc = data.description || w.subtitle || w.description || "";
@@ -1226,7 +1230,7 @@ function DiscordServer({ w, accent, data, status, error, refresh }) {
               <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]" />
               {online} online
             </span>
-            {data.offline != null && (
+            {offline != null && (
               <span className="flex items-center gap-1.5 text-zinc-400 font-medium">
                 <span className="w-2 h-2 rounded-full bg-zinc-500" />
                 {offline} offline
@@ -1289,7 +1293,7 @@ function DiscordServer({ w, accent, data, status, error, refresh }) {
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#34d399]" />
                 {online} Online
               </span>
-              {data.offline != null && (
+              {offline != null && (
                 <span className="flex items-center gap-1.5 text-zinc-400 font-medium">
                   <span className="w-2 h-2 rounded-full bg-zinc-500" />
                   {offline} Offline

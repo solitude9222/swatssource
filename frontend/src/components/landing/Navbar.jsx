@@ -18,7 +18,6 @@ const NAV = [
   { label: "Home", to: "/!/home" },
   { label: "Marketplace", to: "/!/marketplace" },
   { label: "Explore", to: "/!/explore" },
-  { label: "Ranked", to: "/!/ranked" },
   { label: "Pricing", to: "/!/pricing" },
 ];
 
