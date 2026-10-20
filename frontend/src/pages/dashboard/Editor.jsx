@@ -16,7 +16,7 @@ import {
   TEXT_EFFECTS, OVERLAYS, CURSOR_EFFECTS, BACKGROUND_EFFECTS,
 } from "@/constants/effects";
 import { LAYOUTS, LAYOUT_MAP, DEFAULT_LAYOUT, SECTION_ANIMATIONS } from "@/constants/layouts";
-import { FONTS, FREE_FONTS, fontStackOf } from "@/constants/fonts";
+import { FONTS, FREE_FONTS, fontStackOf, ensureFontsLoaded } from "@/constants/fonts";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { toast } from "@/lib/notify";
@@ -115,7 +115,10 @@ const SWITCH_CLASS =
 function FontField({ label, value, onChange, isPremium, navigate, testid }) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const selected = FONTS.find((f) => fontStackOf(value) === f.stack) || FONTS.find((f) => f.free);
+  const selected =
+    FONTS.find((f) => fontStackOf(value) === f.stack) ||
+    FONTS.find((f) => f.name.toLowerCase() === String(value).toLowerCase()) ||
+    FONTS.find((f) => f.free);
 
   const q = query.trim().toLowerCase();
   const matches = q ? FONTS.filter((f) => f.name.toLowerCase().includes(q)) : FONTS;
@@ -149,7 +152,6 @@ function FontField({ label, value, onChange, isPremium, navigate, testid }) {
         onOpenChange={setIsOpen}
         id={`${testid}-drawer`}
         title={label}
-        description={`${FONTS.length} typefaces, ${FREE_FONTS.length} of them free.`}
         eyebrow="Fonts"
         testid={`${testid}-drawer`}
       >
@@ -159,7 +161,7 @@ function FontField({ label, value, onChange, isPremium, navigate, testid }) {
           data-testid={`${testid}-search`}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder={`Search ${FONTS.length} fonts…`}
+          placeholder="Search fonts…"
           className="ov-input mb-4 px-4 py-2.5 text-sm placeholder:text-zinc-500 bg-[#111111] border border-[#3f3f46]/40 text-white rounded-xl"
         />
 
@@ -194,7 +196,7 @@ function FontField({ label, value, onChange, isPremium, navigate, testid }) {
                     }}
                     className={`flex items-center justify-between rounded-xl border p-3 text-left transition-colors duration-200 ${
                       active
-                        ? "border-[hsl(272,24%,46%)] bg-[hsl(272,24%,46%)]/20 text-white"
+                        ? "border-[hsl(272,24%,46%)] bg-[hsl(272,24%,46%)] text-white"
                         : locked
                         ? "border-[#3f3f46]/20 bg-[#111111] text-zinc-500 hover:border-amber-500/30"
                         : "border-[#3f3f46]/40 bg-[#111111] hover:border-white/40 text-zinc-200"
@@ -211,7 +213,7 @@ function FontField({ label, value, onChange, isPremium, navigate, testid }) {
                       {locked ? (
                         <Lock className="h-3.5 w-3.5 text-amber-400" />
                       ) : active ? (
-                        <Check className="h-4 w-4 text-[hsl(272,24%,46%)]" />
+                        <Check className="h-4 w-4 text-white" />
                       ) : null}
                     </span>
                   </button>
@@ -674,6 +676,10 @@ export default function Editor() {
       setSub("about");
     }
   }, [tabParam]);
+
+  useEffect(() => {
+    ensureFontsLoaded();
+  }, []);
 
   const [showDecoModal, setShowDecoModal] = useState(false);
   const [showTipPanel, setShowTipPanel] = useState(false);
@@ -2010,7 +2016,7 @@ export default function Editor() {
               </Section>
 
               {/* Profile Entry Screen Settings */}
-              <Section title="Profile Entry Screen" hint="Click-to-enter gate, PIN lock, or image stamp">
+              <Section title="Profile Entry Screen">
                 <label className="mb-4 flex cursor-pointer items-center justify-between gap-4 text-xs font-bold text-white">
                   <span>Enable Entry Overlay Screen</span>
                   <Switch data-testid="entry-enable" className={SWITCH_CLASS} checked={!!p.entry_enabled} onCheckedChange={(v) => set("entry_enabled", v)} />
@@ -2096,26 +2102,14 @@ export default function Editor() {
                       </div>
                     )}
 
-                    <div>
-                      <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
-                        Entry Font
-                      </label>
-                      <SmartSelect
-                        value={p.entry_font || "inherit"}
-                        onChange={(val) => set("entry_font", val)}
-                        options={[
-                          { value: "inherit", label: "Default Site Font" },
-                          { value: "Inter", label: "Inter (Clean Sans)" },
-                          { value: "Unbounded", label: "Unbounded (Futuristic Bold)" },
-                          { value: "Space Grotesk", label: "Space Grotesk (Tech Modern)" },
-                          { value: "JetBrains Mono", label: "JetBrains Mono (Code)" },
-                          { value: "Syne", label: "Syne (Geometric Art)" },
-                          { value: "Outfit", label: "Outfit (Minimalist)" },
-                          { value: "Cinzel", label: "Cinzel (Classic Serif)" },
-                          { value: "Playfair Display", label: "Playfair Display (Luxury)" },
-                        ]}
-                      />
-                    </div>
+                    <FontField
+                      testid="entry-font"
+                      label="Entry Font"
+                      value={p.entry_font}
+                      onChange={(val) => set("entry_font", val)}
+                      isPremium={isPremium}
+                      navigate={navigate}
+                    />
 
                     <div className="grid gap-3 sm:grid-cols-2 pt-1">
                       <ColorPicker label="Text Color" value={p.entry_color || "#f4f4f5"} onChange={(v) => set("entry_color", v)} />

@@ -7,6 +7,7 @@ import { ProfilePreview, viewsInCorner, compactCount } from "@/components/Profil
 import { CursorEffect } from "@/components/CursorEffect";
 import { CustomCursor } from "@/components/CustomCursor";
 import { Eye } from "lucide-react";
+import { fontStackOf, ensureFontsLoaded } from "@/constants/fonts";
 
 // Where a moved view counter sits. The four corners are the page's, not the
 // card's, so it stays put whatever the card is doing.
@@ -26,6 +27,7 @@ export default function PublicProfile() {
   const [pinError, setPinError] = useState(false);
 
   useEffect(() => {
+    ensureFontsLoaded();
     api.get(`/u/${alias}`).then(({ data }) => setData(data)).catch(() => setNotFound(true));
   }, [alias]);
 
@@ -201,7 +203,7 @@ export default function PublicProfile() {
   const entryGlow = p.entry_glow_color || p.accent_color || "#A48DF4";
   const entryTextColor = p.entry_color || "#f4f4f5";
   const entryBg = p.entry_bg_color || "rgba(255, 255, 255, 0.08)";
-  const entryFont = p.entry_font || "inherit";
+  const entryFont = fontStackOf(p.entry_font) || p.entry_font || "inherit";
 
   return (
     <div

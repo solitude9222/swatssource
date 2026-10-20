@@ -6,8 +6,9 @@ import { PLATFORMS } from "@/constants/platforms";
 // Wide players, which the three-style catalogue removed. Nothing read them.
 import {
   Eye, Link as LinkIcon, Play, Pause, Fingerprint, ChevronDown,
-  MapPin, Volume2, VolumeX, CalendarDays, Music,
+  MapPin, Volume2, VolumeX, CalendarDays, Music, Disc,
 } from "lucide-react";
+import { AutoMarqueeText } from "@/components/AutoMarqueeText";
 import { WidgetCard, LinkCard, WidgetPill } from "@/components/WidgetCards";
 import { BackgroundEffect } from "@/components/BackgroundEffect";
 import { OverlayEffect } from "@/components/OverlayEffect";
@@ -599,9 +600,330 @@ function TrackCardPreview({ track, style, accent, volume = 0.8, onTime, autoPlay
     );
   }
 
-  // resolveTrackStyle lands every saved id on one of the three branches above;
-  // if a yet-unknown id reaches here anyway (a catalogue entry added without a
-  // branch), render nothing instead of an undefined return.
+  // ---------- MARQUEE ----------
+  if (chrome === "marquee") {
+    return (
+      <div
+        data-testid="track-marquee"
+        className="w-full rounded-2xl border px-4 py-3 text-left transition duration-300 shadow-xl overflow-hidden"
+        style={{
+          background: "linear-gradient(135deg, rgba(20, 20, 28, 0.85), rgba(10, 10, 16, 0.95))",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+          borderColor: `${accent}44`,
+          boxShadow: `0 8px 30px rgba(0,0,0,0.5), 0 0 25px ${accent}22`,
+        }}
+      >
+        <div className="flex items-center gap-3">
+          {cover ? (
+            <img src={cover} alt="" className="w-10 h-10 rounded-xl object-cover shrink-0 border border-white/10 shadow-md" />
+          ) : (
+            <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+              <Music className="w-5 h-5 text-zinc-400" />
+            </div>
+          )}
+
+          <div className="min-w-0 flex-1">
+            <div className="overflow-hidden text-xs font-bold text-white">
+              <AutoMarqueeText speed={35} pauseMs={1200}>
+                {track.title || "Untitled track"}
+              </AutoMarqueeText>
+            </div>
+            <div className="flex items-center justify-between text-[10px] text-zinc-400 font-medium mt-0.5">
+              <span className="truncate">{track.artist || "Unknown artist"}</span>
+              <div className="flex items-end gap-0.5 h-3 ml-2 shrink-0">
+                <span className={`w-0.5 rounded-full transition-all duration-300 ${playing ? "h-3 animate-pulse" : "h-1 bg-zinc-600"}`} style={playing ? { background: accent } : undefined} />
+                <span className={`w-0.5 rounded-full transition-all duration-200 ${playing ? "h-2.5 animate-bounce" : "h-1.5 bg-zinc-600"}`} style={playing ? { background: accent } : undefined} />
+                <span className={`w-0.5 rounded-full transition-all duration-300 ${playing ? "h-3.5 animate-pulse" : "h-1 bg-zinc-600"}`} style={playing ? { background: accent } : undefined} />
+                <span className={`w-0.5 rounded-full transition-all duration-150 ${playing ? "h-2 animate-bounce" : "h-1.5 bg-zinc-600"}`} style={playing ? { background: accent } : undefined} />
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            data-testid="track-play-btn"
+            onClick={togglePlay}
+            aria-label={playing ? "Pause track" : "Play track"}
+            className="w-8 h-8 shrink-0 rounded-full flex items-center justify-center text-white shadow-lg transition-transform duration-200 hover:scale-105 active:scale-95"
+            style={{
+              background: `linear-gradient(135deg, ${accent}, ${accent}cc)`,
+              boxShadow: `0 0 16px ${accent}66`,
+            }}
+          >
+            {playing ? <Pause className="w-3.5 h-3.5 fill-white" /> : <Play className="w-3.5 h-3.5 fill-white translate-x-px" />}
+          </button>
+        </div>
+
+        <div className="flex items-center gap-2 mt-2 pt-1 border-t border-white/[0.06]">
+          <div
+            data-testid="track-scrubber"
+            className="h-1.5 flex-1 cursor-pointer overflow-hidden rounded-full bg-white/10"
+            onClick={seekAt}
+            role="presentation"
+          >
+            <div className="h-full rounded-full transition-all duration-150" style={{ width: `${progress}%`, background: `linear-gradient(90deg, ${accent}, ${accent}dd)`, boxShadow: `0 0 8px ${accent}` }} />
+          </div>
+          <span className="shrink-0 font-mono2 text-[9px] tabular-nums text-zinc-400">{timeLabel}</span>
+          <div className="flex items-center gap-1 shrink-0">
+            <button
+              type="button"
+              onClick={() => setMuted((m) => !m)}
+              aria-label={muted ? "Unmute track" : "Mute track"}
+              className="shrink-0 text-zinc-400 transition hover:text-white"
+            >
+              {muted || visitorVolume === 0 ? <VolumeX className="h-3 w-3" /> : <Volume2 className="h-3 w-3" />}
+            </button>
+            <div
+              data-testid="audio-volume-slider"
+              role="slider"
+              aria-label="Track volume"
+              aria-valuenow={muted ? 0 : Math.round(visitorVolume * 100)}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              className="relative h-1.5 w-10 sm:w-12 cursor-pointer rounded-full bg-white/10 overflow-hidden"
+              onClick={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+                handleVolumeChange(pct);
+              }}
+            >
+              <div
+                className="h-full rounded-full transition-all duration-75"
+                style={{
+                  width: `${(muted ? 0 : visitorVolume) * 100}%`,
+                  background: `linear-gradient(90deg, ${accent}, ${accent}dd)`,
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ---------- LYRICS ----------
+  if (chrome === "lyrics") {
+    const rawLyrics = track.lyrics || (typeof track.desc === "string" ? track.desc : "") || "♪ Listening to music on swats.bio ♪\n♪ High fidelity audio experience ♪\n♪ Smooth playback enabled ♪";
+    const lyricLines = rawLyrics.split("\n").filter(Boolean);
+    const activeLineIdx = Math.min(lyricLines.length - 1, Math.floor((progress / 100) * lyricLines.length));
+
+    return (
+      <div
+        data-testid="track-lyrics"
+        className="w-full rounded-2xl border p-4 text-left transition duration-300 shadow-xl overflow-hidden"
+        style={{
+          background: "linear-gradient(135deg, rgba(20, 20, 28, 0.85), rgba(10, 10, 16, 0.95))",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+          borderColor: `${accent}44`,
+          boxShadow: `0 8px 30px rgba(0,0,0,0.5), 0 0 25px ${accent}22`,
+        }}
+      >
+        <div className="flex items-center gap-3">
+          {cover ? (
+            <img src={cover} alt="" className="w-10 h-10 rounded-xl object-cover shrink-0 border border-white/10 shadow-md" />
+          ) : (
+            <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+              <Music className="w-5 h-5 text-zinc-400" />
+            </div>
+          )}
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-xs font-bold text-white"><Value v={track.title} empty="Untitled track" /></div>
+            <div className="truncate text-[10px] text-zinc-400 font-medium"><Value v={track.artist} empty="Unknown artist" /></div>
+          </div>
+          <button
+            type="button"
+            data-testid="track-play-btn"
+            onClick={togglePlay}
+            aria-label={playing ? "Pause track" : "Play track"}
+            className="w-8 h-8 shrink-0 rounded-full flex items-center justify-center text-white shadow-lg transition-transform duration-200 hover:scale-105 active:scale-95"
+            style={{
+              background: `linear-gradient(135deg, ${accent}, ${accent}cc)`,
+              boxShadow: `0 0 16px ${accent}66`,
+            }}
+          >
+            {playing ? <Pause className="w-3.5 h-3.5 fill-white" /> : <Play className="w-3.5 h-3.5 fill-white translate-x-px" />}
+          </button>
+        </div>
+
+        <div className="flex items-center gap-2 mt-3">
+          <div
+            data-testid="track-scrubber"
+            className="h-1.5 flex-1 cursor-pointer overflow-hidden rounded-full bg-white/10"
+            onClick={seekAt}
+            role="presentation"
+          >
+            <div className="h-full rounded-full transition-all duration-150" style={{ width: `${progress}%`, background: `linear-gradient(90deg, ${accent}, ${accent}dd)` }} />
+          </div>
+          <span className="shrink-0 font-mono2 text-[9px] tabular-nums text-zinc-400">{timeLabel}</span>
+          <div className="flex items-center gap-1 shrink-0">
+            <button
+              type="button"
+              onClick={() => setMuted((m) => !m)}
+              aria-label={muted ? "Unmute track" : "Mute track"}
+              className="shrink-0 text-zinc-400 transition hover:text-white"
+            >
+              {muted || visitorVolume === 0 ? <VolumeX className="h-3 w-3" /> : <Volume2 className="h-3 w-3" />}
+            </button>
+            <div
+              data-testid="audio-volume-slider"
+              role="slider"
+              aria-label="Track volume"
+              aria-valuenow={muted ? 0 : Math.round(visitorVolume * 100)}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              className="relative h-1.5 w-10 sm:w-12 cursor-pointer rounded-full bg-white/10 overflow-hidden"
+              onClick={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+                handleVolumeChange(pct);
+              }}
+            >
+              <div
+                className="h-full rounded-full transition-all duration-75"
+                style={{
+                  width: `${(muted ? 0 : visitorVolume) * 100}%`,
+                  background: `linear-gradient(90deg, ${accent}, ${accent}dd)`,
+                }}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-3 max-h-24 overflow-y-auto space-y-1 rounded-xl bg-black/40 p-2.5 border border-white/5 text-center text-xs no-scrollbar">
+          {lyricLines.map((line, idx) => {
+            const isCurrent = idx === activeLineIdx;
+            return (
+              <div
+                key={idx}
+                className={`transition-all duration-200 ${
+                  isCurrent
+                    ? "font-bold scale-105"
+                    : "text-zinc-500 text-[11px] opacity-75"
+                }`}
+                style={isCurrent ? { color: accent, textShadow: `0 0 10px ${accent}66` } : undefined}
+              >
+                {line}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  // ---------- VINYL ----------
+  if (chrome === "vinyl") {
+    return (
+      <div
+        data-testid="track-vinyl"
+        className="w-full rounded-2xl border p-4 text-left transition duration-300 shadow-xl overflow-hidden"
+        style={{
+          background: "linear-gradient(135deg, rgba(20, 20, 28, 0.85), rgba(10, 10, 16, 0.95))",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+          borderColor: `${accent}44`,
+          boxShadow: `0 8px 30px rgba(0,0,0,0.5), 0 0 25px ${accent}22`,
+        }}
+      >
+        <div className="flex items-center gap-4">
+          <div className="relative shrink-0 flex items-center justify-center">
+            <div
+              className={`w-16 h-16 rounded-full border-2 border-zinc-700/80 bg-gradient-to-tr from-zinc-950 via-zinc-900 to-zinc-950 shadow-2xl flex items-center justify-center transition-transform ${
+                playing ? "animate-spin" : ""
+              }`}
+              style={{ animationDuration: "5s" }}
+            >
+              <div className="absolute inset-2 rounded-full border border-zinc-800/80 pointer-events-none" />
+              <div className="absolute inset-3.5 rounded-full border border-zinc-800/60 pointer-events-none" />
+              <div
+                className="w-6 h-6 rounded-full border border-white/20 overflow-hidden flex items-center justify-center shadow-inner"
+                style={{ background: accent }}
+              >
+                {cover ? (
+                  <img src={cover} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="w-1.5 h-1.5 rounded-full bg-black shadow-sm" />
+                )}
+              </div>
+            </div>
+            <div
+              className={`absolute top-0 right-0 w-4 h-6 border-r-2 border-t-2 border-zinc-400 origin-top-right transition-transform duration-300 pointer-events-none ${
+                playing ? "rotate-12 translate-x-0.5" : "-rotate-12"
+              }`}
+            />
+          </div>
+
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-xs font-bold text-white"><Value v={track.title} empty="Untitled track" /></div>
+            <div className="truncate text-[10px] text-zinc-400 font-medium mt-0.5"><Value v={track.artist} empty="Unknown artist" /></div>
+
+            <div className="flex items-center gap-2 mt-2">
+              <div
+                data-testid="track-scrubber"
+                className="h-1.5 flex-1 cursor-pointer overflow-hidden rounded-full bg-white/10"
+                onClick={seekAt}
+                role="presentation"
+              >
+                <div className="h-full rounded-full transition-all duration-150" style={{ width: `${progress}%`, background: `linear-gradient(90deg, ${accent}, ${accent}dd)` }} />
+              </div>
+              <span className="shrink-0 font-mono2 text-[9px] tabular-nums text-zinc-400">{timeLabel}</span>
+            </div>
+          </div>
+
+          <div className="flex flex-col items-center gap-2 shrink-0">
+            <button
+              type="button"
+              data-testid="track-play-btn"
+              onClick={togglePlay}
+              aria-label={playing ? "Pause track" : "Play track"}
+              className="w-8 h-8 rounded-full flex items-center justify-center text-white shadow-lg transition-transform duration-200 hover:scale-105 active:scale-95"
+              style={{
+                background: `linear-gradient(135deg, ${accent}, ${accent}cc)`,
+                boxShadow: `0 0 16px ${accent}66`,
+              }}
+            >
+              {playing ? <Pause className="w-3.5 h-3.5 fill-white" /> : <Play className="w-3.5 h-3.5 fill-white translate-x-px" />}
+            </button>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setMuted((m) => !m)}
+                aria-label={muted ? "Unmute track" : "Mute track"}
+                className="text-zinc-400 transition hover:text-white"
+              >
+                {muted || visitorVolume === 0 ? <VolumeX className="h-3 w-3" /> : <Volume2 className="h-3 w-3" />}
+              </button>
+              <div
+                data-testid="audio-volume-slider"
+                role="slider"
+                aria-label="Track volume"
+                aria-valuenow={muted ? 0 : Math.round(visitorVolume * 100)}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                className="relative h-1.5 w-10 cursor-pointer rounded-full bg-white/10 overflow-hidden"
+                onClick={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+                  handleVolumeChange(pct);
+                }}
+              >
+                <div
+                  className="h-full rounded-full transition-all duration-75"
+                  style={{
+                    width: `${(muted ? 0 : visitorVolume) * 100}%`,
+                    background: `linear-gradient(90deg, ${accent}, ${accent}dd)`,
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return null;
 }
 

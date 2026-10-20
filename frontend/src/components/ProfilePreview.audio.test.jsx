@@ -210,8 +210,11 @@ it("renders each player style as its own markup", () => {
 
   // A removed legacy id must not fall into a dead branch: it renders the
   // compact player, not nothing.
-  expect(renderStyle("vinyl")).toContain('data-testid="track-compact"');
+  expect(renderStyle("legacy-unknown")).toContain('data-testid="track-compact"');
   expect(renderStyle("simplistic")).toContain('data-testid="track-corner-icon"');
+  expect(renderStyle("vinyl")).toContain('data-testid="track-vinyl"');
+  expect(renderStyle("marquee")).toContain('data-testid="track-marquee"');
+  expect(renderStyle("lyrics")).toContain('data-testid="track-lyrics"');
 });
 
 // The corner icon is only a speaker chip until it is hovered; the audio bar

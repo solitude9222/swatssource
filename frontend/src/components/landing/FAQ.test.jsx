@@ -65,7 +65,7 @@ it("opens the question you click", async () => {
   // The first one is closing, not gone: AnimatePresence keeps the node until the
   // exit transition has played, so let it finish before asserting.
   await act(async () => {
-    await new Promise((resolve) => setTimeout(resolve, 400));
+    await new Promise((resolve) => setTimeout(resolve, 600));
   });
   expect(el.querySelector('[data-testid="faq-item-0"]').textContent).not.toContain("bio-link engine");
 

@@ -797,7 +797,7 @@ export default function Widgets() {
             <button
               type="button"
               onClick={saveWidgetEdit}
-              className="px-5 py-2 rounded-xl bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold transition shadow-lg cursor-pointer"
+              className="px-5 py-2 rounded-xl bg-[hsl(272,24%,46%)] hover:opacity-90 text-white text-xs font-bold transition shadow-lg cursor-pointer"
             >
               Apply widget
             </button>
@@ -816,19 +816,13 @@ export default function Widgets() {
             <h1 className="text-2xl font-bold text-white tracking-tight">
               {kind.label} Widget
             </h1>
-            <p className="text-xs text-zinc-400 mt-1 max-w-xl leading-relaxed">
-              {kind.desc}
-            </p>
           </div>
         </div>
 
         {/* 1. Connected account Section */}
-        <div className="rounded-3xl border border-white/[0.08] bg-black/40 backdrop-blur-xl p-5 sm:p-7 space-y-4">
+        <div className="rounded-2xl border border-[#3f3f46]/40 bg-[#111111] p-5 sm:p-6 space-y-4">
           <div>
             <h3 className="text-sm font-bold text-white tracking-tight uppercase">Connected account</h3>
-            <p className="text-xs text-zinc-400 mt-0.5">
-              This is the value used for the live widget preview and your public profile.
-            </p>
           </div>
 
           {/* Tailored fields for each widget */}
@@ -866,11 +860,8 @@ export default function Widgets() {
                     value={editingWidget.widget.user_id || editingWidget.widget.username || ""}
                     onChange={(e) => patchEditingWidget({ user_id: e.target.value, username: e.target.value })}
                     placeholder="e.g. 94490510688792576"
-                    className="w-full px-4 py-2.5 rounded-xl bg-black/50 border border-white/10 text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-brand-500/60"
+                    className="w-full px-4 py-2.5 rounded-xl bg-[#09090b] border border-[#3f3f46]/40 text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-[hsl(272,24%,46%)]"
                   />
-                  <p className="text-[11px] text-zinc-500">
-                    Your numeric Discord user ID. Right-click your profile in Discord with Developer Mode on and select "Copy User ID".
-                  </p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -881,9 +872,8 @@ export default function Widgets() {
                       value={editingWidget.widget.invite_url || ""}
                       onChange={(e) => patchEditingWidget({ invite_url: e.target.value })}
                       placeholder="discord.gg/yourinvite"
-                      className="w-full px-4 py-2.5 rounded-xl bg-black/50 border border-white/10 text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-brand-500/60"
+                      className="w-full px-4 py-2.5 rounded-xl bg-[#09090b] border border-[#3f3f46]/40 text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-[hsl(272,24%,46%)]"
                     />
-                    <p className="text-[11px] text-zinc-500">The invite link or code (e.g. discord.gg/achern).</p>
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-zinc-200">Server ID (Optional)</label>
@@ -892,9 +882,8 @@ export default function Widgets() {
                       value={editingWidget.widget.server_id || ""}
                       onChange={(e) => patchEditingWidget({ server_id: e.target.value })}
                       placeholder="e.g. 613712999795015681"
-                      className="w-full px-4 py-2.5 rounded-xl bg-black/50 border border-white/10 text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-brand-500/60"
+                      className="w-full px-4 py-2.5 rounded-xl bg-[#09090b] border border-[#3f3f46]/40 text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-[hsl(272,24%,46%)]"
                     />
-                    <p className="text-[11px] text-zinc-500">Pairs with the public Discord widget when enabled.</p>
                   </div>
                 </div>
               )}
@@ -909,9 +898,8 @@ export default function Widgets() {
                     value={editingWidget.widget[f.key] || ""}
                     onChange={(e) => patchEditingWidget({ [f.key]: e.target.value })}
                     placeholder={f.placeholder}
-                    className="w-full px-4 py-2.5 rounded-xl bg-black/50 border border-white/10 text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-brand-500/60"
+                    className="w-full px-4 py-2.5 rounded-xl bg-[#09090b] border border-[#3f3f46]/40 text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-[hsl(272,24%,46%)]"
                   />
-                  {f.help && <p className="text-[11px] text-zinc-500">{f.help}</p>}
                 </div>
               ))}
               {kind.subtypes?.length > 1 && (
@@ -940,35 +928,26 @@ export default function Widgets() {
         </div>
 
         {/* 2. Preview Section with REAL DATA */}
-        <div className="rounded-3xl border border-white/[0.08] bg-black/40 backdrop-blur-xl p-5 sm:p-7 space-y-4">
+        <div className="rounded-2xl border border-[#3f3f46]/40 bg-[#111111] p-5 sm:p-6 space-y-4">
           <div>
             <h3 className="text-sm font-bold text-white tracking-tight uppercase">Preview</h3>
-            <p className="text-xs text-zinc-400 mt-0.5">
-              A quick look at how this widget can appear on your page.
-            </p>
           </div>
 
-          <div className="p-6 rounded-2xl bg-black/60 border border-white/5 flex items-center justify-center">
+          <div className="p-6 rounded-xl bg-[#09090b] border border-[#3f3f46]/40 flex items-center justify-center">
             <RealLiveWidgetPreview widget={editingWidget.widget} kind={kind} />
           </div>
         </div>
 
         {/* 3. Display options Section (NO visual styling controls here) */}
-        <div className="rounded-3xl border border-white/[0.08] bg-black/40 backdrop-blur-xl p-5 sm:p-7 space-y-5">
+        <div className="rounded-2xl border border-[#3f3f46]/40 bg-[#111111] p-5 sm:p-6 space-y-5">
           <div>
             <h3 className="text-sm font-bold text-white tracking-tight uppercase">Display options</h3>
-            <p className="text-xs text-zinc-400 mt-0.5">
-              Toggle what this widget shows on your profile.
-            </p>
           </div>
 
           {/* Artwork & Filter Dropdowns */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06] space-y-1.5">
+            <div className="p-4 rounded-xl bg-[#09090b] border border-[#3f3f46]/40 space-y-1.5">
               <label className="text-xs font-semibold text-zinc-200">Background</label>
-              <p className="text-[11px] text-zinc-400">
-                Use {kind.label} artwork for card backdrop.
-              </p>
               <div className="pt-1">
                 <SmartSelect
                   value={editingWidget.widget.artwork_bg || getWidgetArtworkOptions(editingWidget.widget)[1]?.value || "none"}
@@ -978,11 +957,8 @@ export default function Widgets() {
               </div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06] space-y-1.5">
+            <div className="p-4 rounded-xl bg-[#09090b] border border-[#3f3f46]/40 space-y-1.5">
               <label className="text-xs font-semibold text-zinc-200">Background filter</label>
-              <p className="text-[11px] text-zinc-400">
-                Tune the overlay used above {kind.label} artwork.
-              </p>
               <div className="pt-1">
                 <SmartSelect
                   value={editingWidget.widget.bg_filter || "dark"}
@@ -1003,14 +979,12 @@ export default function Widgets() {
           {/* Tailored Toggle options */}
           <div className="space-y-2.5 pt-2">
             {getWidgetDisplayOptions(editingWidget.widget).map((item) => (
-              <div key={item.key} className="flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
-                <div>
-                  <div className="text-xs font-semibold text-zinc-200">{item.label}</div>
-                  <div className="text-[11px] text-zinc-500 mt-0.5">{item.desc}</div>
-                </div>
+              <div key={item.key} className="flex items-center justify-between p-3.5 rounded-xl bg-[#09090b] border border-[#3f3f46]/40">
+                <div className="text-xs font-semibold text-zinc-200">{item.label}</div>
                 <Switch
                   checked={editingWidget.widget[item.key] !== false}
                   onCheckedChange={(checked) => patchEditingWidget({ [item.key]: checked })}
+                  className="data-[state=checked]:bg-[hsl(272,24%,46%)]"
                 />
               </div>
             ))}
@@ -1047,7 +1021,7 @@ export default function Widgets() {
           <button
             type="button"
             onClick={saveWidgetEdit}
-            className="px-6 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold transition shadow-lg cursor-pointer"
+            className="px-6 py-2.5 rounded-xl bg-[hsl(272,24%,46%)] hover:opacity-90 text-white text-xs font-bold transition shadow-lg cursor-pointer"
           >
             Apply widget
           </button>
@@ -1065,12 +1039,11 @@ export default function Widgets() {
       <div className="flex items-center justify-between pb-1">
         <div>
           <h1 className="text-2xl font-bold text-white tracking-tight">Widgets</h1>
-          <p className="text-xs text-zinc-400 mt-0.5">Add rich platform widgets to your profile</p>
         </div>
         <Link
           to={`/${user.username}`}
           target="_blank"
-          className="p-2.5 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.08] text-zinc-400 hover:text-white transition shadow-sm"
+          className="p-2.5 rounded-xl border border-[#3f3f46]/40 bg-[#09090b] hover:border-white/30 text-zinc-400 hover:text-white transition shadow-sm"
           title="Preview public profile"
         >
           <Eye className="w-4 h-4" />
@@ -1078,13 +1051,12 @@ export default function Widgets() {
       </div>
 
       {/* Available Widgets Section */}
-      <div className="rounded-3xl border border-white/[0.08] bg-black/40 backdrop-blur-xl p-5 sm:p-7 space-y-4">
+      <div className="rounded-2xl border border-[#3f3f46]/40 bg-[#111111] p-5 sm:p-6 space-y-4">
         <div>
           <h2 className="text-sm font-bold text-white tracking-tight">Available Widgets</h2>
-          <p className="text-xs text-zinc-400 mt-0.5">Select a widget to configure it</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {WIDGET_KINDS.map((kind) => {
             const Icon = kind.Icon || GENERIC_WIDGET_ICON;
             const locked = kind.premium && !isPremium;
@@ -1094,17 +1066,12 @@ export default function Widgets() {
                 type="button"
                 data-testid={`add-widget-${kind.id}`}
                 onClick={() => openWidgetEditor(kind)}
-                className={`group relative flex items-start gap-3.5 p-4 rounded-2xl border text-left transition-all duration-200 outline-none overflow-hidden cursor-pointer ${
+                className={`group relative flex items-center gap-3.5 p-3.5 rounded-xl border text-left transition-all duration-200 outline-none overflow-hidden cursor-pointer ${
                   locked
-                    ? "border-white/5 bg-white/[0.01] hover:border-white/15"
-                    : "border-white/[0.07] bg-white/[0.02] hover:bg-white/[0.05] hover:border-brand-500/40 hover:shadow-lg"
+                    ? "border-[#3f3f46]/20 bg-[#09090b]/50 hover:border-white/20"
+                    : "border-[#3f3f46]/40 bg-[#09090b] hover:border-[hsl(272,24%,46%)] hover:bg-[#151518]"
                 }`}
               >
-                {/* Background watermark badge */}
-                <div className="absolute right-0 bottom-0 translate-x-3 translate-y-3 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity pointer-events-none">
-                  <Icon className="w-24 h-24" />
-                </div>
-
                 <div
                   className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border transition-transform duration-200 group-hover:scale-105"
                   style={{ background: `${kind.color}18`, borderColor: `${kind.color}35` }}
@@ -1121,9 +1088,6 @@ export default function Widgets() {
                       </span>
                     )}
                   </div>
-                  <p className="text-[11px] text-zinc-400 mt-1 line-clamp-2 leading-relaxed font-normal">
-                    {kind.desc}
-                  </p>
                 </div>
               </button>
             );
@@ -1132,11 +1096,10 @@ export default function Widgets() {
       </div>
 
       {/* Connected Widgets Section */}
-      <div className="rounded-3xl border border-white/[0.08] bg-black/40 backdrop-blur-xl p-5 sm:p-7 space-y-4">
+      <div className="rounded-2xl border border-[#3f3f46]/40 bg-[#111111] p-5 sm:p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-sm font-bold text-white tracking-tight">Connected Widgets</h2>
-            <p className="text-xs text-zinc-400 mt-0.5">Manage your active profile widgets</p>
           </div>
           {widgets.length > 0 && (
             <button
@@ -1152,10 +1115,9 @@ export default function Widgets() {
         </div>
 
         {widgets.length === 0 ? (
-          <div className="text-center py-12 border border-dashed border-white/10 rounded-2xl p-6">
-            <LayoutGrid className="w-8 h-8 text-zinc-600 mx-auto mb-2.5" />
+          <div className="text-center py-10 border border-dashed border-[#3f3f46]/40 rounded-xl p-6 bg-[#09090b]">
+            <LayoutGrid className="w-8 h-8 text-zinc-600 mx-auto mb-2" />
             <div className="text-xs font-semibold text-zinc-300">No active widgets connected</div>
-            <div className="text-[11px] text-zinc-500 mt-1">Select any widget above to configure and add it to your profile.</div>
           </div>
         ) : (
           <div className="space-y-2.5">
@@ -1175,11 +1137,11 @@ export default function Widgets() {
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={() => { moveWidget(widgetDragIndex, i); setWidgetDragIndex(null); }}
                   onDragEnd={() => setWidgetDragIndex(null)}
-                  className={`flex items-center justify-between gap-3 p-3.5 rounded-2xl border transition-all duration-200 ${
+                  className={`flex items-center justify-between gap-3 p-3.5 rounded-xl border transition-all duration-200 ${
                     isEnabled
-                      ? "border-white/[0.08] bg-white/[0.02]"
-                      : "border-white/[0.04] bg-white/[0.005] opacity-60"
-                  } ${widgetDragIndex === i ? "border-brand-500/60 opacity-50" : "hover:border-white/20"}`}
+                      ? "border-[#3f3f46]/40 bg-[#09090b]"
+                      : "border-[#3f3f46]/20 bg-[#09090b]/40 opacity-60"
+                  } ${widgetDragIndex === i ? "border-[hsl(272,24%,46%)] opacity-50" : "hover:border-white/30"}`}
                 >
                   {/* Left: Drag grip, platform icon, Title & Subtitle */}
                   <div className="flex items-center gap-3.5 min-w-0">
@@ -1210,12 +1172,12 @@ export default function Widgets() {
                       onCheckedChange={(checked) => {
                         setWidgets(widgets.map((item, idx) => (idx === i ? { ...item, enabled: checked } : item)));
                       }}
-                      className="data-[state=checked]:bg-blue-600"
+                      className="data-[state=checked]:bg-[hsl(272,24%,46%)]"
                     />
                     <button
                       type="button"
                       onClick={() => openWidgetEditor(kind, i)}
-                      className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.09] text-zinc-300 hover:text-white border border-white/5 transition cursor-pointer"
+                      className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.09] text-zinc-300 hover:text-white border border-[#3f3f46]/40 transition cursor-pointer"
                       title="Edit widget"
                       aria-label={`Edit ${w.title || w.type}`}
                     >
@@ -1239,38 +1201,27 @@ export default function Widgets() {
       </div>
 
       {/* Widget Card Customization (Shared design at the bottom) */}
-      <div className="rounded-3xl border border-white/[0.08] bg-black/40 backdrop-blur-xl p-5 sm:p-7 space-y-6">
+      <div className="rounded-2xl border border-[#3f3f46]/40 bg-[#111111] p-5 sm:p-6 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 className="text-base font-bold text-white tracking-tight">Widget Card Customization</h2>
-            <p className="text-xs text-zinc-400 mt-1 max-w-2xl leading-relaxed">
-              Adjust the shared design of your profile widgets. Background color is only visible on widgets without their own image background.
-            </p>
           </div>
           <button
             type="button"
             onClick={resetSharedDefaults}
-            className="px-3.5 py-2 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-xs font-semibold text-zinc-300 hover:text-white border border-white/10 transition shrink-0 cursor-pointer self-start sm:self-auto"
+            className="px-3.5 py-2 rounded-xl bg-[#09090b] hover:border-white/30 text-xs font-semibold text-zinc-300 hover:text-white border border-[#3f3f46]/40 transition shrink-0 cursor-pointer self-start sm:self-auto"
           >
             Reset to Defaults
           </button>
         </div>
 
         {/* 6 Customization Controls Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 pt-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-1">
           {/* 1. Border Width */}
-          <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06] space-y-3">
+          <div className="p-4 rounded-xl bg-[#09090b] border border-[#3f3f46]/40 space-y-3">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-200">
-                <span>Border Width</span>
-                <div className="relative group">
-                  <HelpCircle className="w-3.5 h-3.5 text-zinc-500 hover:text-zinc-300 cursor-pointer" />
-                  <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1.5 hidden group-hover:block w-48 p-2 rounded-lg bg-zinc-900 border border-white/10 text-[10px] text-zinc-300 shadow-xl z-20 pointer-events-none">
-                    Thickness of the border outlining widget cards in pixels.
-                  </div>
-                </div>
-              </div>
-              <span className="text-xs font-mono2 text-brand-300 font-bold">{borderWidth}px</span>
+              <span className="text-xs font-semibold text-zinc-200">Border Width</span>
+              <span className="text-xs font-mono2 text-white font-bold">{borderWidth}px</span>
             </div>
             <Slider
               value={[borderWidth]}
@@ -1282,18 +1233,10 @@ export default function Widgets() {
           </div>
 
           {/* 2. Border Opacity */}
-          <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06] space-y-3">
+          <div className="p-4 rounded-xl bg-[#09090b] border border-[#3f3f46]/40 space-y-3">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-200">
-                <span>Border Opacity</span>
-                <div className="relative group">
-                  <HelpCircle className="w-3.5 h-3.5 text-zinc-500 hover:text-zinc-300 cursor-pointer" />
-                  <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1.5 hidden group-hover:block w-48 p-2 rounded-lg bg-zinc-900 border border-white/10 text-[10px] text-zinc-300 shadow-xl z-20 pointer-events-none">
-                    Transparency of the border around widget cards.
-                  </div>
-                </div>
-              </div>
-              <span className="text-xs font-mono2 text-brand-300 font-bold">{borderOpacity.toFixed(2)}</span>
+              <span className="text-xs font-semibold text-zinc-200">Border Opacity</span>
+              <span className="text-xs font-mono2 text-white font-bold">{borderOpacity.toFixed(2)}</span>
             </div>
             <Slider
               value={[borderOpacity * 100]}
@@ -1305,17 +1248,9 @@ export default function Widgets() {
           </div>
 
           {/* 3. Border Color */}
-          <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06] space-y-3">
+          <div className="p-4 rounded-xl bg-[#09090b] border border-[#3f3f46]/40 space-y-3">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-200">
-                <span>Border Color</span>
-                <div className="relative group">
-                  <HelpCircle className="w-3.5 h-3.5 text-zinc-500 hover:text-zinc-300 cursor-pointer" />
-                  <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1.5 hidden group-hover:block w-48 p-2 rounded-lg bg-zinc-900 border border-white/10 text-[10px] text-zinc-300 shadow-xl z-20 pointer-events-none">
-                    The color applied to the card border.
-                  </div>
-                </div>
-              </div>
+              <span className="text-xs font-semibold text-zinc-200">Border Color</span>
             </div>
             <div>
               <ColorPicker
@@ -1327,17 +1262,9 @@ export default function Widgets() {
           </div>
 
           {/* 4. Background Color */}
-          <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06] space-y-3">
+          <div className="p-4 rounded-xl bg-[#09090b] border border-[#3f3f46]/40 space-y-3">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-200">
-                <span>Background Color</span>
-                <div className="relative group">
-                  <HelpCircle className="w-3.5 h-3.5 text-zinc-500 hover:text-zinc-300 cursor-pointer" />
-                  <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1.5 hidden group-hover:block w-48 p-2 rounded-lg bg-zinc-900 border border-white/10 text-[10px] text-zinc-300 shadow-xl z-20 pointer-events-none">
-                    Solid fill color under widget cards without image artwork.
-                  </div>
-                </div>
-              </div>
+              <span className="text-xs font-semibold text-zinc-200">Background Color</span>
             </div>
             <div>
               <ColorPicker
@@ -1349,18 +1276,10 @@ export default function Widgets() {
           </div>
 
           {/* 5. Background Opacity */}
-          <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06] space-y-3">
+          <div className="p-4 rounded-xl bg-[#09090b] border border-[#3f3f46]/40 space-y-3">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-200">
-                <span>Background Opacity</span>
-                <div className="relative group">
-                  <HelpCircle className="w-3.5 h-3.5 text-zinc-500 hover:text-zinc-300 cursor-pointer" />
-                  <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1.5 hidden group-hover:block w-48 p-2 rounded-lg bg-zinc-900 border border-white/10 text-[10px] text-zinc-300 shadow-xl z-20 pointer-events-none">
-                    Alpha transparency of the card surface background fill.
-                  </div>
-                </div>
-              </div>
-              <span className="text-xs font-mono2 text-brand-300 font-bold">{bgOpacity.toFixed(2)}</span>
+              <span className="text-xs font-semibold text-zinc-200">Background Opacity</span>
+              <span className="text-xs font-mono2 text-white font-bold">{bgOpacity.toFixed(2)}</span>
             </div>
             <Slider
               value={[bgOpacity * 100]}
@@ -1372,18 +1291,10 @@ export default function Widgets() {
           </div>
 
           {/* 6. Background Blur */}
-          <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06] space-y-3">
+          <div className="p-4 rounded-xl bg-[#09090b] border border-[#3f3f46]/40 space-y-3">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-200">
-                <span>Background Blur</span>
-                <div className="relative group">
-                  <HelpCircle className="w-3.5 h-3.5 text-zinc-500 hover:text-zinc-300 cursor-pointer" />
-                  <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1.5 hidden group-hover:block w-48 p-2 rounded-lg bg-zinc-900 border border-white/10 text-[10px] text-zinc-300 shadow-xl z-20 pointer-events-none">
-                    Backdrop glassmorphism blur in pixels behind the widget card.
-                  </div>
-                </div>
-              </div>
-              <span className="text-xs font-mono2 text-brand-300 font-bold">{bgBlur}px</span>
+              <span className="text-xs font-semibold text-zinc-200">Background Blur</span>
+              <span className="text-xs font-mono2 text-white font-bold">{bgBlur}px</span>
             </div>
             <Slider
               value={[bgBlur]}
@@ -1396,15 +1307,10 @@ export default function Widgets() {
         </div>
 
         {/* Live Shared Design Preview Card with Active Widget Carousel */}
-        <div className="pt-5 border-t border-white/10 space-y-4">
+        <div className="pt-5 border-t border-[#3f3f46]/30 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <div className="text-xs font-bold text-white tracking-tight">Preview</div>
-              <p className="text-[11px] text-zinc-400 mt-0.5">
-                {activeWidgets.length > 0
-                  ? `Live previewing ${activeWidgets.length} active profile widget${activeWidgets.length > 1 ? "s" : ""} with shared card design.`
-                  : "Normal widget card without an image background."}
-              </p>
             </div>
 
             {/* Active Widgets Carousel Controls */}
@@ -1532,7 +1438,7 @@ export default function Widgets() {
       {/* Floating Save Bar */}
       {dirty && (
         <div className="fixed bottom-6 inset-x-0 z-40 flex justify-center px-4 animate-in fade-in slide-in-from-bottom-4 duration-200">
-          <div className="flex items-center gap-4 px-5 py-3 rounded-2xl bg-zinc-950/95 border border-brand-500/40 shadow-2xl backdrop-blur-xl">
+          <div className="flex items-center gap-4 px-5 py-3 rounded-2xl bg-[#111111] border border-[hsl(272,24%,46%)] shadow-2xl backdrop-blur-xl">
             <div className="text-xs text-zinc-300">
               You have unsaved changes to your widgets and design.
             </div>
@@ -1541,7 +1447,7 @@ export default function Widgets() {
               data-testid="widget-save-btn"
               onClick={saveAll}
               disabled={saving}
-              className="px-4 py-2 rounded-xl bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold transition flex items-center gap-2 shadow-lg cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-[hsl(272,24%,46%)] hover:opacity-90 text-white text-xs font-bold transition flex items-center gap-2 shadow-lg cursor-pointer"
             >
               {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
               Save Changes

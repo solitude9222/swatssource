@@ -80,8 +80,83 @@ export function TrackStylePreview({ id, accent = "#A48DF4", size = "sm" }) {
     );
   }
 
-  // Compact (also the fallback for any unknown id): one small card — artwork
-  // plate, title row, a thin scrubber underneath.
+  // Lyrics: artwork + lyric lines underneath
+  if (id === "lyrics") {
+    return shell(
+      <div className="flex flex-col justify-between h-full py-0.5">
+        <div className="flex items-center gap-2">
+          <span
+            className="flex shrink-0 items-center justify-center rounded-md border"
+            style={{ width: S.line * 1.8, height: S.line * 1.8, background: `${accent}40`, borderColor: `${accent}60` }}
+            aria-hidden
+          >
+            <Play width={S.line * 0.7} height={S.line * 0.7} style={{ color: accent }} aria-hidden />
+          </span>
+          <div className="min-w-0 flex-1 space-y-1">
+            <Bar w="55%" h={S.line - 2} className="bg-white/60" />
+            <Bar w="35%" h={S.line - 4} className="bg-white/30" />
+          </div>
+        </div>
+        <div className="space-y-1 pt-1 border-t border-white/10">
+          <Bar w="85%" h={S.line - 3} style={{ background: accent }} />
+          <Bar w="65%" h={S.line - 4} className="bg-white/25" />
+        </div>
+      </div>,
+    );
+  }
+
+  // Marquee: scrolling title + audio wave equalizer bars
+  if (id === "marquee") {
+    return shell(
+      <div className="flex h-full items-center gap-2.5">
+        <span
+          className="flex shrink-0 items-center justify-center rounded-lg border"
+          style={{ width: S.line * 2, height: S.line * 2, background: `${accent}33`, borderColor: `${accent}55` }}
+          aria-hidden
+        >
+          <Play width={S.line * 0.8} height={S.line * 0.8} style={{ color: accent }} aria-hidden />
+        </span>
+        <div className="min-w-0 flex-1 space-y-1.5">
+          <div className="flex items-center justify-between">
+            <Bar w="60%" h={S.line - 1} className="bg-white/70" />
+            <div className="flex items-end gap-0.5 h-3">
+              <span className="w-1 h-2 rounded-full" style={{ background: accent }} />
+              <span className="w-1 h-3 rounded-full" style={{ background: accent }} />
+              <span className="w-1 h-1.5 rounded-full" style={{ background: accent }} />
+            </div>
+          </div>
+          <Bar w="100%" h={S.bar} style={{ background: `${accent}44` }} />
+        </div>
+      </div>,
+    );
+  }
+
+  // Vinyl: revolving vinyl record disc + tonearm
+  if (id === "vinyl") {
+    return shell(
+      <div className="flex h-full items-center justify-between gap-2">
+        <div
+          className="relative flex shrink-0 items-center justify-center rounded-full border border-zinc-700 bg-gradient-to-tr from-zinc-900 to-black shadow-md"
+          style={{ width: S.line * 3.4, height: S.line * 3.4 }}
+        >
+          <span className="absolute inset-1 rounded-full border border-zinc-800" />
+          <span
+            className="flex items-center justify-center rounded-full"
+            style={{ width: S.line * 1.4, height: S.line * 1.4, background: accent }}
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-black" />
+          </span>
+        </div>
+        <div className="min-w-0 flex-1 space-y-1.5">
+          <Bar w="70%" h={S.line} className="bg-white/60" />
+          <Bar w="45%" h={S.line - 3} className="bg-white/30" />
+          <Bar w="100%" h={S.bar - 1} style={{ background: `${accent}44` }} />
+        </div>
+      </div>,
+    );
+  }
+
+  // Compact (default fallback)
   return shell(
     <div className="flex h-full items-center gap-2.5">
       <span

@@ -142,25 +142,26 @@ export const resolveOverlay = (id) => resolveWith(id, LEGACY_OVERLAY_IDS, OVERLA
 export const resolveCursor = (id) => resolveWith(id, {}, CURSOR_EFFECTS);
 
 export const TRACK_STYLES = [
-  // Mini bar is the smallest footprint offered: one slim line with a play
-  // glyph, the title, a hairline scrubber and the elapsed time — no card,
-  // no background.
-  { id: "mini-bar", label: "Mini Bar", premium: false },
-  { id: "compact", label: "Compact", premium: false },
-  // Corner icon pins a speaker glyph to the page's top-left corner; hovering
-  // it pops out the full audio bar (title, artist, scrubber, time).
-  { id: "corner-icon", label: "Corner Icon", premium: false },
+  { id: "compact", label: "Compact", premium: false, desc: "Clean streamlined player pill with controls and artwork" },
+  { id: "lyrics", label: "Lyrics", premium: false, desc: "Scrolling real-time or formatted lyrics view under artwork" },
+  { id: "marquee", label: "Marquee", premium: false, desc: "Classic scrolling animated marquee text title & audio wave" },
+  { id: "vinyl", label: "Vinyl", premium: false, desc: "Realistic revolving vinyl record with turntable arm accent" },
+  { id: "mini-bar", label: "Mini Bar", premium: false, desc: "Slim line with play glyph and scrubber" },
+  { id: "corner-icon", label: "Corner Icon", premium: false, desc: "Corner speaker icon with hover reveal" },
 ];
 
-/* Saved profiles can still carry the ids of removed styles ("simplistic",
-   "wide", "vinyl", …) or nothing at all. The player catalogue is exactly
-   three styles now, so every legacy value resolves onto the one it looks
-   like: the Simplistic icon became the Corner Icon, and every remaining
-   art-heavy style — Default, Banner, Vinyl, Cover Vinyl, Wide — falls back
-   to the Compact player. */
 export const resolveTrackStyle = (id) => {
-  const raw = String(id || "");
-  if (raw === "mini-bar" || raw === "compact" || raw === "corner-icon") return raw;
+  const raw = String(id || "").toLowerCase();
+  if (
+    raw === "compact" ||
+    raw === "lyrics" ||
+    raw === "marquee" ||
+    raw === "vinyl" ||
+    raw === "mini-bar" ||
+    raw === "corner-icon"
+  ) {
+    return raw;
+  }
   if (raw === "simplistic") return "corner-icon";
   return "compact";
 };
