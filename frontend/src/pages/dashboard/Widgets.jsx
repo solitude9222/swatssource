@@ -441,6 +441,11 @@ function RealLiveWidgetPreview({ widget, kind, styleOverride }) {
     subtitle = data?.state_message || "Currently in-game: Counter-Strike 2";
   }
 
+  // Deduplicate: If subtitle is identical to title, remove it
+  if (subtitle && (subtitle.trim().toLowerCase() === title.trim().toLowerCase() || subtitle.trim().toLowerCase().replace(/^\//, '') === title.trim().toLowerCase().replace(/^\//, '') || (title.trim().toLowerCase().includes(subtitle.trim().toLowerCase()) && subtitle.length < title.length + 3))) {
+    subtitle = "";
+  }
+
   const avatarUrl = data?.icon || data?.avatar || data?.thumbnail || "";
   const stats = (typeof getPreviewStats === "function") ? getPreviewStats(widget, kind, data) : {
     stat1: { label: "13 Online", color: "text-emerald-400", dot: "bg-emerald-400" },

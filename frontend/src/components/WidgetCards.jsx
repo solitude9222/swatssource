@@ -279,6 +279,31 @@ function WidgetShell({
   const bgFill = hexOrRgba(w?.card_bg_color || defBgColor, fillAlpha);
   const blurVal = numOr(w?.card_bg_blur ?? defBgBlur, defBgBlur);
 
+  let bgImage = "";
+  if (w?.artwork_bg && w.artwork_bg !== "none") {
+    if (w.artwork_bg === "banner") {
+      bgImage = data?.banner || data?.banner_url || data?.backdrop || (w.banner_url ? fileUrl(w.banner_url) : "");
+    } else if (w.artwork_bg === "splash") {
+      bgImage = data?.splash || data?.banner || "";
+    } else if (w.artwork_bg === "thumbnail") {
+      bgImage = data?.thumbnail || data?.latest?.thumbnail || data?.album_art || data?.cover || "";
+    } else if (w.artwork_bg === "avatar") {
+      bgImage = data?.icon || data?.avatar || "";
+    }
+  } else if (!w?.artwork_bg && (data?.banner || data?.splash)) {
+    bgImage = data?.banner || data?.splash || (w?.banner_url ? fileUrl(w.banner_url) : "");
+  }
+
+  const filterStyles = {
+    none: "",
+    soft: "bg-black/30 backdrop-blur-[2px]",
+    dark: "bg-black/60",
+    blur: "backdrop-blur-md bg-black/45",
+    dark_blur: "backdrop-blur-xl bg-black/75",
+    vignette: "bg-gradient-to-t from-black via-black/40 to-transparent",
+  };
+  const overlayClass = filterStyles[w?.bg_filter || "dark"] ?? "bg-black/60";
+
   const surface = {
     borderWidth: `${borderWidthVal}px`,
     borderStyle: borderWidthVal > 0 ? "solid" : "none",
@@ -320,6 +345,19 @@ function WidgetShell({
           role={isClickableCard ? "button" : undefined}
           tabIndex={isClickableCard ? 0 : undefined}
         >
+          {/* Background Artwork Image if available */}
+          {bgImage ? (
+            <div
+              className="absolute inset-0 bg-cover bg-center pointer-events-none transition-all duration-300"
+              style={{ backgroundImage: `url(${bgImage})` }}
+            />
+          ) : null}
+
+          {/* Background Filter Overlay */}
+          {bgImage ? (
+            <div className={`absolute inset-0 pointer-events-none ${overlayClass}`} />
+          ) : null}
+
           {/* Top right sleek popout button for widgets that support it. ONLY shown if openStyle === 'icon' */}
           {popoutUrl && openStyle === "icon" && (
             <button
@@ -1115,6 +1153,12 @@ function DiscordServer({ w, accent, data, status, error, refresh }) {
   const offline = data.offline != null ? formatCount(data.offline) : "—";
   const joinHref = w.invite_url || data.invite_url || data.url || "";
   const bannerSrc = fileUrl(w.banner_url) || data.banner || "";
+  const rawDesc = data.description || w.subtitle || w.description || "";
+  const isDupe = !rawDesc ||
+    rawDesc.trim().toLowerCase() === name.trim().toLowerCase() ||
+    rawDesc.trim().toLowerCase().replace(/^\//, '') === name.trim().toLowerCase().replace(/^\//, '') ||
+    (name.trim().toLowerCase().includes(rawDesc.trim().toLowerCase()) && rawDesc.length < name.length + 3);
+  const description = isDupe ? "" : rawDesc;
 
   const ServerGlyph = ({ size }) =>
     data.icon ? (
@@ -1192,7 +1236,7 @@ function DiscordServer({ w, accent, data, status, error, refresh }) {
           </div>
           <div className="flex items-center justify-between gap-3 pt-0.5">
             <p className="text-xs text-zinc-300 leading-snug truncate flex-1">
-              {data.description || `The official discord server for ${name}`}
+              {description || (data.description ? data.description : "")}
             </p>
             <WidgetInternalButton
               href={joinHref || "#"}
@@ -1205,55 +1249,70 @@ function DiscordServer({ w, accent, data, status, error, refresh }) {
     );
   }
 
-  // Classic: Authentic Discord Invite Preview (Directly matches Image 3 right)
+  // Classic: Authentic Discord Invite Preview (Rich card matching Studio design)
   return (
-    <div className="relative flex items-center justify-between gap-3 py-1">
-      {/* Subtle top-right watermark */}
-      <span className="absolute top-0 right-0 flex items-center gap-1 text-[10px] font-mono2 font-bold tracking-wider text-zinc-600 uppercase select-none opacity-40">
-        <FaDiscord className="w-3 h-3 text-[#5865F2]" /> DISCORD
-      </span>
-
-      <div className="flex items-center gap-3.5 min-w-0 flex-1">
-        {/* Rounded square server icon */}
-        <div className="w-[50px] h-[50px] rounded-2xl overflow-hidden bg-zinc-900 border border-white/10 shrink-0 shadow-md">
-          <ServerGlyph size={24} />
-        </div>
-
-        {/* Server Name & Stats */}
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5">
-            <span className="text-sm sm:text-base font-bold text-white tracking-wide truncate">
-              {name}
-            </span>
+    <div className="relative flex flex-col gap-2.5 py-1">
+      {/* Top Header Row with Platform Badge */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-[#5865F2]/20 border border-[#5865F2]/40 text-[#5865F2]">
+            <FaDiscord className="w-3.5 h-3.5" />
           </div>
-          <div className="flex items-center gap-3 text-xs mt-1 flex-wrap">
-            <span className="flex items-center gap-1.5 text-zinc-200 font-medium">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]" />
-              {online} Online
-            </span>
-            {data.offline != null && (
-              <span className="flex items-center gap-1.5 text-zinc-400 font-medium">
-                <span className="w-2 h-2 rounded-full bg-zinc-500" />
-                {offline} Offline
-              </span>
-            )}
-            {members !== "—" && (
-              <span className="flex items-center gap-1.5 text-zinc-500 font-medium">
-                {members} Members
-              </span>
-            )}
-          </div>
+          <span className="text-xs font-bold text-white tracking-wide">Discord Server</span>
         </div>
+        <span className="px-2 py-0.5 rounded-md bg-white/10 text-[10px] font-bold text-zinc-300 border border-white/15 uppercase tracking-wider">
+          Discord
+        </span>
       </div>
 
-      {/* Green Join Pill Button */}
-      {joinHref && (
-        <WidgetInternalButton
-          href={joinHref}
-          className="shrink-0 px-4 py-1.5 rounded-full bg-[#23a55a] hover:bg-[#1f9450] active:scale-95 text-white text-xs font-semibold shadow-[0_2px_12px_rgba(35,165,90,0.35)] transition border border-white/5 select-none"
-          label="Join"
-        />
-      )}
+      <div className="flex items-center justify-between gap-3.5 pt-0.5">
+        <div className="flex items-center gap-3.5 min-w-0 flex-1">
+          {/* Rounded server icon */}
+          <div className="w-[50px] h-[50px] rounded-2xl overflow-hidden bg-zinc-900 border border-white/15 shrink-0 shadow-lg ring-1 ring-white/10">
+            <ServerGlyph size={24} />
+          </div>
+
+          {/* Server Name & Stats */}
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5">
+              <span className="text-sm sm:text-base font-bold text-white tracking-wide truncate">
+                {name}
+              </span>
+            </div>
+            {description ? (
+              <div className="text-xs text-zinc-300/80 mt-0.5 line-clamp-2 leading-relaxed">
+                {description}
+              </div>
+            ) : null}
+            <div className="flex items-center gap-3 text-xs mt-1.5 flex-wrap">
+              <span className="flex items-center gap-1.5 text-emerald-400 font-semibold">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#34d399]" />
+                {online} Online
+              </span>
+              {data.offline != null && (
+                <span className="flex items-center gap-1.5 text-zinc-400 font-medium">
+                  <span className="w-2 h-2 rounded-full bg-zinc-500" />
+                  {offline} Offline
+                </span>
+              )}
+              {members !== "—" && (
+                <span className="flex items-center gap-1.5 text-zinc-300 font-medium">
+                  {members} Members
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Join Button */}
+        {joinHref && (
+          <WidgetInternalButton
+            href={joinHref}
+            className="shrink-0 px-4 py-2 rounded-xl bg-[#5865F2] hover:bg-[#4752c4] active:scale-95 text-white text-xs font-bold shadow-[0_2px_12px_rgba(88,101,242,0.4)] transition border border-white/10 select-none flex items-center gap-1.5"
+            label="Join"
+          />
+        )}
+      </div>
     </div>
   );
 }

@@ -109,7 +109,7 @@ const TabLink = ({ t }) => (
     end={t.end}
     data-testid={t.testid}
     className={({ isActive }) =>
-      `group relative flex w-[266px] h-[43px] shrink-0 items-center gap-3 rounded-xl px-3.5 text-[14px] font-semibold outline-none transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[hsl(272,24%,46%)]/60 ${
+      `group relative flex w-[266px] h-[34px] shrink-0 items-center gap-2.5 rounded-xl px-3 text-[13px] font-semibold outline-none transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[hsl(272,24%,46%)]/60 ${
         isActive ? "text-white shadow-sm" : "text-zinc-400 hover:text-white hover:bg-white/[0.04]"
       }`
     }
@@ -126,7 +126,7 @@ const TabLink = ({ t }) => (
           <span className="absolute inset-0 rounded-xl bg-white/0 transition-colors duration-200 group-hover:bg-white/[0.03]" />
         )}
         <t.icon
-          className={`relative z-10 w-[18px] h-[18px] shrink-0 transition-transform duration-200 ${
+          className={`relative z-10 w-4 h-4 shrink-0 transition-transform duration-200 ${
             isActive ? "scale-105 text-white" : "group-hover:scale-105 text-zinc-400 group-hover:text-zinc-200"
           }`}
         />
@@ -135,7 +135,7 @@ const TabLink = ({ t }) => (
           <motion.span
             layoutId="dash-nav-marker"
             transition={spring}
-            className="relative z-10 ml-auto h-2 w-2 rounded-full bg-[hsl(272,24%,46%)] shadow-[0_0_8px_hsl(272,24%,46%)]"
+            className="relative z-10 ml-auto h-1.5 w-1.5 rounded-full bg-[hsl(272,24%,46%)] shadow-[0_0_8px_hsl(272,24%,46%)]"
           />
         )}
       </>
@@ -149,22 +149,22 @@ const TabLink = ({ t }) => (
 function NavGroup({ group, open, onToggle, containsActive }) {
   const Icon = group.icon;
   return (
-    <div className="w-[266px] mb-1">
+    <div className="w-[266px] mb-0.5">
       <button
         type="button"
         onClick={onToggle}
         aria-expanded={open}
         data-testid={`navgroup-${group.id}`}
-        className={`group flex w-[266px] h-[36px] items-center gap-2 rounded-xl px-2.5 text-left outline-none transition-all duration-200 hover:bg-white/[0.04] focus-visible:ring-2 focus-visible:ring-brand-500/50 ${
+        className={`group flex w-[266px] h-[30px] items-center gap-2 rounded-xl px-2.5 text-left outline-none transition-all duration-200 hover:bg-white/[0.04] focus-visible:ring-2 focus-visible:ring-brand-500/50 ${
           containsActive ? "bg-white/[0.02] text-zinc-200" : "text-zinc-400"
         }`}
       >
         {Icon && (
-          <span className="flex h-5 w-5 items-center justify-center rounded-md bg-brand-500/10 text-brand-300 transition-colors group-hover:bg-brand-500/20">
-            <Icon className="h-3.5 w-3.5" />
+          <span className="flex h-4 w-4 items-center justify-center rounded-md bg-brand-500/10 text-brand-300 transition-colors group-hover:bg-brand-500/20">
+            <Icon className="h-3 w-3" />
           </span>
         )}
-        <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 transition-colors duration-200 group-hover:text-zinc-200">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 transition-colors duration-200 group-hover:text-zinc-200">
           {group.label}
         </span>
         {containsActive && !open && <span className="h-1.5 w-1.5 rounded-full bg-brand-400 animate-pulse" />}
@@ -184,7 +184,7 @@ function NavGroup({ group, open, onToggle, containsActive }) {
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
             className="overflow-hidden"
           >
-            <div className={`space-y-[12px] pt-1.5 ${group.expandable ? "pl-2 border-l border-white/[0.07] ml-2.5 my-1" : ""}`}>
+            <div className={`space-y-1 pt-1 ${group.expandable ? "pl-2 border-l border-white/[0.07] ml-2.5 my-0.5" : ""}`}>
               {group.tabs.map((t) => (
                 <TabLink key={t.to} t={t} />
               ))}
@@ -211,20 +211,20 @@ function CommunityCard() {
       target="_blank"
       rel="noreferrer"
       data-testid="discord-card"
-      className="group block rounded-2xl border border-white/[0.08] bg-[#111111] p-3 transition-colors duration-200 hover:border-[hsl(272,24%,46%)]/40"
+      className="group block rounded-xl border border-white/[0.08] bg-[#111111] px-3 py-2 transition-colors duration-200 hover:border-[hsl(272,24%,46%)]/40"
     >
-      <div className="flex items-center gap-2.5">
-        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-white/[0.06] border border-white/10 transition-transform duration-300 group-hover:scale-105">
-          <FaDiscord className="h-4 w-4 text-white" />
+      <div className="flex items-center gap-2">
+        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-white/[0.06] border border-white/10 transition-transform duration-300 group-hover:scale-105">
+          <FaDiscord className="h-3.5 w-3.5 text-white" />
         </span>
         <div className="min-w-0 flex-1">
-          <div className="truncate text-xs font-bold text-white">Join our Discord</div>
+          <div className="truncate text-[11px] font-bold text-white">Join Discord</div>
         </div>
-        <ExternalLink className="h-3.5 w-3.5 shrink-0 text-zinc-500 transition-colors duration-200 group-hover:text-white" />
+        <ExternalLink className="h-3 w-3 shrink-0 text-zinc-500 transition-colors duration-200 group-hover:text-white" />
       </div>
       {stats && Number.isFinite(stats.bio_links) && (
-        <div className="mt-2 flex items-center gap-1.5 text-[10px] text-zinc-400">
-          <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400" />
+        <div className="mt-1 flex items-center gap-1.5 text-[9px] text-zinc-400">
+          <span className="inline-block h-1 w-1 rounded-full bg-emerald-400" />
           {stats.bio_links.toLocaleString()} bios · {Number(stats.total_views || 0).toLocaleString()} views
         </div>
       )}
@@ -236,24 +236,24 @@ function UserCard({ user, onLogout }) {
   const initial = (user.display_name || user.username || "?")[0]?.toUpperCase();
   const isPremium = user.tier === "premium" || user.tier === "admin" || user.is_owner;
   return (
-    <div className="w-[260px] h-[70px] min-h-[70px] mx-auto flex items-center gap-3 rounded-2xl border border-white/[0.08] bg-[#111111] hover:border-[hsl(272,24%,46%)]/40 px-3.5 transition-all duration-200 shadow-sm shrink-0">
-      <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-xl bg-zinc-800 text-sm ring-1 ring-white/10 shadow-inner">
+    <div className="w-[260px] h-[52px] min-h-[52px] mx-auto flex items-center gap-2.5 rounded-xl border border-white/[0.08] bg-[#111111] hover:border-[hsl(272,24%,46%)]/40 px-3 transition-all duration-200 shadow-sm shrink-0">
+      <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-lg bg-zinc-800 text-xs ring-1 ring-white/10 shadow-inner">
         {user.profile?.avatar_url ? (
           <img src={fileUrl(user.profile.avatar_url)} alt="" className="h-full w-full object-cover" />
         ) : (
           <span className="flex h-full w-full items-center justify-center font-bold text-zinc-300">{initial}</span>
         )}
-        <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-[#111111]" />
+        <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-[#111111]" />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="truncate text-xs font-bold text-white flex items-center gap-1.5">
+        <div className="truncate text-xs font-bold text-white flex items-center gap-1">
           <span>{user.display_name || user.username}</span>
-          {isPremium && <Crown className="w-3.5 h-3.5 text-amber-400 shrink-0" />}
+          {isPremium && <Crown className="w-3 h-3 text-amber-400 shrink-0" />}
         </div>
-        <div className="truncate font-mono2 text-[10px] text-zinc-400 flex items-center gap-1.5 mt-0.5">
+        <div className="truncate font-mono2 text-[9px] text-zinc-400 flex items-center gap-1">
           <span>@{user.username}</span>
           {Number.isFinite(user.uid_number) && (
-            <span className="px-1.5 py-0.2 rounded bg-white/5 border border-white/10 text-[9px] text-zinc-400 font-bold">
+            <span className="px-1 py-0.2 rounded bg-white/5 border border-white/10 text-[8px] text-zinc-400 font-bold">
               #{user.uid_number} <span className="sr-only">UID {user.uid_number}</span>
             </span>
           )}
@@ -265,9 +265,9 @@ function UserCard({ user, onLogout }) {
         data-testid="logout-btn"
         title="Log out"
         aria-label="Log out"
-        className="group shrink-0 rounded-xl p-2 text-zinc-400 outline-none transition-colors duration-200 hover:bg-red-500/15 hover:text-red-300 focus-visible:ring-2 focus-visible:ring-red-500/40 cursor-pointer"
+        className="group shrink-0 rounded-lg p-1.5 text-zinc-400 outline-none transition-colors duration-200 hover:bg-red-500/15 hover:text-red-300 focus-visible:ring-2 focus-visible:ring-red-500/40 cursor-pointer"
       >
-        <LogOut className="h-4 w-4" />
+        <LogOut className="h-3.5 w-3.5" />
       </button>
     </div>
   );
@@ -615,37 +615,37 @@ export default function DashboardLayout() {
        to near-black at the bottom, so the rounded panels have something to sit on. */
     <div className="dash-font flex min-h-screen bg-[#09090b] text-zinc-100">
       {/* Sidebar - w-[304px] */}
-      <aside className="sticky top-0 hidden h-screen w-[304px] min-w-[304px] max-w-[304px] shrink-0 flex-col border-r border-[#3f3f46]/30 bg-[#09090b] px-[19px] pb-[18px] lg:flex shadow-2xl overflow-hidden">
-        {/* Logo/header: 304 × 88 px */}
-        <div className="w-[304px] -mx-[19px] h-[88px] min-h-[88px] px-6 flex items-center justify-between border-b border-[#3f3f46]/30 shrink-0">
-          <Logo size="text-lg" />
-          <span className="px-2.5 py-0.5 rounded-full bg-[hsl(272,24%,46%)]/15 border border-[hsl(272,24%,46%)]/30 text-[10px] font-bold text-white uppercase tracking-widest shadow-sm">
+      <aside className="sticky top-0 hidden h-screen w-[304px] min-w-[304px] max-w-[304px] shrink-0 flex-col border-r border-[#3f3f46]/30 bg-[#09090b] px-[19px] pb-3 lg:flex shadow-2xl overflow-hidden justify-between">
+        {/* Logo/header: 304 × 54 px */}
+        <div className="w-[304px] -mx-[19px] h-[54px] min-h-[54px] px-6 flex items-center justify-between border-b border-[#3f3f46]/30 shrink-0">
+          <Logo size="text-base" />
+          <span className="px-2 py-0.5 rounded-full bg-[hsl(272,24%,46%)]/15 border border-[hsl(272,24%,46%)]/30 text-[9px] font-bold text-white uppercase tracking-widest shadow-sm">
             Studio
           </span>
         </div>
 
-        {/* User account card: 260 × 70 px */}
-        <div className="pt-3 shrink-0 flex justify-center">
+        {/* User account card: 260 × 52 px */}
+        <div className="pt-2 shrink-0 flex justify-center">
           <UserCard user={user} onLogout={handleLogout} />
         </div>
 
-        {/* Search bar: 260 × 38 px */}
-        <div className="pt-3 pb-1 shrink-0 flex justify-center">
-          <div className="relative w-[260px] h-[38px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
+        {/* Search bar: 260 × 32 px */}
+        <div className="pt-2 pb-1 shrink-0 flex justify-center">
+          <div className="relative w-[260px] h-[32px]">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400 pointer-events-none" />
             <input
               type="text"
               data-testid="nav-search-bar"
               value={navQuery}
               onChange={(e) => setNavQuery(e.target.value)}
               placeholder="Search navigation…"
-              className="w-[260px] h-[38px] rounded-xl bg-[#111111] border border-[#3f3f46]/40 pl-9 pr-3 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-[hsl(272,24%,46%)] transition-colors"
+              className="w-[260px] h-[32px] rounded-xl bg-[#111111] border border-[#3f3f46]/40 pl-8 pr-3 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-[hsl(272,24%,46%)] transition-colors"
             />
           </div>
         </div>
 
-        {/* Navigation list with item spacing 10-14px */}
-        <nav className="mt-2 flex-1 overflow-y-auto px-0.5 space-y-[12px] scrollbar-none flex flex-col items-center">
+        {/* Navigation list */}
+        <nav className="mt-1 flex-1 overflow-y-auto px-0.5 space-y-1 scrollbar-none flex flex-col items-center">
           {groups.map((group) => {
             if (group.to) return <TabLink key={group.id} t={{ ...group, end: false }} />;
 
@@ -661,58 +661,54 @@ export default function DashboardLayout() {
               />
             );
           })}
+        </nav>
 
-          {/* Bottom section divider: 1 px */}
-          <div className="w-[260px] h-px bg-[#3f3f46]/30 my-2 shrink-0" />
-
-          <div className="space-y-[12px] w-[260px] flex flex-col items-center">
-            {/* Premium upgrade card: 260 × 71 px */}
-            <button
-              type="button"
-              onClick={() => setPopup("premium")}
-              data-testid="premium-link"
-              className="group relative flex w-[260px] h-[71px] min-h-[71px] items-center gap-3 rounded-2xl border border-[hsl(272,24%,46%)]/30 bg-[#111111] px-3.5 text-left transition-all duration-200 hover:border-[hsl(272,24%,46%)]/70 hover:shadow-[0_0_20px_rgba(116,87,140,0.25)] cursor-pointer shrink-0"
-            >
-              <div className="w-9 h-9 rounded-xl bg-[hsl(272,24%,46%)]/20 border border-[hsl(272,24%,46%)]/40 flex items-center justify-center text-white shadow-sm shrink-0">
-                <Sparkles className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
+        {/* Bottom utility section pinned cleanly to bottom without scroll */}
+        <div className="shrink-0 pt-2 flex flex-col items-center space-y-1.5 border-t border-[#3f3f46]/30">
+          {/* Premium upgrade card: compact 260 × 44 px */}
+          <button
+            type="button"
+            onClick={() => setPopup("premium")}
+            data-testid="premium-link"
+            className="group relative flex w-[260px] h-[44px] min-h-[44px] items-center gap-2.5 rounded-xl border border-[hsl(272,24%,46%)]/30 bg-[#111111] px-3 text-left transition-all duration-200 hover:border-[hsl(272,24%,46%)]/70 hover:shadow-[0_0_15px_rgba(116,87,140,0.25)] cursor-pointer shrink-0"
+          >
+            <div className="w-7 h-7 rounded-lg bg-[hsl(272,24%,46%)]/20 border border-[hsl(272,24%,46%)]/40 flex items-center justify-center text-white shadow-sm shrink-0">
+              <Sparkles className="w-3.5 h-3.5 transition-transform duration-200 group-hover:scale-110" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-xs font-bold text-white flex items-center gap-1">
+                <span>Swats Premium</span>
+                <Crown className="w-3 h-3 text-amber-400" />
               </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-xs font-bold text-white flex items-center gap-1.5">
-                  <span>Swats Premium</span>
-                  <Crown className="w-3.5 h-3.5 text-amber-400" />
-                </div>
-                <div className="text-[10px] text-zinc-400 truncate mt-0.5">Unlock all widgets & themes</div>
-              </div>
-            </button>
+              <div className="text-[9px] text-zinc-400 truncate">Unlock all widgets & themes</div>
+            </div>
+          </button>
 
+          <div className="flex items-center gap-1.5 w-[260px]">
             <button
               type="button"
               onClick={() => setPopup("devlog")}
               data-testid="devlog-link"
-              className="group relative flex w-[260px] h-[38px] items-center gap-3 rounded-xl px-3 text-left text-xs font-semibold text-zinc-400 outline-none transition-all duration-200 hover:bg-white/[0.04] hover:text-white focus-visible:ring-2 focus-visible:ring-[hsl(272,24%,46%)]/50 cursor-pointer shrink-0"
+              className="flex-1 group relative flex h-[30px] items-center justify-center gap-1.5 rounded-lg px-2 text-xs font-semibold text-zinc-400 border border-white/5 bg-[#111111] hover:bg-white/[0.04] hover:text-white transition-all cursor-pointer"
             >
-              <Newspaper className="h-4 w-4 shrink-0 text-zinc-500 transition-transform duration-200 group-hover:scale-110 group-hover:text-zinc-300" />
-              <span className="truncate">Devlog</span>
-              <span className="ml-auto shrink-0 font-mono2 text-[9px] px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-zinc-400">what's new</span>
+              <Newspaper className="h-3.5 w-3.5 text-zinc-500 group-hover:text-zinc-300" />
+              <span>Devlog</span>
             </button>
 
             <Link
               to={`/${user.username}`}
               target="_blank"
               data-testid="view-public-btn"
-              className="group relative flex w-[260px] h-[38px] items-center gap-3 rounded-xl px-3 text-xs font-semibold text-zinc-400 outline-none transition-all duration-200 hover:bg-white/[0.04] hover:text-white focus-visible:ring-2 focus-visible:ring-[hsl(272,24%,46%)]/50 shrink-0"
+              className="flex-1 group relative flex h-[30px] items-center justify-center gap-1.5 rounded-lg px-2 text-xs font-semibold text-zinc-400 border border-white/5 bg-[#111111] hover:bg-white/[0.04] hover:text-white transition-all"
             >
-              <ExternalLink className="h-4 w-4 shrink-0 text-zinc-500 transition-transform duration-200 group-hover:scale-110 group-hover:text-zinc-300" />
-              <span className="truncate">View public profile</span>
+              <ExternalLink className="h-3.5 w-3.5 text-zinc-500 group-hover:text-zinc-300" />
+              <span>Public</span>
             </Link>
           </div>
-        </nav>
 
-        {/* Bottom section divider: 1 px */}
-        <div className="w-[260px] h-px bg-[#3f3f46]/30 my-2 shrink-0 mx-auto" />
-
-        <div className="w-[260px] mx-auto shrink-0">
-          <CommunityCard />
+          <div className="w-[260px]">
+            <CommunityCard />
+          </div>
         </div>
       </aside>
 
