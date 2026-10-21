@@ -2026,6 +2026,7 @@ export default function Editor() {
                             alt="Cover artwork"
                             className="w-full h-full object-cover"
                           />
+                        ) : (
                           <Disc className="w-7 h-7 text-zinc-500" />
                         )}
                       </div>
