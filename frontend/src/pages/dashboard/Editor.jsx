@@ -417,7 +417,6 @@ function LayoutPicker({ value, onChange, isPremium, navigate }) {
                     <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#b4bffa] text-black shadow-sm">
                       <Check className="w-3 h-3 stroke-[3]" />
                     </span>
-                  ) : (
                     <span className="h-5 w-5 rounded-full border border-white/20 group-hover:border-white/40" />
                   )}
                 </div>
@@ -454,21 +453,6 @@ const Section = ({ title, hint, children }) => (
 // behaviour, page/privacy and embed settings. It stays out of the page entirely
 // until Advanced mode is on, and the switch that turns it on sits at the bottom
 // of the editor (see the AdvancedBar) instead of at the top of one section.
-const AdvancedNotice = ({ what }) => (
-  <div
-    data-testid="advanced-hidden-notice"
-    className="flex items-start gap-3 rounded-2xl border border-dashed border-white/[0.09] bg-[#0d0d0f] px-4 py-3.5"
-  >
-    <Lock className="mt-0.5 h-4 w-4 shrink-0 text-zinc-500" />
-    <div className="min-w-0">
-      <p className="text-xs font-semibold text-zinc-300">Advanced settings are hidden</p>
-      <p className="mt-0.5 text-[11px] leading-relaxed text-zinc-500">
-        {what} Turn on Advanced mode at the bottom of this page to reveal them.
-      </p>
-    </div>
-  </div>
-);
-
 const ChipGrid = ({ options, value, onChange, onLocked, testid, cols = 3 }) => (
   <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
     {options.map((o) => {
@@ -538,7 +522,6 @@ const EntryStyleThumb = ({ id, accent }) => (
         <img src="/logo.png" alt="" className="w-5 h-5 object-contain" />
         <span className="text-[9px] font-mono2 text-zinc-400">Image Stamp</span>
       </span>
-    ) : (
       <span className="relative rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[10px] font-semibold text-white shadow-md">
         Click to enter
       </span>
@@ -592,7 +575,6 @@ function EffectStage({ variant, id, accent, label, size = "lg" }) {
           <div className={`absolute inset-0 fx-cursor-demo fx-cursor-${id} scale-[1.7]`}>
             <i /><i /><i /><i /><i /><i />
           </div>
-        ) : (
           <span className="absolute inset-0 flex items-center justify-center text-xs font-mono2 text-zinc-500">
             No cursor effect
           </span>
@@ -888,7 +870,6 @@ export default function Editor() {
   const placement = trackPositionForLayout(layout);
   // One switch reveals every advanced control in the editor; it lives at the
   // bottom of the page so the everyday controls stay up top.
-  const advanced = !!p.advanced_mode;
 
   const handleCardStylePreset = (styleId) => {
     const preset = CARD_STYLE_PRESETS[styleId] || { card_style: styleId };
@@ -1032,10 +1013,6 @@ export default function Editor() {
         tracks: p.tracks || user.profile?.tracks || [],
         display_name: displayName,
       };
-      if (p.advanced_mode) {
-        payload.advanced_mode = true;
-      } else {
-        delete payload.advanced_mode;
       }
       const { data } = await api.put("/me/profile", payload);
       setUser(data);
@@ -1148,7 +1125,15 @@ export default function Editor() {
         </label>
       </div>
 
-      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(320px,400px)]">
+      <div className="space-y-6">
+
+      {/* Live preview — shown at top for About Me and Appearance only */}
+      {(sub === "about" || sub === "appearance") && (
+        <div className="rounded-[20px] border border-white/[0.07] bg-[#0c0c0e] p-2 overflow-hidden">
+          <LivePreviewCard user={user} profile={p} displayName={displayName} tuning={fxTuning} />
+        </div>
+      )}
+
       <div className="w-full min-w-0 space-y-6">
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
@@ -1160,6 +1145,65 @@ export default function Editor() {
             className="space-y-6"
           >
           {sub === "about" && (
+            <>
+            {/* Media upload tiles */}
+            <div className="rounded-[20px] border border-white/[0.07] bg-[#111113] p-5 sm:p-6 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-500/15">
+                  <ImageIcon className="h-4 w-4 text-brand-400" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-bold text-white">Media</h2>
+                  <p className="text-[11px] text-zinc-500">Avatar, background, audio and cursor</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <label className="group flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-white/[0.08] bg-[#0c0c0e] p-5 text-center transition hover:border-white/[0.15] hover:bg-[#141416] cursor-pointer min-h-[120px]">
+                  <div className="text-xs font-semibold text-white mb-1">Avatar</div>
+                  {p.avatar_url
+                    ? <img src={fileUrl(p.avatar_url)} alt="" className="h-12 w-12 rounded-full object-cover ring-2 ring-white/10" />
+                    : <ImageIcon className="h-8 w-8 text-zinc-600" />}
+                  <span className="text-[10px] text-zinc-600">{p.avatar_url ? "Click to replace" : "Upload an avatar"}</span>
+                  <span className="text-[9px] text-zinc-700">or drag & drop · max 10 MB</span>
+                  <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                    const file = e.target.files?.[0]; if (!file) return;
+                    try { const fd = new FormData(); fd.append("file", file); fd.append("kind", "avatar"); const { data } = await api.post("/upload", fd, { headers: { "Content-Type": "multipart/form-data" } }); set("avatar_url", data.url); toast.success("Avatar updated!"); } catch (err) { toast.error(err.response?.data?.detail || "Upload failed"); }
+                    e.target.value = "";
+                  }} />
+                </label>
+                <label className="group flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-white/[0.08] bg-[#0c0c0e] p-5 text-center transition hover:border-white/[0.15] hover:bg-[#141416] cursor-pointer min-h-[120px]">
+                  <div className="text-xs font-semibold text-white mb-1">Background</div>
+                  {p.background_url
+                    ? <img src={fileUrl(p.background_url)} alt="" className="h-12 w-20 rounded-lg object-cover ring-1 ring-white/10" />
+                    : <ImageIcon className="h-8 w-8 text-zinc-600" />}
+                  <span className="text-[10px] text-zinc-600">{p.background_url ? "Click to replace" : "Upload a background"}</span>
+                  <span className="text-[9px] text-zinc-700">or drag & drop · max 100 MB</span>
+                  <input type="file" accept="image/*,video/*" className="hidden" onChange={async (e) => {
+                    const file = e.target.files?.[0]; if (!file) return;
+                    try { const fd = new FormData(); fd.append("file", file); fd.append("kind", "background"); const { data } = await api.post("/upload", fd, { headers: { "Content-Type": "multipart/form-data" } }); set("background_url", data.url); toast.success("Background updated!"); } catch (err) { toast.error(err.response?.data?.detail || "Upload failed"); }
+                    e.target.value = "";
+                  }} />
+                </label>
+                <button type="button" onClick={() => switchSub("audios")} className="group flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-white/[0.08] bg-[#0c0c0e] p-5 text-center transition hover:border-white/[0.15] hover:bg-[#141416] cursor-pointer min-h-[120px]">
+                  <div className="text-xs font-semibold text-white mb-1">Audio</div>
+                  <Music className="h-8 w-8 text-zinc-600" />
+                  <span className="text-[10px] text-zinc-600">Click to open audio manager</span>
+                  <span className="text-[9px] text-zinc-700">Manage up to 3 audio files</span>
+                </button>
+                <label className="group flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-white/[0.08] bg-[#0c0c0e] p-5 text-center transition hover:border-white/[0.15] hover:bg-[#141416] cursor-pointer min-h-[120px]">
+                  <div className="text-xs font-semibold text-white mb-1">Cursor</div>
+                  <MousePointer2 className="h-8 w-8 text-zinc-600" />
+                  <span className="text-[10px] text-zinc-600">Manage Cursors</span>
+                  <span className="text-[9px] text-zinc-700">Upload default & pointer cursors</span>
+                  <input type="file" accept="image/*,.cur,.ani" className="hidden" onChange={async (e) => {
+                    const file = e.target.files?.[0]; if (!file) return;
+                    try { const fd = new FormData(); fd.append("file", file); fd.append("kind", "cursor"); const { data } = await api.post("/upload", fd, { headers: { "Content-Type": "multipart/form-data" } }); set("custom_cursor", data.url); toast.success("Cursor uploaded!"); } catch (err) { toast.error(err.response?.data?.detail || "Upload failed"); }
+                    e.target.value = "";
+                  }} />
+                </label>
+              </div>
+            </div>
+
             <Section title="About Me" hint="Your picture, decorations, banner, and bio">
               <ProfileRow label="Avatar">
                 <div className="flex items-center gap-5">
@@ -1167,7 +1211,6 @@ export default function Editor() {
                     <div className="h-full w-full overflow-hidden rounded-full ring-1 ring-white/10 bg-[#111111]">
                       {p.avatar_url ? (
                         <img src={fileUrl(p.avatar_url)} alt="" className="h-full w-full object-cover" />
-                      ) : (
                         <div className="flex h-full w-full items-center justify-center font-bold text-zinc-400">
                           {(displayName || user.username || "?")[0]?.toUpperCase()}
                         </div>
@@ -1285,7 +1328,6 @@ export default function Editor() {
                       Sets a solid background color. Any image/video background will be removed.
                     </p>
                   </div>
-                ) : (
                   <div className="space-y-4">
                     <QuickUpload
                       testid="asset-background"
@@ -1403,6 +1445,7 @@ export default function Editor() {
                 </div>
               </ProfileRow>
             </Section>
+            </>
           )}
 
           {/* ========================================================
@@ -1410,96 +1453,6 @@ export default function Editor() {
               ======================================================== */}
           {sub === "appearance" && (
             <>
-              {/* Media upload tiles — cops.bio-style row */}
-              <div className="rounded-[20px] border border-white/[0.07] bg-[#111113] p-5 sm:p-6 space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-500/15">
-                    <ImageIcon className="h-4 w-4 text-brand-400" />
-                  </div>
-                  <div>
-                    <h2 className="text-sm font-bold text-white">Media</h2>
-                    <p className="text-[11px] text-zinc-500">Avatar, background, audio and cursor</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {/* Avatar */}
-                  <label className="group flex flex-col items-center justify-center gap-2.5 rounded-xl border border-dashed border-white/[0.08] bg-[#0c0c0e] p-5 text-center transition hover:border-white/[0.15] hover:bg-[#141416] cursor-pointer min-h-[120px]">
-                    <div className="text-xs font-semibold text-white mb-1">Avatar</div>
-                    {p.avatar_url ? (
-                      <img src={fileUrl(p.avatar_url)} alt="" className="h-12 w-12 rounded-full object-cover ring-2 ring-white/10" />
-                    ) : (
-                      <ImageIcon className="h-8 w-8 text-zinc-600" />
-                    )}
-                    <span className="text-[10px] text-zinc-600 leading-tight">
-                      {p.avatar_url ? "Click to replace" : "Upload an avatar"}
-                    </span>
-                    <span className="text-[9px] text-zinc-700">or drag & drop · max 10 MB</span>
-                    <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
-                      const file = e.target.files?.[0]; if (!file) return;
-                      try {
-                        const fd = new FormData(); fd.append("file", file); fd.append("kind", "avatar");
-                        const { data } = await api.post("/upload", fd, { headers: { "Content-Type": "multipart/form-data" } });
-                        set("avatar_url", data.url); toast.success("Avatar updated!");
-                      } catch (err) { toast.error(err.response?.data?.detail || "Upload failed"); }
-                      e.target.value = "";
-                    }} />
-                  </label>
-
-                  {/* Background */}
-                  <label className="group flex flex-col items-center justify-center gap-2.5 rounded-xl border border-dashed border-white/[0.08] bg-[#0c0c0e] p-5 text-center transition hover:border-white/[0.15] hover:bg-[#141416] cursor-pointer min-h-[120px]">
-                    <div className="text-xs font-semibold text-white mb-1">Background</div>
-                    {p.background_url ? (
-                      <img src={fileUrl(p.background_url)} alt="" className="h-12 w-20 rounded-lg object-cover ring-1 ring-white/10" />
-                    ) : (
-                      <ImageIcon className="h-8 w-8 text-zinc-600" />
-                    )}
-                    <span className="text-[10px] text-zinc-600 leading-tight">
-                      {p.background_url ? "Click to replace" : "Upload a background"}
-                    </span>
-                    <span className="text-[9px] text-zinc-700">or drag & drop · max 100 MB</span>
-                    <input type="file" accept="image/*,video/*" className="hidden" onChange={async (e) => {
-                      const file = e.target.files?.[0]; if (!file) return;
-                      try {
-                        const fd = new FormData(); fd.append("file", file); fd.append("kind", "background");
-                        const { data } = await api.post("/upload", fd, { headers: { "Content-Type": "multipart/form-data" } });
-                        set("background_url", data.url); toast.success("Background updated!");
-                      } catch (err) { toast.error(err.response?.data?.detail || "Upload failed"); }
-                      e.target.value = "";
-                    }} />
-                  </label>
-
-                  {/* Audio */}
-                  <button
-                    type="button"
-                    onClick={() => switchSub("audios")}
-                    className="group flex flex-col items-center justify-center gap-2.5 rounded-xl border border-dashed border-white/[0.08] bg-[#0c0c0e] p-5 text-center transition hover:border-white/[0.15] hover:bg-[#141416] cursor-pointer min-h-[120px]"
-                  >
-                    <div className="text-xs font-semibold text-white mb-1">Audio</div>
-                    <Music className="h-8 w-8 text-zinc-600" />
-                    <span className="text-[10px] text-zinc-600 leading-tight">Click to open audio manager</span>
-                    <span className="text-[9px] text-zinc-700">Manage up to 3 audio files</span>
-                  </button>
-
-                  {/* Cursor */}
-                  <label className="group flex flex-col items-center justify-center gap-2.5 rounded-xl border border-dashed border-white/[0.08] bg-[#0c0c0e] p-5 text-center transition hover:border-white/[0.15] hover:bg-[#141416] cursor-pointer min-h-[120px]">
-                    <div className="text-xs font-semibold text-white mb-1">Cursor</div>
-                    <MousePointer2 className="h-8 w-8 text-zinc-600" />
-                    <span className="text-[10px] text-zinc-600 leading-tight">Manage Cursors</span>
-                    <span className="text-[9px] text-zinc-700">Click to upload default & pointer cursors</span>
-                    <input type="file" accept="image/*,.cur,.ani" className="hidden" onChange={async (e) => {
-                      const file = e.target.files?.[0]; if (!file) return;
-                      try {
-                        const fd = new FormData(); fd.append("file", file); fd.append("kind", "cursor");
-                        const { data } = await api.post("/upload", fd, { headers: { "Content-Type": "multipart/form-data" } });
-                        set("custom_cursor", data.url); toast.success("Cursor uploaded!");
-                      } catch (err) { toast.error(err.response?.data?.detail || "Upload failed"); }
-                      e.target.value = "";
-                    }} />
-                  </label>
-                </div>
-              </div>
-
               <Section title="Card Appearance" hint="Surface, glow, borders and presets">
                 <div className="space-y-5">
                   <div>
@@ -1539,7 +1492,6 @@ export default function Editor() {
                     />
                   </div>
 
-                  {advanced && (
                     <div data-testid="advanced-appearance" className="space-y-4 rounded-xl border border-[#2a2a2e] bg-[#09090b] p-4">
                       <div className="grid gap-4 sm:grid-cols-2">
                         <div>
@@ -1801,7 +1753,6 @@ export default function Editor() {
               </Section>
 
 
-              {advanced ? (
                 <>
               <Section title="Page & Privacy" hint="Footer branding and text sizing">
                 <SliderRow
@@ -1850,7 +1801,6 @@ export default function Editor() {
                 </label>
               </Section>
                 </>
-              ) : (
                 <AdvancedNotice what="Page privacy, text sizing, entry animations and section folding live here." />
               )}
             </>
@@ -2072,7 +2022,6 @@ export default function Editor() {
                             alt="Cover artwork"
                             className="w-full h-full object-cover"
                           />
-                        ) : (
                           <Disc className="w-7 h-7 text-zinc-500" />
                         )}
                       </div>
@@ -2107,7 +2056,6 @@ export default function Editor() {
                   {/* Lyrics, playback behaviour and volume are advanced: the
                       everyday job of the Audio tab is pick a style and upload a
                       track. */}
-                  {advanced && (
                     <>
                   <div className="p-4 rounded-xl border border-[#2a2a2e] bg-[#09090b] space-y-3">
                     <div className="flex items-center justify-between">
@@ -2228,12 +2176,8 @@ export default function Editor() {
               </div>
               </Section>
 
-              {!advanced && (
-                <AdvancedNotice what="Synchronized lyrics, shuffle/autoplay/loop, default volume and the player's card styling live here." />
-              )}
 
               {/* 3. BOTTOM: WIDGET CARD CUSTOMIZATION */}
-              {advanced && (
               <div data-testid="audio-widget-customization" className="rounded-2xl border border-[#2a2a2e] bg-[#111111] p-5 sm:p-6 space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
@@ -2437,7 +2381,6 @@ export default function Editor() {
               ======================================================== */}
           {sub === "extra" && (
             <>
-              {advanced && (
               <Section title="Card Extra & 3D Tilt" hint="Hover depth and dynamic tilt">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
@@ -2545,11 +2488,7 @@ export default function Editor() {
                   />
               </div>
 
-              {!advanced && (
-                <AdvancedNotice what="3D tilt, embed/metadata settings and the entry screen live here." />
-              )}
 
-              {advanced && (
                 <>
               <Section title="Page Identity" hint="Custom name shown in share embeds">
                 <div className="space-y-3">
@@ -2816,7 +2755,6 @@ export default function Editor() {
                             <div className="h-6 flex items-center overflow-hidden">
                               <FxText id={fx.id} text="Sample" className="text-sm font-bold truncate text-white" />
                             </div>
-                          ) : (
                             <span className="text-[10px] text-zinc-500">Plain text</span>
                           )}
                         </button>
@@ -2990,27 +2928,6 @@ export default function Editor() {
           </AnimatePresence>
 
           <div
-            data-testid="editor-advanced-bar"
-            className="flex flex-col gap-4 rounded-2xl border border-[#1f1f1f] bg-[#0d0d0f] p-5 sm:flex-row sm:items-center sm:justify-between"
-          >
-            <div className="flex min-w-0 items-start gap-3">
-              <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border ${advanced ? "border-[#b4bffa]/40 bg-[#b4bffa]/15 text-[#b4bffa]" : "border-white/[0.06] bg-[#0b0b0c] text-zinc-500"}`}>
-                <Sliders className="h-4 w-4" />
-              </span>
-              <div className="min-w-0">
-                <p className="text-xs font-bold text-white">Advanced mode</p>
-                <p className="mt-0.5 text-[11px] leading-relaxed text-zinc-500">
-                  Surface dials, playback behaviour, page &amp; privacy, embed settings and the entry screen stay hidden until this is on.
-                </p>
-              </div>
-            </div>
-            <Switch
-              data-testid="advanced-mode-toggle"
-              className={SWITCH_CLASS}
-              checked={advanced}
-              onCheckedChange={(v) => set("advanced_mode", v)}
-            />
-          </div>
 
           {/* Hidden test-accessible fallback save button if clean */}
           {!isDirty && (
@@ -3024,11 +2941,6 @@ export default function Editor() {
               Save Changes
             </button>
           )}
-      </div>
-
-      <aside className="min-w-0 xl:sticky xl:top-6" aria-label="Live profile preview">
-        <LivePreviewCard user={user} profile={p} displayName={displayName} tuning={fxTuning} />
-      </aside>
       </div>
       </div>
 

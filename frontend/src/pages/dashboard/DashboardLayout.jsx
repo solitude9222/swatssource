@@ -26,7 +26,7 @@ import {
 const DISCORD_INVITE = "https://discord.gg/a9uwptuepD";
 
 function LogoIcon() {
-  return <Link to="/!/dashboard" aria-label="tourn.lol dashboard" className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.06] bg-[#0b0b0c]"><img src="/logo.png?v=9" alt="" className="h-7 w-7 object-contain" /></Link>;
+  return <Link to="/!/dashboard" aria-label="tourn.lol dashboard" className="flex h-12 w-12 items-center justify-center rounded-xl"><img src="/logo.png?v=10" alt="" className="h-10 w-10 object-contain" /></Link>;
 }
 
 function CompactTabLink({ t, label }) {
@@ -753,8 +753,8 @@ export default function DashboardLayout() {
       <aside className={`sticky top-0 hidden h-screen shrink-0 border-r border-white/[0.06] bg-[#080809] transition-[width] duration-200 lg:block ${sidebarCompact ? "w-[76px]" : "w-[292px]"}`}>
         <div className="flex h-full flex-col overflow-hidden">
           {/* Logo */}
-          <div className={`flex h-[68px] shrink-0 items-center ${sidebarCompact ? "justify-center px-2" : "justify-center px-5"}`}>
-            {sidebarCompact ? <LogoIcon /> : <Logo size="text-2xl" />}
+          <div className={`flex h-[80px] shrink-0 items-center ${sidebarCompact ? "justify-center px-2" : "justify-center px-5"}`}>
+            {sidebarCompact ? <LogoIcon /> : <Logo size="text-[26px]" />}
           </div>
 
           {/* Search */}
