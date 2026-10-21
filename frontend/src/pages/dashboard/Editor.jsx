@@ -577,6 +577,7 @@ function EffectStage({ variant, id, accent, label, size = "lg" }) {
           <div className={`absolute inset-0 fx-cursor-demo fx-cursor-${id} scale-[1.7]`}>
             <i /><i /><i /><i /><i /><i />
           </div>
+        ) : (
           <span className="absolute inset-0 flex items-center justify-center text-xs font-mono2 text-zinc-500">
             No cursor effect
           </span>
