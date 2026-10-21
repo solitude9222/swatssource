@@ -5,7 +5,7 @@ import { api, fileUrl } from "@/lib/api";
 import { TRACK_STYLES, resolveTrackStyle } from "@/constants/effects";
 import {
   WIDGET_KINDS, WIDGET_FIELDS, KIND_MAP, GENERIC_WIDGET_ICON,
-  WIDGET_CARD_STYLES,
+  WIDGET_CARD_STYLES, PRESET_CODE_LANGUAGES, PRESET_LINK_TYPES, POPULAR_GAMES_PRESETS,
 } from "@/constants/widgets";
 import { WidgetCard, WidgetPill } from "@/components/WidgetCards";
 import { TrackStylePreview } from "@/components/TrackStylePreview";
@@ -157,6 +157,15 @@ export const getWidgetArtworkOptions = (widget) => {
       return [
         { value: "none", label: "None" },
         { value: "banner", label: "Themed gradient artwork" },
+      ];
+    case "projects":
+      return [
+        { value: "none", label: "None" },
+        { value: "banner", label: "Project banner image" },
+      ];
+    case "games":
+      return [
+        { value: "none", label: "None (Uses real official game covers)" },
       ];
     case "discord":
     default:
@@ -320,6 +329,19 @@ export const getWidgetDisplayOptions = (widget) => {
         { key: "show_subtitle", label: "Subtitle", desc: "Show the secondary bio text below the title." },
         { key: "stats_row", label: "Stats row", desc: "Show the compact stats line on the card." },
       ];
+    case "projects":
+      return [
+        { key: "show_tags", label: "Code language pills", desc: "Display language badges and tags." },
+        { key: "show_subtitle", label: "Project description", desc: "Show project summary and details." },
+        { key: "view_button", label: "Link button", desc: "Show direct link button (GitHub / Demo)." },
+        { key: "platform_badge", label: "Project badge", desc: "Show project type badge in corner." },
+      ];
+    case "games":
+      return [
+        { key: "show_now_playing", label: "Playing now beacon", desc: "Show live status beacon with current game." },
+        { key: "platform_badge", label: "Platform badge", desc: "Show gaming platform (e.g. PC / Steam)." },
+        { key: "show_subtitle", label: "Game genres / info", desc: "Display genre or title under card." },
+      ];
     case "discord":
     default:
       return [
@@ -341,7 +363,7 @@ const getInitialArtworkBg = (kindId) => {
   if (["youtube", "spotify", "twitch", "tiktok", "soundcloud", "lastfm", "statsfm", "roblox"].includes(kindId)) return "thumbnail";
   if (kindId === "steam") return "game";
   if (["github", "minecraft"].includes(kindId)) return "avatar";
-  return "banner";
+  return "none";
 };
 
 const blankWidget = (kind) => ({
@@ -910,6 +932,216 @@ export default function Widgets() {
                   </div>
                 </div>
               )}
+            </div>
+          ) : editingWidget.widget.type === "projects" ? (
+            <div className="space-y-4">
+              {/* Subtypes: Code, Game, Web, Design */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-zinc-200">Project Type</label>
+                <div className="flex flex-wrap gap-2">
+                  {kind.subtypes?.map((st) => (
+                    <button
+                      key={st.id}
+                      type="button"
+                      onClick={() => patchEditingWidget({ subtype: st.id })}
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition cursor-pointer ${
+                        (editingWidget.widget.subtype || "code") === st.id
+                          ? "bg-indigo-500/25 border-indigo-500/50 text-indigo-200"
+                          : "bg-white/[0.03] border-white/10 text-zinc-400 hover:text-white"
+                      }`}
+                    >
+                      {st.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Project Title */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-zinc-200">Project Title</label>
+                <input
+                  type="text"
+                  value={editingWidget.widget.title || ""}
+                  onChange={(e) => patchEditingWidget({ title: e.target.value })}
+                  placeholder="e.g. swats.bio engine"
+                  className="w-full px-4 py-2.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-[#a48df4]"
+                />
+              </div>
+
+              {/* Project Description */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-zinc-200">Description</label>
+                <textarea
+                  rows={2}
+                  value={editingWidget.widget.description || ""}
+                  onChange={(e) => patchEditingWidget({ description: e.target.value })}
+                  placeholder="Short description of what the project does..."
+                  className="w-full px-4 py-2.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-[#a48df4]"
+                />
+              </div>
+
+              {/* Preset Code Languages / Tech Tags */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-zinc-200">Preset Code Languages / Tags</label>
+                  <span className="text-[10px] text-zinc-400">Click to toggle code pills</span>
+                </div>
+                <div className="flex flex-wrap gap-1.5 p-3 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e]">
+                  {PRESET_CODE_LANGUAGES.map((lang) => {
+                    const currentTags = (editingWidget.widget.tags || "")
+                      .split(",")
+                      .map((t) => t.trim())
+                      .filter(Boolean);
+                    const active = currentTags.some((t) => t.toLowerCase() === lang.toLowerCase());
+                    return (
+                      <button
+                        key={lang}
+                        type="button"
+                        onClick={() => {
+                          let next;
+                          if (active) {
+                            next = currentTags.filter((t) => t.toLowerCase() !== lang.toLowerCase());
+                          } else {
+                            next = [...currentTags, lang];
+                          }
+                          patchEditingWidget({ tags: next.join(", ") });
+                        }}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-mono2 font-semibold transition cursor-pointer flex items-center gap-1 ${
+                          active
+                            ? "bg-indigo-500 text-white shadow-sm"
+                            : "bg-white/[0.04] text-zinc-400 hover:text-white border border-white/5 hover:border-white/20"
+                        }`}
+                      >
+                        <span>{lang}</span>
+                        {active && <Check className="w-3 h-3" />}
+                      </button>
+                    );
+                  })}
+                </div>
+                <input
+                  type="text"
+                  value={editingWidget.widget.tags || ""}
+                  onChange={(e) => patchEditingWidget({ tags: e.target.value })}
+                  placeholder="Custom tags (comma-separated)..."
+                  className="w-full px-4 py-2 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-mono2 text-white placeholder-zinc-500 outline-none focus:border-[#a48df4]"
+                />
+              </div>
+
+              {/* Preset Link Types & URL */}
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-zinc-200">Project Link Type & URL</label>
+                <div className="flex flex-wrap gap-2">
+                  {PRESET_LINK_TYPES.map((lt) => (
+                    <button
+                      key={lt.id}
+                      type="button"
+                      onClick={() => patchEditingWidget({ link_type: lt.id })}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition cursor-pointer ${
+                        (editingWidget.widget.link_type || "github") === lt.id
+                          ? "bg-brand-500/20 border-brand-500/50 text-brand-200"
+                          : "bg-white/[0.03] border-white/10 text-zinc-400 hover:text-white"
+                      }`}
+                    >
+                      {lt.label}
+                    </button>
+                  ))}
+                </div>
+                <input
+                  type="text"
+                  value={editingWidget.widget.url || ""}
+                  onChange={(e) => patchEditingWidget({ url: e.target.value })}
+                  placeholder="https://..."
+                  className="w-full px-4 py-2.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-[#a48df4]"
+                />
+              </div>
+            </div>
+          ) : editingWidget.widget.type === "games" ? (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-zinc-200">Widget Title</label>
+                  <input
+                    type="text"
+                    value={editingWidget.widget.title || ""}
+                    onChange={(e) => patchEditingWidget({ title: e.target.value })}
+                    placeholder="Favorite Games"
+                    className="w-full px-4 py-2.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-[#a48df4]"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-zinc-200">Platform</label>
+                  <input
+                    type="text"
+                    value={editingWidget.widget.platform || ""}
+                    onChange={(e) => patchEditingWidget({ platform: e.target.value })}
+                    placeholder="e.g. PC / Steam"
+                    className="w-full px-4 py-2.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-[#a48df4]"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-zinc-200">Currently Playing</label>
+                <input
+                  type="text"
+                  value={editingWidget.widget.now_playing || ""}
+                  onChange={(e) => patchEditingWidget({ now_playing: e.target.value })}
+                  placeholder="e.g. Valorant Competitive"
+                  className="w-full px-4 py-2.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-[#a48df4]"
+                />
+              </div>
+
+              {/* Preset Games with Real Game Artwork */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-zinc-200">Preset Popular Games (Click to Add)</label>
+                  <span className="text-[10px] text-zinc-400">Official vertical game art included</span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2">
+                  {POPULAR_GAMES_PRESETS.map((game) => {
+                    const currentList = (editingWidget.widget.games_list || "")
+                      .split(/[,\n]/)
+                      .map((g) => g.trim())
+                      .filter(Boolean);
+                    const active = currentList.some((g) => g.toLowerCase() === game.name.toLowerCase() || g.toLowerCase() === game.id);
+                    return (
+                      <button
+                        key={game.id}
+                        type="button"
+                        onClick={() => {
+                          let next;
+                          if (active) {
+                            next = currentList.filter((g) => g.toLowerCase() !== game.name.toLowerCase() && g.toLowerCase() !== game.id);
+                          } else {
+                            next = [...currentList, game.name];
+                          }
+                          patchEditingWidget({ games_list: next.join(", ") });
+                        }}
+                        className={`relative overflow-hidden rounded-xl border p-2 text-left transition aspect-[3/4] flex flex-col justify-end group cursor-pointer ${
+                          active
+                            ? "border-[#a48df4] ring-2 ring-[#a48df4] shadow-md"
+                            : "border-white/10 hover:border-white/30"
+                        }`}
+                      >
+                        <div
+                          className="absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-110"
+                          style={{ backgroundImage: `url(${game.cover})` }}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+                        {active && (
+                          <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-[#a48df4] text-black flex items-center justify-center shadow">
+                            <Check className="w-3 h-3 stroke-[3]" />
+                          </div>
+                        )}
+                        <div className="relative z-10">
+                          <div className="text-[11px] font-bold text-white line-clamp-1">{game.name}</div>
+                          <div className="text-[9px] text-zinc-400 truncate">{game.genre}</div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           ) : (
             <div className="space-y-4">

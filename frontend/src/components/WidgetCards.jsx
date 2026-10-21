@@ -3,7 +3,7 @@ import { fileUrl } from "@/lib/api";
 import {
   useWidgetData, useTicker, formatCount, formatDate, discordServerId,
 } from "@/lib/widgets";
-import { WIDGET_SURFACE_DEFAULTS } from "@/constants/widgets";
+import { WIDGET_SURFACE_DEFAULTS, POPULAR_GAMES_PRESETS } from "@/constants/widgets";
 import { useTooltip, resolveTooltipStyle } from "@/components/FxTooltip";
 import {
   AlertTriangle, ArrowRight, Building2, Calendar, Check, Clock, Code2,
@@ -216,10 +216,20 @@ function WidgetShell({
   const full = Number(w.span ?? 2) === 2;
   const sharedProfile = useContext(WidgetProfileContext) || w?.profile;
   const hasShared = !!sharedProfile;
-  const tight = w?.compact === true || w?.density === "compact" || sharedProfile?.widget_density === "compact";
+  const density = w?.density || sharedProfile?.widget_density || (w?.compact ? "compact" : "compact");
   const customPad = w?.card_padding != null ? Number(w.card_padding) : (sharedProfile?.widget_padding != null ? Number(sharedProfile.widget_padding) : null);
-  // Modern, sleek card sizing without bloated padding
-  const pad = customPad != null ? "" : (tight ? "p-2 sm:p-2.5" : "p-3 sm:p-3.5");
+  // Widget Density styles: Minimal (Thin), Compact, Normal
+  let pad = "p-3 sm:p-3.5";
+  if (customPad != null) {
+    pad = "";
+  } else if (density === "minimal") {
+    pad = "px-3 py-1.5 sm:px-3.5 sm:py-2";
+  } else if (density === "compact") {
+    pad = "p-2.5 sm:p-3";
+  } else {
+    // normal
+    pad = "p-4 sm:p-5";
+  }
   const padStyle = customPad != null ? { padding: `${customPad}px` } : undefined;
   const bgEnabled = w?.background !== false && w?.bg_enabled !== false && w?.show_bg !== false && !w?.transparent && w?.card_style !== "transparent";
   const { tipProps, tipNode } = useTooltip(w?.tooltip);
@@ -284,7 +294,7 @@ function WidgetShell({
 
   const isDiscord = w?.type === "discord";
   let bgImage = "";
-  if (!isDiscord) {
+  if (!isDiscord && w?.type !== "games" && w?.type !== "projects") {
     const allowBanner = (w?.show_banner === true || w?.artwork_bg === "banner") && w?.show_banner !== false && w?.artwork_bg !== "none";
     if (w?.artwork_bg && w.artwork_bg !== "none") {
       if (w.artwork_bg === "banner") {
@@ -1674,7 +1684,7 @@ function MediaCard({ w, accent, data, status, error, refresh, provider, HeaderIc
 }
 
 function GamesCard({ w, accent }) {
-  const gamesListRaw = w?.games_list || "Elden Ring, Valorant, Minecraft, GTA V";
+  const gamesListRaw = w?.games_list || "Valorant, Minecraft, Counter-Strike 2, Elden Ring";
   const games = useMemo(() => {
     return gamesListRaw
       .split(/[,\n]/)
@@ -1684,6 +1694,26 @@ function GamesCard({ w, accent }) {
 
   const platform = w?.platform || "PC / Steam";
   const nowPlaying = w?.now_playing || "";
+
+  // Match each game name against POPULAR_GAMES_PRESETS for real official vertical background art
+  const gameEntries = useMemo(() => {
+    return games.map((name) => {
+      const lower = name.toLowerCase().replace(/[^a-z0-9]/g, "");
+      const preset = POPULAR_GAMES_PRESETS.find(
+        (p) =>
+          p.name.toLowerCase().replace(/[^a-z0-9]/g, "") === lower ||
+          p.id === lower ||
+          lower.includes(p.id) ||
+          p.name.toLowerCase().includes(name.toLowerCase())
+      );
+      return {
+        name,
+        genre: preset?.genre || "Action Game",
+        cover: preset?.cover || "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600&auto=format&fit=crop&q=80",
+        isPreset: !!preset,
+      };
+    });
+  }, [games]);
 
   return (
     <div className="flex flex-col gap-3 py-1">
@@ -1697,30 +1727,63 @@ function GamesCard({ w, accent }) {
             {w?.title || "Favorite Games"}
           </span>
         </div>
-        <span className="px-2 py-0.5 rounded-md bg-white/10 text-[10px] font-bold text-zinc-300 border border-white/15 uppercase tracking-wider">
-          {platform}
-        </span>
+        {w?.platform_badge !== false && (
+          <span className="px-2 py-0.5 rounded-md bg-white/10 text-[10px] font-bold text-zinc-300 border border-white/15 uppercase tracking-wider">
+            {platform}
+          </span>
+        )}
       </div>
 
       {/* Now playing status banner if provided */}
-      {nowPlaying && (
+      {nowPlaying && w?.show_now_playing !== false && (
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs font-medium">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#34d399]" />
           <span className="truncate">Playing now: <strong className="text-white font-semibold">{nowPlaying}</strong></span>
         </div>
       )}
 
-      {/* List of favorite games as interactive badges */}
-      <div className="flex flex-wrap gap-1.5 pt-0.5">
-        {games.map((game, i) => (
-          <span
-            key={i}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 text-xs font-semibold text-zinc-200 transition duration-200 hover:scale-105 hover:border-pink-500/40"
-          >
-            <Star className="w-3 h-3 text-pink-400 fill-pink-400/40" />
-            <span className="truncate">{game}</span>
-          </span>
-        ))}
+      {/* Vertical rectangular game poster cards with real official backgrounds */}
+      <div className={`grid gap-2.5 pt-1 ${gameEntries.length <= 2 ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4"}`}>
+        {gameEntries.map((game, i) => {
+          const isActive = nowPlaying && nowPlaying.toLowerCase().includes(game.name.toLowerCase());
+          return (
+            <div
+              key={i}
+              className={`group relative overflow-hidden rounded-2xl border transition-all duration-300 aspect-[3/4] flex flex-col justify-end p-3 ${
+                isActive
+                  ? "border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.25)]"
+                  : "border-white/10 hover:border-white/30 hover:shadow-lg hover:scale-[1.02]"
+              }`}
+            >
+              {/* Official real game vertical background poster */}
+              <div
+                className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110"
+                style={{ backgroundImage: `url(${game.cover})` }}
+              />
+
+              {/* Gradient shading overlay for high contrast text */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none" />
+
+              {/* Top active playing beacon */}
+              {isActive && (
+                <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-500/80 text-[9px] font-bold text-black uppercase tracking-wider shadow">
+                  <span className="w-1.5 h-1.5 rounded-full bg-black animate-ping" />
+                  Live
+                </div>
+              )}
+
+              {/* Bottom game info inside card */}
+              <div className="relative z-10 flex flex-col gap-0.5 text-left">
+                <span className="text-[10px] font-semibold text-pink-300/90 uppercase tracking-wider truncate">
+                  {game.genre}
+                </span>
+                <span className="text-xs font-bold text-white tracking-tight line-clamp-1 group-hover:text-pink-200 transition">
+                  {game.name}
+                </span>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -1747,6 +1810,7 @@ function ProjectsCard({ w, accent }) {
   }, [tagsRaw]);
 
   const href = w?.url ? (w.url.startsWith("http") ? w.url : `https://${w.url}`) : null;
+  const linkLabel = w?.link_type === "demo" ? "Live Demo" : w?.link_type === "docs" ? "Docs" : w?.link_type === "npm" ? "Package" : w?.link_type === "discord" ? "Discord" : "GitHub";
 
   return (
     <div className="flex flex-col gap-3 py-1">
@@ -1791,39 +1855,44 @@ function ProjectsCard({ w, accent }) {
         <div className="min-w-0 flex-1">
           <h4 className="text-sm font-bold text-white truncate tracking-wide flex items-center gap-2">
             <span>{title}</span>
-            <span className="px-1.5 py-0.5 rounded text-[9px] font-mono2 font-bold uppercase bg-white/10 border border-white/15 text-zinc-300">
-              {selectedType}
-            </span>
+            {w?.platform_badge !== false && (
+              <span className="px-1.5 py-0.5 rounded text-[9px] font-mono2 font-bold uppercase bg-white/10 border border-white/15 text-zinc-300">
+                {selectedType}
+              </span>
+            )}
           </h4>
-          <p className="text-xs text-zinc-300/80 mt-1 line-clamp-2 leading-relaxed">
-            {desc}
-          </p>
+          {w?.show_subtitle !== false && (
+            <p className="text-xs text-zinc-300/80 mt-1 line-clamp-2 leading-relaxed">
+              {desc}
+            </p>
+          )}
         </div>
 
-        {href && (
+        {href && w?.view_button !== false && (
           <a
             href={href}
             target="_blank"
             rel="noopener noreferrer"
-            className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition border border-white/10 shrink-0 cursor-pointer shadow-sm active:scale-95"
-            title="Open project"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 hover:text-white transition border border-indigo-500/30 shrink-0 cursor-pointer text-xs font-semibold shadow-sm active:scale-95"
+            title={`Open ${linkLabel}`}
           >
+            <span>{linkLabel}</span>
             <ExternalLink className="w-3.5 h-3.5" />
           </a>
         )}
       </div>
 
       {/* Code / Tech Tags */}
-      {tags.length > 0 && (
+      {tags.length > 0 && w?.show_tags !== false && (
         <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-white/10">
           {tags.map((tag, idx) => (
             <span
               key={idx}
-              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-mono2 text-[10px] font-medium bg-indigo-500/10 border border-indigo-500/25 text-indigo-200 transition-all hover:border-indigo-400"
+              className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg font-mono2 text-[10px] font-semibold bg-white/[0.04] border border-white/10 text-zinc-300 transition-all hover:border-indigo-400 hover:text-white"
             >
-              <span className="text-indigo-400/70">&lt;</span>
+              <span className="text-indigo-400 font-bold">&lt;</span>
               <span>{tag}</span>
-              <span className="text-indigo-400/70">/&gt;</span>
+              <span className="text-indigo-400 font-bold">/&gt;</span>
             </span>
           ))}
         </div>

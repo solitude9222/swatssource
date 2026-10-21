@@ -522,3 +522,103 @@ export const LINK_ICON_STYLES = [
 // A link is now just its icon, its label and its description.
 
 export const GENERIC_WIDGET_ICON = LayoutGrid;
+
+export const PRESET_CODE_LANGUAGES = [
+  "JavaScript", "TypeScript", "Python", "Rust", "Go", "C++", "C#", "React",
+  "Next.js", "HTML/CSS", "Tailwind", "Node.js", "Swift", "Kotlin", "Java", "PHP", "Docker", "Solidity"
+];
+
+export const PRESET_LINK_TYPES = [
+  { id: "github", label: "GitHub Repo" },
+  { id: "demo", label: "Live Demo" },
+  { id: "docs", label: "Documentation" },
+  { id: "npm", label: "NPM Package" },
+  { id: "discord", label: "Community" },
+];
+
+export const POPULAR_GAMES_PRESETS = [
+  {
+    id: "valorant",
+    name: "Valorant",
+    genre: "Tactical FPS",
+    platform: "PC",
+    cover: "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600&auto=format&fit=crop&q=80",
+  },
+  {
+    id: "minecraft",
+    name: "Minecraft",
+    genre: "Sandbox Survival",
+    platform: "PC / Console",
+    cover: "https://images.unsplash.com/photo-1627856013091-fed6e4e30025?w=600&auto=format&fit=crop&q=80",
+  },
+  {
+    id: "cs2",
+    name: "Counter-Strike 2",
+    genre: "Competitive FPS",
+    platform: "PC / Steam",
+    cover: "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=600&auto=format&fit=crop&q=80",
+  },
+  {
+    id: "roblox",
+    name: "Roblox",
+    genre: "Metaverse",
+    platform: "Cross-Platform",
+    cover: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600&auto=format&fit=crop&q=80",
+  },
+  {
+    id: "elden_ring",
+    name: "Elden Ring",
+    genre: "Action RPG",
+    platform: "PC / Console",
+    cover: "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=600&auto=format&fit=crop&q=80",
+  },
+  {
+    id: "gta_v",
+    name: "GTA V",
+    genre: "Open World",
+    platform: "PC / Console",
+    cover: "https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?w=600&auto=format&fit=crop&q=80",
+  },
+  {
+    id: "cyberpunk",
+    name: "Cyberpunk 2077",
+    genre: "Sci-Fi RPG",
+    platform: "PC / Console",
+    cover: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=600&auto=format&fit=crop&q=80",
+  },
+  {
+    id: "league",
+    name: "League of Legends",
+    genre: "MOBA",
+    platform: "PC",
+    cover: "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600&auto=format&fit=crop&q=80",
+  },
+  {
+    id: "fortnite",
+    name: "Fortnite",
+    genre: "Battle Royale",
+    platform: "Cross-Platform",
+    cover: "https://images.unsplash.com/photo-1560253023-3ec5d502959f?w=600&auto=format&fit=crop&q=80",
+  },
+  {
+    id: "apex",
+    name: "Apex Legends",
+    genre: "Battle Royale",
+    platform: "PC / Console",
+    cover: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&auto=format&fit=crop&q=80",
+  },
+  {
+    id: "rocket_league",
+    name: "Rocket League",
+    genre: "Sports Action",
+    platform: "Cross-Platform",
+    cover: "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=600&auto=format&fit=crop&q=80",
+  },
+  {
+    id: "osu",
+    name: "osu!",
+    genre: "Rhythm",
+    platform: "PC",
+    cover: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80",
+  },
+];
