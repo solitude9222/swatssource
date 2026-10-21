@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { PremiumGate } from "@/components/ui-shared/PremiumGate";
 import { api, fileUrl } from "@/lib/api";
-import { ProfilePreview } from "@/components/ProfilePreview";
+import { ProfilePreview, TrackCardPreview } from "@/components/ProfilePreview";
 import AvatarDecorationModal from "@/components/AvatarDecorationModal";
 import { ColorPicker } from "@/components/ColorPicker";
 import { SmartSelect } from "@/components/ui-shared/SmartSelect";
@@ -2174,72 +2174,28 @@ export default function Editor() {
                     <span className="text-[11px] text-zinc-400 font-mono2">Live Widget Styling</span>
                   </div>
 
-                  <div className="p-6 rounded-2xl bg-black/60 border border-white/5 flex items-center justify-center relative overflow-hidden">
-                    {/* Live Preview Card */}
+                  <div className="p-6 rounded-2xl bg-black/60 border border-white/5 flex items-center justify-center relative overflow-hidden min-h-[140px]">
+                    {/* Real Interactive Live Preview Player */}
                     {(() => {
-                      const bw = Number.isFinite(Number(p.audio_border_width)) ? Number(p.audio_border_width) : 0;
-                      const bo = Number.isFinite(Number(p.audio_border_opacity)) ? Number(p.audio_border_opacity) : 0.13;
-                      const bc = p.audio_border_color || "#ffffff";
-                      const bgc = p.audio_bg_color || "#ffffff";
-                      const bgo = Number.isFinite(Number(p.audio_bg_opacity)) ? Number(p.audio_bg_opacity) : 0.00;
-                      const blur = Number.isFinite(Number(p.audio_bg_blur)) ? Number(p.audio_bg_blur) : 11;
-                      const glowColor = p.audio_glow_color || accentColor;
-                      const glowSpread = Number.isFinite(Number(p.audio_glow_spread)) ? Number(p.audio_glow_spread) : 25;
-
-                      const parseHex = (hex) => {
-                        let c = (hex || "#ffffff").replace("#", "");
-                        if (c.length === 3) c = c.split("").map((x) => x + x).join("");
-                        const num = parseInt(c, 16);
-                        if (Number.isNaN(num)) return [255, 255, 255];
-                        return [(num >> 16) & 255, (num >> 8) & 255, num & 255];
+                      const effectiveTrack = {
+                        title: p.tracks?.[0]?.title || newTrackTitle || "LUCKI - Roundtripski (Official Visualizer) - LUCKI",
+                        artist: p.tracks?.[0]?.artist || newTrackArtist || "LUCKI",
+                        artwork: p.tracks?.[0]?.artwork || newTrackArtwork || "",
+                        lyrics: p.tracks?.[0]?.lyrics || newTrackLyrics || "",
+                        url: p.tracks?.[0]?.url || newTrackUrl || "",
+                        audio_url: p.tracks?.[0]?.audio_url || "",
                       };
-
-                      const [br, bg, bb] = parseHex(bc);
-                      const [bgr, bgg, bgb] = parseHex(bgc);
-                      const [gr, gg, gb] = parseHex(glowColor);
-
-                      const previewCardStyle = {
-                        backgroundColor: `rgba(${bgr}, ${bgg}, ${bgb}, ${bgo})`,
-                        backdropFilter: `blur(${blur}px)`,
-                        WebkitBackdropFilter: `blur(${blur}px)`,
-                        border: `${bw}px solid rgba(${br}, ${bg}, ${bb}, ${bo})`,
-                        boxShadow: p.audio_glow !== false ? `0 0 ${glowSpread}px rgba(${gr}, ${gg}, ${gb}, 0.35)` : "none",
-                      };
-
-                      const trackTitle = p.tracks?.[0]?.title || newTrackTitle || "LUCKI - Roundtripski (Official Visualizer) - LUCKI";
-                      const trackArtist = p.tracks?.[0]?.artist || newTrackArtist || "LUCKI";
-                      const trackCover = p.tracks?.[0]?.artwork || newTrackArtwork;
 
                       return (
-                        <div
-                          style={previewCardStyle}
-                          className="w-full max-w-md p-4 rounded-2xl flex items-center justify-between gap-4 transition-all duration-200"
-                        >
-                          <div className="flex items-center gap-3 min-w-0">
-                            <div className="w-12 h-12 rounded-xl bg-zinc-800/80 border border-white/10 flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
-                              {trackCover ? (
-                                <img src={trackCover} alt="Cover" className="w-full h-full object-cover" />
-                              ) : (
-                                <Disc className="w-6 h-6 text-zinc-400" />
-                              )}
-                            </div>
-                            <div className="min-w-0">
-                              <div className="text-xs font-bold text-white truncate">{trackTitle}</div>
-                              <div className="text-[11px] text-zinc-400 truncate">{trackArtist}</div>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-2 shrink-0">
-                            <div className="flex items-center gap-2 bg-black/90 border border-white/20 rounded-full px-2.5 py-1.5 shadow-md">
-                              <Volume2 className="w-3.5 h-3.5 text-white" />
-                              <div className="w-14 h-1.5 rounded-full bg-zinc-700/80 overflow-hidden">
-                                <div className="h-full bg-white rounded-full w-2/3" />
-                              </div>
-                            </div>
-                            <div className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center shadow-md">
-                              <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
-                            </div>
-                          </div>
+                        <div className="w-full max-w-lg flex flex-col items-center">
+                          <TrackCardPreview
+                            track={effectiveTrack}
+                            style={p.track_style || p.audio_style || "compact"}
+                            accent={accentColor}
+                            volume={(Number.isFinite(Number(p.audio_volume ?? p.track_volume)) ? Number(p.audio_volume ?? p.track_volume) : 80) / 100}
+                            profile={p}
+                            embedded={true}
+                          />
                         </div>
                       );
                     })()}

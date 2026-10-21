@@ -294,7 +294,7 @@ function VolumeHoverSlider({ muted, setMuted, visitorVolume, handleVolumeChange,
 let activeAudio = null;
 
 // The audio player supporting compact, lyrics, marquee, vinyl, mini-bar, and corner-icon.
-function TrackCardPreview({ track, style, accent, volume = 0.8, onTime, autoPlay = false, embedded = false, profile = {} }) {
+export function TrackCardPreview({ track, style, accent, volume = 0.8, onTime, autoPlay = false, embedded = false, profile = {} }) {
   const chrome = resolveTrackStyle(style);
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -1348,7 +1348,7 @@ function SlideshowView({
       ref={containerRef}
       data-testid="profile-preview"
       data-layout="slideshow"
-      className={`relative w-full ${embedded ? "h-[580px] max-h-[580px]" : "h-screen min-h-screen"} overflow-y-auto overflow-x-hidden snap-y snap-proximity scroll-smooth overscroll-y-contain`}
+      className={`relative w-full ${embedded ? "h-[580px] max-h-[580px]" : "h-screen min-h-screen"} overflow-y-auto overflow-x-hidden snap-y snap-mandatory`}
       // No background image on the scroller itself: the sticky layer below is the
       // only copy of the artwork, which is what makes the opacity dial mean
       // something (it used to be painted twice — once at full strength here, once

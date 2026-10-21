@@ -394,16 +394,18 @@ function RealLiveWidgetPreview({ widget, kind, styleOverride }) {
 
   // Background artwork
   let bgImage = "";
-  if (widget.artwork_bg === "banner") {
-    bgImage = data?.banner || data?.banner_url || data?.backdrop || (widget.type === "youtube" ? "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80" : "");
-  } else if (widget.artwork_bg === "splash") {
-    bgImage = data?.splash || data?.banner;
-  } else if (widget.artwork_bg === "thumbnail") {
-    bgImage = data?.thumbnail || data?.latest?.thumbnail || data?.album_art || data?.cover || (widget.type === "youtube" ? "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80" : (widget.type === "spotify" ? "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&auto=format&fit=crop&q=80" : ""));
-  } else if (widget.artwork_bg === "game") {
-    bgImage = data?.game_image || data?.current_game?.image || "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&auto=format&fit=crop&q=80";
-  } else if (widget.artwork_bg === "avatar") {
-    bgImage = data?.icon || data?.avatar;
+  if (!isDiscord) {
+    if (widget.artwork_bg === "banner") {
+      bgImage = data?.banner || data?.banner_url || data?.backdrop || (widget.type === "youtube" ? "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80" : "");
+    } else if (widget.artwork_bg === "splash") {
+      bgImage = data?.splash || data?.banner;
+    } else if (widget.artwork_bg === "thumbnail") {
+      bgImage = data?.thumbnail || data?.latest?.thumbnail || data?.album_art || data?.cover || (widget.type === "youtube" ? "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80" : (widget.type === "spotify" ? "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&auto=format&fit=crop&q=80" : ""));
+    } else if (widget.artwork_bg === "game") {
+      bgImage = data?.game_image || data?.current_game?.image || "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&auto=format&fit=crop&q=80";
+    } else if (widget.artwork_bg === "avatar") {
+      bgImage = data?.icon || data?.avatar;
+    }
   }
 
   // Filter overlays
@@ -431,6 +433,10 @@ function RealLiveWidgetPreview({ widget, kind, styleOverride }) {
     title = data?.name || widget.username || "Builderman";
   } else if (widget.type === "valorant") {
     title = data?.name ? `${data.name}#${data.tag || "NA1"}` : (widget.riot_id || "TenZ#0001");
+  } else if (widget.type === "games") {
+    title = widget.title || "Favorite Games";
+  } else if (widget.type === "projects") {
+    title = widget.title || "Projects Showcase";
   }
 
   let subtitle = data?.description || data?.bio || (widget.show_subtitle !== false ? kind.desc : "");
@@ -442,6 +448,10 @@ function RealLiveWidgetPreview({ widget, kind, styleOverride }) {
     subtitle = data?.author || "The Weeknd • Starboy";
   } else if (widget.type === "steam" && !data?.description) {
     subtitle = data?.state_message || "Currently in-game: Counter-Strike 2";
+  } else if (widget.type === "games" && !data?.description) {
+    subtitle = widget.now_playing ? `Playing now: ${widget.now_playing}` : (widget.games_list || "Elden Ring, Valorant, Minecraft, GTA V");
+  } else if (widget.type === "projects" && !data?.description) {
+    subtitle = widget.description || (widget.tags ? `Tags: ${widget.tags}` : "Fullstack development & creative design");
   }
 
   // Deduplicate: If subtitle is identical to title, remove it

@@ -1,4 +1,4 @@
-import { Clock, CalendarDays, Code2, Hourglass, LayoutGrid, BarChart3, CloudSun, Box } from "lucide-react";
+import { Clock, CalendarDays, Code2, Hourglass, LayoutGrid, BarChart3, CloudSun, Box, Gamepad2, FolderGit2 } from "lucide-react";
 import { FaDiscord, FaSpotify, FaGithub, FaYoutube, FaSteam, FaTiktok, FaSoundcloud, FaTwitch, FaLastfm } from "react-icons/fa6";
 import { SiRoblox, SiValorant, SiSupercell } from "react-icons/si";
 
@@ -194,6 +194,29 @@ export const WIDGET_KINDS = [
     desc: "Your own HTML, CSS or iframe embed",
     subtypes: [{ id: "code", label: "HTML / CSS / Embed", fields: ["custom_code"] }],
   },
+  {
+    id: "games",
+    label: "Favorite Games",
+    Icon: Gamepad2,
+    color: "#EC4899",
+    desc: "Showcase your top video games, active game status, and platform.",
+    subtypes: [
+      { id: "favorites", label: "Favorite Games", fields: ["games_title", "games_list", "games_platform", "games_now_playing"] },
+    ],
+  },
+  {
+    id: "projects",
+    label: "Projects",
+    Icon: FolderGit2,
+    color: "#6366F1",
+    desc: "Showcase code, web, game, or design projects with type selector and code tags.",
+    subtypes: [
+      { id: "code", label: "Code Project", fields: ["project_title", "project_desc", "project_tags", "project_url"] },
+      { id: "game", label: "Game Project", fields: ["project_title", "project_desc", "project_tags", "project_url"] },
+      { id: "web", label: "Web App", fields: ["project_title", "project_desc", "project_tags", "project_url"] },
+      { id: "design", label: "Design & Art", fields: ["project_title", "project_desc", "project_tags", "project_url"] },
+    ],
+  },
 ];
 
 // Input descriptors, keyed by field id. `pick` names the widget property the
@@ -337,6 +360,56 @@ export const WIDGET_FIELDS = {
     type: "textarea",
     placeholder: "<iframe src=\"...\" />",
     help: "Rendered exactly as written. Premium feature.",
+  },
+  games_title: {
+    key: "title",
+    label: "Widget Title",
+    placeholder: "Favorite Games",
+    help: "Header displayed on your gaming card.",
+  },
+  games_list: {
+    key: "games_list",
+    label: "Favorite Games",
+    placeholder: "Elden Ring, Valorant, Minecraft, GTA V, Cyberpunk 2077",
+    help: "List your favorite games (comma-separated or lines).",
+    type: "textarea",
+  },
+  games_platform: {
+    key: "platform",
+    label: "Gaming Platform",
+    placeholder: "e.g. PC / Steam / PlayStation 5",
+    help: "Your primary gaming system.",
+  },
+  games_now_playing: {
+    key: "now_playing",
+    label: "Currently Playing",
+    placeholder: "e.g. Grinding Elden Ring DLC",
+    help: "Status text shown with an active green beacon.",
+  },
+  project_title: {
+    key: "title",
+    label: "Project Name",
+    placeholder: "e.g. swats.bio, Portfolio Engine, Aether Game",
+    help: "The main name of your project.",
+  },
+  project_desc: {
+    key: "description",
+    label: "Project Description",
+    placeholder: "A next-generation biolink platform and creator profile hub with rich widgets.",
+    help: "Short description of what the project is.",
+    type: "textarea",
+  },
+  project_tags: {
+    key: "tags",
+    label: "Code / Tech Tags",
+    placeholder: "React, TypeScript, Rust, Tailwind, Node.js",
+    help: "Comma-separated tags shown as stylized code badges.",
+  },
+  project_url: {
+    key: "url",
+    label: "Project URL / Repo Link",
+    placeholder: "https://github.com/...",
+    help: "Direct link to GitHub repo, website, or playable game.",
   },
 };
 

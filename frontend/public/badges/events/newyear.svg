@@ -1,84 +1,74 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="New Year">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="New Year 2027 Rocket">
   <defs>
-    <!-- Firework Glow -->
-    <filter id="ny-glow" x="-30%" y="-30%" width="160%" height="160%">
-      <feGaussianBlur stdDeviation="2.4" result="blur" />
+    <!-- Soft glow -->
+    <filter id="rocket-glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2" result="blur" />
       <feComposite in="SourceGraphic" in2="blur" operator="over" />
     </filter>
-    <!-- Midnight Celestial Disk -->
-    <radialGradient id="ny-night" cx="50%" cy="40%" r="65%">
-      <stop offset="0%" stop-color="#312e81" />
-      <stop offset="45%" stop-color="#1e1b4b" />
-      <stop offset="85%" stop-color="#0f172a" />
-      <stop offset="100%" stop-color="#030712" />
-    </radialGradient>
-    <!-- Core Celebration Firework Gradient -->
-    <radialGradient id="ny-burst" cx="50%" cy="50%" r="50%">
+    <!-- Rocket metallic hull gradient -->
+    <linearGradient id="rocket-hull" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="30%" stop-color="#e2e8f0" />
+      <stop offset="70%" stop-color="#94a3b8" />
+      <stop offset="100%" stop-color="#64748b" />
+    </linearGradient>
+    <!-- Flame plume gradient -->
+    <linearGradient id="rocket-flame" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#ffffff" />
       <stop offset="25%" stop-color="#fef08a" />
-      <stop offset="65%" stop-color="#f59e0b" />
-      <stop offset="100%" stop-color="#ea580c" />
-    </radialGradient>
-    <!-- Golden Star Sparkle Gradient -->
-    <linearGradient id="ny-gold" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#ffffff" />
-      <stop offset="50%" stop-color="#fde047" />
-      <stop offset="100%" stop-color="#eab308" />
+      <stop offset="60%" stop-color="#f97316" />
+      <stop offset="100%" stop-color="#dc2626" />
     </linearGradient>
   </defs>
 
-  <!-- Deep Midnight Sphere Background with Golden Rim -->
-  <circle cx="32" cy="32" r="29" fill="url(#ny-night)" stroke="#facc15" stroke-width="1.2" stroke-opacity="0.5" />
-  
-  <!-- Outer Festive Stardust Trails -->
-  <g stroke="url(#ny-gold)" stroke-linecap="round" filter="url(#ny-glow)">
-    <!-- Primary 8 Firework Beams -->
-    <line x1="32" y1="7" x2="32" y2="21" stroke-width="2.6" />
-    <line x1="32" y1="43" x2="32" y2="57" stroke-width="2.6" />
-    <line x1="7" y1="32" x2="21" y2="32" stroke-width="2.6" />
-    <line x1="43" y1="32" x2="57" y2="32" stroke-width="2.6" />
-    
-    <line x1="14.3" y1="14.3" x2="24.2" y2="24.2" stroke-width="2.2" />
-    <line x1="39.8" y1="39.8" x2="49.7" y2="49.7" stroke-width="2.2" />
-    <line x1="49.7" y1="14.3" x2="39.8" y2="24.2" stroke-width="2.2" />
-    <line x1="24.2" y1="39.8" x2="14.3" y2="49.7" stroke-width="2.2" />
+  <!-- Ambient fiery stardust trail -->
+  <g filter="url(#rocket-glow)">
+    <!-- Exhaust flame thrust -->
+    <polygon points="17,47 13,58 20,53 23,61 24,49" fill="url(#rocket-flame)" />
+    <!-- Stardust celebration sparks -->
+    <circle cx="8" cy="59" r="1.5" fill="#facc15" />
+    <circle cx="14" cy="62" r="1.2" fill="#fb923c" />
+    <circle cx="27" cy="59" r="1.2" fill="#facc15" />
+    <circle cx="56" cy="12" r="2" fill="#fde047" />
+    <circle cx="48" cy="6" r="1.2" fill="#38bdf8" />
+    <circle cx="12" cy="22" r="1.4" fill="#a855f7" />
   </g>
 
-  <!-- Neon Cyan & Magenta Secondary Stardust Sparks -->
-  <g filter="url(#ny-glow)">
-    <circle cx="32" cy="9" r="2" fill="#22d3ee" />
-    <circle cx="32" cy="55" r="2" fill="#22d3ee" />
-    <circle cx="9" cy="32" r="2" fill="#f43f5e" />
-    <circle cx="55" cy="32" r="2" fill="#f43f5e" />
+  <!-- Group rotated 45 deg around center -->
+  <g transform="rotate(45 32 32)">
+    <!-- Left and right fins -->
+    <polygon points="23,40 16,50 25,47" fill="#ef4444" />
+    <polygon points="41,40 48,50 39,47" fill="#ef4444" />
 
-    <circle cx="16" cy="16" r="1.8" fill="#a855f7" />
-    <circle cx="48" cy="16" r="1.8" fill="#22d3ee" />
-    <circle cx="16" cy="48" r="1.8" fill="#f43f5e" />
-    <circle cx="48" cy="48" r="1.8" fill="#a855f7" />
+    <!-- Rocket Body / Fuselage -->
+    <rect x="24" y="20" width="16" height="28" rx="4" fill="url(#rocket-hull)" stroke="#cbd5e1" stroke-width="0.8" />
 
-    <circle cx="23" cy="13" r="1.4" fill="#fbbf24" />
-    <circle cx="41" cy="13" r="1.4" fill="#fbbf24" />
-    <circle cx="51" cy="23" r="1.4" fill="#67e8f9" />
-    <circle cx="51" cy="41" r="1.4" fill="#67e8f9" />
-    <circle cx="41" cy="51" r="1.4" fill="#fbbf24" />
-    <circle cx="23" cy="51" r="1.4" fill="#fbbf24" />
-    <circle cx="13" cy="41" r="1.4" fill="#f43f5e" />
-    <circle cx="13" cy="23" r="1.4" fill="#f43f5e" />
+    <!-- Red / Gold stripe band -->
+    <rect x="24" y="27" width="16" height="3" fill="#ef4444" />
+    <rect x="24" y="30" width="16" height="1.5" fill="#facc15" />
+
+    <!-- 2027 Inscription along the rocket body -->
+    <text
+      x="32"
+      y="42"
+      font-family="system-ui, -apple-system, sans-serif"
+      font-size="8"
+      font-weight="900"
+      letter-spacing="0.5"
+      fill="#0f172a"
+      text-anchor="middle"
+    >2027</text>
+
+    <!-- Nose cone -->
+    <path d="M24 20c0-9 8-14 8-14s8 5 8 14Z" fill="#ef4444" />
+    <!-- Nose cone shine highlight -->
+    <path d="M27 18c2-4 5-8 5-8" fill="none" stroke="#fca5a5" stroke-width="1.2" stroke-linecap="round" />
+
+    <!-- Rocket engine nozzle at base -->
+    <polygon points="27,48 37,48 35,52 29,52" fill="#334155" />
   </g>
 
-  <!-- Radiant Golden Explosion Ring -->
-  <circle cx="32" cy="32" r="15" fill="none" stroke="#facc15" stroke-width="1.5" stroke-dasharray="3,3" opacity="0.75" />
-
-  <!-- Dazzling Four-Point Diamond Celebration Star (Centerpiece) -->
-  <g fill="url(#ny-burst)" filter="url(#ny-glow)">
-    <polygon points="32,18 35,29 46,32 35,35 32,46 29,35 18,32 29,29" />
-  </g>
-
-  <!-- Brilliant Pure White Diamond Core -->
-  <polygon points="32,23 34,30 41,32 34,34 32,41 30,34 23,32 30,30" fill="#ffffff" />
-  <circle cx="32" cy="32" r="3.2" fill="#ffffff" filter="url(#ny-glow)" />
-
-  <!-- Sparkling Celebration Bubbles -->
-  <circle cx="27" cy="20" r="1" fill="#ffffff" opacity="0.9" />
-  <circle cx="37" cy="44" r="1" fill="#ffffff" opacity="0.9" />
+  <!-- Sparkle stars in sky -->
+  <polygon points="52,18 53.5,21 56,22 53.5,23 52,26 50.5,23 48,22 50.5,21" fill="#ffffff" filter="url(#rocket-glow)" />
+  <polygon points="16,14 17,16 19,16.5 17,17 16,19 15,17 13,16.5 15,16" fill="#fef08a" opacity="0.85" />
 </svg>

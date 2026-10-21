@@ -341,13 +341,13 @@ export default function PublicProfile() {
           href="/!/home"
           target="_blank"
           rel="noreferrer"
-          className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 inline-flex w-auto items-center gap-2.5 rounded-full border border-white/20 bg-gradient-to-r from-black/85 via-[#181226]/90 to-black/85 px-5 py-2 text-[10px] sm:text-xs font-bold leading-none text-zinc-100 shadow-[0_8px_30px_rgba(0,0,0,0.6),0_0_20px_rgba(164,141,244,0.2)] backdrop-blur-xl transition-all duration-300 hover:scale-105 hover:border-brand-400/60 hover:shadow-[0_8px_35px_rgba(0,0,0,0.8),0_0_28px_rgba(164,141,244,0.45)] group cursor-pointer"
+          className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 inline-flex w-auto items-center gap-2 rounded-full border border-white/10 bg-black/90 px-4 py-1.5 text-[10px] sm:text-[11px] font-semibold leading-none text-zinc-300 shadow-2xl backdrop-blur-md transition-all duration-200 hover:bg-black hover:border-white/25 hover:text-white group cursor-pointer"
           data-testid="profile-footer-pill"
           title="Made in swats.bio"
         >
-          <img src="/logo.png" alt="swats.bio" className="h-4 w-4 rounded-md object-contain transition-transform duration-200 group-hover:scale-110" />
+          <img src="/logo.png" alt="swats.bio" className="h-3.5 w-3.5 rounded object-contain opacity-80 group-hover:opacity-100 transition-opacity" />
           <span className="tracking-wide">
-            Made in <span className="text-brand-300 group-hover:text-white transition-colors font-extrabold">swats.bio</span>
+            Made in <span className="font-bold text-white">swats.bio</span>
           </span>
         </a>
       )}

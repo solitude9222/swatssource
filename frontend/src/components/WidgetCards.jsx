@@ -8,7 +8,7 @@ import { useTooltip, resolveTooltipStyle } from "@/components/FxTooltip";
 import {
   AlertTriangle, ArrowRight, Building2, Calendar, Check, Clock, Code2,
   ExternalLink, Globe, Info, MapPin, Pause, Play, RefreshCw, Sparkles, Star,
-  Users, Volume2, X,
+  Users, Volume2, X, Gamepad2, FolderGit2, Palette,
 } from "lucide-react";
 import {
   FaDiscord, FaGithub, FaSoundcloud, FaSpotify, FaSteam, FaTiktok, FaYoutube,
@@ -37,6 +37,8 @@ const BRAND_ICON = {
   countdown: Calendar,
   "account-date": Calendar,
   custom: Code2,
+  games: Gamepad2,
+  projects: FolderGit2,
 };
 
 const LIVE_TYPES = new Set(["discord", "roblox:game"]);
@@ -280,22 +282,25 @@ function WidgetShell({
   const bgFill = hexOrRgba(w?.card_bg_color || defBgColor, fillAlpha);
   const blurVal = numOr(w?.card_bg_blur ?? defBgBlur, defBgBlur);
 
+  const isDiscord = w?.type === "discord";
   let bgImage = "";
-  const allowBanner = (w?.show_banner === true || w?.artwork_bg === "banner") && w?.show_banner !== false && w?.artwork_bg !== "none";
-  if (w?.artwork_bg && w.artwork_bg !== "none") {
-    if (w.artwork_bg === "banner") {
-      if (w.show_banner !== false) {
-        bgImage = data?.banner || data?.banner_url || data?.backdrop || (w.banner_url ? fileUrl(w.banner_url) : "");
+  if (!isDiscord) {
+    const allowBanner = (w?.show_banner === true || w?.artwork_bg === "banner") && w?.show_banner !== false && w?.artwork_bg !== "none";
+    if (w?.artwork_bg && w.artwork_bg !== "none") {
+      if (w.artwork_bg === "banner") {
+        if (w.show_banner !== false) {
+          bgImage = data?.banner || data?.banner_url || data?.backdrop || (w.banner_url ? fileUrl(w.banner_url) : "");
+        }
+      } else if (w.artwork_bg === "splash") {
+        bgImage = data?.splash || data?.banner || "";
+      } else if (w.artwork_bg === "thumbnail") {
+        bgImage = data?.thumbnail || data?.latest?.thumbnail || data?.album_art || data?.cover || "";
+      } else if (w.artwork_bg === "avatar") {
+        bgImage = data?.icon || data?.avatar || "";
       }
-    } else if (w.artwork_bg === "splash") {
-      bgImage = data?.splash || data?.banner || "";
-    } else if (w.artwork_bg === "thumbnail") {
-      bgImage = data?.thumbnail || data?.latest?.thumbnail || data?.album_art || data?.cover || "";
-    } else if (w.artwork_bg === "avatar") {
-      bgImage = data?.icon || data?.avatar || "";
+    } else if (!w?.artwork_bg && allowBanner && (data?.banner || data?.splash)) {
+      bgImage = data?.banner || data?.splash || (w?.banner_url ? fileUrl(w.banner_url) : "");
     }
-  } else if (!w?.artwork_bg && allowBanner && (data?.banner || data?.splash)) {
-    bgImage = data?.banner || data?.splash || (w?.banner_url ? fileUrl(w.banner_url) : "");
   }
 
   const filterStyles = {
@@ -1668,6 +1673,165 @@ function MediaCard({ w, accent, data, status, error, refresh, provider, HeaderIc
   );
 }
 
+function GamesCard({ w, accent }) {
+  const gamesListRaw = w?.games_list || "Elden Ring, Valorant, Minecraft, GTA V";
+  const games = useMemo(() => {
+    return gamesListRaw
+      .split(/[,\n]/)
+      .map((g) => g.trim())
+      .filter(Boolean);
+  }, [gamesListRaw]);
+
+  const platform = w?.platform || "PC / Steam";
+  const nowPlaying = w?.now_playing || "";
+
+  return (
+    <div className="flex flex-col gap-3 py-1">
+      {/* Top row with platform badge */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="w-6 h-6 rounded-lg bg-pink-500/15 border border-pink-500/30 flex items-center justify-center text-pink-400">
+            <Gamepad2 className="w-3.5 h-3.5" />
+          </div>
+          <span className="text-xs font-bold text-white tracking-wide">
+            {w?.title || "Favorite Games"}
+          </span>
+        </div>
+        <span className="px-2 py-0.5 rounded-md bg-white/10 text-[10px] font-bold text-zinc-300 border border-white/15 uppercase tracking-wider">
+          {platform}
+        </span>
+      </div>
+
+      {/* Now playing status banner if provided */}
+      {nowPlaying && (
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs font-medium">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#34d399]" />
+          <span className="truncate">Playing now: <strong className="text-white font-semibold">{nowPlaying}</strong></span>
+        </div>
+      )}
+
+      {/* List of favorite games as interactive badges */}
+      <div className="flex flex-wrap gap-1.5 pt-0.5">
+        {games.map((game, i) => (
+          <span
+            key={i}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 text-xs font-semibold text-zinc-200 transition duration-200 hover:scale-105 hover:border-pink-500/40"
+          >
+            <Star className="w-3 h-3 text-pink-400 fill-pink-400/40" />
+            <span className="truncate">{game}</span>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ProjectsCard({ w, accent }) {
+  const [selectedType, setSelectedType] = useState(w?.subtype || w?.project_type || "code");
+
+  const types = [
+    { id: "code", label: "Code", Icon: Code2 },
+    { id: "game", label: "Game", Icon: Gamepad2 },
+    { id: "web", label: "Web", Icon: Globe },
+    { id: "design", label: "Design", Icon: Palette },
+  ];
+
+  const currentType = types.find((t) => t.id === selectedType) || types[0];
+  const CurrentIcon = currentType.Icon;
+
+  const title = w?.title || (selectedType === "code" ? "swats.bio engine" : selectedType === "game" ? "Aether Quest" : selectedType === "web" ? "NextGen Web" : "Design System");
+  const desc = w?.description || (selectedType === "code" ? "High performance biolink profile engine with real-time analytics and widgets." : "Creative interactive experience crafted with modern tools.");
+  const tagsRaw = w?.tags || (selectedType === "code" ? "React, TypeScript, Rust, Tailwind" : "Unreal, C++, Blender");
+  const tags = useMemo(() => {
+    return tagsRaw.split(",").map((t) => t.trim()).filter(Boolean);
+  }, [tagsRaw]);
+
+  const href = w?.url ? (w.url.startsWith("http") ? w.url : `https://${w.url}`) : null;
+
+  return (
+    <div className="flex flex-col gap-3 py-1">
+      {/* Top Header Row with Type Selector Menu */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="w-6 h-6 rounded-lg bg-indigo-500/20 border border-indigo-500/35 flex items-center justify-center text-indigo-400 shrink-0">
+            <CurrentIcon className="w-3.5 h-3.5" />
+          </div>
+          <span className="text-xs font-bold text-white tracking-wide truncate">
+            {w?.title ? "Project Showcase" : "Projects"}
+          </span>
+        </div>
+
+        {/* Project Type Picker Menu */}
+        <div className="flex items-center gap-1 bg-black/40 border border-white/10 p-0.5 rounded-lg shrink-0">
+          {types.map((t) => {
+            const active = selectedType === t.id;
+            const Icon = t.Icon;
+            return (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => setSelectedType(t.id)}
+                title={t.label}
+                className={`px-2 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase transition flex items-center gap-1 cursor-pointer ${
+                  active
+                    ? "bg-indigo-500 text-white shadow-sm"
+                    : "text-zinc-400 hover:text-white hover:bg-white/5"
+                }`}
+              >
+                <Icon className="w-2.5 h-2.5" />
+                <span>{t.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Project Title and External Link */}
+      <div className="flex items-start justify-between gap-2 pt-0.5">
+        <div className="min-w-0 flex-1">
+          <h4 className="text-sm font-bold text-white truncate tracking-wide flex items-center gap-2">
+            <span>{title}</span>
+            <span className="px-1.5 py-0.5 rounded text-[9px] font-mono2 font-bold uppercase bg-white/10 border border-white/15 text-zinc-300">
+              {selectedType}
+            </span>
+          </h4>
+          <p className="text-xs text-zinc-300/80 mt-1 line-clamp-2 leading-relaxed">
+            {desc}
+          </p>
+        </div>
+
+        {href && (
+          <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition border border-white/10 shrink-0 cursor-pointer shadow-sm active:scale-95"
+            title="Open project"
+          >
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+        )}
+      </div>
+
+      {/* Code / Tech Tags */}
+      {tags.length > 0 && (
+        <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-white/10">
+          {tags.map((tag, idx) => (
+            <span
+              key={idx}
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-mono2 text-[10px] font-medium bg-indigo-500/10 border border-indigo-500/25 text-indigo-200 transition-all hover:border-indigo-400"
+            >
+              <span className="text-indigo-400/70">&lt;</span>
+              <span>{tag}</span>
+              <span className="text-indigo-400/70">/&gt;</span>
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function GenericCard({ w, accent }) {
   const Icon = BRAND_ICON[w?.type] || Globe;
   return (
@@ -1799,6 +1963,22 @@ export function WidgetCard({ w, accent = "#A48DF4", ownerCreated, owner = "", pr
     return (
       <WidgetShell w={w} accent={accent} data={data} headerTitle={w.title || "Account Date Preview"} HeaderIcon={Calendar}>
         <AccountDateCard w={w} accent={accent} ownerCreated={ownerCreated} />
+      </WidgetShell>
+    );
+  }
+
+  if (type === "games") {
+    return (
+      <WidgetShell w={w} accent={accent} data={data} headerTitle={w.title || "Favorite Games"} HeaderIcon={Gamepad2}>
+        <GamesCard w={w} accent={accent} />
+      </WidgetShell>
+    );
+  }
+
+  if (type === "projects") {
+    return (
+      <WidgetShell w={w} accent={accent} data={data} headerTitle={w.title || "Projects"} HeaderIcon={FolderGit2}>
+        <ProjectsCard w={w} accent={accent} />
       </WidgetShell>
     );
   }
@@ -2145,6 +2325,14 @@ export function WidgetPill({ w, accent = "#A48DF4", ownerCreated, owner = "", p 
   } else if (type === "account-date" || type === "countdown") {
     title = w?.title || (type === "countdown" ? "Countdown" : "Account Age");
     subtitle = formatYearsAgo(ownerCreated || data?.created_at || w?.date);
+  } else if (type === "games") {
+    title = w?.title || "Favorite Games";
+    subtitle = w?.now_playing ? `Playing ${w.now_playing}` : (w?.games_list ? w.games_list.split(/[,\n]/)[0]?.trim() : (w?.platform || "Gaming"));
+    isLive = !!w?.now_playing;
+  } else if (type === "projects") {
+    title = w?.title || "Projects";
+    subtitle = w?.tags || w?.description || `${w?.subtype || "code"} project`;
+    href = w?.url || href;
   } else {
     title = w?.title || type.toUpperCase();
     subtitle = w?.value || w?.url || "Configured";
