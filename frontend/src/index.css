@@ -40,38 +40,52 @@
 }
 
 body.dash-theme {
-    --brand-50: 250 248 255;
-    --brand-100: 242 237 255;
-    --brand-200: 228 218 255;
-    --brand-300: 211 196 255;
-    --brand-400: 188 172 248;
-    --brand-500: 164 141 244;
-    --brand-600: 140 113 232;
-    --brand-700: 115 84 212;
-    --brand-800: 89 56 184;
-    --brand-900: 62 34 139;
-    --brand-950: 31 14 84;
+    /* ── spec accent token — swap to swats purple in one line: --accent: #a48df4 ── */
+    --accent: #3b5bf0;
+    --accent-dim: rgba(59, 91, 240, 0.15);
+    --accent-border: rgba(59, 91, 240, 0.35);
 
-    /* Quiet, solid surfaces keep dashboard content readable and distinct. */
-    --sw-bg: #09090b;
-    --sw-surface: #111113;
-    --sw-surface-2: #18181b;
-    --sw-accent: #a48df4;
-    --sw-accent-2: #8c71e8;
-    --sw-border: rgba(255, 255, 255, 0.08);
-    --sw-border-active: rgba(164, 141, 244, 0.5);
+    /* Brand scale mapped to the spec blue (#3b5bf0 = brand-500) */
+    --brand-50:  238 241 255;
+    --brand-100: 218 227 254;
+    --brand-200: 184 204 252;
+    --brand-300: 141 171 249;
+    --brand-400:  99 139 246;
+    --brand-500:  59  91 240;   /* #3b5bf0 */
+    --brand-600:  44  70 210;
+    --brand-700:  33  53 173;
+    --brand-800:  25  40 135;
+    --brand-900:  20  32 103;
+    --brand-950:  10  17  55;
 
-    /* shadcn tokens used by the ui/* primitives (selects, switches, dialogs...) */
-    --background: 0 0% 0%;
-    --card: 0 0% 2%;
-    --popover: 0 0% 2%;
-    --primary: 258 83% 75%;
+    /* Surfaces — spec §1 */
+    --sw-bg:        #09090b;   /* page */
+    --sw-surface:   #111113;   /* cards / primary surface */
+    --sw-surface-2: #141416;   /* raised / secondary surface */
+    --sw-border:    rgba(255, 255, 255, 0.07);   /* 1px border */
+    --sw-border-active: rgba(59, 91, 240, 0.45);
+
+    /* Alias kept for older helper classes */
+    --sw-accent:   var(--accent);
+    --sw-accent-2: #2c46d4;
+
+    /* Radii — spec §1 */
+    --radius-card:  20px;
+    --radius-input: 12px;
+    --radius-pill:  12px;
+    --radius-tile:  16px;
+
+    /* shadcn tokens used by ui/* primitives */
+    --background: 240 10% 3.9%;
+    --card: 240 10% 5%;
+    --popover: 240 10% 5%;
+    --primary: 228 85% 59%;
     --primary-foreground: 0 0% 100%;
-    --accent: 258 83% 75%;
+    --accent: 228 85% 59%;
     --accent-foreground: 0 0% 100%;
-    --ring: 258 83% 75%;
+    --ring: 228 85% 59%;
     --border: 0 0% 12%;
-    --input: 0 0% 12%;
+    --input: 0 0% 10%;
 
     background-color: #09090b;
     background-image: none;
@@ -79,9 +93,9 @@ body.dash-theme {
     font-family: 'Inter', system-ui, sans-serif;
 }
 
-body.dash-theme ::selection { background: rgba(164, 141, 244, 0.4); color: #fff; }
+body.dash-theme ::selection { background: rgba(59, 91, 240, 0.35); color: #fff; }
 body.dash-theme ::-webkit-scrollbar-track { background: #000000; }
-body.dash-theme ::-webkit-scrollbar-thumb { background: #18181b; border-color: #000000; }
+body.dash-theme ::-webkit-scrollbar-thumb { background: #1a1a1d; border-color: #000000; }
 body.dash-theme ::-webkit-scrollbar-thumb:hover { background: #27272a; }
 body.dash-theme button:focus-visible:not([class*="focus-visible:ring"]),
 body.dash-theme a:focus-visible:not([class*="focus-visible:ring"]),
@@ -89,19 +103,19 @@ body.dash-theme input:focus-visible,
 body.dash-theme textarea:focus-visible,
 body.dash-theme select:focus-visible,
 body.dash-theme [tabindex]:focus-visible {
-    outline-color: #a48df4;
+    outline-color: var(--accent);
 }
 
-/* Dashboard form controls: pitch black fill, subtle hairline, purple focus ring. */
+/* Dashboard form controls: dark fill, hairline border, blue focus ring. */
 .dash-font input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]),
 .dash-font textarea {
-    background-color: #050505;
-    border-color: rgba(255, 255, 255, 0.08);
+    background-color: #0c0c0e;
+    border-color: rgba(255, 255, 255, 0.07);
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .dash-font input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):focus,
 .dash-font textarea:focus {
-    box-shadow: 0 0 0 3px rgba(164, 141, 244, 0.2);
+    box-shadow: 0 0 0 3px rgba(59, 91, 240, 0.2);
 }
 
 .dash-checkered-bg {

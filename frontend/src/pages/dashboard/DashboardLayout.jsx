@@ -14,7 +14,7 @@ import {
   Trophy, BarChart3, Users, Ticket, SlidersHorizontal, LineChart, LogOut,
   ExternalLink, Crown, ChevronDown, Sparkles, BellRing, Newspaper, ShieldCheck, Plus,
   ScrollText, Loader2, Gift, ShoppingBag, Store, Search, User, Home, ChevronRight, Eye,
-  Layers, Star, PanelLeftClose, PanelLeftOpen,
+  Layers, Star, PanelLeftClose, PanelLeftOpen, Globe,
 } from "lucide-react";
 import PremiumPlansModal from "@/components/PremiumPlansModal";
 import DevlogFeedModal from "@/components/DevlogFeedModal";
@@ -40,13 +40,13 @@ function CompactTabLink({ t, label }) {
       aria-current={active ? "page" : undefined}
       data-testid={t.testid}
       className={`mx-auto relative flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-200 overflow-hidden ${
-        active ? "bg-[#1a1927] text-[#a48df4]" : "text-zinc-600 hover:bg-white/[0.05] hover:text-zinc-300"
+        active ? "bg-[#3b5bf0]/[0.10] text-[#3b5bf0]" : "text-zinc-600 hover:bg-white/[0.05] hover:text-zinc-300"
       }`}
     >
       {active && (
         <motion.span
           layoutId="sidebar-active-bar"
-          className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r-full bg-[#a48df4]"
+          className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r-full bg-[#3b5bf0]"
           transition={{ type: "spring", stiffness: 500, damping: 40 }}
         />
       )}
@@ -78,23 +78,46 @@ const NAV_GROUPS = [
     flat: true,
     tabs: [
       {
-        to: "/!/dashboard", end: true, label: "Overview", icon: LayoutDashboard, testid: "tab-overview",
-        desc: "Your profile at a glance: stats, checklist and connections",
+        to: "/!/dashboard", end: true, label: "Home", icon: LayoutDashboard, testid: "tab-overview",
+        desc: "Your profile at a glance — stats, suggestions and quick actions",
       },
     ],
   },
   {
-    id: "customization",
+    id: "profile",
+    label: "Profile",
+    icon: User,
+    expandable: true,
+    tabs: [
+      { to: "/!/dashboard/badges", label: "Badges", icon: Award, testid: "tab-badges", desc: "Earn, equip and reorder your profile badges", ownHeader: true },
+      { to: "/!/dashboard/editor?tab=about", label: "About me", icon: User, testid: "tab-editor", desc: "Display name, bio, avatar, background and accent colour" },
+      { to: "/!/dashboard/links", label: "Links", icon: Link2, testid: "tab-links", desc: "Add, order and style the links on your page", ownHeader: true },
+    ],
+  },
+  {
+    id: "customize",
     label: "Customize",
     icon: Paintbrush,
     expandable: true,
     tabs: [
-      { to: "/!/dashboard/editor?tab=appearance", label: "Appearance", icon: Paintbrush, testid: "tab-appearance", desc: "Card surface, glow, borders, fonts and link looks" },
-      { to: "/!/dashboard/editor", label: "Profile", icon: User, testid: "tab-editor", desc: "Profile details, visibility toggles and card styling" },
-      { to: "/!/dashboard/editor?tab=layout", label: "Layout", icon: LayoutTemplate, testid: "tab-layout", desc: "Choose page structure and arrangement" },
-      { to: "/!/dashboard/badges", label: "Badges", icon: Award, testid: "tab-badges", desc: "Equip, reorder and manage your profile badges", ownHeader: true },
-      { to: "/!/dashboard/links", label: "Links", icon: Link2, testid: "tab-links", desc: "Add, order and style the links on your page", ownHeader: true },
-      { to: "/!/dashboard/widgets", label: "Widgets", icon: LayoutGrid, testid: "tab-widgets", desc: "Live widgets shown on your profile", ownHeader: true },
+      { to: "/!/dashboard/editor?tab=appearance", label: "Appearance", icon: Paintbrush, testid: "tab-appearance", desc: "Card surface, decorations, glow, borders and fonts" },
+      { to: "/!/dashboard/editor?tab=layout", label: "Layout", icon: LayoutTemplate, testid: "tab-layout", desc: "Page structure, audio player and section placement" },
+      { to: "/!/dashboard/widgets", label: "Widgets", icon: LayoutGrid, testid: "tab-widgets", desc: "Live platform widgets shown on your profile", ownHeader: true },
+      { to: "/!/dashboard/editor?tab=extra", label: "Extra", icon: Sparkles, testid: "tab-extra", desc: "View counter, stats, card title and advanced toggles" },
+      { to: "/!/dashboard/editor?tab=entry", label: "Entry screen", icon: Eye, testid: "tab-entry", desc: "What visitors see before entering your profile" },
+    ],
+  },
+  {
+    id: "premium",
+    label: "Premium",
+    navLabel: "Premium",
+    icon: Crown,
+    flat: true,
+    tabs: [
+      {
+        to: "/!/pricing", label: "Premium", icon: Crown, testid: "tab-premium",
+        desc: "Unlock exclusive features and custom badges",
+      },
     ],
   },
   {
@@ -103,9 +126,9 @@ const NAV_GROUPS = [
     icon: Layers,
     expandable: true,
     tabs: [
-      { to: "/!/dashboard/shop", label: "Marketplace", icon: Store, testid: "tab-shop", desc: "Browse cosmetics, effects and extras for your profile" },
-      { to: "/!/dashboard/templates", label: "Templates", icon: LayoutTemplate, testid: "tab-templates", desc: "Start from a ready-made profile template" },
-      { to: "/!/dashboard/settings", label: "Settings", icon: Settings, testid: "tab-settings", desc: "Account, security and integrations" },
+      { to: "/!/dashboard/settings", label: "Settings", icon: Settings, testid: "tab-settings", desc: "Account, security, 2FA and redeem codes" },
+      { to: "/!/dashboard/settings?tab=connections", label: "Connections", icon: Globe, testid: "tab-connections", desc: "Link Discord and other external accounts" },
+      { to: "/!/dashboard/stats", label: "Statistics", icon: BarChart3, testid: "tab-stats", desc: "Profile views, link clicks and referrer breakdown" },
     ],
   },
 ];
@@ -150,9 +173,13 @@ const isTabActive = (t, pathname, search) => {
   if (path !== EDITOR_PATH) return true;
   const current = new URLSearchParams(search).get("tab") || "";
   const wanted = new URLSearchParams(query || "").get("tab") || "";
-  if (wanted) return current === wanted;
-  // "Profile": the About Me sub-tab and the Audios / Extra sub-tabs.
-  return current !== "appearance" && current !== "layout";
+  // Visiting the editor without a ?tab= defaults to the About Me view.
+  const effectiveCurrent = current || "about";
+  if (wanted) return effectiveCurrent === wanted;
+  // Legacy fallback for any editor nav item with no query — active when not on
+  // one of the explicit Customize sub-tabs.
+  return effectiveCurrent !== "appearance" && effectiveCurrent !== "layout"
+      && effectiveCurrent !== "extra" && effectiveCurrent !== "entry";
 };
 
 const tabFor = (pathname, search = "") => {
@@ -187,22 +214,22 @@ const TabLink = ({ t, sub = true, label }) => {
         sub
           ? `group relative flex h-9 w-full items-center gap-2.5 rounded-lg px-3 text-[13px] font-medium outline-none transition-all duration-200 focus-visible:ring-2 focus-visible:ring-white/20 overflow-hidden ${
               active
-                ? "bg-[#1a1927] text-white"
+                ? "bg-[#3b5bf0]/[0.10] text-white"
                 : "text-zinc-500 hover:bg-white/[0.05] hover:text-zinc-200"
             }`
-          : `${rowBase} ${active ? "bg-[#1a1927] text-zinc-100" : "text-zinc-500 hover:bg-white/[0.05] hover:text-zinc-200"}`
+          : `${rowBase} ${active ? "bg-[#3b5bf0]/[0.10] text-zinc-100" : "text-zinc-500 hover:bg-white/[0.05] hover:text-zinc-200"}`
       }
     >
       {active && sub && (
         <motion.span
           layoutId="sidebar-active-bar"
-          className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r-full bg-[#a48df4]"
+          className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r-full bg-[#3b5bf0]"
           transition={{ type: "spring", stiffness: 500, damping: 40 }}
         />
       )}
       <t.icon
         className={`${sub ? "h-4 w-4" : "h-[18px] w-[18px]"} shrink-0 transition-colors duration-200 ${
-          active ? "text-[#a48df4]" : "text-zinc-600 group-hover:text-zinc-400"
+          active ? "text-[#3b5bf0]" : "text-zinc-600 group-hover:text-zinc-400"
         }`}
       />
       <span className="truncate">{label || t.label}</span>
@@ -223,15 +250,15 @@ function NavGroup({ group, open, onToggle, containsActive }) {
         onClick={onToggle}
         aria-expanded={open}
         data-testid={`navgroup-${group.id}`}
-        className={`${rowBase} ${lit ? "bg-[#1a1927] text-zinc-100" : containsActive ? "bg-white/[0.04] text-zinc-200" : "text-zinc-500 hover:bg-white/[0.05] hover:text-zinc-200"}`}
+        className={`${rowBase} ${lit ? "bg-[#3b5bf0]/[0.10] text-zinc-100" : containsActive ? "bg-white/[0.04] text-zinc-200" : "text-zinc-500 hover:bg-white/[0.05] hover:text-zinc-200"}`}
       >
         {Icon && (
-          <Icon className={`h-[18px] w-[18px] shrink-0 transition-colors duration-200 ${lit ? "text-[#a48df4]" : containsActive ? "text-zinc-400" : "text-zinc-600 group-hover:text-zinc-400"}`} />
+          <Icon className={`h-[18px] w-[18px] shrink-0 transition-colors duration-200 ${lit ? "text-[#3b5bf0]" : containsActive ? "text-zinc-400" : "text-zinc-600 group-hover:text-zinc-400"}`} />
         )}
         <span className="truncate">{group.label}</span>
-        {containsActive && !open && <span className="h-1.5 w-1.5 rounded-full bg-[#a48df4] shadow-[0_0_6px_rgba(164,141,244,0.7)]" />}
+        {containsActive && !open && <span className="h-1.5 w-1.5 rounded-full bg-[#3b5bf0] shadow-[0_0_6px_rgba(59,91,240,0.7)]" />}
         <ChevronDown
-          className={`ml-auto h-4 w-4 shrink-0 transition-transform duration-300 ${lit ? "text-[#a48df4]" : "text-zinc-600"} ${
+          className={`ml-auto h-4 w-4 shrink-0 transition-transform duration-300 ${lit ? "text-[#3b5bf0]" : "text-zinc-600"} ${
             open ? "rotate-180" : "rotate-0"
           }`}
         />
@@ -787,7 +814,7 @@ export default function DashboardLayout() {
               onClick={() => setPopup("premium")}
               data-testid="premium-link"
               title={sidebarCompact ? "Upgrade to Premium" : undefined}
-              className={`group flex h-[54px] w-full cursor-pointer items-center rounded-xl border border-white/[0.06] bg-[#0b0b0c] text-left outline-none transition-colors duration-200 hover:border-white/15 focus-visible:ring-2 focus-visible:ring-[#a48df4]/60 ${sidebarCompact ? "justify-center px-2" : "gap-3 px-3"}`}
+              className={`group flex h-[54px] w-full cursor-pointer items-center rounded-xl border border-white/[0.06] bg-[#0b0b0c] text-left outline-none transition-colors duration-200 hover:border-white/15 focus-visible:ring-2 focus-visible:ring-[#3b5bf0]/60 ${sidebarCompact ? "justify-center px-2" : "gap-3 px-3"}`}
             >
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#111113] text-zinc-400">
                 <Star className="h-4 w-4 fill-current transition-transform duration-200 group-hover:scale-110" />
@@ -940,7 +967,7 @@ export default function DashboardLayout() {
                 to={t.to}
                 className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium outline-none transition-colors duration-200 ${
                   active
-                    ? "border-[#a48df4]/30 bg-[#1a1927] text-white"
+                    ? "border-[#3b5bf0]/30 bg-[#3b5bf0]/[0.10] text-white"
                     : "border-white/[0.06] bg-[#0a0a0b] text-zinc-600 hover:text-zinc-200"
                 }`}
               >

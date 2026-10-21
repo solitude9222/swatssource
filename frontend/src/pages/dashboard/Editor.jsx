@@ -50,6 +50,8 @@ export const CARD_STYLE_PRESETS = {
     card_outline_alpha: 33,
     card_radius: 24,
     card_background: true,
+    card_bg_enabled: true,
+    card_transparent: false,
     card_glow: true,
   },
   frosted: {
@@ -61,6 +63,8 @@ export const CARD_STYLE_PRESETS = {
     card_outline_color: "#ffffff",
     card_radius: 24,
     card_background: true,
+    card_bg_enabled: true,
+    card_transparent: false,
     card_glow: false,
   },
   "frosted-soft": {
@@ -72,6 +76,8 @@ export const CARD_STYLE_PRESETS = {
     card_outline_color: "#ffffff",
     card_radius: 24,
     card_background: true,
+    card_bg_enabled: true,
+    card_transparent: false,
     card_glow: false,
   },
   outlined: {
@@ -82,6 +88,8 @@ export const CARD_STYLE_PRESETS = {
     card_outline_alpha: 100,
     card_radius: 24,
     card_background: true,
+    card_bg_enabled: true,
+    card_transparent: false,
     card_glow: false,
   },
   aurora: {
@@ -92,6 +100,8 @@ export const CARD_STYLE_PRESETS = {
     card_outline_alpha: 45,
     card_radius: 24,
     card_background: true,
+    card_bg_enabled: true,
+    card_transparent: false,
     card_glow: true,
   },
   transparent: {
@@ -102,6 +112,8 @@ export const CARD_STYLE_PRESETS = {
     card_outline_alpha: 0,
     card_radius: 24,
     card_background: false,
+    card_bg_enabled: false,
+    card_transparent: true,
     card_glow: false,
   },
 };
@@ -879,8 +891,15 @@ export default function Editor() {
 
   const handleCardStylePreset = (styleId) => {
     const preset = CARD_STYLE_PRESETS[styleId] || { card_style: styleId };
+    const isTransparent = styleId === "transparent";
     setP((prev) => ({
       ...prev,
+      // Clear legacy transparent overrides so the chosen style can render.
+      // Old profiles may have card_bg_enabled:false or card_transparent:true
+      // from a deleted editor panel, which used to force every style to look
+      // identical (always transparent) regardless of the picked preset.
+      card_bg_enabled: isTransparent ? false : true,
+      card_transparent: isTransparent ? true : false,
       ...preset,
       card_outline_color: preset.card_outline_color || prev.card_outline_color || accentColor,
       card_glow_color: preset.card_glow_color || prev.card_glow_color || accentColor,
