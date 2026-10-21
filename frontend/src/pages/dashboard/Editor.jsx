@@ -727,6 +727,7 @@ export default function Editor() {
   const [activeTextSlot, setActiveTextSlot] = useState("name"); // "name" | "alias" | "bio"
 
   const [p, setP] = useState({ ...user.profile });
+  const [displayName, setDisplayName] = useState(user.display_name || "");
   const [saving, setSaving] = useState(false);
   const [autoSave, setAutoSave] = useState(() => localStorage.getItem("swats_editor_autosave") === "true");
   const autoSaveTimer = useRef(null);
