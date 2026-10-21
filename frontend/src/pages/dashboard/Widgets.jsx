@@ -323,6 +323,7 @@ export const getWidgetDisplayOptions = (widget) => {
     case "discord":
     default:
       return [
+        { key: "show_banner", label: "Show banner", desc: "Display the server or profile header banner image." },
         { key: "show_online", label: "Show online", desc: "Display current online member count for servers." },
         { key: "show_members", label: "Show members", desc: "Display total member count for servers." },
         { key: "show_boost", label: "Show boost level", desc: "Display the Discord server boost level." },
@@ -375,6 +376,8 @@ const DEFAULT_SHARED = {
   bgColor: "#ffffff",
   bgOpacity: 0.05,
   bgBlur: 0,
+  padding: 10,
+  density: "compact",
 };
 
 const snapshot = (widgets, shared, tracks, trackStyle, shuffle, volume, trackPosition) =>
@@ -572,6 +575,10 @@ export default function Widgets() {
   const [bgBlur, setBgBlur] = useState(
     Number.isFinite(Number(user.profile?.widget_bg_blur)) ? Number(user.profile.widget_bg_blur) : DEFAULT_SHARED.bgBlur
   );
+  const [padding, setPadding] = useState(
+    Number.isFinite(Number(user.profile?.widget_padding)) ? Number(user.profile.widget_padding) : DEFAULT_SHARED.padding
+  );
+  const [density, setDensity] = useState(user.profile?.widget_density || DEFAULT_SHARED.density);
 
   // Audio state
   const [tracks, setTracks] = useState(user.profile?.tracks || []);
@@ -593,7 +600,7 @@ export default function Widgets() {
     }
   }, [activeWidgets.length, activePreviewIdx]);
 
-  const currentShared = { borderWidth, borderOpacity, borderColor, bgColor, bgOpacity, bgBlur };
+  const currentShared = { borderWidth, borderOpacity, borderColor, bgColor, bgOpacity, bgBlur, padding, density };
   const baseline = useRef(
     snapshot(
       user.profile?.widgets || [],
@@ -604,6 +611,8 @@ export default function Widgets() {
         bgColor: user.profile?.widget_bg_color || DEFAULT_SHARED.bgColor,
         bgOpacity: Number.isFinite(Number(user.profile?.widget_bg_opacity)) ? Number(user.profile.widget_bg_opacity) : DEFAULT_SHARED.bgOpacity,
         bgBlur: Number.isFinite(Number(user.profile?.widget_bg_blur)) ? Number(user.profile.widget_bg_blur) : DEFAULT_SHARED.bgBlur,
+        padding: Number.isFinite(Number(user.profile?.widget_padding)) ? Number(user.profile.widget_padding) : DEFAULT_SHARED.padding,
+        density: user.profile?.widget_density || DEFAULT_SHARED.density,
       },
       user.profile?.tracks || [],
       savedTrackStyle,
@@ -719,6 +728,8 @@ export default function Widgets() {
     setBgColor(DEFAULT_SHARED.bgColor);
     setBgOpacity(DEFAULT_SHARED.bgOpacity);
     setBgBlur(DEFAULT_SHARED.bgBlur);
+    setPadding(DEFAULT_SHARED.padding);
+    setDensity(DEFAULT_SHARED.density);
     toast.success("Reset shared widget design to defaults");
   };
 
@@ -734,6 +745,8 @@ export default function Widgets() {
         widget_bg_color: bgColor,
         widget_bg_opacity: bgOpacity,
         widget_bg_blur: bgBlur,
+        widget_padding: padding,
+        widget_density: density,
         tracks,
         track_style: trackStyle,
         track_shuffle: shuffle,
@@ -1303,6 +1316,50 @@ export default function Widgets() {
               step={1}
               onValueChange={([v]) => setBgBlur(v)}
             />
+          </div>
+
+          {/* 7. Card Thickness / Padding */}
+          <div className="p-4 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-zinc-200">Card Thickness / Padding</span>
+              <span className="text-xs font-mono2 text-white font-bold">{padding}px</span>
+            </div>
+            <Slider
+              value={[padding]}
+              min={4}
+              max={24}
+              step={1}
+              onValueChange={([v]) => setPadding(v)}
+            />
+          </div>
+
+          {/* 8. Card Density */}
+          <div className="p-4 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] space-y-3 sm:col-span-2 lg:col-span-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-zinc-200">Widget Density</span>
+              <span className="text-xs font-mono2 text-brand-300 font-bold capitalize">{density}</span>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { id: "minimal", label: "Minimal (Thin)", hint: "Ultra slim card profile" },
+                { id: "compact", label: "Compact", hint: "Streamlined compact sizing" },
+                { id: "normal", label: "Normal", hint: "Standard spacious cards" },
+              ].map((d) => (
+                <button
+                  key={d.id}
+                  type="button"
+                  onClick={() => setDensity(d.id)}
+                  className={`px-3 py-2 rounded-xl text-left border transition-all cursor-pointer ${
+                    density === d.id
+                      ? "border-[#a48df4] bg-[#a48df4]/10 text-white shadow-sm"
+                      : "border-[#2a2a2e] bg-[#141416] text-zinc-400 hover:text-zinc-200 hover:border-white/20"
+                  }`}
+                >
+                  <div className="text-xs font-bold leading-tight">{d.label}</div>
+                  <div className="text-[10px] text-zinc-500 truncate mt-0.5">{d.hint}</div>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 

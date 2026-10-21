@@ -58,7 +58,10 @@ export function dismissAll() {
 }
 
 function push(type, message, options = {}) {
-  const id = options.id ?? nextId++;
+  const normMessage = normalize(message);
+  // Remove duplicates: if an active toast with the same type and message exists, refresh its timer and reuse id
+  const existing = items.find((entry) => !entry.closing && entry.type === type && entry.message === normMessage && (!options.id || entry.id === options.id));
+  const id = options.id ?? (existing ? existing.id : nextId++);
   const duration = options.duration ?? DEFAULT_DURATION;
 
   const item = {
@@ -66,10 +69,11 @@ function push(type, message, options = {}) {
     type,
     title: options.title ?? null,
     description: options.description ?? null,
-    message: normalize(message),
+    message: normMessage,
     // Kept so the card can draw a countdown bar that matches its own lifetime.
     duration,
     closing: false,
+    timestamp: Date.now(),
   };
 
   // Re-adding an existing id replaces it in place rather than duplicating.
@@ -96,19 +100,19 @@ export const toast = {
 };
 
 const VARIANTS = {
-  success: { Icon: CheckCircle2, accent: "text-emerald-300", ring: "ring-emerald-400/25", chip: "bg-emerald-500/15", bar: "bg-emerald-400", edge: "border-emerald-400/25" },
-  error: { Icon: AlertCircle, accent: "text-rose-300", ring: "ring-rose-400/25", chip: "bg-rose-500/15", bar: "bg-rose-400", edge: "border-rose-400/25" },
-  warning: { Icon: AlertTriangle, accent: "text-amber-300", ring: "ring-amber-400/25", chip: "bg-amber-500/15", bar: "bg-amber-400", edge: "border-amber-400/25" },
-  info: { Icon: Info, accent: "text-brand-300", ring: "ring-brand-400/25", chip: "bg-brand-500/15", bar: "bg-brand-400", edge: "border-brand-400/25" },
-  loading: { Icon: Loader2, accent: "text-brand-300", ring: "ring-brand-400/25", chip: "bg-brand-500/15", bar: "bg-brand-400", edge: "border-brand-400/25" },
+  success: { Icon: CheckCircle2, accent: "text-emerald-300", ring: "ring-emerald-400/25", chip: "bg-emerald-500/15 border-emerald-500/30", bar: "bg-emerald-400", edge: "border-emerald-400/25" },
+  error: { Icon: AlertCircle, accent: "text-rose-300", ring: "ring-rose-400/25", chip: "bg-rose-500/15 border-rose-500/30", bar: "bg-rose-400", edge: "border-rose-400/25" },
+  warning: { Icon: AlertTriangle, accent: "text-amber-300", ring: "ring-amber-400/25", chip: "bg-amber-500/15 border-amber-500/30", bar: "bg-amber-400", edge: "border-amber-400/25" },
+  info: { Icon: Info, accent: "text-brand-300", ring: "ring-brand-400/25", chip: "bg-brand-500/15 border-brand-500/30", bar: "bg-brand-400", edge: "border-brand-400/25" },
+  loading: { Icon: Loader2, accent: "text-brand-300", ring: "ring-brand-400/25", chip: "bg-brand-500/15 border-brand-500/30", bar: "bg-brand-400", edge: "border-brand-400/25" },
 };
 
-/* One notification.
+/* One notification card.
  *
  * Solid `#0b0b10` rather than a translucent blur: at /95 behind a backdrop blur
  * the page showed through a toast and its text lost contrast over busy profile
  * backgrounds. The accent hairline down the left edge and the countdown bar
- * along the bottom are what make the type readable at a glance. */
+ * along the bottom make the card instantly readable and sleek. */
 function NotificationCard({ item }) {
   const variant = VARIANTS[item.type] || VARIANTS.info;
   const { Icon } = variant;
@@ -117,22 +121,22 @@ function NotificationCard({ item }) {
   return (
     <li
       data-testid={`notification-${item.type}`}
-      className={`pointer-events-auto relative flex w-full items-start gap-3 overflow-hidden rounded-2xl border border-white/12 bg-[#0b0b10] px-4 py-3.5 text-left shadow-[0_24px_60px_-16px_rgba(0,0,0,0.95)] ring-1 backdrop-blur-xl ${variant.ring} ${variant.edge} ${
+      className={`pointer-events-auto relative flex w-full items-start gap-3.5 overflow-hidden rounded-2xl border border-white/12 bg-[#0b0b10] px-4 py-3.5 text-left shadow-[0_24px_60px_-16px_rgba(0,0,0,0.95)] ring-1 backdrop-blur-xl ${variant.ring} ${variant.edge} ${
         item.closing
-          ? "animate-out fade-out slide-out-to-top-2 duration-200"
-          : "animate-in fade-in slide-in-from-top-2 duration-200"
+          ? "animate-out fade-out slide-out-to-right-4 duration-200"
+          : "animate-in fade-in slide-in-from-right-4 duration-200"
       }`}
     >
       <span className={`absolute inset-y-0 left-0 w-0.5 ${variant.bar}`} aria-hidden="true" />
 
-      <span className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg ${variant.chip}`}>
+      <span className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border ${variant.chip}`}>
         <Icon className={`h-3.5 w-3.5 ${variant.accent} ${item.type === "loading" ? "animate-spin" : ""}`} />
       </span>
 
       <div className="min-w-0 flex-1">
-        {item.title && <div className="text-xs font-bold text-zinc-50">{item.title}</div>}
+        {item.title && <div className="text-xs font-bold text-zinc-100 tracking-tight">{item.title}</div>}
         {text && (
-          <div className={`text-xs leading-relaxed text-zinc-200 ${item.title ? "mt-0.5" : ""}`}>
+          <div className={`text-xs leading-relaxed text-zinc-200 font-medium ${item.title ? "mt-0.5 text-zinc-300" : ""}`}>
             {item.message || (item.title ? "" : null)}
           </div>
         )}
@@ -145,7 +149,7 @@ function NotificationCard({ item }) {
         type="button"
         aria-label="Dismiss notification"
         onClick={() => dismiss(item.id)}
-        className="-mr-1 -mt-1 shrink-0 rounded-lg p-1.5 text-zinc-500 outline-none transition-colors duration-200 hover:bg-white/5 hover:text-zinc-200 focus-visible:ring-2 focus-visible:ring-brand-500/50"
+        className="-mr-1 -mt-1 shrink-0 rounded-lg p-1.5 text-zinc-500 outline-none transition-colors duration-200 hover:bg-white/10 hover:text-zinc-200 focus-visible:ring-2 focus-visible:ring-brand-500/50 cursor-pointer"
       >
         <X className="h-3.5 w-3.5" />
       </button>
@@ -154,7 +158,7 @@ function NotificationCard({ item }) {
         <span
           data-testid="notification-timer"
           aria-hidden="true"
-          className={`absolute bottom-0 left-0 h-0.5 ${variant.bar} opacity-60`}
+          className={`absolute bottom-0 left-0 h-0.5 ${variant.bar} opacity-75`}
           style={{ animation: `sw-toast-timer ${item.duration}ms linear forwards` }}
         />
       )}
@@ -172,7 +176,7 @@ export function Toaster() {
       aria-live="polite"
       className="pointer-events-none fixed bottom-0 right-0 z-[9999] flex flex-col items-end p-3 sm:p-5"
     >
-      <ol className="flex w-full max-w-sm flex-col gap-2.5">
+      <ol className="flex w-full max-w-sm flex-col-reverse gap-2.5">
         {list.map((item) => (
           <NotificationCard key={item.id} item={item} />
         ))}

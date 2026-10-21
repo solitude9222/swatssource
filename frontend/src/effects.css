@@ -243,17 +243,10 @@
 .sw-bg-canvas {
   mix-blend-mode: screen;
   isolation: isolate;
+  pointer-events: none;
 }
 
-.sw-bg-canvas[data-effect="rain"],
-.sw-bg-canvas[data-effect="shooting-stars"],
-.sw-bg-canvas[data-effect="thunder"],
-.sw-bg-canvas[data-effect="constellation"],
-.sw-bg-canvas[data-effect="galaxy"],
-.sw-bg-canvas[data-effect="rain-fall"],
 .sw-bg-canvas[data-effect="bleeding"],
-.sw-bg-canvas[data-effect="tv"],
-.sw-bg-canvas[data-effect="snow-flake"],
 .sw-bg-canvas[data-effect="frosted"] {
   mix-blend-mode: normal;
 }

@@ -83,8 +83,8 @@ const rain = (W, H) => {
   const D = [...Array(110)].map(mk);
   return (c) => {
     const g = c.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, '#0b0e13');
-    g.addColorStop(1, '#05070a');
+    g.addColorStop(0, 'rgba(11, 14, 19, 0.04)');
+    g.addColorStop(1, 'rgba(5, 7, 10, 0.08)');
     c.fillStyle = g;
     c.fillRect(0, 0, W, H);
     if (R() < 0.04) {
@@ -230,7 +230,7 @@ const hearts = (W, H, n, sz) => {
 const vhs = (W, H, o, l) => {
   return (c, t) => {
     if (!o) {
-      c.fillStyle = '#0a0c11';
+      c.fillStyle = 'rgba(10, 12, 17, 0.08)';
       c.fillRect(0, 0, W, H);
     }
     const a = o ? 0.5 : 1;
@@ -258,8 +258,8 @@ const thunder = (W, H) => {
   const cl = [...Array(7)].map(() => ({ x: R() * W, y: R() * H * 0.5, r: 150 + R() * 200, s: 0.1 + R() * 0.2 }));
   return (c) => {
     const g = c.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, '#05070c');
-    g.addColorStop(1, '#0b0f18');
+    g.addColorStop(0, 'rgba(5, 7, 12, 0.04)');
+    g.addColorStop(1, 'rgba(11, 15, 24, 0.08)');
     c.fillStyle = g;
     c.fillRect(0, 0, W, H);
     for (const o of cl) {
@@ -333,7 +333,7 @@ const flakesFx = (W, H, n, s0) => {
    at .38, which covered everything behind the overlay in fog and left the
    ice unreadable; the branches now carry the look and the wash is a hint. */
 const frost = (W, H) => {
-  const n = 46, al = 0.14;
+  const n = 46, al = 0.05;
   const cv = document.createElement('canvas');
   cv.width = W;
   cv.height = H;
@@ -438,7 +438,7 @@ const dots = (W, H) => {
 };
 
 /* A dark plate for the effects that are their own full backdrop. */
-const plate = (c, W, H, top = '#0b0e13', bottom = '#05070a') => {
+const plate = (c, W, H, top = 'rgba(11, 14, 19, 0.04)', bottom = 'rgba(5, 7, 10, 0.08)') => {
   const g = c.createLinearGradient(0, 0, 0, H);
   g.addColorStop(0, top);
   g.addColorStop(1, bottom);
@@ -462,7 +462,7 @@ const constellation = (W, H) => {
   const reach = Math.min(150, Math.max(90, Math.hypot(W, H) * 0.12));
   const reach2 = reach * reach;
   return (c, t) => {
-    plate(c, W, H, '#070a12', '#02030a');
+    plate(c, W, H, 'rgba(7, 10, 18, 0.04)', 'rgba(2, 3, 10, 0.08)');
     for (const o of pts) {
       o.x += o.vx + Math.sin(t / 4200 + o.p) * 0.04;
       o.y += o.vy + Math.cos(t / 5300 + o.p) * 0.03;
@@ -505,9 +505,9 @@ const galaxy = (W, H) => {
   cv.height = Math.max(2, Math.floor(H));
   const g = cv.getContext('2d');
   const base = g.createLinearGradient(0, 0, W, H);
-  base.addColorStop(0, '#06030f');
-  base.addColorStop(0.5, '#0a0618');
-  base.addColorStop(1, '#03020a');
+  base.addColorStop(0, 'rgba(6, 3, 15, 0.08)');
+  base.addColorStop(0.5, 'rgba(10, 6, 24, 0.12)');
+  base.addColorStop(1, 'rgba(3, 2, 10, 0.08)');
   g.fillStyle = base;
   g.fillRect(0, 0, W, H);
   const hues = [268, 288, 312, 196, 220, 334];
@@ -555,7 +555,7 @@ const rainFall = (W, H) => {
   });
   const drops = [...Array(n)].map(mk);
   return (c) => {
-    plate(c, W, H, '#080b12', '#04060b');
+    plate(c, W, H, 'rgba(8, 11, 18, 0.04)', 'rgba(4, 6, 11, 0.08)');
     c.strokeStyle = 'rgba(170,200,240,.34)';
     c.lineWidth = 1.2;
     c.lineCap = 'round';
@@ -594,9 +594,9 @@ const bleeding = (W, H) => {
   });
   const drops = [...Array(n)].map(() => mk(true));
   return (c, t) => {
-    plate(c, W, H, '#0d0508', '#040203');
+    plate(c, W, H, 'rgba(13, 5, 8, 0.04)', 'rgba(4, 2, 3, 0.08)');
     const glow = c.createRadialGradient(W / 2, 0, 0, W / 2, 0, Math.max(W, H) * 0.7);
-    glow.addColorStop(0, 'rgba(122,10,24,.26)');
+    glow.addColorStop(0, 'rgba(122,10,24,.18)');
     glow.addColorStop(1, 'rgba(122,10,24,0)');
     c.fillStyle = glow;
     c.fillRect(0, 0, W, H);

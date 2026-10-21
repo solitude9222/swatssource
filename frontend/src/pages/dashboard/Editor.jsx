@@ -1113,6 +1113,15 @@ export default function Editor() {
                           suffix="%"
                           onChange={(v) => set("bg_dim", v)}
                         />
+                        <SliderRow
+                          testid="slider-bg-blur"
+                          label="Background blur"
+                          value={Number(p.bg_blur ?? 0)}
+                          min={0}
+                          max={40}
+                          suffix="px"
+                          onChange={(v) => set("bg_blur", v)}
+                        />
                         <ColorPicker label="Tint" value={p.overlay_color || accentColor} onChange={(v) => set("overlay_color", v)} testid="background-tint" />
                       </div>
                     )}
@@ -1858,6 +1867,58 @@ export default function Editor() {
                       className={SWITCH_CLASS}
                       checked={p.audio_shuffle === true}
                       onCheckedChange={(v) => set("audio_shuffle", v)}
+                    />
+                  </div>
+
+                  {/* Autoplay Audio Toggle */}
+                  <div className="flex items-center justify-between p-4 rounded-xl border border-[#2a2a2e] bg-[#09090b]">
+                    <div>
+                      <div className="text-xs font-bold text-white">Autoplay Audio</div>
+                      <div className="text-[11px] text-zinc-400 mt-0.5">Start playback automatically on visitor arrival</div>
+                    </div>
+                    <Switch
+                      data-testid="autoplay-audio-toggle"
+                      className={SWITCH_CLASS}
+                      checked={p.autoplay_audio === true || p.audio_autoplay === true}
+                      onCheckedChange={(v) => {
+                        set("autoplay_audio", v);
+                        set("audio_autoplay", v);
+                      }}
+                    />
+                  </div>
+
+                  {/* Loop Mode Toggle */}
+                  <div className="flex items-center justify-between p-4 rounded-xl border border-[#2a2a2e] bg-[#09090b]">
+                    <div>
+                      <div className="text-xs font-bold text-white">Loop Mode</div>
+                      <div className="text-[11px] text-zinc-400 mt-0.5">Repeat current track indefinitely when it ends</div>
+                    </div>
+                    <Switch
+                      data-testid="loop-mode-toggle"
+                      className={SWITCH_CLASS}
+                      checked={p.audio_loop === true}
+                      onCheckedChange={(v) => set("audio_loop", v)}
+                    />
+                  </div>
+
+                  {/* Default Volume Slider */}
+                  <div className="p-4 rounded-xl border border-[#2a2a2e] bg-[#09090b] space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-xs font-bold text-white">Default Volume</div>
+                        <div className="text-[11px] text-zinc-400 mt-0.5">Initial volume when music starts playing</div>
+                      </div>
+                      <span className="text-xs font-mono2 text-white font-bold">{Number.isFinite(Number(p.audio_volume ?? p.track_volume)) ? Number(p.audio_volume ?? p.track_volume) : 80}%</span>
+                    </div>
+                    <Slider
+                      value={[Number.isFinite(Number(p.audio_volume ?? p.track_volume)) ? Number(p.audio_volume ?? p.track_volume) : 80]}
+                      min={0}
+                      max={100}
+                      step={1}
+                      onValueChange={([v]) => {
+                        set("audio_volume", v);
+                        set("track_volume", v);
+                      }}
                     />
                   </div>
                 </div>

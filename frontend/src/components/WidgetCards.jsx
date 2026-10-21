@@ -212,9 +212,13 @@ function WidgetShell({
   data,
 }) {
   const full = Number(w.span ?? 2) === 2;
-  const tight = w?.compact === true;
+  const sharedProfile = useContext(WidgetProfileContext) || w?.profile;
+  const hasShared = !!sharedProfile;
+  const tight = w?.compact === true || w?.density === "compact" || sharedProfile?.widget_density === "compact";
+  const customPad = w?.card_padding != null ? Number(w.card_padding) : (sharedProfile?.widget_padding != null ? Number(sharedProfile.widget_padding) : null);
   // Modern, sleek card sizing without bloated padding
-  const pad = tight ? "p-2.5 sm:p-3" : "p-3 sm:p-3.5";
+  const pad = customPad != null ? "" : (tight ? "p-2 sm:p-2.5" : "p-3 sm:p-3.5");
+  const padStyle = customPad != null ? { padding: `${customPad}px` } : undefined;
   const bgEnabled = w?.background !== false && w?.bg_enabled !== false && w?.show_bg !== false && !w?.transparent && w?.card_style !== "transparent";
   const { tipProps, tipNode } = useTooltip(w?.tooltip);
   const popoutUrl = resolveWidgetUrl(w, data);
@@ -233,9 +237,6 @@ function WidgetShell({
       window.open(popoutUrl, "_blank", "noopener,noreferrer");
     }
   };
-
-  const sharedProfile = useContext(WidgetProfileContext) || w?.profile;
-  const hasShared = !!sharedProfile;
 
   const toPct = (v, fallback) => {
     if (v == null || v === "") return fallback;
@@ -280,9 +281,12 @@ function WidgetShell({
   const blurVal = numOr(w?.card_bg_blur ?? defBgBlur, defBgBlur);
 
   let bgImage = "";
+  const allowBanner = (w?.show_banner === true || w?.artwork_bg === "banner") && w?.show_banner !== false && w?.artwork_bg !== "none";
   if (w?.artwork_bg && w.artwork_bg !== "none") {
     if (w.artwork_bg === "banner") {
-      bgImage = data?.banner || data?.banner_url || data?.backdrop || (w.banner_url ? fileUrl(w.banner_url) : "");
+      if (w.show_banner !== false) {
+        bgImage = data?.banner || data?.banner_url || data?.backdrop || (w.banner_url ? fileUrl(w.banner_url) : "");
+      }
     } else if (w.artwork_bg === "splash") {
       bgImage = data?.splash || data?.banner || "";
     } else if (w.artwork_bg === "thumbnail") {
@@ -290,7 +294,7 @@ function WidgetShell({
     } else if (w.artwork_bg === "avatar") {
       bgImage = data?.icon || data?.avatar || "";
     }
-  } else if (!w?.artwork_bg && (data?.banner || data?.splash)) {
+  } else if (!w?.artwork_bg && allowBanner && (data?.banner || data?.splash)) {
     bgImage = data?.banner || data?.splash || (w?.banner_url ? fileUrl(w.banner_url) : "");
   }
 
@@ -339,7 +343,7 @@ function WidgetShell({
       ) : (
         <div
           className={`${pad} text-left relative overflow-hidden transition duration-300 ${bgEnabled ? "widget-card-sheen" : ""} ${isClickableCard ? "cursor-pointer hover:brightness-110 active:scale-[0.99]" : ""} ${innerClassName}`}
-          style={{ ...surface, ...innerStyle }}
+          style={{ ...surface, ...padStyle, ...innerStyle }}
           onClick={isClickableCard ? handleOpenAction : undefined}
           data-testid={isClickableCard ? "widget-popout-link" : undefined}
           role={isClickableCard ? "button" : undefined}
@@ -1067,7 +1071,8 @@ function DiscordProfile({ w, accent, data, status, error, refresh }) {
 
   // Official Discord client popout style
   if (style === "discord") {
-    const bannerUrl = data.banner || "";
+    const showPopoutBanner = (w.show_banner === true || w.artwork_bg === "banner" || w.discord_style === "banner") && w.show_banner !== false && w.artwork_bg !== "none";
+    const bannerUrl = showPopoutBanner ? (data.banner || "") : "";
     return (
       <div className="-m-4 overflow-hidden rounded-2xl" style={{ background: DC.panel }} data-testid="discord-profile-style">
         <div
@@ -1262,9 +1267,10 @@ function DiscordServer({ w, accent, data, status, error, refresh }) {
   }
 
   // Classic: Authentic Discord Invite Preview (Rich card matching Studio design)
+  const showClassicBanner = (w.show_banner === true || w.artwork_bg === "banner") && w.show_banner !== false && w.artwork_bg !== "none";
   return (
     <div className="relative flex flex-col gap-2.5 py-1">
-      {bannerSrc && (
+      {bannerSrc && showClassicBanner && (
         <div className="relative -mx-3.5 -mt-2.5 mb-2 h-20 overflow-hidden rounded-xl border border-white/10 shadow-inner">
           <img src={bannerSrc} alt="" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#0c0d12] via-transparent to-black/30" />

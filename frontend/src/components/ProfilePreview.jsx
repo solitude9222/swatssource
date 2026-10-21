@@ -413,6 +413,7 @@ function TrackCardPreview({ track, style, accent, volume = 0.8, onTime, autoPlay
       // Load eagerly: an autoplay start that has to wait for metadata lands a
       // second or more late, which reads as "the song never started".
       el.preload = "auto";
+      el.loop = Boolean(profile.audio_loop);
       el.volume = muted ? 0 : volume;
       el.onloadedmetadata = () => {
         if (Number.isFinite(el.duration)) setDuration(el.duration);
@@ -1355,7 +1356,7 @@ function SlideshowView({
       // this layout felt heavier to scrub than the others.
       // The picker's colour IS the page colour when no media sits behind the
       // slides — the same rule the static layouts follow.
-      style={{ backgroundColor: bg ? "#050505" : (p.background_color || "#050505") }}
+      style={{ backgroundColor: pageBg }}
     >
       {/* Background layers: effects, video/image background and overlays */}
       <div className={`${embedded ? "absolute" : "fixed"} inset-0 pointer-events-none`}>
@@ -1624,7 +1625,8 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
     return shuffled;
   }, [p.tracks, p.track_shuffle]);
 
-  const trackVolume = Math.max(0, Math.min(100, Number(p.track_volume ?? 80))) / 100;
+  const trackVolume = Math.max(0, Math.min(100, Number(p.audio_volume ?? p.track_volume ?? 80))) / 100;
+  const shouldAutoPlay = (autoPlayAudio || p.autoplay_audio === true || p.audio_autoplay === true) && !embedded;
 
   // Tilt settings are mirrored into a ref so the pointer handlers below never
   // have to close over, or be re-created for, the current values.
@@ -1850,14 +1852,14 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
     <>
       {bg && (
         bg.match(/\.(mp4|webm)(\?|$)/i)
-          ? <video src={bg} autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover" style={{ opacity: Number(p.bg_opacity ?? 100) / 100 }} />
-          : <img src={bg} alt="" className="absolute inset-0 w-full h-full object-cover sw-bg-drift" style={{ opacity: Number(p.bg_opacity ?? 100) / 100 }} />
+          ? <video src={bg} autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover" style={{ opacity: Number(p.bg_opacity ?? 100) / 100, filter: p.bg_blur ? `blur(${p.bg_blur}px)` : undefined }} />
+          : <img src={bg} alt="" className="absolute inset-0 w-full h-full object-cover sw-bg-drift" style={{ opacity: Number(p.bg_opacity ?? 100) / 100, filter: p.bg_blur ? `blur(${p.bg_blur}px)` : undefined }} />
       )}
       <div className="absolute inset-0" style={{ background: `rgba(0,0,0,${((Number(p.bg_dim ?? 50)) / 100).toFixed(2)})` }} />
       {p.background_effect && <BackgroundEffect effect={p.background_effect} />}
       {/* Overlays sit above cards with pointer-events-none so all interactive elements remain clickable */}
       {p.overlay && <OverlayEffect effect={p.overlay} color={accent} opacity={p.overlay_opacity ?? 100} zIndex="z-[25]" />}
-      {p.overlay_enabled && <div className="absolute inset-0 pointer-events-none z-[25]" style={{ background: withA(p.overlay_color || accent, 18) }} />}
+      {p.overlay_enabled && <div className="absolute inset-0 pointer-events-none z-[25]" style={{ background: withA(p.overlay_color || accent, p.overlay_opacity ?? 18) }} />}
       {/* The lifted player: fixed to page coordinates, above the
           card. Every layout includes BgLayers, so the pin works on Minimal,
           Banner and Floating alike. The widget cards stay (tracks.slice(1))
@@ -1873,7 +1875,7 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
             accent={accent}
             volume={trackVolume}
             embedded={embedded}
-            autoPlay={autoPlayAudio && !embedded}
+            autoPlay={shouldAutoPlay}
             profile={p}
           />
         </div>
@@ -1889,7 +1891,7 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
           accent={accent}
           volume={trackVolume}
           embedded={embedded}
-          autoPlay={autoPlayAudio && !embedded}
+          autoPlay={shouldAutoPlay}
           profile={p}
         />
       )}
@@ -2320,7 +2322,7 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
         data-testid="profile-preview"
         data-layout={layout}
         className={`relative w-full ${minH} flex flex-col items-center ${fitScale < 1 ? "justify-start pt-4" : "justify-center"} p-4 sm:p-6`}
-        style={{ background: bg ? undefined : pageBg }}
+        style={{ background: pageBg }}
       >
         {BgLayers}
         {backgroundAudio && <BackgroundAudioButton disableBorder={p.disable_mute_border} />}
@@ -2448,7 +2450,7 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
         data-testid="profile-preview"
         data-layout={layout}
         className={`relative w-full ${minH} flex flex-col items-center ${fitScale < 1 ? "justify-start pt-4" : "justify-center"} p-4 sm:p-8`}
-        style={{ background: bg ? undefined : pageBg }}
+        style={{ background: pageBg }}
       >
         {BgLayers}
         {backgroundAudio && <BackgroundAudioButton disableBorder={p.disable_mute_border} />}
@@ -2560,7 +2562,7 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
         data-testid="profile-preview"
         data-layout={layout}
         className={`relative w-full ${minH} flex flex-col items-center ${fitScale < 1 ? "justify-start" : "justify-center"} p-4 sm:p-8 pt-24`}
-        style={{ background: bg ? undefined : pageBg }}
+        style={{ background: pageBg }}
       >
         {BgLayers}
         {backgroundAudio && <BackgroundAudioButton disableBorder={p.disable_mute_border} />}
