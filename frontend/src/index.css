@@ -52,10 +52,10 @@ body.dash-theme {
     --brand-900: 62 34 139;
     --brand-950: 31 14 84;
 
-    /* dashboard surfaces: pitch black primary with sleek checkered background */
-    --sw-bg: #000000;
-    --sw-surface: #050505;
-    --sw-surface-2: #09090b;
+    /* Quiet, solid surfaces keep dashboard content readable and distinct. */
+    --sw-bg: #09090b;
+    --sw-surface: #111113;
+    --sw-surface-2: #18181b;
     --sw-accent: #a48df4;
     --sw-accent-2: #8c71e8;
     --sw-border: rgba(255, 255, 255, 0.08);
@@ -73,10 +73,10 @@ body.dash-theme {
     --border: 0 0% 12%;
     --input: 0 0% 12%;
 
-    background-color: #000000;
-    background-image: repeating-conic-gradient(#08080a 0% 25%, #000000 0% 50%);
-    background-size: 24px 24px;
-    background-attachment: fixed;
+    background-color: #09090b;
+    background-image: none;
+    background-attachment: scroll;
+    font-family: 'Inter', system-ui, sans-serif;
 }
 
 body.dash-theme ::selection { background: rgba(164, 141, 244, 0.4); color: #fff; }
@@ -105,10 +105,9 @@ body.dash-theme [tabindex]:focus-visible {
 }
 
 .dash-checkered-bg {
-    background-color: #000000;
-    background-image: repeating-conic-gradient(#08080a 0% 25%, #000000 0% 50%);
-    background-size: 24px 24px;
-    background-attachment: fixed;
+    background-color: #09090b;
+    background-image: none;
+    background-attachment: scroll;
 }
 
 /* The floating sidebar panel and the cards share pitch black glass + soft drop. */
@@ -182,11 +181,11 @@ body {
    Everything under the dashboard shell renders the same headings in Inter
    instead — same sizes and weights, plainer face. Profiles keep Unbounded. */
 .dash-font {
-    font-family: 'Fredoka', 'Quicksand', 'Inter', system-ui, sans-serif;
+    font-family: 'Inter', system-ui, sans-serif;
 }
 .dash-font .font-display,
 .dash-font .font-syne {
-    font-family: 'Fredoka', 'Quicksand', system-ui, sans-serif;
+    font-family: 'Inter', system-ui, sans-serif;
 }
 .font-mono2 { font-family: 'JetBrains Mono', monospace; }
 .font-playfair { font-family: 'Playfair Display', serif; }
@@ -558,5 +557,188 @@ body.custom-cursor-active * {
 .stagger-children > *:nth-child(10) { animation-delay: 0.29s; }
 .stagger-children > *:nth-child(11) { animation-delay: 0.32s; }
 .stagger-children > *:nth-child(12) { animation-delay: 0.35s; }
+
+/* ── Dashboard system ────────────────────────────────────────────────────────
+
+   One motion language for the whole dashboard: a single easing curve (fast start,
+   long soft landing), short durations, and transform/opacity only so the page
+   stays at full frame rate. Everything here is scoped to body.dash-theme. */
+body.dash-theme {
+    --dash-ease: cubic-bezier(0.22, 1, 0.36, 1);
+    --dash-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+    --dash-dur-fast: 180ms;
+    --dash-dur: 320ms;
+}
+
+@keyframes dash-rise {
+    from { opacity: 0; transform: translate3d(0, 10px, 0); }
+    to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@keyframes dash-route-in {
+    from { opacity: 0; transform: translate3d(0, 6px, 0); }
+    to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@keyframes dash-fade {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+@keyframes dash-shimmer {
+    0%   { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+@keyframes dash-bar-grow {
+    from { transform: scaleX(0); }
+    to   { transform: scaleX(1); }
+}
+
+/* Route change: the outlet fades and settles in, so navigation never snaps. */
+body.dash-theme .dash-route {
+    animation: dash-fade var(--dash-dur) var(--dash-ease) both;
+}
+
+/* Entry for cards and sections. Use .dash-rise, or wrap a list in .dash-stagger. */
+body.dash-theme .dash-rise {
+    animation: dash-rise 420ms var(--dash-ease) both;
+}
+body.dash-theme .dash-stagger > * {
+    animation: dash-rise 420ms var(--dash-ease) both;
+}
+body.dash-theme .dash-stagger > *:nth-child(1) { animation-delay: 30ms; }
+body.dash-theme .dash-stagger > *:nth-child(2) { animation-delay: 60ms; }
+body.dash-theme .dash-stagger > *:nth-child(3) { animation-delay: 90ms; }
+body.dash-theme .dash-stagger > *:nth-child(4) { animation-delay: 120ms; }
+body.dash-theme .dash-stagger > *:nth-child(5) { animation-delay: 150ms; }
+body.dash-theme .dash-stagger > *:nth-child(6) { animation-delay: 180ms; }
+body.dash-theme .dash-stagger > *:nth-child(n+7) { animation-delay: 210ms; }
+
+/* Cards: a short lift and a violet hairline on hover, no bounce. */
+body.dash-theme .dash-card-lift {
+    transition:
+        transform var(--dash-dur-fast) var(--dash-ease),
+        border-color var(--dash-dur-fast) var(--dash-ease),
+        box-shadow var(--dash-dur) var(--dash-ease),
+        background-color var(--dash-dur-fast) var(--dash-ease);
+}
+body.dash-theme .dash-card-lift:hover {
+    transform: translate3d(0, -2px, 0);
+    border-color: rgba(164, 141, 244, 0.35);
+    box-shadow: 0 16px 40px -24px rgba(164, 141, 244, 0.45);
+}
+
+/* Buttons: quick press feedback and a consistent transition on every control. */
+body.dash-theme button,
+body.dash-theme a {
+    transition-timing-function: var(--dash-ease);
+}
+body.dash-theme .dash-press:active {
+    transform: scale(0.98);
+}
+
+/* Tabs and segmented controls: the active indicator glides instead of popping. */
+body.dash-theme .dash-segment {
+    position: relative;
+    display: inline-flex;
+    gap: 4px;
+    padding: 4px;
+    border-radius: 0.75rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+body.dash-theme .dash-segment-btn {
+    position: relative;
+    z-index: 1;
+    padding: 6px 12px;
+    border-radius: 0.5rem;
+    font-size: 11px;
+    font-weight: 600;
+    color: #a1a1aa;
+    transition: color var(--dash-dur-fast) var(--dash-ease);
+}
+body.dash-theme .dash-segment-btn:hover { color: #e4e4e7; }
+body.dash-theme .dash-segment-btn[aria-selected="true"],
+body.dash-theme .dash-segment-btn.is-active { color: #ffffff; }
+body.dash-theme .dash-segment-thumb {
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    left: 0;
+    border-radius: 0.5rem;
+    background: #a48df4;
+    box-shadow: 0 6px 18px -8px rgba(164, 141, 244, 0.8);
+    transition: transform 360ms var(--dash-ease), width 360ms var(--dash-ease);
+}
+
+/* Sortable table headers: the arrow rotates and the header lifts on hover. */
+body.dash-theme .dash-sort-th {
+    cursor: pointer;
+    user-select: none;
+    transition: color var(--dash-dur-fast) var(--dash-ease);
+}
+body.dash-theme .dash-sort-th:hover { color: #e4e4e7; }
+body.dash-theme .dash-sort-icon {
+    display: inline-block;
+    transition: transform var(--dash-dur) var(--dash-ease), opacity var(--dash-dur-fast) var(--dash-ease);
+    opacity: 0.35;
+}
+body.dash-theme .dash-sort-th[aria-sort] .dash-sort-icon { opacity: 1; color: #a48df4; }
+body.dash-theme .dash-sort-th[aria-sort="descending"] .dash-sort-icon { transform: rotate(180deg); }
+
+/* Progress bars fill from the left on mount rather than appearing full. */
+body.dash-theme .dash-progress-fill {
+    transform-origin: left center;
+    animation: dash-bar-grow 700ms var(--dash-ease) both;
+}
+
+/* Skeleton shimmer for loading states. */
+body.dash-theme .dash-skeleton {
+    background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 75%);
+    background-size: 200% 100%;
+    animation: dash-shimmer 1.6s linear infinite;
+    border-radius: 0.75rem;
+}
+
+/* Dialogs and popups: fade the scrim, rise the panel. */
+body.dash-theme .dash-modal-scrim {
+    animation: dash-fade 200ms var(--dash-ease) both;
+}
+body.dash-theme .dash-modal-panel {
+    animation: dash-rise 300ms var(--dash-ease) both;
+}
+body.dash-theme .ov-scrim {
+    animation: dash-fade 220ms var(--dash-ease) both;
+}
+body.dash-theme .ov-modal {
+    animation: dash-rise 300ms var(--dash-ease) both;
+}
+
+/* A transformed ancestor turns position:fixed dialogs into local overlays.
+   Keep editor section entrances to opacity only so modal scrims cover the
+   viewport and blur the whole dashboard instead of one card. */
+body.dash-theme .animate-slide-up,
+body.dash-theme .stagger-children > * {
+    animation-name: dash-fade;
+}
+
+/* Reduced motion: keep the content, drop the movement. */
+@media (prefers-reduced-motion: reduce) {
+    body.dash-theme .dash-route,
+    body.dash-theme .ov-scrim,
+    body.dash-theme .ov-modal,
+    body.dash-theme .dash-rise,
+    body.dash-theme .dash-stagger > *,
+    body.dash-theme .dash-progress-fill,
+    body.dash-theme .dash-modal-scrim,
+    body.dash-theme .dash-modal-panel {
+        animation: none !important;
+    }
+    body.dash-theme .dash-card-lift:hover,
+    body.dash-theme .dash-press:active {
+        transform: none !important;
+    }
+    body.dash-theme .dash-segment-thumb,
+    body.dash-theme .dash-sort-icon {
+        transition: none !important;
+    }
+}
 
 

@@ -74,6 +74,7 @@ const NAV_GROUPS = [
 /* Admin section definitions */
 const ADMIN_SECTIONS = [
   { to: "/!/dashboard/admin", end: true, label: "Overview", icon: ShieldCheck, testid: "tab-admin-overview", ownHeader: true },
+  { to: "/!/dashboard/admin/ranked", label: "Ranked", icon: Trophy, testid: "tab-admin-ranked", desc: "Tiers, stages, overrides and recalculation" },
   { to: "/!/dashboard/admin/users", label: "Users", icon: Users, testid: "tab-admin-users", ownHeader: true },
   { to: "/!/dashboard/admin/invites", label: "Invites", icon: Ticket, testid: "tab-admin-invites", desc: "Create and review invite codes" },
   { to: "/!/dashboard/admin/notify", label: "Notify", icon: BellRing, testid: "tab-admin-notify", ownHeader: true },
@@ -656,9 +657,9 @@ export default function DashboardLayout() {
 
   return (
     <div className="dash-font dash-checkered-bg flex min-h-screen text-zinc-100">
-      {/* Sidebar: a floating rounded panel, like the reference. */}
-      <aside className="sticky top-0 hidden h-screen w-[308px] min-w-[308px] shrink-0 p-3 lg:block">
-        <div className="dash-panel flex h-full flex-col overflow-hidden rounded-[28px]">
+      {/* Navigation stays quiet and fixed while the page content owns the scroll. */}
+      <aside className="sticky top-0 hidden h-screen w-[292px] min-w-[292px] shrink-0 border-r border-white/[0.07] bg-[#0d0d0f] lg:block">
+        <div className="flex h-full flex-col overflow-hidden">
           {/* Logo */}
           <div className="flex h-[68px] shrink-0 items-center justify-center px-5">
             <Logo size="text-2xl" />
@@ -865,7 +866,9 @@ export default function DashboardLayout() {
         </div>
 
         <main id="dashboard-main" className="mx-auto w-full min-w-0 flex-1 p-5 pt-5 sm:p-8 sm:pt-6">
-          <Outlet />
+          <div key={`${pathname}${search}`} className="dash-route">
+            <Outlet />
+          </div>
         </main>
       </div>
 

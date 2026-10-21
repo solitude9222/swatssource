@@ -1043,9 +1043,9 @@ export default function Editor() {
       )}
 
       {/* Side rail navigation with Auto-Save Toggle */}
-      <div className="grid items-start gap-6 lg:grid-cols-[200px_minmax(0,1fr)]">
-      <aside className="space-y-3 lg:sticky lg:top-6">
-        <nav className="flex gap-1 overflow-x-auto rounded-2xl border border-[#1f1f1f] bg-[#0d0d0d] p-1.5 lg:flex-col [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="space-y-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <nav aria-label="Profile editor sections" className="flex flex-wrap gap-1.5 rounded-2xl border border-white/[0.08] bg-[#111113] p-1.5">
           {SUBTAB_ITEMS.map((s) => {
             const Icon = s.icon;
             const active = sub === s.id;
@@ -1055,7 +1055,8 @@ export default function Editor() {
                 type="button"
                 data-testid={`editor-subtab-${s.id}`}
                 onClick={() => switchSub(s.id)}
-                className={`flex shrink-0 cursor-pointer items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-xs font-semibold transition-colors duration-200 ${
+                aria-current={active ? "page" : undefined}
+                className={`flex cursor-pointer items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-xs font-semibold transition-colors duration-200 ${
                   active
                     ? "bg-[#a48df4] text-black font-bold shadow-sm"
                     : "text-zinc-400 hover:bg-white/[0.04] hover:text-white"
@@ -1077,9 +1078,9 @@ export default function Editor() {
           </div>
         </nav>
 
-        {/* Auto Save Toggle Pill */}
-        <div className="flex items-center justify-between gap-2.5 px-3.5 py-2 rounded-2xl bg-[#0d0d0d] border border-[#1f1f1f]">
-          <span className="text-[11px] font-medium text-zinc-300">Auto-save</span>
+        {/* Auto-save stays visible, but no longer competes with the section tabs. */}
+        <label className="flex w-fit items-center gap-3 rounded-xl border border-white/[0.08] bg-[#111113] px-3.5 py-2.5 text-xs text-zinc-300">
+          <span>Auto-save</span>
           <Switch
             checked={autoSave}
             onCheckedChange={(val) => {
@@ -1088,11 +1089,11 @@ export default function Editor() {
               toast.success(val ? "Auto-save enabled" : "Auto-save disabled");
             }}
           />
-        </div>
-      </aside>
+        </label>
+      </div>
 
+      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(320px,400px)]">
       <div className="w-full min-w-0 space-y-6">
-          <LivePreviewCard user={user} profile={p} displayName={displayName} tuning={fxTuning} />
 
           {/* ========================================================
               SUBTAB 1: ABOUT ME
@@ -2968,6 +2969,22 @@ export default function Editor() {
               Save Changes
             </button>
           )}
+      </div>
+
+      <aside className="min-w-0 xl:sticky xl:top-6" aria-label="Live profile preview">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div>
+            <h2 className="text-sm font-semibold text-white">Live preview</h2>
+            <p className="mt-0.5 text-xs text-zinc-500">Changes appear here as you edit</p>
+          </div>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/20 bg-emerald-400/[0.08] px-2.5 py-1 text-[10px] font-medium text-emerald-300">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />Live
+          </span>
+        </div>
+        <div className="overflow-hidden rounded-2xl border border-white/[0.09] bg-[#111113] p-2 shadow-[0_16px_48px_-30px_rgba(0,0,0,0.9)]">
+          <LivePreviewCard user={user} profile={p} displayName={displayName} tuning={fxTuning} />
+        </div>
+      </aside>
       </div>
       </div>
 
