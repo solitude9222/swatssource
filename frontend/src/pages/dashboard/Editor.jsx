@@ -2757,10 +2757,12 @@ export default function Editor() {
                             {locked ? <Lock className="w-3.5 h-3.5 text-amber-400" /> : active ? <Check className="w-3.5 h-3.5 text-black" /> : null}
                           </div>
                           {fx.id ? (
-                            <div className="h-6 flex items-center overflow-hidden">
-                              <FxText id={fx.id} text="Sample" className="text-sm font-bold truncate text-white" />
-                            </div>
-                            <span className="text-[10px] text-zinc-500">Plain text</span>
+                            <>
+                              <div className="h-6 flex items-center overflow-hidden">
+                                <FxText id={fx.id} text="Sample" className="text-sm font-bold truncate text-white" />
+                              </div>
+                              <span className="text-[10px] text-zinc-500">Plain text</span>
+                            </>
                           )}
                         </button>
                       );
