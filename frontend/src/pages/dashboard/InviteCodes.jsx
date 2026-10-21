@@ -3,6 +3,14 @@ import { api } from "@/lib/api";
 import { toast } from "@/lib/notify";
 import { Ticket, Plus, Trash2, Copy, Check, Crown, Loader2, Award } from "lucide-react";
 import { BADGE_CATALOG } from "@/constants/badges";
+import { SortHeader, useSortedRows } from "@/components/ui-shared/DashPrimitives";
+
+const INVITE_SORT_ACCESSORS = {
+  code: (inv) => (inv.code || "").toLowerCase(),
+  uses: (inv) => Number(inv.uses || 0),
+  max_uses: (inv) => (inv.max_uses ? Number(inv.max_uses) : Infinity),
+  created_at: (inv) => (inv.created_at ? new Date(inv.created_at).getTime() : 0),
+};
 
 /* The badges a code may carry. Mirrors STAFF_GRANTABLE_BADGES in
    backend/badges.js: staff-only ids (owner/admin) are not on a code, ever. */
@@ -25,6 +33,12 @@ export default function InviteCodes() {
     setGrantsBadges((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   const [creating, setCreating] = useState(false);
   const [copiedCode, setCopiedCode] = useState(null);
+  const { sorted: sortedInvites, sortKey, dir, toggleSort } = useSortedRows(
+    invites,
+    INVITE_SORT_ACCESSORS,
+    "created_at",
+    "desc",
+  );
 
   const fetchInvites = async () => {
     setLoading(true);
@@ -197,11 +211,11 @@ export default function InviteCodes() {
           <table className="w-full min-w-[40rem] text-left text-sm text-zinc-300">
             <thead className="bg-white/[0.02] text-xs font-mono2 uppercase tracking-wider text-zinc-500 border-b border-white/5">
               <tr>
-                <th className="px-5 py-3">Invite Code</th>
+                <SortHeader label="Invite Code" sortKey="code" activeKey={sortKey} dir={dir} onSort={toggleSort} />
                 <th className="px-5 py-3">Grants</th>
-                <th className="px-5 py-3">Uses</th>
-                <th className="px-5 py-3">Max Allowed</th>
-                <th className="px-5 py-3">Created</th>
+                <SortHeader label="Uses" sortKey="uses" activeKey={sortKey} dir={dir} onSort={toggleSort} />
+                <SortHeader label="Max Allowed" sortKey="max_uses" activeKey={sortKey} dir={dir} onSort={toggleSort} />
+                <SortHeader label="Created" sortKey="created_at" activeKey={sortKey} dir={dir} onSort={toggleSort} />
                 <th className="px-5 py-3 text-right">Action</th>
               </tr>
             </thead>
@@ -217,7 +231,7 @@ export default function InviteCodes() {
                   <td colSpan={6} className="text-center py-10 text-zinc-500">No invite codes generated yet.</td>
                 </tr>
               ) : (
-                invites.map((inv) => (
+                sortedInvites.map((inv) => (
                   <tr
                   key={inv.code}
                   /* Right-click a code to copy it, which is the only thing anyone

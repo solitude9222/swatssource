@@ -278,6 +278,7 @@ function FontField({ label, value, onChange, isPremium, navigate, testid }) {
 
 function LayoutPicker({ value, onChange, isPremium, navigate }) {
   const current = value || DEFAULT_LAYOUT;
+  const [isOpen, setIsOpen] = useState(false);
   const layoutItems = [
     {
       id: "minimal",
@@ -336,8 +337,28 @@ function LayoutPicker({ value, onChange, isPremium, navigate }) {
     },
   ];
 
+  const currentLabel = layoutItems.find((l) => l.id === current)?.label || "Minimal";
+
   return (
-    <div className="space-y-3" data-testid="layout-picker-container">
+    <div data-testid="layout-picker-container">
+      <button
+        type="button"
+        data-testid="layout-open"
+        onClick={() => setIsOpen(true)}
+        className="w-full flex items-center justify-between rounded-xl border border-[#2a2a2e] bg-[#111111] px-4 py-3 hover:border-[#a48df4] transition-colors cursor-pointer"
+      >
+        <span className="text-sm text-white">{currentLabel}</span>
+        <span className="text-[10px] font-bold text-black bg-[#a48df4] px-2.5 py-1 rounded-md">Change</span>
+      </button>
+
+      <FxModal
+        open={isOpen}
+        onOpenChange={setIsOpen}
+        id="layout-drawer"
+        title="Profile Layout"
+        eyebrow="Layout"
+        testid="layout-drawer"
+      >
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {layoutItems.map((l) => {
           const active = current === l.id;
@@ -371,8 +392,7 @@ function LayoutPicker({ value, onChange, isPremium, navigate }) {
           );
         })}
       </div>
-      {/* Hidden button for backward-compat test query if needed */}
-      <button type="button" data-testid="layout-open" className="sr-only" aria-hidden="true" onClick={() => {}}>Layout</button>
+      </FxModal>
     </div>
   );
 }
@@ -1022,9 +1042,10 @@ export default function Editor() {
         </aside>
       )}
 
-      {/* Navigation Subtabs Bar with Auto-Save Toggle */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-1 overflow-x-auto rounded-2xl border border-[#1f1f1f] bg-[#0d0d0d] p-1 flex-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      {/* Side rail navigation with Auto-Save Toggle */}
+      <div className="grid items-start gap-6 lg:grid-cols-[200px_minmax(0,1fr)]">
+      <aside className="space-y-3 lg:sticky lg:top-6">
+        <nav className="flex gap-1 overflow-x-auto rounded-2xl border border-[#1f1f1f] bg-[#0d0d0d] p-1.5 lg:flex-col [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {SUBTAB_ITEMS.map((s) => {
             const Icon = s.icon;
             const active = sub === s.id;
@@ -1034,7 +1055,7 @@ export default function Editor() {
                 type="button"
                 data-testid={`editor-subtab-${s.id}`}
                 onClick={() => switchSub(s.id)}
-                className={`flex min-w-[100px] flex-1 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-semibold transition-colors duration-200 ${
+                className={`flex shrink-0 cursor-pointer items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-xs font-semibold transition-colors duration-200 ${
                   active
                     ? "bg-[#a48df4] text-black font-bold shadow-sm"
                     : "text-zinc-400 hover:bg-white/[0.04] hover:text-white"
@@ -1054,10 +1075,10 @@ export default function Editor() {
             <button data-testid="editor-subtab-entry" onClick={() => switchSub("extra")}>Entry</button>
             <button data-testid="editor-subtab-layout" onClick={() => switchSub("audios")}>Layout</button>
           </div>
-        </div>
+        </nav>
 
         {/* Auto Save Toggle Pill */}
-        <div className="flex items-center gap-2.5 px-3.5 py-2 rounded-2xl bg-[#0d0d0d] border border-[#1f1f1f] shrink-0 self-end sm:self-auto">
+        <div className="flex items-center justify-between gap-2.5 px-3.5 py-2 rounded-2xl bg-[#0d0d0d] border border-[#1f1f1f]">
           <span className="text-[11px] font-medium text-zinc-300">Auto-save</span>
           <Switch
             checked={autoSave}
@@ -1068,9 +1089,10 @@ export default function Editor() {
             }}
           />
         </div>
-      </div>
+      </aside>
 
-      <div className="w-full max-w-5xl mx-auto space-y-6">
+      <div className="w-full min-w-0 space-y-6">
+          <LivePreviewCard user={user} profile={p} displayName={displayName} tuning={fxTuning} />
 
           {/* ========================================================
               SUBTAB 1: ABOUT ME
@@ -1673,20 +1695,43 @@ export default function Editor() {
                 </label>
               </Section>
 
-              {/* Hidden test compatibility for tooltip options */}
-              <div className="sr-only" aria-hidden="true">
-                <button type="button" data-testid="tooltip-panel-open" onClick={() => setShowTipPanel(true)}>Open Tooltips</button>
-                <ChipGrid testid="tooltip-style" value={p.tooltip_style || "classic"} onChange={(v) => set("tooltip_style", v)} options={TOOLTIP_STYLES} />
-                <ChipGrid testid="tooltip-animation" value={p.tooltip_anim || "slide"} onChange={(v) => set("tooltip_anim", v)} options={TOOLTIP_ANIMATIONS} />
-                <ChipGrid testid="tooltip-size" value={p.tooltip_size || "md"} onChange={(v) => set("tooltip_size", v)} options={TOOLTIP_SIZES} />
-                <ToggleRow testid="badge-tooltips-toggle" checked={p.badge_tooltips !== false} onCheckedChange={(v) => set("badge_tooltips", v)} />
-                <ToggleRow testid="link-tooltips-toggle" checked={p.link_tooltips !== false} onCheckedChange={(v) => set("link_tooltips", v)} />
-                <ToggleRow testid="avatar-uid-tooltip-toggle" checked={p.avatar_uid_tooltip !== false} onCheckedChange={(v) => set("avatar_uid_tooltip", v)} />
-                <ToggleRow testid="showcase-uid-toggle" checked={!!p.showcase_uid} onCheckedChange={(v) => set("showcase_uid", v)} />
-                <ToggleRow testid="show-join-date" checked={!!p.show_join_date} onCheckedChange={(v) => set("show-join-date", v)} />
-                <ChipGrid testid="views-position" value={p.views_position || ""} onChange={(v) => set("views_position", v)} options={[{ id: "" }, { id: "tl" }, { id: "tr" }, { id: "bl" }, { id: "br" }, { id: "hidden" }]} />
-                <ChipGrid testid="meta-style" value={p.meta_style || "plain"} onChange={(v) => set("meta_style", v)} options={[{ id: "plain" }, { id: "pills" }, { id: "boxed" }]} />
+              <div className="flex items-center justify-between rounded-2xl border border-[#2a2a2e] bg-[#0d0d0d] px-4 py-3">
+                <div>
+                  <p className="text-xs font-semibold text-white">Tooltips</p>
+                  <p className="text-[11px] text-zinc-500">Look, entrance and size for every tip on your profile</p>
+                </div>
+                <button
+                  type="button"
+                  data-testid="tooltip-panel-open"
+                  onClick={() => setShowTipPanel(true)}
+                  className="rounded-xl border border-[#2a2a2e] px-3.5 py-2 text-xs font-semibold text-zinc-200 hover:border-[#a48df4] hover:text-white transition-colors cursor-pointer"
+                >
+                  Customize
+                </button>
               </div>
+
+              <FxModal
+                open={showTipPanel}
+                onOpenChange={setShowTipPanel}
+                id="tip-panel"
+                testid="tip-panel"
+                eyebrow="Tooltips"
+                title="Tooltip settings"
+                description="One look, one entrance and one size apply to every tip on your profile."
+              >
+                <div className="space-y-5">
+                  <ChipGrid testid="tooltip-style" value={p.tooltip_style || "classic"} onChange={(v) => set("tooltip_style", v)} options={TOOLTIP_STYLES} />
+                  <ChipGrid testid="tooltip-animation" value={p.tooltip_anim || "slide"} onChange={(v) => set("tooltip_anim", v)} options={TOOLTIP_ANIMATIONS} />
+                  <ChipGrid testid="tooltip-size" value={p.tooltip_size || "md"} onChange={(v) => set("tooltip_size", v)} options={TOOLTIP_SIZES} />
+                  <ToggleRow testid="badge-tooltips-toggle" checked={p.badge_tooltips !== false} onCheckedChange={(v) => set("badge_tooltips", v)} />
+                  <ToggleRow testid="link-tooltips-toggle" checked={p.link_tooltips !== false} onCheckedChange={(v) => set("link_tooltips", v)} />
+                  <ToggleRow testid="avatar-uid-tooltip-toggle" checked={p.avatar_uid_tooltip !== false} onCheckedChange={(v) => set("avatar_uid_tooltip", v)} />
+                  <ToggleRow testid="showcase-uid-toggle" checked={!!p.showcase_uid} onCheckedChange={(v) => set("showcase_uid", v)} />
+                  <ToggleRow testid="show-join-date" checked={!!p.show_join_date} onCheckedChange={(v) => set("show_join_date", v)} />
+                  <ChipGrid testid="views-position" value={p.views_position || ""} onChange={(v) => set("views_position", v)} options={[{ id: "" }, { id: "tl" }, { id: "tr" }, { id: "bl" }, { id: "br" }, { id: "hidden" }]} />
+                  <ChipGrid testid="meta-style" value={p.meta_style || "plain"} onChange={(v) => set("meta_style", v)} options={[{ id: "plain" }, { id: "pills" }, { id: "boxed" }]} />
+                </div>
+              </FxModal>
             </>
           )}
 
@@ -2923,6 +2968,7 @@ export default function Editor() {
               Save Changes
             </button>
           )}
+      </div>
       </div>
 
       <AvatarDecorationModal

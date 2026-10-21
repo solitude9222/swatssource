@@ -268,19 +268,17 @@ export default function Badges() {
   return (
     <div data-testid="badges-page" className="space-y-6 pb-24 text-left">
       {/* Page Header */}
-      <div className="rounded-2xl border border-white/[0.08] bg-[#111111] p-5 sm:p-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between shadow-lg">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#a48df4]/15 border border-[#a48df4]/30 text-white">
-              <Shield className="h-4 w-4" />
-            </span>
-            <h1 className="text-xl font-bold tracking-tight text-white">
-              Badges
-            </h1>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-4">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-[#1a1a2e] text-[#7c8cf8]">
+            <Shield className="h-5 w-5" />
+          </span>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-white">Badges</h1>
+            <p className="mt-1 text-sm text-zinc-400">
+              Equip, organize, and inspect achievements displayed on your profile.
+            </p>
           </div>
-          <p className="mt-1 text-xs text-zinc-400">
-            Equip, organize, and inspect achievements displayed on your profile.
-          </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -306,8 +304,28 @@ export default function Badges() {
         </div>
       </div>
 
+      {/* Stat cards */}
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {[
+          { label: "Unlocked", value: `${unlockedCount} / ${totalCount}`, icon: Check },
+          { label: "Equipped", value: equippedList.length, icon: Eye },
+          { label: "Placement", value: (paintSettings.badge_placement || "next_to_name").replace(/_/g, " "), icon: GripVertical },
+          { label: "Glow", value: paintSettings.glow ? "On" : "Off", icon: Paintbrush },
+        ].map((s) => (
+          <div key={s.label} className="flex items-center justify-between rounded-2xl border border-white/[0.08] bg-[#111111] p-4">
+            <div className="min-w-0">
+              <div className="text-xs text-zinc-400">{s.label}</div>
+              <div className="mt-1 truncate text-xl font-bold capitalize text-white">{s.value}</div>
+            </div>
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#7c8cf8]/30 bg-[#1a1a2e] text-[#7c8cf8]">
+              <s.icon className="h-4 w-4" />
+            </span>
+          </div>
+        ))}
+      </div>
+
       {/* TOP SECTION: UNLOCKED BADGES (Section inside a Section with Organizing) */}
-      <section className="rounded-2xl border border-white/[0.08] bg-[#111111] p-5 sm:p-6 space-y-4 shadow-xl">
+      <section className="rounded-2xl border border-white/[0.08] bg-[#111111] p-5 sm:p-6 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-white/[0.06]">
           <div>
             <div className="flex items-center gap-2">
@@ -503,7 +521,7 @@ export default function Badges() {
             <EmptyState icon={Search} title="No badges match" hint="Try a different search or filter." />
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3">
             {visibleBadges.map((b) => {
               const M = badgeMeta(b.id) || {};
               const isOwned = owned.has(b.id);
