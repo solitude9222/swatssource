@@ -5,9 +5,9 @@ import { useAuth } from "@/context/AuthContext";
 
 export const Logo = ({ size = "text-lg" }) => (
   <Link to="/" data-testid="nav-logo" className="flex items-center gap-2 group">
-    <img src="/logo.png?v=8" alt="swats.bio" className="w-8 h-8 rounded-lg object-contain group-hover:scale-105 transition-transform" />
+    <img src="/logo.png?v=9" alt="tourn.lol" className="w-8 h-8 rounded-lg object-contain group-hover:scale-105 transition-transform" />
     <span className={`font-display font-extrabold tracking-tight text-zinc-100 ${size}`}>
-      swats<span className="text-brand-400">.bio</span>
+      tourn<span className="text-brand-400">.lol</span>
     </span>
   </Link>
 );

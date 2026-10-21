@@ -57,7 +57,7 @@ function BackendHealthCheck() {
     api.get("/health")
       .then(({ data }) => {
         console.log(
-          `%c[swats.bio]%c Backend connected successfully to %c${API}%c (Status: ${data?.status || "ok"})`,
+          `%c[tourn.lol]%c Backend connected successfully to %c${API}%c (Status: ${data?.status || "ok"})`,
           "color: #A48DF4; font-weight: bold;",
           "color: #22c55e; font-weight: bold;",
           "color: #38bdf8; font-weight: bold;",
@@ -67,7 +67,7 @@ function BackendHealthCheck() {
       .catch((err) => {
         const detail = err.response?.data?.detail || err.message;
         console.warn(
-          `%c[swats.bio]%c Backend health check failed for %c${API}%c!\nError: ${detail}\nIf deployed on Vercel/Railway, verify backend server is live and REACT_APP_BACKEND_URL is set in environment variables.`,
+          `%c[tourn.lol]%c Backend health check failed for %c${API}%c!\nError: ${detail}\nIf deployed on Vercel/Railway, verify backend server is live and REACT_APP_BACKEND_URL is set in environment variables.`,
           "color: #A48DF4; font-weight: bold;",
           "color: #f59e0b; font-weight: bold;",
           "color: #38bdf8; font-weight: bold;",
@@ -78,7 +78,7 @@ function BackendHealthCheck() {
   return null;
 }
 
-/* While the session check is in flight we render nothing at all — no fake
+/* While the session check is in flight we render nothing at all â€” no fake
    progress bar. The page behind it is already painted; a spinner here would
    only be a second flash before the (real) render. */
 const Protected = ({ children }) => {
@@ -90,7 +90,7 @@ const Protected = ({ children }) => {
 
 /* The admin area used to be seven routes that each rendered straight into the
    dashboard, so a non-admin who typed the URL saw an admin page render and then
-   fail on every request. They are gated here — the API stays the real authority
+   fail on every request. They are gated here â€” the API stays the real authority
    (every admin route requires the admin role), this just keeps the shell honest. */
 const RequireAdmin = ({ children }) => {
   const { user } = useAuth();
@@ -108,11 +108,11 @@ const RequireOwner = ({ children }) => {
   return children;
 };
 
-/* Shown while an on-demand page chunk loads. Deliberately quiet — it appears
+/* Shown while an on-demand page chunk loads. Deliberately quiet â€” it appears
    for a few hundred milliseconds at most on a warm connection. */
 const RouteFallback = () => (
   <div className="flex min-h-[40vh] items-center justify-center text-sm text-zinc-500">
-    Loading…
+    Loadingâ€¦
   </div>
 );
 
@@ -182,7 +182,7 @@ function App() {
                 <Route path="shop" element={<Shop />} />
                 <Route path="marketplace" element={<Shop />} />
                 <Route path="leaderboard" element={<Leaderboard />} />
-                {/* The build log — the dashboard's own devlog feed, separate
+                {/* The build log â€” the dashboard's own devlog feed, separate
                     from the public changelog at /!/devlogs. */}
                 <Route path="devlogs" element={<DashboardDevlog />} />
                 <Route path="stats" element={<Stats />} />
@@ -208,7 +208,7 @@ function App() {
                 <Route path="invites" element={<Navigate to="/!/dashboard/admin/invites" replace />} />
                 <Route path="notify" element={<Navigate to="/!/dashboard/admin/notify" replace />} />
                 {/* devlogs used to redirect to admin/devlogs. It is the build log
-                    now, so that redirect is gone — bookmarks to it land on the
+                    now, so that redirect is gone â€” bookmarks to it land on the
                     feed instead of the authoring form. */}
                 <Route path="site" element={<Navigate to="/!/dashboard/admin/site" replace />} />
                 <Route path="analytics" element={<Navigate to="/!/dashboard/admin/analytics" replace />} />
@@ -224,7 +224,7 @@ function App() {
               <Route path="/!/dashboard-new" element={<Navigate to="/!/dashboard" replace />} />
               <Route path="/!/dashboard-new/*" element={<Navigate to="/!/dashboard" replace />} />
 
-              {/* Dynamic User Profile Alias (swats.bio/:alias) */}
+              {/* Dynamic User Profile Alias (tourn.lol/:alias) */}
               <Route path="/:alias" element={<PublicProfile />} />
             </Routes>
             </Suspense>

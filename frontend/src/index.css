@@ -40,50 +40,51 @@
 }
 
 body.dash-theme {
-    /* ── spec accent token — swap to swats purple in one line: --accent: #a48df4 ── */
-    --accent: #3b5bf0;
-    --accent-dim: rgba(59, 91, 240, 0.15);
-    --accent-border: rgba(59, 91, 240, 0.35);
+    /* ── tourn.lol accent palette ──────────────────────────────────── */
+    /* Primary light periwinkle — swap in one line:                    */
+    --accent: #b4bffa;
+    --accent-bg: #535978;
+    --accent-dim: rgba(180, 191, 250, 0.12);
+    --accent-border: rgba(180, 191, 250, 0.30);
 
-    /* Brand scale mapped to the spec blue (#3b5bf0 = brand-500) */
-    --brand-50:  238 241 255;
-    --brand-100: 218 227 254;
-    --brand-200: 184 204 252;
-    --brand-300: 141 171 249;
-    --brand-400:  99 139 246;
-    --brand-500:  59  91 240;   /* #3b5bf0 */
-    --brand-600:  44  70 210;
-    --brand-700:  33  53 173;
-    --brand-800:  25  40 135;
-    --brand-900:  20  32 103;
-    --brand-950:  10  17  55;
+    /* Brand scale centered on #b4bffa (brand-500 = 180 191 250)      */
+    --brand-50:  244 245 255;
+    --brand-100: 232 234 254;
+    --brand-200: 210 214 253;
+    --brand-300: 197 205 251;
+    --brand-400: 187 197 250;
+    --brand-500: 180 191 250;   /* #b4bffa */
+    --brand-600: 147 161 242;
+    --brand-700: 114 128 221;
+    --brand-800:  83  89 120;   /* #535978 */
+    --brand-900:  55  60  90;
+    --brand-950:  28  31  54;
 
-    /* Surfaces — spec §1 */
-    --sw-bg:        #09090b;   /* page */
-    --sw-surface:   #111113;   /* cards / primary surface */
-    --sw-surface-2: #141416;   /* raised / secondary surface */
-    --sw-border:    rgba(255, 255, 255, 0.07);   /* 1px border */
-    --sw-border-active: rgba(59, 91, 240, 0.45);
+    /* Surfaces */
+    --sw-bg:        #09090b;
+    --sw-surface:   #111113;
+    --sw-surface-2: #141416;
+    --sw-border:    rgba(255, 255, 255, 0.07);
+    --sw-border-active: rgba(180, 191, 250, 0.35);
 
-    /* Alias kept for older helper classes */
     --sw-accent:   var(--accent);
-    --sw-accent-2: #2c46d4;
+    --sw-accent-2: #535978;
 
-    /* Radii — spec §1 */
+    /* Radii */
     --radius-card:  20px;
     --radius-input: 12px;
     --radius-pill:  12px;
     --radius-tile:  16px;
 
-    /* shadcn tokens used by ui/* primitives */
+    /* shadcn tokens */
     --background: 240 10% 3.9%;
     --card: 240 10% 5%;
     --popover: 240 10% 5%;
-    --primary: 228 85% 59%;
-    --primary-foreground: 0 0% 100%;
-    --accent: 228 85% 59%;
-    --accent-foreground: 0 0% 100%;
-    --ring: 228 85% 59%;
+    --primary: 232 88% 84%;
+    --primary-foreground: 240 10% 8%;
+    --accent: 232 88% 84%;
+    --accent-foreground: 240 10% 8%;
+    --ring: 232 88% 84%;
     --border: 0 0% 12%;
     --input: 0 0% 10%;
 
@@ -93,7 +94,7 @@ body.dash-theme {
     font-family: 'Inter', system-ui, sans-serif;
 }
 
-body.dash-theme ::selection { background: rgba(59, 91, 240, 0.35); color: #fff; }
+body.dash-theme ::selection { background: rgba(180, 191, 250, 0.30); color: #fff; }
 body.dash-theme ::-webkit-scrollbar-track { background: #000000; }
 body.dash-theme ::-webkit-scrollbar-thumb { background: #1a1a1d; border-color: #000000; }
 body.dash-theme ::-webkit-scrollbar-thumb:hover { background: #27272a; }
@@ -106,7 +107,7 @@ body.dash-theme [tabindex]:focus-visible {
     outline-color: var(--accent);
 }
 
-/* Dashboard form controls: dark fill, hairline border, blue focus ring. */
+/* Dashboard form controls: dark fill, hairline border, periwinkle focus ring. */
 .dash-font input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]),
 .dash-font textarea {
     background-color: #0c0c0e;
@@ -115,7 +116,7 @@ body.dash-theme [tabindex]:focus-visible {
 }
 .dash-font input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):focus,
 .dash-font textarea:focus {
-    box-shadow: 0 0 0 3px rgba(59, 91, 240, 0.2);
+    box-shadow: 0 0 0 3px rgba(180, 191, 250, 0.18);
 }
 
 .dash-checkered-bg {

@@ -92,7 +92,7 @@ const SpotlightCard = ({ user: u, offset, onFocus, onOpen }) => {
             <span className="truncate font-display text-base font-black text-zinc-50 sm:text-lg">{u.display_name || u.username}</span>
             {u.verified && <BadgeCheck className="h-4 w-4 shrink-0 text-brand-400" />}
           </div>
-          <span className="truncate font-mono2 text-[11px] text-zinc-500">swats.bio/{u.username}</span>
+          <span className="truncate font-mono2 text-[11px] text-zinc-500">tourn.lol/{u.username}</span>
           {u.bio && <p className="mt-2 line-clamp-2 text-[11px] leading-relaxed text-zinc-400">{u.bio}</p>}
         </div>
 
@@ -227,7 +227,7 @@ const Row = ({ u, onOpen }) => {
           )}
           {u.tier === "premium" && <span className="rounded bg-brand-500/15 px-1.5 py-0.5 font-mono2 text-[10px] text-brand-300">PRO</span>}
         </div>
-        <div className="truncate font-mono2 text-xs text-zinc-500">swats.bio/{u.username}</div>
+        <div className="truncate font-mono2 text-xs text-zinc-500">tourn.lol/{u.username}</div>
       </div>
       <div className="shrink-0 text-right">
         <div className="inline-flex items-center gap-1.5 font-display font-bold text-zinc-100">
@@ -368,7 +368,7 @@ export default function Ranked() {
         ) : items.length === 0 ? (
           <div data-testid="ranked-empty" className="py-20 text-center text-zinc-500">
             <Crown className="mx-auto mb-3 h-10 w-10 opacity-40" />
-            <p className="text-sm">No ranked pages yet — claim a handle and start climbing.</p>
+            <p className="text-sm">No ranked pages yet â€” claim a handle and start climbing.</p>
           </div>
         ) : (
           <>

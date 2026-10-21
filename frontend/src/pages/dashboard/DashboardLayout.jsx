@@ -26,7 +26,7 @@ import {
 const DISCORD_INVITE = "https://discord.gg/a9uwptuepD";
 
 function LogoIcon() {
-  return <Link to="/!/dashboard" aria-label="swats.bio dashboard" className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.06] bg-[#0b0b0c]"><img src="/logo.png?v=8" alt="" className="h-7 w-7 object-contain" /></Link>;
+  return <Link to="/!/dashboard" aria-label="tourn.lol dashboard" className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.06] bg-[#0b0b0c]"><img src="/logo.png?v=9" alt="" className="h-7 w-7 object-contain" /></Link>;
 }
 
 function CompactTabLink({ t, label }) {
@@ -40,13 +40,13 @@ function CompactTabLink({ t, label }) {
       aria-current={active ? "page" : undefined}
       data-testid={t.testid}
       className={`mx-auto relative flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-200 overflow-hidden ${
-        active ? "bg-[#3b5bf0]/[0.10] text-[#3b5bf0]" : "text-zinc-600 hover:bg-white/[0.05] hover:text-zinc-300"
+        active ? "bg-[#b4bffa]/[0.10] text-[#b4bffa]" : "text-zinc-600 hover:bg-white/[0.05] hover:text-zinc-300"
       }`}
     >
       {active && (
         <motion.span
           layoutId="sidebar-active-bar"
-          className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r-full bg-[#3b5bf0]"
+          className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r-full bg-[#b4bffa]"
           transition={{ type: "spring", stiffness: 500, damping: 40 }}
         />
       )}
@@ -214,22 +214,22 @@ const TabLink = ({ t, sub = true, label }) => {
         sub
           ? `group relative flex h-9 w-full items-center gap-2.5 rounded-lg px-3 text-[13px] font-medium outline-none transition-all duration-200 focus-visible:ring-2 focus-visible:ring-white/20 overflow-hidden ${
               active
-                ? "bg-[#3b5bf0]/[0.10] text-white"
+                ? "bg-[#b4bffa]/[0.10] text-white"
                 : "text-zinc-500 hover:bg-white/[0.05] hover:text-zinc-200"
             }`
-          : `${rowBase} ${active ? "bg-[#3b5bf0]/[0.10] text-zinc-100" : "text-zinc-500 hover:bg-white/[0.05] hover:text-zinc-200"}`
+          : `${rowBase} ${active ? "bg-[#b4bffa]/[0.10] text-zinc-100" : "text-zinc-500 hover:bg-white/[0.05] hover:text-zinc-200"}`
       }
     >
       {active && sub && (
         <motion.span
           layoutId="sidebar-active-bar"
-          className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r-full bg-[#3b5bf0]"
+          className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r-full bg-[#b4bffa]"
           transition={{ type: "spring", stiffness: 500, damping: 40 }}
         />
       )}
       <t.icon
         className={`${sub ? "h-4 w-4" : "h-[18px] w-[18px]"} shrink-0 transition-colors duration-200 ${
-          active ? "text-[#3b5bf0]" : "text-zinc-600 group-hover:text-zinc-400"
+          active ? "text-[#b4bffa]" : "text-zinc-600 group-hover:text-zinc-400"
         }`}
       />
       <span className="truncate">{label || t.label}</span>
@@ -250,15 +250,15 @@ function NavGroup({ group, open, onToggle, containsActive }) {
         onClick={onToggle}
         aria-expanded={open}
         data-testid={`navgroup-${group.id}`}
-        className={`${rowBase} ${lit ? "bg-[#3b5bf0]/[0.10] text-zinc-100" : containsActive ? "bg-white/[0.04] text-zinc-200" : "text-zinc-500 hover:bg-white/[0.05] hover:text-zinc-200"}`}
+        className={`${rowBase} ${lit ? "bg-[#b4bffa]/[0.10] text-zinc-100" : containsActive ? "bg-white/[0.04] text-zinc-200" : "text-zinc-500 hover:bg-white/[0.05] hover:text-zinc-200"}`}
       >
         {Icon && (
-          <Icon className={`h-[18px] w-[18px] shrink-0 transition-colors duration-200 ${lit ? "text-[#3b5bf0]" : containsActive ? "text-zinc-400" : "text-zinc-600 group-hover:text-zinc-400"}`} />
+          <Icon className={`h-[18px] w-[18px] shrink-0 transition-colors duration-200 ${lit ? "text-[#b4bffa]" : containsActive ? "text-zinc-400" : "text-zinc-600 group-hover:text-zinc-400"}`} />
         )}
         <span className="truncate">{group.label}</span>
-        {containsActive && !open && <span className="h-1.5 w-1.5 rounded-full bg-[#3b5bf0] shadow-[0_0_6px_rgba(59,91,240,0.7)]" />}
+        {containsActive && !open && <span className="h-1.5 w-1.5 rounded-full bg-[#b4bffa] shadow-[0_0_6px_rgba(59,91,240,0.7)]" />}
         <ChevronDown
-          className={`ml-auto h-4 w-4 shrink-0 transition-transform duration-300 ${lit ? "text-[#3b5bf0]" : "text-zinc-600"} ${
+          className={`ml-auto h-4 w-4 shrink-0 transition-transform duration-300 ${lit ? "text-[#b4bffa]" : "text-zinc-600"} ${
             open ? "rotate-180" : "rotate-0"
           }`}
         />
@@ -814,7 +814,7 @@ export default function DashboardLayout() {
               onClick={() => setPopup("premium")}
               data-testid="premium-link"
               title={sidebarCompact ? "Upgrade to Premium" : undefined}
-              className={`group flex h-[54px] w-full cursor-pointer items-center rounded-xl border border-white/[0.06] bg-[#0b0b0c] text-left outline-none transition-colors duration-200 hover:border-white/15 focus-visible:ring-2 focus-visible:ring-[#3b5bf0]/60 ${sidebarCompact ? "justify-center px-2" : "gap-3 px-3"}`}
+              className={`group flex h-[54px] w-full cursor-pointer items-center rounded-xl border border-white/[0.06] bg-[#0b0b0c] text-left outline-none transition-colors duration-200 hover:border-white/15 focus-visible:ring-2 focus-visible:ring-[#b4bffa]/60 ${sidebarCompact ? "justify-center px-2" : "gap-3 px-3"}`}
             >
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#111113] text-zinc-400">
                 <Star className="h-4 w-4 fill-current transition-transform duration-200 group-hover:scale-110" />
@@ -967,7 +967,7 @@ export default function DashboardLayout() {
                 to={t.to}
                 className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium outline-none transition-colors duration-200 ${
                   active
-                    ? "border-[#3b5bf0]/30 bg-[#3b5bf0]/[0.10] text-white"
+                    ? "border-[#b4bffa]/30 bg-[#b4bffa]/[0.10] text-white"
                     : "border-white/[0.06] bg-[#0a0a0b] text-zinc-600 hover:text-zinc-200"
                 }`}
               >

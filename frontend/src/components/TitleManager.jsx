@@ -13,18 +13,13 @@ const PATH_TITLES = {
   "/!/auth/discord": "Discord Sign In",
   "/auth/discord": "Discord Sign In",
   "/!/dashboard": "Dashboard",
-  "/!/dashboard/editor": "Editor",
+  "/!/dashboard/editor": "About me",
   "/!/dashboard/links": "Links",
   "/!/dashboard/badges": "Badges",
   "/!/dashboard/widgets": "Widgets",
   "/!/dashboard/settings": "Settings",
-  "/!/dashboard/templates": "Templates",
-  "/!/dashboard/leaderboard": "Leaderboard",
-  "/!/dashboard/stats": "Stats",
-  // Admin pages now live under /!/dashboard/admin — the titles follow the URLs so
-  // a browser tab still says which admin page is open.
+  "/!/dashboard/stats": "Statistics",
   "/!/dashboard/admin": "Admin",
-  "/!/dashboard/admin/bot": "Bot Manager",
   "/!/dashboard/admin/users": "User Manager",
   "/!/dashboard/admin/invites": "Invite Codes",
   "/!/dashboard/admin/notify": "Notify",
@@ -39,11 +34,11 @@ export function TitleManager() {
   useEffect(() => {
     const path = location.pathname;
     if (PATH_TITLES[path]) {
-      document.title = `swats | ${PATH_TITLES[path]}`;
+      document.title = `tourn | ${PATH_TITLES[path]}`;
     } else if (!path.startsWith("/!") && path.length > 1) {
-      // Dynamic profile page handled in PublicProfile
+      // Dynamic profile page — handled in PublicProfile.jsx
     } else {
-      document.title = "swats | Home";
+      document.title = "tourn | Home";
     }
   }, [location]);
 

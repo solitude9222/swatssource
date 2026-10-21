@@ -33,20 +33,18 @@ export default function PublicProfile() {
 
   useEffect(() => {
     // GET /api/u/:alias returns the profile fields at the top level, not nested
-    // under `user` — reading data.user meant this block never ran, so the tab
+    // under `user` â€” reading data.user meant this block never ran, so the tab
     // title and Open Graph tags kept the landing-page defaults on every profile.
     if (data && data.username) {
       const name = data.display_name || data.username || alias;
       const mp = data.profile || {};
 
-      // The Metadata editor wins when its fields are filled; empty fields fall
-      // back to the built-ins (name, bio, avatar) so blank entries are safe.
-      const metaTitle = mp.meta_title || `${name} on swats.bio`;
-      const metaDesc =
-        mp.meta_description || mp.bio || `Check out ${name}'s bio link on swats.bio`;
-      const metaImage = mp.meta_image || mp.avatar_url || "/logo.png";
+      const metaTitle = mp.meta_title || name;
+      const metaDesc = mp.bio || `${name} on tourn.lol`;
+      // Discord embed: prefer background image so the card shows the full page backdrop
+      const metaImage = mp.meta_image || mp.background_url || mp.avatar_url || "/logo.png";
 
-      document.title = `swats | ${mp.meta_title || name}`;
+      document.title = `tourn | ${mp.meta_title || name}`;
 
       const ogTitle = document.querySelector('meta[property="og:title"]');
       if (ogTitle) ogTitle.setAttribute("content", metaTitle);
@@ -55,12 +53,38 @@ export default function PublicProfile() {
       if (ogDesc) ogDesc.setAttribute("content", metaDesc);
 
       const ogImage = document.querySelector('meta[property="og:image"]');
-      if (ogImage) ogImage.setAttribute("content", metaImage);
+      if (ogImage) ogImage.setAttribute("content", metaImage ? (metaImage.startsWith("http") ? metaImage : `${window.location.origin}${metaImage}`) : metaImage);
+
+      // Also update twitter card for X/Discord
+      const twTitle = document.querySelector('meta[property="twitter:title"]');
+      if (twTitle) twTitle.setAttribute("content", metaTitle);
+      const twImg = document.querySelector('meta[property="twitter:image"]');
+      if (twImg && metaImage) twImg.setAttribute("content", metaImage.startsWith("http") ? metaImage : `${window.location.origin}${metaImage}`);
 
       const themeColor = document.querySelector('meta[name="theme-color"]');
       if (themeColor && mp.theme_color) themeColor.setAttribute("content", mp.theme_color);
+
+      // Per-profile circular favicon using the avatar
+      const avatarSrc = mp.avatar_url ? (mp.avatar_url.startsWith("http") ? mp.avatar_url : `${window.location.origin}${mp.avatar_url}`) : null;
+      if (avatarSrc) {
+        const img = new window.Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          canvas.width = 32; canvas.height = 32;
+          const ctx = canvas.getContext("2d");
+          ctx.beginPath(); ctx.arc(16, 16, 16, 0, Math.PI * 2); ctx.clip();
+          ctx.drawImage(img, 0, 0, 32, 32);
+          let link = document.querySelector('link[rel="icon"]');
+          if (!link) { link = document.createElement("link"); link.rel = "icon"; document.head.appendChild(link); }
+          link.type = "image/png";
+          link.href = canvas.toDataURL("image/png");
+        };
+        img.onerror = () => {};
+        img.src = avatarSrc;
+      }
     } else if (notFound) {
-      document.title = `swats | User Not Found`;
+      document.title = `tourn | User Not Found`;
     }
   }, [data, alias, notFound]);
 
@@ -71,7 +95,7 @@ export default function PublicProfile() {
 
   // The view count the server reported at load time, replaced once this visit
   // is registered (after dwell + proof of work). A view is only counted once the
-  // page is genuinely being looked at — entry-gated profiles count after the
+  // page is genuinely being looked at â€” entry-gated profiles count after the
   // visitor clicks in, which also supplies the gesture the browser wants.
   const [views, setViews] = useState(null);
   useEffect(() => {
@@ -99,7 +123,7 @@ export default function PublicProfile() {
       const res = el.play();
       if (res && typeof res.catch === "function") {
         res.catch(() => {
-          if (withSound) attempt(false); // denied with sound → muted start
+          if (withSound) attempt(false); // denied with sound â†’ muted start
         });
       }
     };
@@ -191,9 +215,9 @@ export default function PublicProfile() {
   if (notFound) {
     return (
       <div className="min-h-screen sw-page-bg flex flex-col items-center justify-center text-center px-4" data-testid="public-notfound">
-        <img src="/logo.png" alt="swats.bio" className="w-16 h-16 rounded-2xl mb-4 object-contain shadow-[0_0_30px_rgba(164,141,244,0.4)]" />
+        <img src="/logo.png" alt="tourn.lol" className="w-16 h-16 rounded-2xl mb-4 object-contain shadow-[0_0_30px_rgba(164,141,244,0.4)]" />
         <div className="font-display text-5xl font-black text-zinc-100">404</div>
-        <p className="mt-3 text-zinc-400">swats.bio/{alias} isn't claimed yet.</p>
+        <p className="mt-3 text-zinc-400">tourn.lol/{alias} isn't claimed yet.</p>
         <Link to={`/!/login?claim=${alias}`} className="mt-6 px-5 py-2.5 rounded-full bg-gradient-to-r from-brand-500 to-brand-600 text-white text-sm font-semibold hover:brightness-110 transition">Claim this name</Link>
       </div>
     );
@@ -343,11 +367,11 @@ export default function PublicProfile() {
           rel="noreferrer"
           className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 inline-flex w-auto items-center gap-2 rounded-full border border-white/10 bg-black/90 px-4 py-1.5 text-[10px] sm:text-[11px] font-semibold leading-none text-zinc-300 shadow-2xl backdrop-blur-md transition-all duration-200 hover:bg-black hover:border-white/25 hover:text-white group cursor-pointer"
           data-testid="profile-footer-pill"
-          title="Made in swats.bio"
+          title="Made in tourn.lol"
         >
-          <img src="/logo.png" alt="swats.bio" className="h-3.5 w-3.5 rounded object-contain opacity-80 group-hover:opacity-100 transition-opacity" />
+          <img src="/logo.png" alt="tourn.lol" className="h-3.5 w-3.5 rounded object-contain opacity-80 group-hover:opacity-100 transition-opacity" />
           <span className="tracking-wide">
-            Made in <span className="font-bold text-white">swats.bio</span>
+            Made in <span className="font-bold text-white">tourn.lol</span>
           </span>
         </a>
       )}

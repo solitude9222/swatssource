@@ -111,7 +111,7 @@ export default function Login({ initialMode = "login" }) {
     if (r.ok) { toast.success("Welcome back!"); navigate("/!/dashboard"); return; }
 
     // `totp_required` means the password was right and the second factor is what
-    // is missing (or wrong) — so the fix is to show the code field, not to tell
+    // is missing (or wrong) â€” so the fix is to show the code field, not to tell
     // someone their password is wrong.
     if (r.code === "totp_required") {
       setNeedsTotp(true);
@@ -182,7 +182,7 @@ export default function Login({ initialMode = "login" }) {
               onClick={() => setCustomAuth(!customAuth)}
               className="text-xs font-semibold text-brand-300 hover:text-brand-200 transition underline underline-offset-4"
             >
-              {customAuth ? "Hide credentials form" : "Use username, password or invite code →"}
+              {customAuth ? "Hide credentials form" : "Use username, password or invite code â†’"}
             </button>
           </div>
         )}
@@ -212,7 +212,7 @@ export default function Login({ initialMode = "login" }) {
                   onChange={(e) => setTotpCode(e.target.value)}
                 />
                 <p className="text-[11px] leading-relaxed text-zinc-500">
-                  Two-factor is on for this account. Open your authenticator app for the current code — or use
+                  Two-factor is on for this account. Open your authenticator app for the current code â€” or use
                   one of the recovery codes you saved when you turned it on.
                 </p>
               </div>
@@ -224,7 +224,7 @@ export default function Login({ initialMode = "login" }) {
         ) : (
           <form onSubmit={handleRegisterContinue} className="space-y-3">
             <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-white/[0.03] border border-white/10">
-              <span className="font-mono2 text-xs text-zinc-500">swats.bio/</span>
+              <span className="font-mono2 text-xs text-zinc-500">tourn.lol/</span>
               <input data-testid="register-username" placeholder="username" value={form.username} onChange={set("username")} className="flex-1 bg-transparent outline-none text-sm text-zinc-100 placeholder-zinc-600 min-w-0" />
             </div>
             <Field icon={Mail} data-testid="register-email" type="email" placeholder="Email" value={form.email} onChange={set("email")} />
