@@ -1688,8 +1688,6 @@ export default function Widgets() {
           </div>
         </div>
 
-        </div>{/* end controls grid */}
-
         {/* Right: Preview Panel */}
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between">
