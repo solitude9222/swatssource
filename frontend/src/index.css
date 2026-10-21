@@ -23,20 +23,19 @@
     --sw-text-3: #71717a;
 }
 
-/* Brand scale (space-separated RGB, consumed by tailwind.config.js). Violet on the public site;
-   the dashboard remaps it to blue through body.dash-theme (toggled by DashboardLayout). */
+/* Brand scale (space-separated RGB, consumed by tailwind.config.js). */
 :root {
-    --brand-50: 250 248 255;
-    --brand-100: 242 237 255;
-    --brand-200: 228 218 255;
-    --brand-300: 211 196 255;
-    --brand-400: 188 172 248;
-    --brand-500: 164 141 244;
-    --brand-600: 140 113 232;
-    --brand-700: 115 84 212;
-    --brand-800: 89 56 184;
-    --brand-900: 62 34 139;
-    --brand-950: 31 14 84;
+    --brand-50:  244 245 255;
+    --brand-100: 232 234 254;
+    --brand-200: 210 214 253;
+    --brand-300: 197 205 251;
+    --brand-400: 187 197 250;
+    --brand-500: 180 191 250;   /* #b4bffa — tourn.lol primary */
+    --brand-600: 147 161 242;
+    --brand-700: 114 128 221;
+    --brand-800:  83  89 120;   /* #535978 — tourn.lol secondary */
+    --brand-900:  55  60  90;
+    --brand-950:  28  31  54;
 }
 
 body.dash-theme {
@@ -149,7 +148,7 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
-::selection { background: rgba(164, 141, 244, 0.35); color: #fff; }
+::selection { background: rgba(180, 191, 250, 0.30); color: #fff; }
 
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: #0A0A0D; }
@@ -158,28 +157,26 @@ body {
 
 @layer base {
     :root {
-        /* Primary purple #A48DF4 -> HSL 254 82% 75%
-           Near-black #0A0A0D -> HSL 240 13% 4.5% */
+        /* tourn.lol: near-black #09090b with periwinkle accent #b4bffa */
         --background: 240 13% 4.5%;
         --foreground: 0 0% 96%;
         --card: 240 12% 7%;
         --card-foreground: 0 0% 96%;
         --popover: 240 12% 7%;
         --popover-foreground: 0 0% 96%;
-        --primary: 254 82% 75%;
-        /* Dark ink on the primary purple / light lavender fill */
-        --primary-foreground: 240 13% 4.5%;
+        --primary: 232 88% 84%;          /* #b4bffa */
+        --primary-foreground: 240 13% 8%;
         --secondary: 240 10% 12%;
         --secondary-foreground: 0 0% 96%;
         --muted: 240 10% 13%;
         --muted-foreground: 240 8% 64%;
-        --accent: 254 82% 75%;
-        --accent-foreground: 240 13% 4.5%;
+        --accent: 232 88% 84%;
+        --accent-foreground: 240 13% 8%;
         --destructive: 0 72% 51%;
         --destructive-foreground: 0 0% 98%;
         --border: 240 10% 16%;
         --input: 240 10% 16%;
-        --ring: 254 82% 75%;
+        --ring: 232 88% 84%;
         --radius: 1rem;
     }
 }
@@ -216,7 +213,7 @@ body {
         0 6px 1px rgba(0,0,0,0.3),
         0 0 8px rgba(0,0,0,0.3),
         0 10px 16px rgba(0,0,0,0.6),
-        0 16px 30px rgba(164,141,244,0.25);
+        0 16px 30px rgba(180,191,250,0.20);
 }
 
 .glass {
