@@ -1501,15 +1501,6 @@ export default function Editor() {
                           suffix="px"
                           onChange={(v) => set("card_width", v)}
                         />
-                        <SliderRow
-                          testid="card-glow-strength"
-                          label="Glow Strength"
-                          value={Number(p.card_glow_strength ?? 50)}
-                          min={0}
-                          max={100}
-                          suffix="%"
-                          onChange={(v) => set("card_glow_strength", v)}
-                        />
                       </div>
                     </div>
                   )}
@@ -1752,11 +1743,11 @@ export default function Editor() {
                   <ChipGrid testid="tooltip-style" value={p.tooltip_style || "classic"} onChange={(v) => set("tooltip_style", v)} options={TOOLTIP_STYLES} />
                   <ChipGrid testid="tooltip-animation" value={p.tooltip_anim || "slide"} onChange={(v) => set("tooltip_anim", v)} options={TOOLTIP_ANIMATIONS} />
                   <ChipGrid testid="tooltip-size" value={p.tooltip_size || "md"} onChange={(v) => set("tooltip_size", v)} options={TOOLTIP_SIZES} />
-                  <ToggleRow testid="badge-tooltips-toggle" checked={p.badge_tooltips !== false} onCheckedChange={(v) => set("badge_tooltips", v)} />
-                  <ToggleRow testid="link-tooltips-toggle" checked={p.link_tooltips !== false} onCheckedChange={(v) => set("link_tooltips", v)} />
-                  <ToggleRow testid="avatar-uid-tooltip-toggle" checked={p.avatar_uid_tooltip !== false} onCheckedChange={(v) => set("avatar_uid_tooltip", v)} />
-                  <ToggleRow testid="showcase-uid-toggle" checked={!!p.showcase_uid} onCheckedChange={(v) => set("showcase_uid", v)} />
-                  <ToggleRow testid="show-join-date" checked={!!p.show_join_date} onCheckedChange={(v) => set("show_join_date", v)} />
+                  <ToggleRow testid="badge-tooltips-toggle" label="Badge tooltips" hint="Show tooltip on badge hover" checked={p.badge_tooltips !== false} onCheckedChange={(v) => set("badge_tooltips", v)} />
+                  <ToggleRow testid="link-tooltips-toggle" label="Link tooltips" hint="Show tooltip on link card hover" checked={p.link_tooltips !== false} onCheckedChange={(v) => set("link_tooltips", v)} />
+                  <ToggleRow testid="avatar-uid-tooltip-toggle" label="Avatar UID tooltip" hint="Show user ID on avatar hover" checked={p.avatar_uid_tooltip !== false} onCheckedChange={(v) => set("avatar_uid_tooltip", v)} />
+                  <ToggleRow testid="showcase-uid-toggle" label="Showcase UID on card" hint="Display your swats UID number" checked={!!p.showcase_uid} onCheckedChange={(v) => set("showcase_uid", v)} />
+                  <ToggleRow testid="show-join-date" label="Show join date" hint="Display when you joined swats.bio" checked={!!p.show_join_date} onCheckedChange={(v) => set("show_join_date", v)} />
                   <ChipGrid testid="views-position" value={p.views_position || ""} onChange={(v) => set("views_position", v)} options={[{ id: "" }, { id: "tl" }, { id: "tr" }, { id: "bl" }, { id: "br" }, { id: "hidden" }]} />
                   <ChipGrid testid="meta-style" value={p.meta_style || "plain"} onChange={(v) => set("meta_style", v)} options={[{ id: "plain" }, { id: "pills" }, { id: "boxed" }]} />
                 </div>

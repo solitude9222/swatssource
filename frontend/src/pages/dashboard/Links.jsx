@@ -353,7 +353,7 @@ export default function Links() {
               <button
                 key={id}
                 type="button"
-                data-testid={`link-preset-${id}`}
+                data-testid={`link-quick-${id}`}
                 onClick={() => openAddLinkModal(id)}
                 style={{ minHeight: "86px" }}
                 className="group flex flex-col items-center justify-center gap-2 p-3.5 rounded-2xl border border-white/[0.06] bg-[#0d0d10] hover:border-[#a48df4]/50 hover:bg-[#12121a] hover:shadow-[0_4px_20px_rgba(164,141,244,0.08)] transition-all duration-200 cursor-pointer"
