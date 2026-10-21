@@ -53,9 +53,9 @@ const NAV_GROUPS = [
       { to: "/!/dashboard/editor?tab=appearance", label: "Appearance", icon: Paintbrush, testid: "tab-appearance", desc: "Card surface, glow, borders, fonts and link looks" },
       { to: "/!/dashboard/editor", label: "Profile", icon: User, testid: "tab-editor", desc: "Profile details, visibility toggles and card styling" },
       { to: "/!/dashboard/editor?tab=layout", label: "Layout", icon: LayoutTemplate, testid: "tab-layout", desc: "Choose page structure and arrangement" },
-      { to: "/!/dashboard/badges", label: "Badges", icon: Award, testid: "tab-badges", desc: "Equip, reorder and manage your profile badges" },
-      { to: "/!/dashboard/links", label: "Links", icon: Link2, testid: "tab-links", desc: "Add, order and style the links on your page" },
-      { to: "/!/dashboard/widgets", label: "Widgets", icon: LayoutGrid, testid: "tab-widgets", desc: "Live widgets shown on your profile" },
+      { to: "/!/dashboard/badges", label: "Badges", icon: Award, testid: "tab-badges", desc: "Equip, reorder and manage your profile badges", ownHeader: true },
+      { to: "/!/dashboard/links", label: "Links", icon: Link2, testid: "tab-links", desc: "Add, order and style the links on your page", ownHeader: true },
+      { to: "/!/dashboard/widgets", label: "Widgets", icon: LayoutGrid, testid: "tab-widgets", desc: "Live widgets shown on your profile", ownHeader: true },
     ],
   },
   {
@@ -655,7 +655,7 @@ export default function DashboardLayout() {
   const handleLogout = () => { logout(); navigate("/"); };
 
   return (
-    <div className="dash-font flex min-h-screen bg-[#09090b] text-zinc-100">
+    <div className="dash-font dash-checkered-bg flex min-h-screen text-zinc-100">
       {/* Sidebar: a floating rounded panel, like the reference. */}
       <aside className="sticky top-0 hidden h-screen w-[308px] min-w-[308px] shrink-0 p-3 lg:block">
         <div className="dash-panel flex h-full flex-col overflow-hidden rounded-[28px]">
@@ -674,12 +674,12 @@ export default function DashboardLayout() {
                 value={navQuery}
                 onChange={(e) => setNavQuery(e.target.value)}
                 placeholder="search dashboard…"
-                className="h-10 w-full rounded-xl border border-[#2a2a2e] bg-[#0d0d0d] pl-9 pr-3 text-[13px] text-white outline-none transition-colors placeholder:text-zinc-500 focus:border-[#a48df4]"
+                className="h-10 w-full rounded-xl border border-white/10 bg-[#050505] pl-9 pr-3 text-[13px] text-white outline-none transition-colors placeholder:text-zinc-500 focus:border-[#a48df4]"
               />
             </div>
           </div>
 
-          <div className="mx-4 h-px shrink-0 bg-[#1f1f1f]" />
+          <div className="mx-4 h-px shrink-0 bg-white/10" />
 
           {/* Navigation list */}
           <nav className="scrollbar-none mt-2 flex-1 space-y-1 overflow-y-auto px-3 pb-2">
@@ -705,12 +705,12 @@ export default function DashboardLayout() {
           </nav>
 
           {/* Bottom: upgrade card, community, account */}
-          <div className="shrink-0 space-y-2 border-t border-[#1f1f1f] p-3">
+          <div className="shrink-0 space-y-2 border-t border-white/10 p-3">
             <button
               type="button"
               onClick={() => setPopup("premium")}
               data-testid="premium-link"
-              className="group flex h-[58px] w-full cursor-pointer items-center gap-3 rounded-2xl border border-[#1f1f1f] bg-[#111111] px-3 text-left outline-none transition-colors duration-200 hover:border-[#a48df4]/50 focus-visible:ring-2 focus-visible:ring-[#a48df4]/60"
+              className="group flex h-[58px] w-full cursor-pointer items-center gap-3 rounded-2xl border border-white/10 bg-[#070709] px-3 text-left outline-none transition-colors duration-200 hover:border-[#a48df4]/50 focus-visible:ring-2 focus-visible:ring-[#a48df4]/60"
             >
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#2e1b4d] text-[#c084fc]">
                 <Star className="h-4 w-4 fill-current transition-transform duration-200 group-hover:scale-110" />
@@ -730,7 +730,7 @@ export default function DashboardLayout() {
       </aside>
 
       {/* Main */}
-      <div className="flex min-w-0 flex-1 flex-col bg-[#09090b]">
+      <div className="flex min-w-0 flex-1 flex-col">
         <header className="px-5 pt-5 sm:px-8">
           {/* Breadcrumb on the left, quick actions on the right */}
           <div className="flex items-center justify-between gap-3">
@@ -741,7 +741,7 @@ export default function DashboardLayout() {
               <nav
                 aria-label="Breadcrumb"
                 data-testid="dash-breadcrumb"
-                className="hidden min-w-0 items-center gap-2 rounded-xl border border-[#1f1f1f] bg-[#111111] px-3.5 py-2 text-xs sm:flex"
+                className="hidden min-w-0 items-center gap-2 rounded-xl border border-white/10 bg-[#050505]/85 backdrop-blur-md px-3.5 py-2 text-xs sm:flex shadow-sm"
               >
                 <Link to="/!/dashboard" aria-label="Dashboard home" className="text-zinc-400 transition-colors hover:text-white">
                   <Home className="h-3.5 w-3.5" />

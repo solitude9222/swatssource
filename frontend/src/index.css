@@ -52,18 +52,19 @@ body.dash-theme {
     --brand-900: 62 34 139;
     --brand-950: 31 14 84;
 
-    /* dashboard surfaces, sleek obsidian with vibrant purple accent */
-    --sw-bg: #09090b;
-    --sw-surface: #111111;
+    /* dashboard surfaces: pitch black primary with sleek checkered background */
+    --sw-bg: #000000;
+    --sw-surface: #050505;
+    --sw-surface-2: #09090b;
     --sw-accent: #a48df4;
     --sw-accent-2: #8c71e8;
-    --sw-border: #1f1f1f;
+    --sw-border: rgba(255, 255, 255, 0.08);
     --sw-border-active: rgba(164, 141, 244, 0.5);
 
     /* shadcn tokens used by the ui/* primitives (selects, switches, dialogs...) */
-    --background: 240 13% 4%;
-    --card: 0 0% 7%;
-    --popover: 0 0% 7%;
+    --background: 0 0% 0%;
+    --card: 0 0% 2%;
+    --popover: 0 0% 2%;
     --primary: 258 83% 75%;
     --primary-foreground: 0 0% 100%;
     --accent: 258 83% 75%;
@@ -71,12 +72,17 @@ body.dash-theme {
     --ring: 258 83% 75%;
     --border: 0 0% 12%;
     --input: 0 0% 12%;
+
+    background-color: #000000;
+    background-image: repeating-conic-gradient(#08080a 0% 25%, #000000 0% 50%);
+    background-size: 24px 24px;
+    background-attachment: fixed;
 }
 
 body.dash-theme ::selection { background: rgba(164, 141, 244, 0.4); color: #fff; }
-body.dash-theme ::-webkit-scrollbar-track { background: #09090b; }
-body.dash-theme ::-webkit-scrollbar-thumb { background: #1f1f1f; border-color: #09090b; }
-body.dash-theme ::-webkit-scrollbar-thumb:hover { background: #2c2c30; }
+body.dash-theme ::-webkit-scrollbar-track { background: #000000; }
+body.dash-theme ::-webkit-scrollbar-thumb { background: #18181b; border-color: #000000; }
+body.dash-theme ::-webkit-scrollbar-thumb:hover { background: #27272a; }
 body.dash-theme button:focus-visible:not([class*="focus-visible:ring"]),
 body.dash-theme a:focus-visible:not([class*="focus-visible:ring"]),
 body.dash-theme input:focus-visible,
@@ -86,9 +92,11 @@ body.dash-theme [tabindex]:focus-visible {
     outline-color: #a48df4;
 }
 
-/* Dashboard form controls: #0d0d0d fill, #1f1f1f hairline, purple focus ring. */
+/* Dashboard form controls: pitch black fill, subtle hairline, purple focus ring. */
 .dash-font input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]),
 .dash-font textarea {
+    background-color: #050505;
+    border-color: rgba(255, 255, 255, 0.08);
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .dash-font input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):focus,
@@ -96,15 +104,24 @@ body.dash-theme [tabindex]:focus-visible {
     box-shadow: 0 0 0 3px rgba(164, 141, 244, 0.2);
 }
 
-/* The floating sidebar panel and the cards share one hairline + soft drop. */
+.dash-checkered-bg {
+    background-color: #000000;
+    background-image: repeating-conic-gradient(#08080a 0% 25%, #000000 0% 50%);
+    background-size: 24px 24px;
+    background-attachment: fixed;
+}
+
+/* The floating sidebar panel and the cards share pitch black glass + soft drop. */
 .dash-panel {
-    background: #0e0e0e;
-    border: 1px solid #1f1f1f;
-    box-shadow: 0 24px 60px -30px rgba(0, 0, 0, 0.8);
+    background: rgba(4, 4, 6, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 24px 60px -30px rgba(0, 0, 0, 0.95);
 }
 .dash-card {
-    background: #111111;
-    border: 1px solid #1f1f1f;
+    background: #050505;
+    border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 * { scroll-behavior: smooth; }

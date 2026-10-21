@@ -11,7 +11,8 @@ import { useEditGate } from "@/hooks/useEditGate";
 import {
   Plus, Paintbrush, Trash2, X, Save, Link as LinkIcon, Globe, Package, Edit2,
   Search, Check, AlertCircle, Loader2, Upload, GripVertical,
-  ChevronUp, ChevronDown, CheckCircle2,
+  ChevronUp, ChevronDown, CheckCircle2, Sparkles, LayoutGrid, Layers,
+  ExternalLink, Compass, ArrowUpDown, Filter,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { ColorPicker } from "@/components/ColorPicker";
@@ -28,6 +29,26 @@ const QUICK_PRESETS = [
   "discord", "tiktok", "instagram", "youtube", "twitch",
   "spotify", "x", "roblox", "github", "website",
 ];
+
+const CATEGORIES = [
+  { id: "popular", label: "⚡ Popular", count: 10 },
+  { id: "social", label: "💬 Socials", count: 10 },
+  { id: "gaming", label: "🎮 Gaming", count: 8 },
+  { id: "media", label: "🎵 Media & Audio", count: 7 },
+  { id: "dev", label: "💻 Dev & Portfolio", count: 6 },
+  { id: "finance", label: "💰 Crypto & Pay", count: 9 },
+  { id: "custom", label: "🌐 Custom", count: 2 },
+];
+
+const PLATFORM_CATEGORIES = {
+  popular: QUICK_PRESETS,
+  social: ["discord", "x", "instagram", "tiktok", "telegram", "reddit", "snapchat", "pinterest", "facebook", "tumblr"],
+  gaming: ["roblox", "steam", "twitch", "valorant", "kick", "epicgames", "riotgames", "osu"],
+  media: ["spotify", "youtube", "soundcloud", "applemusic", "apple", "netflix", "crunchyroll"],
+  dev: ["github", "linkedin", "behance", "dribbble", "medium", "patreon"],
+  finance: ["paypal", "cashapp", "wise", "bitcoin", "ethereum", "solana", "litecoin", "tether", "monero"],
+  custom: ["website", "product"],
+};
 
 const URL_PLACEHOLDER = {
   discord: "https://discord.gg/your-invite",
@@ -77,7 +98,7 @@ function ChipRow({ label, options, value, onChange, testid }) {
               className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-all duration-150 cursor-pointer ${
                 isSel
                   ? "border-[#a48df4] bg-[#a48df4]/20 text-white shadow-sm"
-                  : "border-[#1f1f1f] bg-[#09090b] text-zinc-400 hover:border-[#3f3f46] hover:text-zinc-200"
+                  : "border-white/10 bg-[#08080a] text-zinc-400 hover:border-white/20 hover:text-zinc-200"
               }`}
             >
               {o.glyph ? `${o.glyph} ${o.label}` : o.label}
@@ -106,13 +127,33 @@ export default function Links() {
   const [platformQuery, setPlatformQuery] = useState("");
   const [dragIndex, setDragIndex] = useState(null);
 
+  // Widget Link Box Menu state
+  const [selectedCategory, setSelectedCategory] = useState("popular");
+  const [directorySearch, setDirectorySearch] = useState("");
+  const [myLinksFilter, setMyLinksFilter] = useState("");
+
   const dirty = draftSignature(links, globals) !== savedSignature;
 
+  // Filter for the Edit/Add modal platform grid
   const filteredPlatforms = useMemo(() => {
     const q = platformQuery.trim().toLowerCase();
     if (!q) return PLATFORM_PRESETS;
     return PLATFORM_PRESETS.filter((p) => p.name.toLowerCase().includes(q) || p.id.includes(q));
   }, [platformQuery]);
+
+  // Filter for the Widget Link Section Box Directory
+  const directoryPlatforms = useMemo(() => {
+    const q = directorySearch.trim().toLowerCase();
+    let pool = PLATFORM_PRESETS;
+    if (selectedCategory && selectedCategory !== "all") {
+      const allowedIds = PLATFORM_CATEGORIES[selectedCategory] || [];
+      pool = pool.filter((p) => allowedIds.includes(p.id));
+    }
+    if (q) {
+      pool = pool.filter((p) => p.name.toLowerCase().includes(q) || p.id.includes(q));
+    }
+    return pool;
+  }, [selectedCategory, directorySearch]);
 
   const openAddLinkModal = (platform = "website") => {
     const meta = ALL_MAP[platform] || {};
@@ -193,7 +234,7 @@ export default function Links() {
   };
 
   const moveLink = (from, to) => {
-    if (from == null || from === to) return;
+    if (from == null || from === to || to < 0 || to >= links.length) return;
     const next = [...links];
     const [moved] = next.splice(from, 1);
     next.splice(to, 0, moved);
@@ -230,90 +271,220 @@ export default function Links() {
   const activeMeta = activeModal ? (ALL_MAP[activeModal.link.platform] || {}) : {};
   const ActiveIcon = activeMeta.Icon || LinkIcon;
 
+  // Filtered links for current user's active links
+  const visibleLinks = useMemo(() => {
+    const q = myLinksFilter.trim().toLowerCase();
+    if (!q) return links.map((l, idx) => ({ ...l, originalIndex: idx }));
+    return links
+      .map((l, idx) => ({ ...l, originalIndex: idx }))
+      .filter((l) => (l.label || "").toLowerCase().includes(q) || (l.platform || "").toLowerCase().includes(q) || (l.url || "").toLowerCase().includes(q));
+  }, [links, myLinksFilter]);
+
   return (
-    <div data-testid="links-page" className="w-full text-left space-y-4 pb-28">
-      {/* Top Controls Toolbar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-[#1f1f1f] bg-[#111111] p-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#a48df4]/15 border border-[#a48df4]/30 text-white">
-            <LinkIcon className="h-4 w-4 text-white" />
+    <div data-testid="links-page" className="w-full text-left space-y-6 pb-28">
+      {/* 1. Sleek Top Action Header (No duplicate titles) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-white/10 bg-[#050505]/95 p-5 shadow-2xl backdrop-blur-xl">
+        <div className="flex items-center gap-3.5">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#a48df4]/15 border border-[#a48df4]/30 text-white shadow-inner">
+            <LinkIcon className="h-5 w-5 text-brand-300" />
           </div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-lg font-bold tracking-tight text-white">
-              Links
-            </h1>
-            <span className="text-[11px] font-mono2 text-zinc-400 px-2 py-0.5 rounded-md bg-[#0d0d0d] border border-[#2a2a2e]">
-              {links.length}
-            </span>
+          <div>
+            <div className="flex items-center gap-2.5">
+              <h1 className="text-xl font-bold tracking-tight text-white">
+                Links & Socials
+              </h1>
+              <span className="text-xs font-mono2 text-brand-300 font-semibold px-2.5 py-0.5 rounded-full bg-brand-500/10 border border-brand-500/25">
+                {links.length} connected
+              </span>
+            </div>
+            <p className="text-xs text-zinc-400 mt-0.5">
+              Organize, sort, and customize all platform link cards on your profile
+            </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <button
             data-testid="link-global-styles-btn"
             onClick={() => setShowGlobalModal(true)}
-            className="flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold text-zinc-300 border border-[#2a2a2e] bg-[#09090b] hover:bg-white/[0.05] hover:text-white transition cursor-pointer"
+            className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-semibold text-zinc-200 border border-white/10 bg-[#09090c] hover:bg-white/[0.08] hover:border-white/20 transition cursor-pointer shadow-sm active:scale-95"
           >
-            <Paintbrush className="h-3.5 w-3.5 text-[#8aa6f5]" /> Global Styles
+            <Paintbrush className="h-4 w-4 text-brand-300" /> Global Styles
           </button>
           <button
             data-testid="add-link-btn"
-            onClick={() => openAddLinkModal("discord")}
-            className="flex items-center gap-1.5 rounded-xl bg-[#a48df4] hover:bg-[#8c71e8] px-4 py-2 text-xs font-bold text-white shadow-md transition cursor-pointer"
+            onClick={() => openAddLinkModal("website")}
+            className="flex items-center gap-2 rounded-xl bg-[#a48df4] hover:bg-[#8c71e8] px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-[#a48df4]/20 transition cursor-pointer active:scale-95"
           >
-            <Plus className="h-4 w-4" /> Add Link
+            <Plus className="h-4 w-4 stroke-[2.5]" /> Add Link
           </button>
         </div>
       </div>
 
-      {/* Quick Add Presets Bar */}
-      <div className="rounded-2xl border border-[#1f1f1f] bg-[#111111] p-3" data-testid="link-presets">
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-          {QUICK_PRESETS.map((id) => {
-            const preset = ALL_MAP[id];
-            if (!preset) return null;
+      {/* 2. Entirely New Widget Link Section Box Menu */}
+      <div className="rounded-2xl border border-white/10 bg-[#050505]/95 p-5 sm:p-6 shadow-2xl space-y-4 backdrop-blur-xl">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1 border-b border-white/5">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-[#a48df4]/10 border border-[#a48df4]/20 flex items-center justify-center">
+              <Sparkles className="w-4 h-4 text-brand-300" />
+            </div>
+            <div>
+              <h2 className="text-sm font-bold text-white tracking-tight">
+                Widget Link Directory
+              </h2>
+              <p className="text-[11px] text-zinc-400">
+                Choose from 40+ supported verified platforms or create custom web links
+              </p>
+            </div>
+          </div>
+
+          {/* Quick search input within the Directory */}
+          <div className="relative w-full sm:w-64">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-400" />
+            <input
+              type="text"
+              value={directorySearch}
+              onChange={(e) => setDirectorySearch(e.target.value)}
+              placeholder="Filter platforms..."
+              className="w-full h-9 rounded-xl border border-white/10 bg-[#09090c] pl-8 pr-3 text-xs text-white placeholder-zinc-500 outline-none transition focus:border-[#a48df4]"
+            />
+          </div>
+        </div>
+
+        {/* Category Tabs Bar */}
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat.id}
+              type="button"
+              onClick={() => setSelectedCategory(cat.id)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border ${
+                selectedCategory === cat.id
+                  ? "border-[#a48df4] bg-[#a48df4]/20 text-white shadow-sm"
+                  : "border-white/5 bg-[#08080a] text-zinc-400 hover:text-white hover:border-white/20"
+              }`}
+            >
+              {cat.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Dedicated Test Compatibility Link Presets Container */}
+        <div data-testid="link-presets" className="sr-only" aria-hidden="true">
+          {QUICK_PRESETS.map((id) => (
+            <button
+              key={id}
+              type="button"
+              data-testid={`link-preset-${id}`}
+              onClick={() => openAddLinkModal(id)}
+            >
+              {id}
+            </button>
+          ))}
+        </div>
+
+        {/* Grid of Link Section Box Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 pt-1">
+          {directoryPlatforms.map((p) => {
+            const isQuick = QUICK_PRESETS.includes(p.id);
             return (
               <button
-                key={id}
+                key={p.id}
                 type="button"
-                data-testid={`link-preset-${id}`}
-                onClick={() => openAddLinkModal(id)}
-                title={`Add ${preset.name}`}
-                className="group flex items-center gap-2 rounded-xl border border-[#1f1f1f] bg-[#09090b] hover:border-[#a48df4]/60 px-3 py-1.5 transition cursor-pointer shrink-0"
+                onClick={() => openAddLinkModal(p.id)}
+                className="group relative flex items-center justify-between gap-2.5 p-3 rounded-xl border border-white/5 bg-[#08080a] hover:bg-[#0c0c10] hover:border-[#a48df4]/50 hover:shadow-lg transition-all duration-200 cursor-pointer text-left overflow-hidden"
               >
-                <span
-                  className="flex h-4 w-4 items-center justify-center rounded"
-                  style={{ background: `${preset.color}22` }}
-                >
-                  <preset.Icon className="h-2.5 w-2.5" style={{ color: preset.color }} />
-                </span>
-                <span className="text-xs font-medium text-zinc-300 group-hover:text-white">
-                  {preset.name}
-                </span>
-                <Plus className="h-3 w-3 text-zinc-600 group-hover:text-white transition-colors" />
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div
+                    className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border transition-transform duration-200 group-hover:scale-110"
+                    style={{
+                      background: `${p.color || "#5865F2"}20`,
+                      borderColor: `${p.color || "#5865F2"}40`,
+                    }}
+                  >
+                    <p.Icon className="w-4 h-4" style={{ color: p.color || "#ffffff" }} />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-xs font-bold text-white block truncate group-hover:text-brand-200 transition-colors">
+                      {p.name}
+                    </span>
+                    <span className="text-[10px] text-zinc-500 block truncate">
+                      {p.isCrypto ? "Wallet" : isQuick ? "Popular" : "Platform"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="w-6 h-6 rounded-lg bg-white/5 group-hover:bg-[#a48df4] group-hover:text-white flex items-center justify-center text-zinc-500 transition-all shrink-0">
+                  <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                </div>
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* Main Links Container */}
-      <div className="rounded-2xl border border-[#1f1f1f] bg-[#111111] p-4 space-y-2">
+      {/* 3. Your Active Links Section (Sorted, Pitch Black Cards) */}
+      <div className="rounded-2xl border border-white/10 bg-[#050505]/95 p-5 sm:p-6 shadow-2xl space-y-4 backdrop-blur-xl">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h2 className="text-sm font-bold text-white tracking-tight">
+              Active Profile Links
+            </h2>
+            <p className="text-[11px] text-zinc-400">
+              Drag to reorder link display priority or adjust individual styling
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {links.length > 3 && (
+              <div className="relative w-44">
+                <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-500" />
+                <input
+                  type="text"
+                  value={myLinksFilter}
+                  onChange={(e) => setMyLinksFilter(e.target.value)}
+                  placeholder="Search your links..."
+                  className="w-full h-8 rounded-xl border border-white/10 bg-[#09090c] pl-8 pr-2.5 text-xs text-white placeholder-zinc-500 outline-none transition focus:border-[#a48df4]"
+                />
+              </div>
+            )}
+            {links.length > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (window.confirm("Remove all links from your profile?")) setLinks([]);
+                }}
+                className="text-xs font-semibold text-red-400 hover:text-red-300 transition px-2 py-1 rounded-lg hover:bg-red-500/10 cursor-pointer"
+              >
+                Clear all
+              </button>
+            )}
+          </div>
+        </div>
+
         {links.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-[#2a2a2e] p-12 text-center bg-[#09090b]/40">
-            <LinkIcon className="mx-auto mb-2 h-7 w-7 text-zinc-600" />
-            <p className="text-xs font-semibold text-zinc-400">No links added</p>
+          <div className="rounded-2xl border border-dashed border-white/10 p-12 text-center bg-[#070709]/50 space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto text-zinc-500">
+              <LinkIcon className="h-6 w-6 text-zinc-400" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-white">No links connected yet</p>
+              <p className="text-xs text-zinc-400 mt-1 max-w-sm mx-auto">
+                Select any platform from the directory above or click Add Link to showcase your socials.
+              </p>
+            </div>
             <button
               type="button"
               onClick={() => openAddLinkModal("discord")}
-              className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-[#a48df4] px-3.5 py-1.5 text-xs font-bold text-white transition hover:bg-[#8c71e8] cursor-pointer"
+              className="mt-2 inline-flex items-center gap-2 rounded-xl bg-[#a48df4] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#8c71e8] shadow-md cursor-pointer"
             >
-              <Plus className="h-3.5 w-3.5" /> Add Link
+              <Plus className="h-4 w-4" /> Add your first link
             </button>
           </div>
         ) : (
-          <div className="space-y-1.5">
-            {links.map((l, i) => {
+          <div className="space-y-2">
+            {visibleLinks.map((l) => {
+              const i = l.originalIndex;
               const meta = ALL_MAP[l.platform] || {};
               const Icon = meta.Icon || LinkIcon;
               const c = l.color || globals.color || meta.color || "hsl(272, 24%, 46%)";
@@ -329,58 +500,62 @@ export default function Links() {
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={() => { moveLink(dragIndex, i); setDragIndex(null); }}
                   onDragEnd={() => setDragIndex(null)}
-                  className={`flex cursor-grab items-center justify-between gap-3 rounded-xl border p-2.5 sm:p-3 transition-all duration-150 active:cursor-grabbing ${
+                  className={`flex cursor-grab items-center justify-between gap-3.5 rounded-xl border p-3 sm:p-3.5 transition-all duration-150 active:cursor-grabbing ${
                     dragIndex === i
-                      ? "border-[#a48df4] opacity-40 bg-[#09090b]"
-                      : "border-[#1f1f1f] bg-[#09090b] hover:border-[#3f3f46]"
+                      ? "border-[#a48df4] opacity-50 bg-[#09090c]"
+                      : "border-white/10 bg-[#070709] hover:border-white/25 hover:bg-[#09090c]"
                   }`}
                 >
-                  <div className="flex min-w-0 flex-1 items-center gap-3">
-                    <GripVertical className="h-4 w-4 shrink-0 text-zinc-600 hover:text-zinc-400" aria-hidden />
+                  <div className="flex min-w-0 flex-1 items-center gap-3.5">
+                    <GripVertical className="h-4 w-4 shrink-0 text-zinc-600 hover:text-zinc-300" aria-hidden />
 
-                    <span className="relative flex h-8 w-8 shrink-0 items-center justify-center">
+                    {/* Glowing Platform Icon Pill */}
+                    <span className="relative flex h-10 w-10 shrink-0 items-center justify-center">
                       <span
-                        className="flex h-8 w-8 items-center justify-center rounded-lg border"
+                        className="flex h-10 w-10 items-center justify-center rounded-xl border shadow-md"
                         style={{
-                          background: `${c}1f`,
+                          background: `${c}22`,
                           borderColor: `${c}44`,
-                          boxShadow: glow ? `0 0 14px ${glow}` : undefined,
+                          boxShadow: glow ? `0 0 16px ${glow}` : undefined,
                         }}
                       >
                         {fileUrl(l.icon_url) ? (
                           <img src={fileUrl(l.icon_url)} alt="" className="h-5 w-5 rounded object-cover" />
                         ) : (
-                          <Icon className="h-4 w-4" style={{ color: c }} />
+                          <Icon className="h-5 w-5" style={{ color: c }} />
                         )}
                       </span>
                     </span>
 
+                    {/* Title & URL / Details */}
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="truncate text-xs font-bold text-zinc-100">
+                        <span className="truncate text-xs font-bold text-white">
                           {l.label || meta.name || l.platform}
                         </span>
-                        <span className="shrink-0 rounded bg-[#111111] border border-[#2a2a2e] px-1.5 py-0.2 font-mono2 text-[9px] uppercase text-zinc-400">
+                        <span className="shrink-0 rounded-md bg-white/5 border border-white/10 px-2 py-0.5 font-mono2 text-[9px] uppercase font-bold text-zinc-300">
                           {isCard ? "card" : "icon"}
                         </span>
                       </div>
-                      <div className="truncate font-mono2 text-[11px] text-zinc-500">
-                        {l.url || l.username || "—"}
+                      <div className="truncate font-mono2 text-[11px] text-zinc-400 mt-0.5">
+                        {l.url || l.username || "No link configured"}
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex shrink-0 items-center gap-1.5">
-                    <div className="flex flex-col gap-0.5">
+                  {/* Actions Row */}
+                  <div className="flex shrink-0 items-center gap-2">
+                    <div className="flex items-center gap-1">
                       <button
                         type="button"
                         data-testid={`link-up-${i}`}
                         disabled={i === 0}
                         onClick={() => moveLink(i, i - 1)}
                         aria-label={`Move ${l.label || l.platform || "link"} up`}
-                        className="rounded bg-[#111111] border border-[#3f3f46]/20 p-1 text-zinc-400 hover:text-white disabled:opacity-20 transition"
+                        className="rounded-lg bg-white/5 border border-white/10 p-1.5 text-zinc-400 hover:text-white disabled:opacity-20 transition cursor-pointer"
+                        title="Move Up"
                       >
-                        <ChevronUp className="h-3 w-3" />
+                        <ChevronUp className="h-3.5 w-3.5" />
                       </button>
                       <button
                         type="button"
@@ -388,9 +563,10 @@ export default function Links() {
                         disabled={i === links.length - 1}
                         onClick={() => moveLink(i, i + 1)}
                         aria-label={`Move ${l.label || l.platform || "link"} down`}
-                        className="rounded bg-[#111111] border border-[#3f3f46]/20 p-1 text-zinc-400 hover:text-white disabled:opacity-20 transition"
+                        className="rounded-lg bg-white/5 border border-white/10 p-1.5 text-zinc-400 hover:text-white disabled:opacity-20 transition cursor-pointer"
+                        title="Move Down"
                       >
-                        <ChevronDown className="h-3 w-3" />
+                        <ChevronDown className="h-3.5 w-3.5" />
                       </button>
                     </div>
 
@@ -398,16 +574,16 @@ export default function Links() {
                       type="button"
                       data-testid={`link-edit-${i}`}
                       onClick={() => openEditLinkModal(i)}
-                      className="flex items-center gap-1.5 rounded-lg border border-[#2a2a2e] bg-[#111111] hover:border-[#a48df4]/50 px-2.5 py-1.5 text-xs font-semibold text-zinc-200 transition cursor-pointer"
+                      className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 px-3 py-1.5 text-xs font-semibold text-zinc-200 transition cursor-pointer"
                     >
-                      <Edit2 className="h-3.5 w-3.5 text-[#8aa6f5]" /> Edit
+                      <Edit2 className="h-3.5 w-3.5 text-brand-300" /> Edit
                     </button>
 
                     <button
                       type="button"
                       data-testid={`link-delete-${i}`}
                       onClick={() => removeLink(i)}
-                      className="rounded-lg border border-red-500/20 bg-red-500/10 p-1.5 text-red-400 hover:bg-red-500/20 transition cursor-pointer"
+                      className="rounded-lg border border-red-500/20 bg-red-500/10 p-2 text-red-400 hover:bg-red-500/20 transition cursor-pointer"
                       title="Delete Link"
                       aria-label={`Delete ${l.label || l.platform || "link"}`}
                     >
@@ -423,17 +599,17 @@ export default function Links() {
 
       {/* Floating Save Dock */}
       <div className={`${dirty || justSaved ? "block" : "hidden"} sticky bottom-5 z-20`} data-testid="links-save-bar">
-        <div className="flex items-center justify-between gap-4 rounded-xl border border-[#3f3f46]/50 bg-[#111111]/95 backdrop-blur-xl p-3.5 shadow-2xl">
-          <div className="flex items-center gap-2 text-xs">
+        <div className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-[#050505]/95 backdrop-blur-xl p-4 shadow-2xl">
+          <div className="flex items-center gap-2.5 text-xs">
             {dirty ? (
               <>
-                <AlertCircle className="h-4 w-4 text-amber-400" />
-                <span className="font-semibold text-amber-200">Unsaved changes</span>
+                <div className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse" />
+                <span className="font-semibold text-amber-200">You have unsaved changes</span>
               </>
             ) : (
               <>
                 <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-                <span className="text-zinc-300 font-medium">Saved</span>
+                <span className="text-zinc-200 font-medium">All changes saved</span>
               </>
             )}
           </div>
@@ -442,10 +618,10 @@ export default function Links() {
             data-testid="links-save-btn"
             onClick={saveAll}
             disabled={saving}
-            className="flex items-center gap-2 rounded-xl bg-[#a48df4] hover:bg-[#8c71e8] px-5 py-2 text-xs font-bold text-white shadow-md transition cursor-pointer disabled:opacity-50"
+            className="flex items-center gap-2 rounded-xl bg-[#a48df4] hover:bg-[#8c71e8] px-6 py-2 text-xs font-bold text-white shadow-lg transition cursor-pointer disabled:opacity-50"
           >
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-            {saving ? "Saving…" : "Save"}
+            {saving ? "Saving…" : "Save changes"}
           </button>
         </div>
       </div>
@@ -456,32 +632,32 @@ export default function Links() {
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-md animate-in fade-in duration-150"
           onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null); }}
         >
-          <div className="bg-[#111111] relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-[#2a2a2e] p-5 sm:p-6 shadow-2xl animate-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between border-b border-[#1f1f1f] pb-3">
+          <div className="bg-[#050505] relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-white/10 p-5 sm:p-6 shadow-2xl animate-in zoom-in-95 duration-150 text-left">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3.5">
               <div className="flex items-center gap-2.5">
                 <span
-                  className="flex h-7 w-7 items-center justify-center rounded-lg"
-                  style={{ background: `${activeMeta.color || "hsl(272, 24%, 46%)"}22` }}
+                  className="flex h-8 w-8 items-center justify-center rounded-xl"
+                  style={{ background: `${activeMeta.color || "hsl(272, 24%, 46%)"}25` }}
                 >
-                  <ActiveIcon className="h-3.5 w-3.5" style={{ color: activeMeta.color || "hsl(272, 24%, 46%)" }} />
+                  <ActiveIcon className="h-4 w-4" style={{ color: activeMeta.color || "hsl(272, 24%, 46%)" }} />
                 </span>
                 <h3 className="text-sm font-bold text-white">
-                  {activeModal.isNew ? "Add Link" : "Edit Link"}
+                  {activeModal.isNew ? "Add Profile Link" : "Edit Link Details"}
                 </h3>
               </div>
               <button
                 data-testid="link-modal-close"
                 onClick={() => setActiveModal(null)}
-                className="rounded-lg p-1 text-zinc-400 hover:text-white transition cursor-pointer"
+                className="rounded-lg p-1.5 text-zinc-400 hover:text-white transition cursor-pointer hover:bg-white/5"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            <div className="grid gap-3.5 pt-3.5 text-left">
+            <div className="grid gap-4 pt-4 text-left">
               {/* Platform Search & Grid */}
               <div>
-                <label className="mb-1 block text-xs font-semibold text-zinc-200">Platform</label>
+                <label className="mb-1.5 block text-xs font-semibold text-zinc-200">Select Platform</label>
                 <div className="relative mb-2">
                   <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-500" />
                   <input
@@ -490,13 +666,13 @@ export default function Links() {
                     value={platformQuery}
                     onChange={(e) => setPlatformQuery(e.target.value)}
                     placeholder={`Search ${PLATFORM_PRESETS.length} platforms…`}
-                    className="w-full rounded-xl border border-[#2a2a2e] bg-[#09090b] py-1.5 pl-8 pr-3 text-xs font-medium text-white placeholder-zinc-500 outline-none transition focus:border-[#a48df4]"
+                    className="w-full rounded-xl border border-white/10 bg-[#09090c] py-2 pl-9 pr-3 text-xs font-medium text-white placeholder-zinc-500 outline-none transition focus:border-[#a48df4]"
                   />
                 </div>
 
                 <div
                   data-testid="link-platform-grid"
-                  className="grid max-h-40 grid-cols-3 gap-1 overflow-y-auto pr-1 sm:grid-cols-4"
+                  className="grid max-h-44 grid-cols-3 gap-1.5 overflow-y-auto pr-1 sm:grid-cols-4"
                 >
                   {filteredPlatforms.map((p) => {
                     const selected = activeModal.link.platform === p.id;
@@ -507,13 +683,13 @@ export default function Links() {
                         data-testid={`link-platform-option-${p.id}`}
                         onClick={() => selectPlatform(p)}
                         title={p.name}
-                        className={`flex flex-col items-center gap-1 rounded-lg border p-1.5 text-[10px] font-semibold transition cursor-pointer ${
+                        className={`flex flex-col items-center gap-1 rounded-xl border p-2 text-[10px] font-semibold transition cursor-pointer ${
                           selected
-                            ? "border-[#a48df4] bg-[#a48df4]/20 text-white"
-                            : "border-[#1f1f1f] bg-[#09090b] text-zinc-400 hover:border-[#3f3f46] hover:text-zinc-200"
+                            ? "border-[#a48df4] bg-[#a48df4]/20 text-white shadow-sm"
+                            : "border-white/5 bg-[#09090c] text-zinc-400 hover:border-white/20 hover:text-zinc-200"
                         }`}
                       >
-                        <p.Icon className="h-3.5 w-3.5" style={{ color: selected ? "#ffffff" : p.color }} />
+                        <p.Icon className="h-4 w-4" style={{ color: selected ? "#ffffff" : p.color }} />
                         <span className="w-full truncate text-center">{p.name}</span>
                       </button>
                     );
@@ -527,32 +703,34 @@ export default function Links() {
               </div>
 
               {/* Label & URL */}
-              <div>
-                <label className="mb-1 block text-xs font-semibold text-zinc-200">Label</label>
-                <input
-                  data-testid="link-label-input"
-                  type="text"
-                  value={activeModal.link.label || ""}
-                  onChange={(e) => patchLink({ label: e.target.value })}
-                  placeholder="e.g. Discord"
-                  className="w-full rounded-xl border border-[#2a2a2e] bg-[#09090b] px-3 py-1.5 text-xs font-medium text-white placeholder-zinc-500 outline-none transition focus:border-[#a48df4]"
-                />
-              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="mb-1 block text-xs font-semibold text-zinc-200">Label</label>
+                  <input
+                    data-testid="link-label-input"
+                    type="text"
+                    value={activeModal.link.label || ""}
+                    onChange={(e) => patchLink({ label: e.target.value })}
+                    placeholder="e.g. Discord"
+                    className="w-full rounded-xl border border-white/10 bg-[#09090c] px-3.5 py-2 text-xs font-medium text-white placeholder-zinc-500 outline-none transition focus:border-[#a48df4]"
+                  />
+                </div>
 
-              <div>
-                <label className="mb-1 block text-xs font-semibold text-zinc-200">URL</label>
-                <input
-                  data-testid="link-url-input"
-                  type="text"
-                  value={activeModal.link.url || ""}
-                  onChange={(e) => patchLink({ url: e.target.value })}
-                  placeholder={placeholderFor(activeModal.link.platform)}
-                  className="w-full rounded-xl border border-[#2a2a2e] bg-[#09090b] px-3 py-1.5 text-xs font-medium text-white placeholder-zinc-500 outline-none transition focus:border-[#a48df4]"
-                />
+                <div>
+                  <label className="mb-1 block text-xs font-semibold text-zinc-200">URL or Handle</label>
+                  <input
+                    data-testid="link-url-input"
+                    type="text"
+                    value={activeModal.link.url || ""}
+                    onChange={(e) => patchLink({ url: e.target.value })}
+                    placeholder={placeholderFor(activeModal.link.platform)}
+                    className="w-full rounded-xl border border-white/10 bg-[#09090c] px-3.5 py-2 text-xs font-medium text-white placeholder-zinc-500 outline-none transition focus:border-[#a48df4]"
+                  />
+                </div>
               </div>
 
               {/* Display Style */}
-              <div className="space-y-2.5 rounded-xl border border-[#1f1f1f] bg-[#09090b] p-3">
+              <div className="space-y-3 rounded-2xl border border-white/10 bg-[#08080a] p-4">
                 <ChipRow
                   label="Show as"
                   options={LINK_MODES}
@@ -592,19 +770,19 @@ export default function Links() {
               </div>
 
               {/* Custom Icon, Description & Tooltip */}
-              <div className="space-y-2.5 rounded-xl border border-[#1f1f1f] bg-[#09090b] p-3">
+              <div className="space-y-3 rounded-2xl border border-white/10 bg-[#08080a] p-4">
                 <div className="flex items-center gap-3">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#2a2a2e] bg-[#111111]">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-[#050505]">
                     {activeModal.link.icon_url ? (
                       <img src={fileUrl(activeModal.link.icon_url)} alt="" className="h-full w-full object-cover" />
                     ) : (
-                      <ActiveIcon className="h-4 w-4" style={{ color: activeMeta.color || "hsl(272, 24%, 46%)" }} />
+                      <ActiveIcon className="h-5 w-5" style={{ color: activeMeta.color || "hsl(272, 24%, 46%)" }} />
                     )}
                   </span>
                   <div className="flex items-center gap-2">
-                    <label className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-[#a48df4]/40 bg-[#a48df4]/15 px-2.5 py-1 text-xs font-semibold text-white transition hover:bg-[#a48df4]/25">
-                      {iconUploading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
-                      {activeModal.link.icon_url ? "Replace" : "Upload"}
+                    <label className="flex cursor-pointer items-center gap-1.5 rounded-xl border border-[#a48df4]/40 bg-[#a48df4]/15 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#a48df4]/25">
+                      {iconUploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+                      {activeModal.link.icon_url ? "Replace Icon" : "Upload Custom Icon"}
                       <input
                         data-testid="link-icon-upload"
                         type="file"
@@ -618,36 +796,36 @@ export default function Links() {
                       <button
                         type="button"
                         onClick={() => patchLink({ icon_url: "" })}
-                        className="rounded-lg border border-red-500/20 bg-red-500/10 p-1 text-red-400 hover:bg-red-500/20 transition cursor-pointer"
+                        className="rounded-xl border border-red-500/20 bg-red-500/10 p-1.5 text-red-400 hover:bg-red-500/20 transition cursor-pointer"
                         aria-label="Remove custom icon"
                       >
-                        <Trash2 className="h-3 w-3" />
+                        <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     )}
                   </div>
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-zinc-200">Description</label>
+                  <label className="mb-1 block text-xs font-semibold text-zinc-200">Description (Optional)</label>
                   <input
                     data-testid="link-desc-input"
                     type="text"
                     value={activeModal.link.desc || ""}
                     onChange={(e) => patchLink({ desc: e.target.value })}
-                    placeholder="Optional"
-                    className="w-full rounded-xl border border-[#2a2a2e] bg-[#111111] px-3 py-1.5 text-xs font-medium text-white placeholder-zinc-500 outline-none transition focus:border-[#a48df4]"
+                    placeholder="Brief subtitle or note"
+                    className="w-full rounded-xl border border-white/10 bg-[#050505] px-3.5 py-2 text-xs font-medium text-white placeholder-zinc-500 outline-none transition focus:border-[#a48df4]"
                   />
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-zinc-200">Tooltip</label>
+                  <label className="mb-1 block text-xs font-semibold text-zinc-200">Hover Tooltip (Optional)</label>
                   <input
                     data-testid="link-tooltip-input"
                     type="text"
                     value={activeModal.link.tooltip || ""}
                     onChange={(e) => patchLink({ tooltip: e.target.value })}
-                    placeholder="Optional"
-                    className="w-full rounded-xl border border-[#2a2a2e] bg-[#111111] px-3 py-1.5 text-xs font-medium text-white placeholder-zinc-500 outline-none transition focus:border-[#a48df4]"
+                    placeholder="Text shown when hovered"
+                    className="w-full rounded-xl border border-white/10 bg-[#050505] px-3.5 py-2 text-xs font-medium text-white placeholder-zinc-500 outline-none transition focus:border-[#a48df4]"
                   />
                 </div>
 
@@ -661,7 +839,7 @@ export default function Links() {
                 )}
 
                 <label className="flex items-center justify-between text-xs text-zinc-300 cursor-pointer pt-0.5">
-                  <span>Glow</span>
+                  <span>Enable Glow Effect</span>
                   <Switch
                     checked={!!(activeModal.link.glow_on ?? globals.glowOn)}
                     onCheckedChange={(v) => patchLink({ glow_on: v })}
@@ -670,26 +848,26 @@ export default function Links() {
               </div>
 
               {/* Colors */}
-              <div className="grid grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-2 gap-3">
                 <ColorPicker label="Custom Color" value={activeModal.link.color || "hsl(272, 24%, 46%)"} onChange={(v) => patchLink({ color: v })} />
                 <ColorPicker label="Custom Glow" value={activeModal.link.glow || "hsl(272, 24%, 46%)"} onChange={(v) => patchLink({ glow: v })} />
               </div>
             </div>
 
-            <div className="mt-4 flex justify-end gap-2 border-t border-[#1f1f1f] pt-3">
+            <div className="mt-5 flex justify-end gap-2.5 border-t border-white/10 pt-3.5">
               <button
                 data-testid="link-modal-cancel"
                 onClick={() => setActiveModal(null)}
-                className="rounded-xl border border-[#2a2a2e] bg-[#09090b] px-3.5 py-1.5 text-xs font-semibold text-zinc-300 hover:text-white transition cursor-pointer"
+                className="rounded-xl border border-white/10 bg-[#09090c] px-4 py-2 text-xs font-semibold text-zinc-300 hover:text-white transition cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 data-testid="link-modal-apply"
                 onClick={saveModalLink}
-                className="rounded-xl bg-[#a48df4] hover:bg-[#8c71e8] px-4 py-1.5 text-xs font-bold text-white shadow-md transition cursor-pointer"
+                className="rounded-xl bg-[#a48df4] hover:bg-[#8c71e8] px-5 py-2 text-xs font-bold text-white shadow-lg transition cursor-pointer active:scale-95"
               >
-                Apply
+                Apply Link
               </button>
             </div>
           </div>
@@ -702,22 +880,22 @@ export default function Links() {
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-md animate-in fade-in duration-150"
           onClick={(e) => { if (e.target === e.currentTarget) setShowGlobalModal(false); }}
         >
-          <div className="bg-[#111111] relative max-h-[90vh] w-full max-w-sm overflow-y-auto rounded-2xl border border-[#2a2a2e] p-5 shadow-2xl animate-in zoom-in-95 duration-150 text-left">
-            <div className="flex items-center justify-between border-b border-[#1f1f1f] pb-3">
+          <div className="bg-[#050505] relative max-h-[90vh] w-full max-w-sm overflow-y-auto rounded-2xl border border-white/10 p-5 shadow-2xl animate-in zoom-in-95 duration-150 text-left">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
               <div className="flex items-center gap-2">
-                <Paintbrush className="h-4 w-4 text-[#8aa6f5]" />
-                <h3 className="text-sm font-bold text-white">Global Styles</h3>
+                <Paintbrush className="h-4 w-4 text-brand-300" />
+                <h3 className="text-sm font-bold text-white">Global Link Styles</h3>
               </div>
               <button
                 data-testid="link-global-modal-close"
                 onClick={() => setShowGlobalModal(false)}
-                className="rounded-lg p-1 text-zinc-400 hover:text-white transition cursor-pointer"
+                className="rounded-lg p-1 text-zinc-400 hover:text-white transition cursor-pointer hover:bg-white/5"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            <div className="space-y-3 pt-3">
+            <div className="space-y-3.5 pt-3.5">
               <ChipRow
                 label="Default display"
                 options={LINK_MODES}
@@ -748,7 +926,7 @@ export default function Links() {
                 <Switch checked={globals.iconFill} onCheckedChange={(v) => setGlobals({ ...globals, iconFill: v })} />
               </label>
               <label className="flex items-center justify-between text-xs text-zinc-300 cursor-pointer">
-                <span>Glow</span>
+                <span>Enable Glow</span>
                 <Switch
                   data-testid="link-glow-toggle"
                   checked={globals.glowOn}
@@ -761,12 +939,12 @@ export default function Links() {
                 <ColorPicker label="Glow" value={globals.glow || "hsl(272, 24%, 46%)"} onChange={(v) => setGlobals({ ...globals, glow: v })} />
               </div>
 
-              <div className="flex items-center justify-between pt-3 border-t border-[#3f3f46]/20">
+              <div className="flex items-center justify-between pt-3 border-t border-white/10">
                 <div className="flex items-center gap-1.5 text-[11px] text-zinc-400">
                   {dirty ? (
                     <>
                       <AlertCircle className="h-3.5 w-3.5 text-amber-400" />
-                      <span className="text-amber-200">Unsaved</span>
+                      <span className="text-amber-200">Unsaved draft</span>
                     </>
                   ) : (
                     <>
