@@ -523,6 +523,7 @@ const EntryStyleThumb = ({ id, accent }) => (
         <img src="/logo.png" alt="" className="w-5 h-5 object-contain" />
         <span className="text-[9px] font-mono2 text-zinc-400">Image Stamp</span>
       </span>
+    ) : (
       <span className="relative rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[10px] font-semibold text-white shadow-md">
         Click to enter
       </span>
