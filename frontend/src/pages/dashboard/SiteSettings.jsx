@@ -33,7 +33,7 @@ export default function SiteSettings() {
   const [rewards, setRewards] = useState({
     enabled: false,
     milestones: [],
-    notification_title: "🎉 Milestone Unlocked!",
+    notification_title: "Milestone Unlocked!",
     notification_body: "Congratulations! You reached {views} lifetime views and unlocked {days} days of free Premium trial!",
   });
   const [hasCustomNotif, setHasCustomNotif] = useState(false);
@@ -510,7 +510,7 @@ export default function SiteSettings() {
                         setHasCustomNotif(true);
                         setRewards({ ...rewards, notification_title: e.target.value });
                       }}
-                      placeholder="🎉 Milestone Unlocked!"
+                      placeholder="Milestone Unlocked!"
                       className="w-full px-3 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-zinc-100 outline-none focus:border-brand-500/50"
                     />
                   </div>
@@ -613,16 +613,16 @@ export default function SiteSettings() {
                   </p>
                   <div className="grid grid-cols-2 gap-1.5 pt-1 text-[11px] font-mono2">
                     <span className="px-2 py-1 rounded-lg bg-black/30 border border-white/5 text-zinc-200">
-                      👥 {pendingImport.userCount} Users
+                      <span className="text-zinc-500">Users</span> {pendingImport.userCount}
                     </span>
                     <span className="px-2 py-1 rounded-lg bg-black/30 border border-white/5 text-zinc-200">
-                      ⚙️ {pendingImport.settingsCount} Settings
+                      <span className="text-zinc-500">Settings</span> {pendingImport.settingsCount}
                     </span>
                     <span className="px-2 py-1 rounded-lg bg-black/30 border border-white/5 text-zinc-200">
-                      🎨 {pendingImport.templatesCount} Templates
+                      <span className="text-zinc-500">Templates</span> {pendingImport.templatesCount}
                     </span>
                     <span className="px-2 py-1 rounded-lg bg-black/30 border border-white/5 text-zinc-200">
-                      🎟️ {pendingImport.invitesCount} Invites
+                      <span className="text-zinc-500">Invites</span> {pendingImport.invitesCount}
                     </span>
                   </div>
                   <p className="text-[10px] text-amber-300/80 pt-1 leading-snug">

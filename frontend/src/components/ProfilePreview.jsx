@@ -15,7 +15,7 @@ import { OverlayEffect } from "@/components/OverlayEffect";
 import { FxText } from "@/components/FxText";
 import { HoverTip, useMouseTip, resolveTooltipStyle } from "@/components/FxTooltip";
 import { BadgeChip } from "@/components/BadgeChip";
-import { animationClass, resolveLayout } from "@/constants/layouts";
+import { animationClass, resolveLayout, trackPositionForLayout } from "@/constants/layouts";
 import { resolveTrackStyle } from "@/constants/effects";
 
 const PLAT_MAP = Object.fromEntries(PLATFORMS.map((p) => [p.id, p]));
@@ -1831,15 +1831,16 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
   // and would otherwise hit its temporal dead zone.
   const cornerStyle = resolveTrackStyle(p.track_style) === "corner-icon";
 
-  // "Top right" / "Top left" lift the player OUT of the card flow and pin it
-  // to that page corner, the way the profile used to read before the player
-  // styles were folded into the card. Only the first track drives the pinned
-  // chip (one player, one <audio>), and the rest stay in the card's audio
-  // block. The Corner Icon style already pins itself, so it ignores this
-  // switch. Inside the editor's embedded preview the player still lifts out
-  // of the card — the pin is ABSOLUTE there, to the preview panel's corner,
-  // so what the editor shows is what the public page does.
-  const pos = p.track_position || "";
+  // Placement is a property of the shell the profile is drawn in, not a
+  // separate switch: see TRACK_POSITION_BY_LAYOUT. A banner has a wide hero
+  // header, so its player pins to that corner; the floating card carries its
+  // player along the bottom edge; the flat cards keep it in their audio box.
+  // Only the first track drives the pinned player (one player, one <audio>),
+  // and the rest stay in the card's audio block. The Corner Icon style already
+  // pins itself, so it ignores this. Inside the editor's embedded preview the
+  // player still lifts out of the card — the pin is ABSOLUTE there, to the
+  // preview panel's corner, so what the editor shows is what the page does.
+  const pos = trackPositionForLayout(p.layout);
   const pagePin = pos === "top-right" || pos === "top-left" || pos === "bottom-center" || pos === "bottom-right";
   const pinnedPlayer = !cornerStyle && pagePin && tracks.length > 0;
   const pinClass =

@@ -402,8 +402,10 @@ const DEFAULT_SHARED = {
   density: "compact",
 };
 
-const snapshot = (widgets, shared, tracks, trackStyle, shuffle, volume, trackPosition) =>
-  JSON.stringify({ widgets, shared, tracks, trackStyle, shuffle, volume, trackPosition });
+// Player placement is no longer stored: it follows the profile layout (see
+// TRACK_POSITION_BY_LAYOUT), so this page only tracks the audio it can change.
+const snapshot = (widgets, shared, tracks, trackStyle, shuffle, volume) =>
+  JSON.stringify({ widgets, shared, tracks, trackStyle, shuffle, volume });
 
 function getPreviewStats(widget, kind, data) {
   const isDiscord = widget.type === "discord";
@@ -584,12 +586,12 @@ function RealLiveWidgetPreview({ widget, kind, styleOverride }) {
           </div>
         )}
 
-        {/* Header row */}
+        {/* Header row — icon only on the left, platform badge icon on right */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div
-              className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border overflow-hidden"
-              style={{ background: `${kind.color || "#5865F2"}22`, borderColor: `${kind.color || "#5865F2"}44` }}
+              className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border overflow-hidden shadow-sm"
+              style={{ background: `${kind.color || "#5865F2"}22`, borderColor: `${kind.color || "#5865F2"}55` }}
             >
               {avatarUrl ? (
                 <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
@@ -597,21 +599,19 @@ function RealLiveWidgetPreview({ widget, kind, styleOverride }) {
                 <Icon className="w-4 h-4" style={{ color: kind.color || "#5865F2" }} />
               )}
             </div>
-            <div className="min-w-0">
-              <span className="text-xs font-bold text-white tracking-tight block truncate">
-                {kind.label}
-              </span>
-            </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             {widget.platform_badge !== false && (
-              <span className="px-2 py-0.5 rounded-md bg-white/10 text-[10px] font-bold text-zinc-300 border border-white/15 uppercase tracking-wider">
-                {kind.label}
-              </span>
+              <div
+                className="w-6 h-6 rounded-lg flex items-center justify-center border"
+                style={{ background: `${kind.color || "#5865F2"}15`, borderColor: `${kind.color || "#5865F2"}30` }}
+              >
+                <Icon className="w-3 h-3" style={{ color: kind.color || "#5865F2" }} />
+              </div>
             )}
             {widget.view_button !== false && (
-              <div className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center text-zinc-300 border border-white/10 shadow-sm">
+              <div className="w-6 h-6 rounded-lg bg-white/[0.07] flex items-center justify-center text-zinc-400 border border-white/10">
                 <ExternalLink className="w-3 h-3" />
               </div>
             )}
@@ -668,7 +668,6 @@ export default function Widgets() {
   const savedTrackStyle = resolveTrackStyle(user.profile?.track_style);
   const savedShuffle = !!user.profile?.track_shuffle;
   const savedVolume = user.profile?.track_volume ?? 80;
-  const savedTrackPosition = user.profile?.track_position || "";
   const accentColor = user.profile?.accent_color || "#A48DF4";
 
   const [widgets, setWidgets] = useState(user.profile?.widgets || []);
@@ -698,7 +697,6 @@ export default function Widgets() {
   const [trackStyle, setTrackStyle] = useState(savedTrackStyle);
   const [shuffle, setShuffle] = useState(savedShuffle);
   const [volume, setVolume] = useState(savedVolume);
-  const [trackPosition, setTrackPosition] = useState(savedTrackPosition);
 
   const [saving, setSaving] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
@@ -730,12 +728,11 @@ export default function Widgets() {
       user.profile?.tracks || [],
       savedTrackStyle,
       savedShuffle,
-      savedVolume,
-      savedTrackPosition
+      savedVolume
     )
   );
 
-  const dirty = baseline.current !== snapshot(widgets, currentShared, tracks, trackStyle, shuffle, volume, trackPosition);
+  const dirty = baseline.current !== snapshot(widgets, currentShared, tracks, trackStyle, shuffle, volume);
 
   // Dedicated Widget Editor Page state: null | { isNew, index, widget }
   const [editingWidget, setEditingWidget] = useState(null);
@@ -788,10 +785,9 @@ export default function Widgets() {
         track_style: trackStyle,
         track_shuffle: shuffle,
         track_volume: volume,
-        track_position: trackPosition,
       });
       setUser(data);
-      baseline.current = snapshot(next, currentShared, tracks, trackStyle, shuffle, volume, trackPosition);
+      baseline.current = snapshot(next, currentShared, tracks, trackStyle, shuffle, volume);
       toast.success("Widget saved to profile!");
     } catch {
       toast.success("Widget applied to draft — remember to save");
@@ -823,10 +819,9 @@ export default function Widgets() {
         track_style: trackStyle,
         track_shuffle: shuffle,
         track_volume: volume,
-        track_position: trackPosition,
       });
       setUser(data);
-      baseline.current = snapshot(next, currentShared, tracks, trackStyle, shuffle, volume, trackPosition);
+      baseline.current = snapshot(next, currentShared, tracks, trackStyle, shuffle, volume);
       toast.success("Widget deleted");
     } catch {
       toast.error("Failed to delete widget");
@@ -863,10 +858,9 @@ export default function Widgets() {
         track_style: trackStyle,
         track_shuffle: shuffle,
         track_volume: volume,
-        track_position: trackPosition,
       });
       setUser(data);
-      baseline.current = snapshot(widgets, currentShared, tracks, trackStyle, shuffle, volume, trackPosition);
+      baseline.current = snapshot(widgets, currentShared, tracks, trackStyle, shuffle, volume);
       toast.success("Widgets and design settings saved!");
       setJustSaved(true);
       clearTimeout(savedTimer.current);
@@ -1391,7 +1385,7 @@ export default function Widgets() {
           <h2 className="text-sm font-bold text-white tracking-tight">Available Widgets</h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2.5">
           {WIDGET_KINDS.map((kind) => {
             const Icon = kind.Icon || GENERIC_WIDGET_ICON;
             const locked = kind.premium && !isPremium;
@@ -1401,28 +1395,34 @@ export default function Widgets() {
                 type="button"
                 data-testid={`add-widget-${kind.id}`}
                 onClick={() => openWidgetEditor(kind)}
-                className={`group relative flex items-center gap-3.5 p-3.5 rounded-xl border text-left transition-all duration-200 outline-none overflow-hidden cursor-pointer ${
+                style={{ minHeight: "96px" }}
+                className={`group relative flex flex-col items-center justify-center gap-2.5 p-3.5 rounded-2xl border text-center transition-all duration-200 outline-none cursor-pointer ${
                   locked
-                    ? "border-[#3f3f46]/20 bg-[#09090b]/50 hover:border-white/20"
-                    : "border-[#2a2a2e] bg-[#09090b] hover:border-[#a48df4] hover:bg-[#151518]"
+                    ? "border-white/[0.04] bg-[#0a0a0d]/60 opacity-75 hover:opacity-100 hover:border-white/10"
+                    : "border-white/[0.06] bg-[#0d0d10] hover:border-[#a48df4]/50 hover:bg-[#12121a] hover:shadow-[0_4px_20px_rgba(164,141,244,0.08)]"
                 }`}
               >
                 <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border transition-transform duration-200 group-hover:scale-105"
-                  style={{ background: `${kind.color}18`, borderColor: `${kind.color}35` }}
+                  className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border transition-all duration-200 group-hover:scale-110"
+                  style={{ background: `${kind.color}18`, borderColor: `${kind.color}38` }}
                 >
                   <Icon className="w-5 h-5" style={{ color: kind.color }} />
                 </div>
 
-                <div className="min-w-0 flex-1">
-                  <div className="text-xs font-bold text-white truncate flex items-center gap-1.5">
-                    <span>{kind.label}</span>
-                    {locked && (
-                      <span className="flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 text-[9px] font-bold">
-                        <Lock className="w-2.5 h-2.5" /> PRO
-                      </span>
-                    )}
+                <div className="min-w-0 w-full">
+                  <div className="text-[11px] font-semibold text-zinc-400 group-hover:text-white truncate transition-colors leading-tight">
+                    {kind.label}
                   </div>
+                  {locked && (
+                    <div className="flex items-center justify-center gap-0.5 mt-0.5">
+                      <Lock className="w-2.5 h-2.5 text-amber-400" />
+                      <span className="text-[9px] font-bold text-amber-400">PRO</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-md bg-[#a48df4] flex items-center justify-center text-white transition-all duration-200 opacity-0 group-hover:opacity-100 scale-75 group-hover:scale-100">
+                  <Plus className="w-3 h-3" />
                 </div>
               </button>
             );
@@ -1492,7 +1492,7 @@ export default function Widgets() {
                     </div>
                     <div className="min-w-0">
                       <div className="text-xs font-bold text-white truncate">
-                        {w.title || kind.label || w.type} {w.subtype ? `(${w.subtype})` : ""}
+                        {w.title || kind.label || w.type}
                       </div>
                       <div className="text-[11px] text-zinc-400 font-mono2 truncate mt-0.5">
                         {subtitle}
@@ -1550,8 +1550,11 @@ export default function Widgets() {
           </button>
         </div>
 
-        {/* 6 Customization Controls Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-1">
+        {/* Controls + Preview (side-by-side on large screens) */}
+        <div className="grid grid-cols-1 xl:grid-cols-[1fr_300px] gap-5">
+
+        {/* Left: Slider Controls */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {/* 1. Border Width */}
           <div className="p-4 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] space-y-3">
             <div className="flex items-center justify-between">
@@ -1656,7 +1659,7 @@ export default function Widgets() {
           </div>
 
           {/* 8. Card Density */}
-          <div className="p-4 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] space-y-3 sm:col-span-2 lg:col-span-2">
+          <div className="p-4 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] space-y-3 sm:col-span-2">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-zinc-200">Widget Density</span>
               <span className="text-xs font-mono2 text-brand-300 font-bold capitalize">{density}</span>
@@ -1685,43 +1688,38 @@ export default function Widgets() {
           </div>
         </div>
 
-        {/* Live Shared Design Preview Card with Active Widget Carousel */}
-        <div className="pt-5 border-t border-[#1f1f1f] space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <div className="text-xs font-bold text-white tracking-tight">Preview</div>
-            </div>
+        </div>{/* end controls grid */}
 
-            {/* Active Widgets Carousel Controls */}
+        {/* Right: Preview Panel */}
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Preview</span>
             {activeWidgets.length > 0 && (
-              <div className="flex items-center gap-2 self-start sm:self-auto bg-white/[0.04] border border-white/10 px-3 py-1.5 rounded-xl">
-                <span className="text-[11px] font-medium text-zinc-300">
-                  <span className="text-brand-300 font-bold">{activePreviewIdx + 1}</span> of {activeWidgets.length}
+              <div className="flex items-center gap-1 bg-white/[0.04] border border-white/10 px-2 py-1 rounded-lg">
+                <span className="text-[10px] font-medium text-zinc-400">
+                  <span className="text-brand-300 font-bold">{activePreviewIdx + 1}</span>/{activeWidgets.length}
                 </span>
-                <div className="h-3.5 w-px bg-white/10 mx-0.5" />
                 <button
                   type="button"
-                  title="Previous active widget"
                   disabled={activeWidgets.length <= 1}
                   onClick={() => setActivePreviewIdx((i) => (i - 1 + activeWidgets.length) % activeWidgets.length)}
-                  className="p-1 rounded-lg hover:bg-white/10 text-zinc-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer"
+                  className="p-0.5 rounded hover:bg-white/10 text-zinc-500 hover:text-white disabled:opacity-30 transition cursor-pointer"
                 >
-                  <ChevronLeft className="w-4 h-4" />
+                  <ChevronLeft className="w-3 h-3" />
                 </button>
                 <button
                   type="button"
-                  title="Next active widget"
                   disabled={activeWidgets.length <= 1}
                   onClick={() => setActivePreviewIdx((i) => (i + 1) % activeWidgets.length)}
-                  className="p-1 rounded-lg hover:bg-white/10 text-zinc-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer"
+                  className="p-0.5 rounded hover:bg-white/10 text-zinc-500 hover:text-white disabled:opacity-30 transition cursor-pointer"
                 >
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="w-3 h-3" />
                 </button>
               </div>
             )}
           </div>
 
-          <div className="p-6 rounded-2xl bg-black/60 border border-white/5 flex flex-col items-center justify-center gap-4">
+          <div className="flex-1 rounded-2xl bg-[#070709] border border-white/[0.06] flex flex-col items-center justify-center gap-4 p-5 min-h-[220px]">
             {activeWidgets.length > 0 ? (
               <>
                 <RealLiveWidgetPreview
@@ -1770,18 +1768,17 @@ export default function Widgets() {
                   boxShadow: "0 8px 32px rgba(0,0,0,0.45)",
                 }}
               >
-                {/* Header row */}
+              {/* Header row */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-lg bg-[#5865F2]/20 border border-[#5865F2]/40 flex items-center justify-center text-[#5865F2]">
-                      <FaDiscord className="w-4 h-4" />
+                    <div className="w-7 h-7 rounded-lg bg-[#5865F2]/20 border border-[#5865F2]/40 flex items-center justify-center">
+                      <FaDiscord className="w-4 h-4 text-[#5865F2]" />
                     </div>
-                    <span className="text-xs font-bold text-white tracking-tight">Discord</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <span className="px-2 py-0.5 rounded-md bg-white/5 text-[10px] font-bold text-zinc-300 border border-white/10 uppercase tracking-wider">
-                      Discord
-                    </span>
+                    <div className="w-5 h-5 rounded-md bg-[#5865F2]/15 border border-[#5865F2]/30 flex items-center justify-center">
+                      <FaDiscord className="w-2.5 h-2.5 text-[#5865F2]" />
+                    </div>
                     <div className="w-6 h-6 rounded-md bg-white/5 flex items-center justify-center text-zinc-400">
                       <ExternalLink className="w-3 h-3" />
                     </div>
@@ -1812,6 +1809,7 @@ export default function Widgets() {
             )}
           </div>
         </div>
+        </div>{/* end side-by-side grid */}
       </div>
 
       {/* Floating Save Bar */}

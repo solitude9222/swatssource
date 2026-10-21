@@ -50,6 +50,30 @@ export const DEFAULT_LAYOUT = "minimal";
 /** The layout a profile actually renders as: its own choice, or the default. */
 export const resolveLayout = (id) => (LAYOUT_MAP[id] ? id : DEFAULT_LAYOUT);
 
+// Where the audio player sits is part of the shell a layout describes, not a
+// second unrelated choice: a wide card keeps the player in its own audio box,
+// the floating card lets it ride along the bottom edge, and the banner has a
+// hero header with an empty right side to pin it to. "" means the player stays
+// inside the card. Profiles used to store this as `track_position`; that field
+// is no longer written, so old values simply stop applying.
+export const TRACK_POSITION_BY_LAYOUT = {
+  minimal: "",
+  floating: "bottom-center",
+  banner: "top-right",
+  slideshow: "",
+};
+
+export const TRACK_POSITION_LABELS = {
+  "": "Inside the card",
+  "top-right": "Pinned top right",
+  "top-left": "Pinned top left",
+  "bottom-center": "Floating along the bottom",
+  "bottom-right": "Pinned bottom right",
+};
+
+/** The player placement implied by a profile's layout. */
+export const trackPositionForLayout = (id) => TRACK_POSITION_BY_LAYOUT[resolveLayout(id)] ?? "";
+
 export const ICON_SIZES = [
   { id: "sm", label: "Small", px: 40 },
   { id: "md", label: "Medium", px: 48 },

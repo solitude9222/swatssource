@@ -1646,7 +1646,7 @@ function CountdownCard({ w, accent }) {
       {!valid ? (
         <div className="text-xs text-zinc-500 font-mono">Pick a date in widget settings</div>
       ) : past ? (
-        <div className="text-xs text-emerald-400 font-semibold">Event is live! 🎉</div>
+        <div className="text-xs text-emerald-400 font-semibold">Event is live!</div>
       ) : (
         <div className="grid grid-cols-4 gap-2 text-center">
           {parts.map((p) => (

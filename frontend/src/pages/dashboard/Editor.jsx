@@ -1,4 +1,4 @@
-import { memo, useMemo, useState, useEffect, useRef } from "react";
+import { memo, useDeferredValue, useMemo, useState, useEffect, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { PremiumGate } from "@/components/ui-shared/PremiumGate";
@@ -15,7 +15,10 @@ import { TOOLTIP_STYLES, TOOLTIP_ANIMATIONS, TOOLTIP_SIZES } from "@/components/
 import {
   TEXT_EFFECTS, OVERLAYS, CURSOR_EFFECTS, BACKGROUND_EFFECTS,
 } from "@/constants/effects";
-import { LAYOUTS, LAYOUT_MAP, DEFAULT_LAYOUT, SECTION_ANIMATIONS } from "@/constants/layouts";
+import {
+  LAYOUTS, LAYOUT_MAP, DEFAULT_LAYOUT, SECTION_ANIMATIONS, resolveLayout,
+  TRACK_POSITION_LABELS, trackPositionForLayout,
+} from "@/constants/layouts";
 import { TRACK_STYLES, resolveTrackStyle } from "@/constants/effects";
 import { TrackStylePreview } from "@/components/TrackStylePreview";
 import { FONTS, FREE_FONTS, fontStackOf, ensureFontsLoaded } from "@/constants/fonts";
@@ -105,6 +108,24 @@ export const CARD_STYLE_PRESETS = {
 
 const PREVIEW_WORD = "swats";
 
+// Named sections plus the aliases older links still use. "layout" and "effects"
+// are not separate panels any more — the layout picker lives in Appearance and
+// the effect pickers in Extra — so an old bookmark lands on the page that owns
+// those controls instead of a bare panel.
+const EDITOR_TABS = ["about", "appearance", "audios", "extra"];
+const TAB_ALIASES = {
+  profile: "about",
+  card: "appearance",
+  layout: "appearance",
+  effects: "extra",
+  entry: "extra",
+};
+const resolveEditorTab = (raw) => {
+  const id = String(raw || "");
+  if (EDITOR_TABS.includes(id)) return id;
+  return TAB_ALIASES[id] || "about";
+};
+
 const SWITCH_CLASS =
   "h-5 w-9 shrink-0 rounded-full border border-[#2a2a2e] bg-[#111111] shadow-inner transition-colors duration-200 data-[state=checked]:border-[#a48df4] data-[state=checked]:bg-[#a48df4] data-[state=unchecked]:bg-[#3f3f46]/40";
 
@@ -118,6 +139,12 @@ function FontField({ label, value, onChange, isPremium, navigate, testid }) {
     FONTS.find((f) => f.name.toLowerCase() === String(value).toLowerCase()) ||
     FONTS.find((f) => f.free);
 
+  // Typing in the search field re-filters a few hundred tiles; deferring the
+  // query keeps the keystrokes immediate and lets the list catch up, instead of
+  // blocking every character on the whole grid. Same for the category chips.
+  const deferredQuery = useDeferredValue(query);
+  const deferredCategory = useDeferredValue(activeCategory);
+
   const categories = useMemo(() => {
     const list = ["All"];
     FONTS.forEach((f) => {
@@ -127,17 +154,17 @@ function FontField({ label, value, onChange, isPremium, navigate, testid }) {
     return list;
   }, []);
 
-  const q = query.trim().toLowerCase();
+  const q = deferredQuery.trim().toLowerCase();
   const matches = useMemo(() => {
     let list = FONTS;
-    if (activeCategory !== "All") {
-      list = list.filter((f) => (f.category || "Other") === activeCategory);
+    if (deferredCategory !== "All") {
+      list = list.filter((f) => (f.category || "Other") === deferredCategory);
     }
     if (q) {
       list = list.filter((f) => f.name.toLowerCase().includes(q));
     }
     return list;
-  }, [q, activeCategory]);
+  }, [q, deferredCategory]);
 
   const categorizedFonts = useMemo(() => {
     return matches.reduce((acc, font) => {
@@ -392,8 +419,11 @@ function LayoutPicker({ value, onChange, isPremium, navigate }) {
   );
 }
 
+// Sections no longer animate in. `animate-slide-up stagger-children` replayed a
+// 300 ms movement on every section each time a subtab mounted, so switching tab
+// read as a twitch; the panel's single entrance lives in the dashboard shell.
 const Section = ({ title, hint, children }) => (
-  <section className="w-full space-y-6 rounded-2xl border border-[#1f1f1f] bg-[#111111] p-5 sm:p-7 animate-slide-up stagger-children">
+  <section className="w-full space-y-6 rounded-2xl border border-[#1f1f1f] bg-[#111111] p-5 sm:p-7">
     <div className="flex items-center gap-3">
       <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#a48df4]/15 text-[#c084fc]">
         <Sliders className="h-4 w-4" />
@@ -405,6 +435,25 @@ const Section = ({ title, hint, children }) => (
     </div>
     {children}
   </section>
+);
+
+// Everything past the everyday controls is \"advanced\": surface dials, playback
+// behaviour, page/privacy and embed settings. It stays out of the page entirely
+// until Advanced mode is on, and the switch that turns it on sits at the bottom
+// of the editor (see the AdvancedBar) instead of at the top of one section.
+const AdvancedNotice = ({ what }) => (
+  <div
+    data-testid="advanced-hidden-notice"
+    className="flex items-start gap-3 rounded-2xl border border-dashed border-white/[0.09] bg-[#0d0d0f] px-4 py-3.5"
+  >
+    <Lock className="mt-0.5 h-4 w-4 shrink-0 text-zinc-500" />
+    <div className="min-w-0">
+      <p className="text-xs font-semibold text-zinc-300">Advanced settings are hidden</p>
+      <p className="mt-0.5 text-[11px] leading-relaxed text-zinc-500">
+        {what} Turn on Advanced mode at the bottom of this page to reveal them.
+      </p>
+    </div>
+  </div>
 );
 
 const ChipGrid = ({ options, value, onChange, onLocked, testid, cols = 3 }) => (
@@ -744,39 +793,16 @@ export default function Editor() {
   const askPremium = (feature) => () => setPremiumFeature(feature);
   const gate = useEditGate();
 
-  // Tab resolution from query param or initial state
-  const tabParam = searchParams.get("tab") || "";
-  const initialSub =
-    tabParam === "appearance" ? "appearance"
-      : tabParam === "layout" ? "layout"
-      : tabParam === "audios" ? "audios"
-      : (tabParam === "extra" || tabParam === "effects") ? "extra"
-      : "about";
+  // The URL is the only place the open section lives. It used to be mirrored in
+  // a `sub` state as well, with an effect copying one into the other; every
+  // switch rendered twice and the two could disagree about the legacy
+  // `?tab=layout` / `?tab=effects` aliases.
+  const sub = resolveEditorTab(searchParams.get("tab"));
 
-  const [sub, setSub] = useState(initialSub);
-
-  // Sync tab change with URL search params when changed
   const switchSub = (id) => {
-    setSub(id);
-    if (id === "about") {
-      searchParams.delete("tab");
-      setSearchParams(searchParams, { replace: true });
-    } else {
-      searchParams.set("tab", id);
-      setSearchParams(searchParams, { replace: true });
-    }
+    if (id === sub) return;
+    setSearchParams(id === "about" ? {} : { tab: id }, { replace: true });
   };
-
-  // Sync when URL parameter changes externally
-  useEffect(() => {
-    if (tabParam === "appearance" && sub !== "appearance") setSub("appearance");
-    else if (tabParam === "layout" && sub !== "layout") setSub("layout");
-    else if (tabParam === "audios" && sub !== "audios") setSub("audios");
-    else if ((tabParam === "extra" || tabParam === "effects") && sub !== "extra") setSub("extra");
-    else if (!tabParam && sub !== "about" && sub !== "appearance" && sub !== "layout" && sub !== "audios" && sub !== "extra") {
-      setSub("about");
-    }
-  }, [tabParam]);
 
   useEffect(() => {
     ensureFontsLoaded();
@@ -842,6 +868,14 @@ export default function Editor() {
     setP((prev) => ({ ...prev, track_style: next, audio_style: next }));
   };
   const accentColor = p.accent_color || "hsl(272, 24%, 46%)";
+  // The layout decides the player's placement (see TRACK_POSITION_BY_LAYOUT),
+  // so the audio panel reports it instead of offering a second switch that the
+  // renderer could disagree with.
+  const layout = resolveLayout(p.layout || DEFAULT_LAYOUT);
+  const placement = trackPositionForLayout(layout);
+  // One switch reveals every advanced control in the editor; it lives at the
+  // bottom of the page so the everyday controls stay up top.
+  const advanced = !!p.advanced_mode;
 
   const handleCardStylePreset = (styleId) => {
     const preset = CARD_STYLE_PRESETS[styleId] || { card_style: styleId };
@@ -1022,7 +1056,7 @@ export default function Editor() {
       {isDirty && (
         <aside
           aria-label="Unsaved changes alert"
-          className="fixed top-5 right-5 z-[9999] flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-[#14120e]/95 border border-amber-500/40 text-amber-100 shadow-[0_12px_32px_rgba(0,0,0,0.6)] backdrop-blur-xl animate-in fade-in slide-in-from-top-3 duration-200"
+          className="fixed top-5 right-5 z-[120] flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-[#14120e]/95 border border-amber-500/40 text-amber-100 shadow-[0_12px_32px_rgba(0,0,0,0.6)] backdrop-blur-xl animate-in fade-in slide-in-from-top-3 duration-200"
         >
           <span className="relative flex h-2.5 w-2.5 shrink-0">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-60" />
@@ -1390,21 +1424,7 @@ export default function Editor() {
                     />
                   </div>
 
-                  {/* Advanced Mode Toggle */}
-                  <div className="flex items-center justify-between border-t border-[#1f1f1f] pt-4">
-                    <div>
-                      <div className="text-xs font-semibold text-white">Advanced Appearance Mode</div>
-                      <div className="text-[11px] text-zinc-400">Fine-tune card blur, opacity, borders and surface colors</div>
-                    </div>
-                    <Switch
-                      data-testid="advanced-mode-toggle"
-                      className={SWITCH_CLASS}
-                      checked={!!p.advanced_mode}
-                      onCheckedChange={(v) => set("advanced_mode", v)}
-                    />
-                  </div>
-
-                  {p.advanced_mode && (
+                  {advanced && (
                     <div data-testid="advanced-appearance" className="space-y-4 rounded-xl border border-[#2a2a2e] bg-[#09090b] p-4">
                       <div className="grid gap-4 sm:grid-cols-2">
                         <div>
@@ -1651,6 +1671,8 @@ export default function Editor() {
               </Section>
 
 
+              {advanced ? (
+                <>
               <Section title="Page & Privacy" hint="Footer branding and text sizing">
                 <SliderRow
                   testid="bio-size"
@@ -1697,6 +1719,10 @@ export default function Editor() {
                   />
                 </label>
               </Section>
+                </>
+              ) : (
+                <AdvancedNotice what="Page privacy, text sizing, entry animations and section folding live here." />
+              )}
 
               <div className="flex items-center justify-between rounded-2xl border border-[#2a2a2e] bg-[#0d0d0d] px-4 py-3">
                 <div>
@@ -1805,46 +1831,36 @@ export default function Editor() {
                 </div>
               </section>
 
-              {/* Positioning Styles Selector */}
-              <Section title="Positioning Styles" hint="Choose where your audio player appears on your profile">
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
-                  {[
-                    { id: "", label: "Inside Card", hint: "Inline in profile card" },
-                    { id: "top-right", label: "Top Right", hint: "Fixed in top right corner" },
-                    { id: "top-left", label: "Top Left", hint: "Fixed in top left corner" },
-                    { id: "bottom-center", label: "Bottom Center", hint: "Floating bottom player" },
-                    { id: "corner-icon", label: "Corner Icon", hint: "Expandable corner icon" },
-                  ].map((posOption) => {
-                    const active = (p.track_position || "") === posOption.id;
-                    return (
-                      <button
-                        key={posOption.id || "inside"}
-                        type="button"
-                        data-testid={`audio-pos-${posOption.id || "inside"}`}
-                        onClick={() => {
-                          set("track_position", posOption.id);
-                          if (posOption.id === "corner-icon") {
-                            setPlayerStyle("corner-icon");
-                          } else if (trackStyle === "corner-icon") {
-                            setPlayerStyle("compact");
-                          }
-                        }}
-                        className={`p-3.5 rounded-xl border text-left transition-all duration-200 flex flex-col justify-between gap-1.5 cursor-pointer ${
-                          active
-                            ? "border-[#a48df4] bg-[#a48df4]/10 shadow-sm ring-1 ring-[#a48df4]/40"
-                            : "border-[#2a2a2e] bg-[#09090b] text-zinc-300 hover:border-white/30"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between text-xs font-bold text-white">
-                          <span>{posOption.label}</span>
-                          {active && <Check className="w-3.5 h-3.5 text-[#a48df4]" />}
-                        </div>
-                        <div className="text-[10px] text-zinc-400">{posOption.hint}</div>
-                      </button>
-                    );
-                  })}
+              {/* Placement is not a separate switch any more: the layout owns it.
+                  This row only reports what the current layout does, so the
+                  player can never be pinned somewhere the card was not drawn
+                  to hold it. */}
+              <div
+                data-testid="audio-placement-note"
+                className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#1f1f1f] bg-[#111111] px-4 py-3.5"
+              >
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/[0.06] bg-[#0b0b0c] text-zinc-500">
+                    <Layout className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-zinc-200">
+                      Placement follows your layout: {LAYOUT_MAP[layout]?.label || "Minimal"}
+                    </p>
+                    <p className="mt-0.5 text-[11px] text-zinc-500">
+                      {TRACK_POSITION_LABELS[placement] || TRACK_POSITION_LABELS[""]} — change the layout in Appearance to move the player.
+                    </p>
+                  </div>
                 </div>
-              </Section>
+                <button
+                  type="button"
+                  data-testid="audio-placement-change-layout"
+                  onClick={() => switchSub("appearance")}
+                  className="rounded-xl border border-[#2a2a2e] px-3.5 py-2 text-xs font-semibold text-zinc-300 transition-colors hover:border-[#a48df4] hover:text-white"
+                >
+                  Change layout
+                </button>
+              </div>
 
               {/* 2. MIDDLE: AUDIO UPLOAD WITH ALBUM COVER, ARTIST AND LYRICS */}
               <Section title="Audio Track & Content" hint="Audio file, album artwork, artist credentials, and synchronized lyrics">
@@ -1996,7 +2012,11 @@ export default function Editor() {
                     </div>
                   </div>
 
-                  {/* Lyrics Uploading & Editor */}
+                  {/* Lyrics, playback behaviour and volume are advanced: the
+                      everyday job of the Audio tab is pick a style and upload a
+                      track. */}
+                  {advanced && (
+                    <>
                   <div className="p-4 rounded-xl border border-[#2a2a2e] bg-[#09090b] space-y-3">
                     <div className="flex items-center justify-between">
                       <div>
@@ -2111,11 +2131,18 @@ export default function Editor() {
                       }}
                     />
                   </div>
+                    </>
+                  )}
                 </div>
               </Section>
 
+              {!advanced && (
+                <AdvancedNotice what="Synchronized lyrics, shuffle/autoplay/loop, default volume and the player's card styling live here." />
+              )}
+
               {/* 3. BOTTOM: WIDGET CARD CUSTOMIZATION */}
-              <div className="rounded-2xl border border-[#2a2a2e] bg-[#111111] p-5 sm:p-6 space-y-6">
+              {advanced && (
+              <div data-testid="audio-widget-customization" className="rounded-2xl border border-[#2a2a2e] bg-[#111111] p-5 sm:p-6 space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
                     <h2 className="text-base font-bold text-white tracking-tight">Widget Card Customization</h2>
@@ -2282,6 +2309,7 @@ export default function Editor() {
 
 
               </div>
+              )}
 
               {/* Legacy backward-compatibility elements in sr-only */}
               <div className="sr-only" aria-hidden="true">
@@ -2317,7 +2345,7 @@ export default function Editor() {
               ======================================================== */}
           {sub === "extra" && (
             <>
-              {/* Card Extra: 3D Tilt & Interactive Effects */}
+              {advanced && (
               <Section title="Card Extra & 3D Tilt" hint="Hover depth and dynamic tilt">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
@@ -2346,6 +2374,7 @@ export default function Editor() {
                   )}
                 </div>
               </Section>
+              )}
 
               {/* Effects Popups Section with Text Buttons */}
               <Section title="Profile Effects" hint="Text effects, overlay filters and dynamic backgrounds">
@@ -2460,7 +2489,12 @@ export default function Editor() {
                 </div>
               </Section>
 
-              {/* System Settings: Meta Embeds, Title, Description, Theme Color */}
+              {!advanced && (
+                <AdvancedNotice what="3D tilt, embed/metadata settings and the entry screen live here." />
+              )}
+
+              {advanced && (
+                <>
               <Section title="System Settings" hint="Meta embeds, browser header, social preview">
                 <div className="space-y-4">
                   <div>
@@ -2647,6 +2681,8 @@ export default function Editor() {
                   </div>
                 )}
               </Section>
+                </>
+              )}
 
               {/* Text Effects Modal with separate toggles for name, alias, bio */}
               <FxModal
@@ -2920,28 +2956,30 @@ export default function Editor() {
             </>
           )}
 
-          {/* ========================================================
-              SUBTAB 5: LAYOUT (WHEN TAB=LAYOUT IS SELECTED)
-              ======================================================== */}
-          {sub === "layout" && (
-            <Section title="Profile Layout" hint="Choose page structure and arrangement">
-              <div className="space-y-4">
-                <LayoutPicker
-                  value={p.layout || DEFAULT_LAYOUT}
-                  onChange={(v) => set("layout", v)}
-                  isPremium={isPremium}
-                  navigate={navigate}
-                />
-
-                <div className="space-y-3 pt-3 border-t border-[#1f1f1f]">
-                  <div className="text-xs font-bold uppercase tracking-wider text-zinc-300">Layout Section Ordering</div>
-                  <div className="p-4 rounded-xl border border-[#2a2a2e] bg-[#09090b] text-xs text-zinc-400">
-                    The chosen layout ({LAYOUT_MAP[p.layout || DEFAULT_LAYOUT]?.label || "Minimal"}) determines the placement of your header, avatar, links and widgets.
-                  </div>
-                </div>
+          {/* The one switch that reveals the advanced controls, at the bottom of
+              the page where the everyday settings end. */}
+          <div
+            data-testid="editor-advanced-bar"
+            className="flex flex-col gap-4 rounded-2xl border border-[#1f1f1f] bg-[#0d0d0f] p-5 sm:flex-row sm:items-center sm:justify-between"
+          >
+            <div className="flex min-w-0 items-start gap-3">
+              <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border ${advanced ? "border-[#a48df4]/40 bg-[#a48df4]/15 text-[#c4b5fd]" : "border-white/[0.06] bg-[#0b0b0c] text-zinc-500"}`}>
+                <Sliders className="h-4 w-4" />
+              </span>
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-white">Advanced mode</p>
+                <p className="mt-0.5 text-[11px] leading-relaxed text-zinc-500">
+                  Surface dials, playback behaviour, page &amp; privacy, embed settings and the entry screen stay hidden until this is on.
+                </p>
               </div>
-            </Section>
-          )}
+            </div>
+            <Switch
+              data-testid="advanced-mode-toggle"
+              className={SWITCH_CLASS}
+              checked={advanced}
+              onCheckedChange={(v) => set("advanced_mode", v)}
+            />
+          </div>
 
           {/* Hidden test-accessible fallback save button if clean */}
           {!isDirty && (

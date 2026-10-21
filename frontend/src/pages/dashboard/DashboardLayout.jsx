@@ -32,7 +32,27 @@ function LogoIcon() {
 function CompactTabLink({ t, label }) {
   const { pathname, search } = useLocation();
   const active = isTabActive(t, pathname, search);
-  return <Link to={t.to} title={label || t.label} aria-label={label || t.label} aria-current={active ? "page" : undefined} data-testid={t.testid} className={`mx-auto flex h-10 w-10 items-center justify-center rounded-xl transition-colors ${active ? "bg-[#151517] text-zinc-100" : "text-zinc-600 hover:bg-white/[0.035] hover:text-zinc-300"}`}><t.icon className="h-[18px] w-[18px]" /></Link>;
+  return (
+    <Link
+      to={t.to}
+      title={label || t.label}
+      aria-label={label || t.label}
+      aria-current={active ? "page" : undefined}
+      data-testid={t.testid}
+      className={`mx-auto relative flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-200 overflow-hidden ${
+        active ? "bg-[#1a1927] text-[#a48df4]" : "text-zinc-600 hover:bg-white/[0.05] hover:text-zinc-300"
+      }`}
+    >
+      {active && (
+        <motion.span
+          layoutId="sidebar-active-bar"
+          className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r-full bg-[#a48df4]"
+          transition={{ type: "spring", stiffness: 500, damping: 40 }}
+        />
+      )}
+      <t.icon className="h-[18px] w-[18px]" />
+    </Link>
+  );
 }
 
 function CompactGroup({ group, onNavigate }) {
@@ -165,17 +185,24 @@ const TabLink = ({ t, sub = true, label }) => {
       aria-current={active ? "page" : undefined}
       className={
         sub
-          ? `group relative flex h-9 w-full items-center gap-2.5 rounded-lg border px-3 text-[13px] font-medium outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-white/20 ${
+          ? `group relative flex h-9 w-full items-center gap-2.5 rounded-lg px-3 text-[13px] font-medium outline-none transition-all duration-200 focus-visible:ring-2 focus-visible:ring-white/20 overflow-hidden ${
               active
-                ? "border-white/[0.09] bg-[#151517] text-white"
-                : "border-transparent text-zinc-500 hover:bg-white/[0.035] hover:text-zinc-200"
+                ? "bg-[#1a1927] text-white"
+                : "text-zinc-500 hover:bg-white/[0.05] hover:text-zinc-200"
             }`
-          : `${rowBase} ${active ? "bg-[#151517] text-zinc-100" : "text-zinc-500 hover:bg-white/[0.035] hover:text-zinc-200"}`
+          : `${rowBase} ${active ? "bg-[#1a1927] text-zinc-100" : "text-zinc-500 hover:bg-white/[0.05] hover:text-zinc-200"}`
       }
     >
+      {active && sub && (
+        <motion.span
+          layoutId="sidebar-active-bar"
+          className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r-full bg-[#a48df4]"
+          transition={{ type: "spring", stiffness: 500, damping: 40 }}
+        />
+      )}
       <t.icon
         className={`${sub ? "h-4 w-4" : "h-[18px] w-[18px]"} shrink-0 transition-colors duration-200 ${
-          active ? "text-zinc-300" : "text-zinc-600 group-hover:text-zinc-300"
+          active ? "text-[#a48df4]" : "text-zinc-600 group-hover:text-zinc-400"
         }`}
       />
       <span className="truncate">{label || t.label}</span>
@@ -196,15 +223,15 @@ function NavGroup({ group, open, onToggle, containsActive }) {
         onClick={onToggle}
         aria-expanded={open}
         data-testid={`navgroup-${group.id}`}
-        className={`${rowBase} ${lit ? "bg-[#151517] text-zinc-100" : containsActive ? "bg-white/[0.025] text-zinc-300" : "text-zinc-500 hover:bg-white/[0.035] hover:text-zinc-200"}`}
+        className={`${rowBase} ${lit ? "bg-[#1a1927] text-zinc-100" : containsActive ? "bg-white/[0.04] text-zinc-200" : "text-zinc-500 hover:bg-white/[0.05] hover:text-zinc-200"}`}
       >
         {Icon && (
-          <Icon className={`h-[18px] w-[18px] shrink-0 ${lit ? "text-zinc-300" : "text-zinc-600 group-hover:text-zinc-300"}`} />
+          <Icon className={`h-[18px] w-[18px] shrink-0 transition-colors duration-200 ${lit ? "text-[#a48df4]" : containsActive ? "text-zinc-400" : "text-zinc-600 group-hover:text-zinc-400"}`} />
         )}
         <span className="truncate">{group.label}</span>
-        {containsActive && !open && <span className="h-1.5 w-1.5 rounded-full bg-zinc-400" />}
+        {containsActive && !open && <span className="h-1.5 w-1.5 rounded-full bg-[#a48df4] shadow-[0_0_6px_rgba(164,141,244,0.7)]" />}
         <ChevronDown
-          className={`ml-auto h-4 w-4 shrink-0 transition-transform duration-300 ${lit ? "text-zinc-300" : "text-zinc-600"} ${
+          className={`ml-auto h-4 w-4 shrink-0 transition-transform duration-300 ${lit ? "text-[#a48df4]" : "text-zinc-600"} ${
             open ? "rotate-180" : "rotate-0"
           }`}
         />
@@ -216,7 +243,7 @@ function NavGroup({ group, open, onToggle, containsActive }) {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
             className="overflow-hidden"
           >
             <div className="space-y-1 pb-1 pl-3 pt-1.5">
@@ -913,7 +940,7 @@ export default function DashboardLayout() {
                 to={t.to}
                 className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium outline-none transition-colors duration-200 ${
                   active
-                    ? "border-white/15 bg-[#151517] text-white"
+                    ? "border-[#a48df4]/30 bg-[#1a1927] text-white"
                     : "border-white/[0.06] bg-[#0a0a0b] text-zinc-600 hover:text-zinc-200"
                 }`}
               >
@@ -924,7 +951,13 @@ export default function DashboardLayout() {
         </div>
 
         <main id="dashboard-main" className="mx-auto w-full min-w-0 flex-1 p-5 pt-5 sm:p-8 sm:pt-6">
-          <div key={`${pathname}${search}`} className="dash-route">
+          {/* No per-address key here. Keying the wrapper by `${pathname}${search}`
+              remounted the whole page on every query-string change — the
+              editor's own section tabs live in `?tab=`, so switching tab tore
+              the page down, re-ran its effects and replayed its entrance
+              animation. React reconciles the <Outlet /> instead, and the
+              entrance animation plays once when the dashboard boots. */}
+          <div className="dash-route">
             <Outlet />
           </div>
         </main>

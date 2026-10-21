@@ -32,7 +32,7 @@ export default function Rewards() {
     setClaimingId(m.views);
     try {
       const { data: res } = await api.post("/me/rewards/claim", { views: m.views });
-      toast.success(res.message || `🎉 Claimed ${m.premium_days} days of Premium!`);
+      toast.success(res.message || `Claimed ${m.premium_days} days of Premium!`);
       if (res.user) setUser(res.user);
       const updated = await api.get("/me/rewards");
       setData(updated.data);

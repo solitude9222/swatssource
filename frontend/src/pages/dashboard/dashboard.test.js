@@ -162,11 +162,24 @@ const settle = async () => {
   });
 };
 const subtab = (name) => container.querySelector(`[data-testid="editor-subtab-${name}"]`);
-const picker = (id) => container.querySelector(`[data-testid="fx-${id}"]`);
+// Picker dialogs are portalled to <body> so a transformed/animated dashboard
+// ancestor can never trap them behind the page, so their contents are read from
+// the document rather than from the render root.
+const inDialog = (selector) => document.querySelector(selector);
+const dialogGone = (selector) => document.querySelector(selector) === null;
+const picker = (id) => inDialog(`[data-testid="fx-${id}"]`);
 // The catalog chips live inside each picker's popup now, so a test opens the
 // popup first and counts the chips within that popup's own container.
-const chipsIn = (id) => [...container.querySelector(`[data-testid="fx-${id}-choices"]`).querySelectorAll("button")];
-const option = (group, id) => container.querySelector(`[data-testid="fx-${group}-${id}"]`);
+const chipsIn = (id) => [...inDialog(`[data-testid="fx-${id}-choices"]`).querySelectorAll("button")];
+const option = (group, id) => inDialog(`[data-testid="fx-${group}-${id}"]`);
+
+// Advanced controls (surface dials, playback behaviour, tilt, entry screen and
+// embed settings) only exist while Advanced mode is on. Its switch lives at the
+// bottom of the editor.
+const ADVANCED_USER = {
+  ...PREMIUM_USER,
+  profile: { ...PREMIUM_USER.profile, advanced_mode: true },
+};
 const openPicker = (id) => click(container.querySelector(`[data-testid="fx-${id}-open"]`));
 
 describe("dashboard shell", () => {
@@ -552,10 +565,10 @@ describe("editor card panel", () => {
     click(container.querySelector('[data-testid="layout-open"]'));
 
     for (const id of ["minimal", "floating", "banner", "slideshow"]) {
-      expect(container.querySelector(`[data-testid="layout-option-${id}"]`)).toBeTruthy();
+      expect(inDialog(`[data-testid="layout-option-${id}"]`)).toBeTruthy();
     }
     for (const id of ["compact", "showcase", "divider", "rail", "stacks", "panels", "document", "classic", "nowplaying"]) {
-      expect(container.querySelector(`[data-testid="layout-option-${id}"]`)).toBeFalsy();
+      expect(inDialog(`[data-testid="layout-option-${id}"]`)).toBeFalsy();
     }
   });
 
@@ -569,17 +582,20 @@ describe("editor card panel", () => {
     for (const testid of ["font-display", "layout"]) {
       click(container.querySelector(`[data-testid="${testid}-open"]`));
 
-      const dialog = container.querySelector(`[data-testid="${testid}-drawer"]`);
+      const dialog = inDialog(`[data-testid="${testid}-drawer"]`);
       expect(dialog).toBeTruthy();
       expect(dialog.getAttribute("role")).toBe("dialog");
       expect(dialog.className).toContain("ov-modal");
-      expect(container.querySelector(".ov-scrim-blur")).toBeTruthy();
-      expect(container.querySelector(".ov-drawer")).toBeFalsy();
+      // It is portalled straight to <body>, so no page ancestor can clip it.
+      expect(dialog.closest("body")).toBe(document.body);
+      expect(dialog.closest("[data-testid=\"editor-page\"]")).toBeNull();
+      expect(inDialog(".ov-scrim-blur")).toBeTruthy();
+      expect(inDialog(".ov-drawer")).toBeFalsy();
 
       act(() => {
         document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
       });
-      expect(container.querySelector(`[data-testid="${testid}-drawer"]`)).toBeFalsy();
+      expect(dialogGone(`[data-testid="${testid}-drawer"]`)).toBe(true);
     }
   });
 
@@ -587,7 +603,7 @@ describe("editor card panel", () => {
     global.__DASH_USER__ = PREMIUM_USER;
     openCard();
     click(container.querySelector('[data-testid="layout-open"]'));
-    click(container.querySelector('[data-testid="layout-option-banner"]'));
+    click(inDialog('[data-testid="layout-option-banner"]'));
 
     await act(async () => {
       click(container.querySelector('[data-testid="editor-save"]'));
@@ -616,7 +632,7 @@ describe("editor effect pickers", () => {
     // own empty entry, so the count equals the catalog length.
     expect(chipsIn("name").length).toBe(TEXT_EFFECTS.length);
     // each catalog ships its own { id: "" } entry; it must not become a second None
-    expect(container.querySelectorAll('[data-testid="fx-name-none"]').length).toBe(1);
+    expect(document.querySelectorAll('[data-testid="fx-name-none"]').length).toBe(1);
     expect(option("name", "rainbow")).toBeTruthy();
 
     openPicker("bio");
@@ -636,23 +652,23 @@ describe("editor effect pickers", () => {
   // one centered dialog over a blurred backdrop now.
   it("opens the picker as a centered dialog over a blurred backdrop", () => {
     openEffects();
-    expect(container.querySelector(".ov-modal")).toBeFalsy();
+    expect(inDialog(".ov-modal")).toBeFalsy();
 
     openPicker("name");
 
-    const dialog = container.querySelector('[data-testid="fx-name-drawer"]');
+    const dialog = inDialog('[data-testid="fx-name-drawer"]');
     expect(dialog).toBeTruthy();
     expect(dialog.getAttribute("role")).toBe("dialog");
     expect(dialog.className).toContain("ov-modal");
     // The blurred backdrop is there, and no side panel is left behind it.
-    expect(container.querySelector(".ov-scrim-blur")).toBeTruthy();
-    expect(container.querySelector(".ov-drawer")).toBeFalsy();
+    expect(inDialog(".ov-scrim-blur")).toBeTruthy();
+    expect(inDialog(".ov-drawer")).toBeFalsy();
 
     // Escape closes it, and the page underneath is untouched.
     act(() => {
       document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
     });
-    expect(container.querySelector('[data-testid="fx-name-drawer"]')).toBeFalsy();
+    expect(dialogGone('[data-testid="fx-name-drawer"]')).toBe(true);
   });
 
   // Every tile is a box with its own effect drawn in it, so the catalog can be
@@ -805,6 +821,9 @@ describe("editor effect pickers", () => {
   });
 
   it("exposes the cursor, alias and tilt controls", () => {
+    // Tilt is an advanced control, so the switch at the bottom of the page has
+    // to be on before it exists at all.
+    global.__DASH_USER__ = ADVANCED_USER;
     openEffects();
     expect(picker("cursor")).toBeTruthy();
     // These are Radix switches now, not native checkboxes: state lives on
@@ -830,10 +849,11 @@ describe("the tooltip & display panel", () => {
     click(container.querySelector('[data-testid="tooltip-panel-open"]'));
   };
 
+
   it("holds one look, one entrance and a switch per thing that carries a tip", () => {
     openPanel();
 
-    expect(container.querySelector('[data-testid="tip-panel"]')).toBeTruthy();
+    expect(inDialog('[data-testid="tip-panel"]')).toBeTruthy();
 
     // Three looks, three entrances and three sizes, all global.
     for (const id of ["classic", "glass", "ice"]) {
@@ -943,6 +963,9 @@ describe("avatar decoration catalogue picker", () => {
 });
 describe("editor entry screen", () => {
   const openEntry = () => {
+    // The entry screen is an advanced section now: it is not on the page until
+    // Advanced mode (bottom of the editor) is on.
+    global.__DASH_USER__ = ADVANCED_USER;
     renderAt("/!/dashboard/editor", <Editor />);
     click(subtab("entry"));
     click(container.querySelector('[data-testid="entry-enable"]'));

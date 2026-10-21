@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { useRegisterOverlay } from "./useActiveOverlay";
 
@@ -12,8 +13,13 @@ import { useRegisterOverlay } from "./useActiveOverlay";
    the middle of a blurred backdrop, so the tiles get the full width and the page
    behind it reads as context, not as a thing the panel is fighting with.
 
-   It renders inline rather than through a portal, like the Drawer it replaces,
-   so it stays clipped by — and queryable inside — the tree that owns it.
+   It is PORTALLED to <body>. It used to render inline, which meant any ancestor
+   that established a containing block or a stacking context — the editor's
+   entrance animation, a `transform`, a sticky column — turned `position: fixed`
+   into "fixed to that card" and trapped the dialog's z-index inside it. The
+   font chooser therefore opened behind the live-preview column. At the top of
+   the document tree there is no ancestor left to be trapped by, so the dialog
+   and its blurring scrim always cover the dashboard.
    --------------------------------------------------------------------------- */
 
 export function FxModal({
@@ -49,9 +55,24 @@ export function FxModal({
     if (open && panelRef.current) panelRef.current.scrollTop = 0;
   }, [open]);
 
-  if (!open) return null;
+  // Move focus into the dialog unless something inside already took it (the
+  // font search field autofocuses itself), and lock the page behind it.
+  useEffect(() => {
+    if (!open || typeof document === "undefined") return undefined;
+    const panel = panelRef.current;
+    if (panel && !panel.contains(document.activeElement)) {
+      panel.focus({ preventScroll: true });
+    }
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [open]);
 
-  return (
+  if (!open || typeof document === "undefined") return null;
+
+  return createPortal(
     <>
       <div className="ov-scrim ov-scrim-blur" onClick={close} aria-hidden="true" />
 
@@ -63,6 +84,7 @@ export function FxModal({
           role="dialog"
           aria-modal="true"
           aria-label={title}
+          tabIndex={-1}
           onClick={(e) => e.stopPropagation()}
           className={`ov-modal ${className}`}
         >
@@ -84,7 +106,8 @@ export function FxModal({
           {footer && <footer className="ov-foot ov-modal-foot">{footer}</footer>}
         </section>
       </div>
-    </>
+    </>,
+    document.body,
   );
 }
 
