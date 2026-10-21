@@ -417,6 +417,7 @@ function LayoutPicker({ value, onChange, isPremium, navigate }) {
                     <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#b4bffa] text-black shadow-sm">
                       <Check className="w-3 h-3 stroke-[3]" />
                     </span>
+                  ) : (
                     <span className="h-5 w-5 rounded-full border border-white/20 group-hover:border-white/40" />
                   )}
                 </div>
