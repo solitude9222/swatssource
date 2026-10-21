@@ -2934,8 +2934,6 @@ export default function Editor() {
           </motion.div>
           </AnimatePresence>
 
-          <div
-
           {/* Hidden test-accessible fallback save button if clean */}
           {!isDirty && (
             <button
