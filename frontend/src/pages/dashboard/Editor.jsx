@@ -1213,6 +1213,7 @@ export default function Editor() {
                     <div className="h-full w-full overflow-hidden rounded-full ring-1 ring-white/10 bg-[#111111]">
                       {p.avatar_url ? (
                         <img src={fileUrl(p.avatar_url)} alt="" className="h-full w-full object-cover" />
+                      ) : (
                         <div className="flex h-full w-full items-center justify-center font-bold text-zinc-400">
                           {(displayName || user.username || "?")[0]?.toUpperCase()}
                         </div>
