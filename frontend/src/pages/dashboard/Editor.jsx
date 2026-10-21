@@ -2763,7 +2763,7 @@ export default function Editor() {
                               </div>
                               <span className="text-[10px] text-zinc-500">Plain text</span>
                             </>
-                          )}
+                          ) : null}
                         </button>
                       );
                     })}
