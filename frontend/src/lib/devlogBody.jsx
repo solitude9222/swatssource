@@ -3,7 +3,7 @@ import { Fragment } from "react";
 /* Devlog bodies, formatted.
  *
  * The feed used to print the body as flat paragraphs, so a post written in the
- * house style — "# swats.bio devlog:" then quoted lines — showed the # and > as
+ * house style — "# tourn.lol devlog:" then quoted lines — showed the # and > as
  * literal characters. This adds exactly the constructs the devlog is written
  * with, and nothing more:
  *

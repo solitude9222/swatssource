@@ -74,7 +74,7 @@ export const UserCarousel = () => {
         <div className="text-center px-4">
           <h2 className="font-display text-2xl sm:text-4xl font-black text-zinc-100">have a look at our featured users:</h2>
           <p className="mt-3 text-xs sm:text-sm text-zinc-400">
-            Nobody has been featured yet — claim your swats.bio handle and you could be first.
+            Nobody has been featured yet — claim your tourn.lol handle and you could be first.
           </p>
         </div>
       </section>
@@ -86,7 +86,7 @@ export const UserCarousel = () => {
       <section data-testid="infinite-user-carousel" className="py-12 overflow-hidden border-t border-b border-white/10">
         <div className="text-center mb-8 px-4">
           <h2 className="font-display text-2xl sm:text-4xl font-black text-zinc-100">have a look at our featured users:</h2>
-          <p className="mt-2 text-xs sm:text-sm text-zinc-400">Discover creators and power users who built their page with swats.bio</p>
+          <p className="mt-2 text-xs sm:text-sm text-zinc-400">Discover creators and power users who built their page with tourn.lol</p>
         </div>
         <div className="[mask-image:linear-gradient(90deg,transparent,#000_8%,#000_92%,transparent)]">
           <div className="flex">
@@ -103,7 +103,7 @@ export const UserCarousel = () => {
         <h2 className="font-display text-2xl sm:text-4xl font-black text-zinc-100">
           have a look at our featured users:
         </h2>
-        <p className="mt-2 text-xs sm:text-sm text-zinc-400">Discover creators and power users who built their page with swats.bio</p>
+        <p className="mt-2 text-xs sm:text-sm text-zinc-400">Discover creators and power users who built their page with tourn.lol</p>
       </div>
 
       {/* ONE SINGLE HORIZONTAL LINE - THIN GREY LINE BETWEEN EACH USER - NO GLOW

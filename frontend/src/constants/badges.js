@@ -117,10 +117,10 @@ export const badgeMeta = (id) => BADGE_META[id] || eventBadgeMeta(id) || null;
 /* Grantable badges, in the order the dashboard lists them. This mirror of
    backend/badges.js is the fallback before /badges/catalog answers. */
 export const BADGE_CATALOG = [
-  { id: "og", name: "OG", desc: "First 10 users on swats.bio", type: "auto", group: "platform" },
-  { id: "verified", name: "Verified", desc: "Officially verified by swats.bio", type: "mod", group: "platform" },
+  { id: "og", name: "OG", desc: "First 10 users on tourn.lol", type: "auto", group: "platform" },
+  { id: "verified", name: "Verified", desc: "Officially verified by tourn.lol", type: "mod", group: "platform" },
   { id: "bug_hunter", name: "Bug Hunter", desc: "Found and reported security/functional bugs", type: "mod", group: "platform" },
-  { id: "team", name: "Team", desc: "Core swats.bio team member", type: "mod", group: "platform" },
+  { id: "team", name: "Team", desc: "Core tourn.lol team member", type: "mod", group: "platform" },
   { id: "owner", name: "Owner", desc: "Platform creator and owner", type: "auto", group: "platform" },
   { id: "admin", name: "Admin", desc: "Platform administrator", type: "auto", group: "platform" },
   { id: "media", name: "Media", desc: "Content creator / partner media", type: "mod", group: "platform" },

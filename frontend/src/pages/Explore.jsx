@@ -58,7 +58,7 @@ const ProfileCard = ({ u, onOpen }) => {
           <h3 className="font-display font-bold text-zinc-100 truncate">{u.display_name}</h3>
           {u.verified && <BadgeCheck className="w-4 h-4 text-brand-400 shrink-0" />}
         </div>
-        <p className="text-xs font-mono2 text-zinc-500">swats.bio/{u.username}</p>
+        <p className="text-xs font-mono2 text-zinc-500">tourn.lol/{u.username}</p>
         {u.bio && <p className="mt-2 text-sm text-zinc-400 line-clamp-2 leading-relaxed">{u.bio}</p>}
         <div className="mt-3 flex items-center gap-3 text-xs text-zinc-500">
           <span className="inline-flex items-center gap-1"><Eye className="w-3.5 h-3.5" /> {fmt(u.views)}</span>
@@ -126,7 +126,7 @@ export default function Explore() {
       <main className="relative z-10 max-w-6xl mx-auto px-4 pt-36 pb-20">
         <div className="text-center mb-10">
           <h1 className="font-display text-4xl sm:text-5xl font-black text-zinc-50">Explore</h1>
-          <p className="mt-3 text-sm text-zinc-500">Discover creators across swats.bio. Search, filter and jump straight to a profile.</p>
+          <p className="mt-3 text-sm text-zinc-500">Discover creators across tourn.lol. Search, filter and jump straight to a profile.</p>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3 mb-8">

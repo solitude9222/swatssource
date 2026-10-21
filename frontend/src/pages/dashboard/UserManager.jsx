@@ -107,7 +107,7 @@ const Avatar = ({ u }) => (
 );
 
 // What the Discord column reads, in the owner's requested format:
-//   discord username (swats.bio username)   →  "fbidiscord (@fbi)"
+//   discord username (tourn.lol username)   →  "fbidiscord (@fbi)"
 // The raw Discord handle is only meaningful when the account is actually in
 // OUR guild (roster rows carry that member flag from the bot), so a linked
 // account outside the server reads as linked-but-not-in-server instead.
@@ -879,7 +879,7 @@ export default function UserManager() {
                     onChange={(e) => setEditingUser({ ...editingUser, username: e.target.value })}
                     className="w-full rounded-xl bg-white/[0.04] border border-white/10 px-3.5 py-2 text-sm font-mono2 text-zinc-100 outline-none focus:border-brand-500/50 transition"
                   />
-                  <p className="mt-1 text-[10px] text-zinc-500">swats.bio/{editingUser.username} — saved only if free</p>
+                  <p className="mt-1 text-[10px] text-zinc-500">tourn.lol/{editingUser.username} — saved only if free</p>
                 </div>
               )}
 

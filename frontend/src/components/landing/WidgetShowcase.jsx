@@ -25,7 +25,7 @@ const WIDGETS = [
   },
   {
     accent: "#5865F2",
-    w: { type: "discord", subtype: "server", title: "swats.bio", invite_url: "https://discord.gg/a9uwptuepD" },
+    w: { type: "discord", subtype: "server", title: "tourn.lol", invite_url: "https://discord.gg/a9uwptuepD" },
   },
 ];
 

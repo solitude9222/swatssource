@@ -1037,7 +1037,7 @@ export default function Widgets() {
                   type="text"
                   value={editingWidget.widget.title || ""}
                   onChange={(e) => patchEditingWidget({ title: e.target.value })}
-                  placeholder="e.g. swats.bio engine"
+                  placeholder="e.g. tourn.lol engine"
                   className="w-full px-4 py-2.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-[#b4bffa]"
                 />
               </div>
@@ -1782,7 +1782,7 @@ export default function Widgets() {
 
                 {/* Title & subtitle */}
                 <div>
-                  <div className="text-sm font-bold text-white">swats.bio</div>
+                  <div className="text-sm font-bold text-white">tourn.lol</div>
                   <div className="text-xs text-zinc-400 mt-0.5 line-clamp-2">
                     The modern solution for your personal biolink website. Simple, fast, and fully customizable.
                   </div>

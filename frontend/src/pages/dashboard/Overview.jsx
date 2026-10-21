@@ -425,7 +425,7 @@ export default function Overview() {
         </div>
         <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
           <QuickAction icon={Eye}     label="View profile"   desc="Open your public page"         to={`/${user.username}`}                   accent />
-          <QuickAction icon={Copy}    label="Copy URL"        desc={`swats.bio/${user.username}`}  onClick={() => copy(profileUrl, "Profile URL")} />
+          <QuickAction icon={Copy}    label="Copy URL"        desc={`tourn.lol/${user.username}`}  onClick={() => copy(profileUrl, "Profile URL")} />
           <QuickAction icon={Pencil}  label="Edit profile"   desc="Update About me & appearance"  to="/!/dashboard/editor?tab=about" />
           <QuickAction icon={BarChart3} label="Statistics"   desc="Views, clicks, referrers"      to="/!/dashboard/stats" />
           {!isPremium

@@ -506,7 +506,7 @@ export default function BotManager() {
             <div className="grid gap-3 sm:grid-cols-2">
               <ChannelPicker
                 label="Show-off channel"
-                hint="only valid swats.bio/<user> links allowed"
+                hint="only valid tourn.lol/<user> links allowed"
                 value={d.showoff_channel_id}
                 onChange={(v) => setDraft({ ...d, showoff_channel_id: v })}
                 channels={channels}
@@ -529,7 +529,7 @@ export default function BotManager() {
                 <div>
                   <div className="text-xs font-semibold text-zinc-200">Delete Invalid Show-off Messages</div>
                   <div className="text-[10px] text-zinc-500">
-                    Immediately deletes messages not starting with a valid, registered user's swats.bio link.
+                    Immediately deletes messages not starting with a valid, registered user's tourn.lol link.
                   </div>
                 </div>
                 <button

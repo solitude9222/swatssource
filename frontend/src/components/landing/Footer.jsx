@@ -50,11 +50,11 @@ export const Footer = () => (
       </div>
 
       <div className="mt-14 relative select-none">
-        <div className="font-display font-black text-[18vw] leading-none text-center bg-gradient-to-b from-zinc-800/80 to-transparent bg-clip-text text-transparent">swats.bio</div>
+        <div className="font-display font-black text-[18vw] leading-none text-center bg-gradient-to-b from-zinc-800/80 to-transparent bg-clip-text text-transparent">tourn.lol</div>
       </div>
 
       <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-zinc-600">
-        <span>© {new Date().getFullYear()} swats.bio — All rights reserved.</span>
+        <span>© {new Date().getFullYear()} tourn.lol — All rights reserved.</span>
         <a href={`mailto:${CONTACT_EMAIL}`} className="font-mono2 hover:text-zinc-300 transition">{CONTACT_EMAIL}</a>
       </div>
     </div>

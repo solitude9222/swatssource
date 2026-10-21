@@ -8,11 +8,11 @@ import { Plus } from "lucide-react";
    The list is the whole section now, centred at a readable width. */
 
 const FAQS = [
-  { q: "What is swats.bio?", a: "swats.bio is the internet's premier bio-link engine — a fully customizable home for your digital identity, social media links, widgets, background music, and badges." },
-  { q: "Is swats.bio free to use?", a: "Yes. Core profile customization, free fonts, text effects, link cards, and basic layouts are free forever. Premium unlocks 100+ fonts, custom MP4 backgrounds, custom code widgets, custom badge creation, and priority support." },
+  { q: "What is tourn.lol?", a: "tourn.lol is the internet's premier bio-link engine — a fully customizable home for your digital identity, social media links, widgets, background music, and badges." },
+  { q: "Is tourn.lol free to use?", a: "Yes. Core profile customization, free fonts, text effects, link cards, and basic layouts are free forever. Premium unlocks 100+ fonts, custom MP4 backgrounds, custom code widgets, custom badge creation, and priority support." },
   { q: "How do Discord frames & server widgets work?", a: `We provide every Discord avatar decoration preset, animated over your avatar with your own curated catalogue, plus live Discord server cards displaying online member counts and join invites directly on your profile.` },
-  { q: "Can I change my username or alias?", a: "Yes. You can claim any available username at swats.bio/username. Username changes are protected with a 48-hour cooldown limit to prevent alias hoarding." },
-  { q: "How do community templates work?", a: "You can browse templates published by other swats.bio creators or snapshot your own profile design to share in the Community Templates marketplace!" },
+  { q: "Can I change my username or alias?", a: "Yes. You can claim any available username at tourn.lol/username. Username changes are protected with a 48-hour cooldown limit to prevent alias hoarding." },
+  { q: "How do community templates work?", a: "You can browse templates published by other tourn.lol creators or snapshot your own profile design to share in the Community Templates marketplace!" },
   { q: "What badges can I earn or create?", a: "Badges like OG, Booster, and Premium are automatically granted through Discord and account tier. Premium users can also craft custom badges with custom colors, icons, and glows." },
 ];
 
@@ -57,7 +57,7 @@ export const FAQ = () => {
           Questions &amp; Answers
         </h2>
         <p className="mt-3 text-xs sm:text-sm text-zinc-400 leading-relaxed">
-          Everything you need to know about swats.bio features, templates, badges and customization.
+          Everything you need to know about tourn.lol features, templates, badges and customization.
         </p>
       </div>
 

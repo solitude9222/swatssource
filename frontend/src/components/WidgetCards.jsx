@@ -17,7 +17,7 @@ import { SiRoblox, SiValorant } from "react-icons/si";
 
 // ---------------------------------------------------------------------------
 // Authentic Platform Widgets
-// Rebuilt directly from the swats.bio design language & screenshot references:
+// Rebuilt directly from the tourn.lol design language & screenshot references:
 // Roblox Profile, GitHub Activity Heatmap, Spotify Player, Discord Presence & Invite
 // ---------------------------------------------------------------------------
 
@@ -1196,7 +1196,7 @@ function DiscordServer({ w, accent, data, status, error, refresh }) {
   // Legacy "compact" / "discord" values fall back to the classic card so older
   // saved widgets keep rendering instead of silently losing their layout.
   const style = w.discord_style === "banner" ? "banner" : w.discord_style === "minimal" ? "minimal" : "classic";
-  const name = data.name || w.title || w.server_name || "swats.bio";
+  const name = data.name || w.title || w.server_name || "tourn.lol";
   const members = data.total_members != null ? formatCount(data.total_members) : "—";
   const online = data.online != null ? formatCount(data.online) : "—";
   const offline = data.offline != null
@@ -1867,7 +1867,7 @@ function ProjectsCard({ w, accent }) {
   const currentType = types.find((t) => t.id === selectedType) || types[0];
   const CurrentIcon = currentType.Icon;
 
-  const title = w?.title || (selectedType === "code" ? "swats.bio engine" : selectedType === "game" ? "Aether Quest" : selectedType === "web" ? "NextGen Web" : "Design System");
+  const title = w?.title || (selectedType === "code" ? "tourn.lol engine" : selectedType === "game" ? "Aether Quest" : selectedType === "web" ? "NextGen Web" : "Design System");
   const desc = w?.description || (selectedType === "code" ? "High performance biolink profile engine with real-time analytics and widgets." : "Creative interactive experience crafted with modern tools.");
   const tagsRaw = w?.tags || (selectedType === "code" ? "React, TypeScript, Rust, Tailwind" : "Unreal, C++, Blender");
   const tags = useMemo(() => {

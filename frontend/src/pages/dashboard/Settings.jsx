@@ -205,7 +205,7 @@ export default function Settings() {
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-base font-bold text-zinc-100">Public Handle</h3>
-                <p className="text-xs text-zinc-400 mt-0.5">Your unique URL on swats.bio</p>
+                <p className="text-xs text-zinc-400 mt-0.5">Your unique URL on tourn.lol</p>
               </div>
               <div className="flex items-center gap-2">
                 <button
@@ -231,7 +231,7 @@ export default function Settings() {
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
               <div className="flex items-center gap-2 flex-1 px-4 py-3 rounded-xl bg-white/[0.03] border border-white/10 focus-within:border-brand-500/50 transition">
                 <AtSign className="w-4 h-4 text-zinc-500 shrink-0" />
-                <span className="text-xs text-zinc-500 font-mono2">swats.bio/</span>
+                <span className="text-xs text-zinc-500 font-mono2">tourn.lol/</span>
                 <input
                   data-testid="settings-username"
                   value={username}

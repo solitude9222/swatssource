@@ -26,7 +26,7 @@ import { fileUrl } from "@/lib/api";
    means: your card with no effect of this kind on it.
    --------------------------------------------------------------------------- */
 
-export const TILE_SAMPLE = "swats";
+export const TILE_SAMPLE = "tourn";
 
 // The cursor demo's markers. The CSS in effects.css animates each one from the
 // tile's centre, so the box reads as a small stage the pointer is moving across.

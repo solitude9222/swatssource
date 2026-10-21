@@ -182,7 +182,7 @@ export const WIDGET_KINDS = [
     label: "Account Date",
     Icon: CalendarDays,
     color: "#b4bffa",
-    desc: "When you joined swats.bio — read from your account",
+    desc: "When you joined tourn.lol — read from your account",
     subtypes: [{ id: "joined", label: "Joined date", fields: [] }],
   },
   {
@@ -389,7 +389,7 @@ export const WIDGET_FIELDS = {
   project_title: {
     key: "title",
     label: "Project Name",
-    placeholder: "e.g. swats.bio, Portfolio Engine, Aether Game",
+    placeholder: "e.g. tourn.lol, Portfolio Engine, Aether Game",
     help: "The main name of your project.",
   },
   project_desc: {

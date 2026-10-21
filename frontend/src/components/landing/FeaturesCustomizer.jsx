@@ -22,8 +22,8 @@ export const DISCORD_SERVERS = [
     key: "community",
     invite: "https://discord.gg/a9uwptuepD",
     serverId: "1557276191050698782",
-    fallbackName: "^swats.bio^",
-    blurb: "The official swats.bio community — support, updates and showcase.",
+    fallbackName: "^tourn.lol^",
+    blurb: "The official tourn.lol community — support, updates and showcase.",
   },
   {
     key: "acheron",

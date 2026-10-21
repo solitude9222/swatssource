@@ -61,7 +61,7 @@ function debugOn() {
 }
 
 function debugLog(message) {
-  if (debugOn()) console.info(`[swats.bio] ${message}`);
+  if (debugOn()) console.info(`[tourn.lol] ${message}`);
 }
 
 /* ``alias -> timestamp of the last counted view``, kept in localStorage. Only

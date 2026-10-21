@@ -65,7 +65,7 @@ export const Hero = () => {
             data-testid="claim-input-wrapper"
             className={`glass-strong rounded-full flex items-center pl-5 pr-2 py-2 transition-all ${status && status.available ? "glow-ring" : "border-white/10"}`}
           >
-            <span className="font-mono2 text-sm text-zinc-500 select-none">swats.bio/</span>
+            <span className="font-mono2 text-sm text-zinc-500 select-none">tourn.lol/</span>
             <input
               data-testid="claim-alias-input"
               value={alias}

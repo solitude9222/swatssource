@@ -845,7 +845,7 @@ export default function DashboardLayout() {
           <div className="flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
               <div className="lg:hidden">
-                <Link to="/!/dashboard" aria-label="swats.bio dashboard" className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/[0.06] bg-[#0a0a0b]"><img src="/logo.png?v=8" alt="" className="h-6 w-6 object-contain" /></Link>
+                <Link to="/!/dashboard" aria-label="tourn.lol dashboard" className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/[0.06] bg-[#0a0a0b]"><img src="/logo.png?v=10" alt="" className="h-6 w-6 object-contain" /></Link>
               </div>
               <nav
                 aria-label="Breadcrumb"

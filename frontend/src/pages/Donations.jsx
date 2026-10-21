@@ -33,7 +33,7 @@ export default function Donations() {
 
   useEffect(() => {
     if (Number.isFinite(donated) && donated > 0) {
-      toast.success(`Thank you for $${donated.toFixed(2)}! Every cent goes into keeping swats.bio online.`);
+      toast.success(`Thank you for $${donated.toFixed(2)}! Every cent goes into keeping tourn.lol online.`);
     } else if (wasCancelled) {
       toast.info("Checkout closed — nothing was charged.");
     }
@@ -99,7 +99,7 @@ export default function Donations() {
               <div className="mb-5 inline-flex items-center gap-2 rounded-full glass px-3 py-1 font-mono2 text-xs text-brand-300">
                 <Sparkles className="h-3.5 w-3.5" /> SUPPORT THE SITE
               </div>
-              <h1 className="font-display text-4xl font-black text-zinc-50 sm:text-5xl">Keep swats.bio alive.</h1>
+              <h1 className="font-display text-4xl font-black text-zinc-50 sm:text-5xl">Keep tourn.lol alive.</h1>
               <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-zinc-500">
                 Hosting, domains, the mail provider, moderation tooling — donations cover the bills so
                 the site stays free to use and ad-free. Every amount helps, and every amount is read as

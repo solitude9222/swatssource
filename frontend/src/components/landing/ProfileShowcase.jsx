@@ -133,7 +133,7 @@ const ShowcaseCard = ({ profile, index }) => {
           href={profileUrl(profile.username)}
           target="_blank"
           rel="noreferrer"
-          aria-label={`Open ${name}'s swats.bio page`}
+          aria-label={`Open ${name}'s tourn.lol page`}
           data-testid={`showcase-link-${index}`}
           className="absolute inset-0 z-20 rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500/70"
         >
@@ -180,7 +180,7 @@ export const ProfileShowcase = () => {
           Real pages, straight from the leaderboard
         </h3>
         <p className="mt-1.5 text-xs leading-relaxed text-zinc-400">
-          The three most-viewed pages on swats.bio, drawn by the same component
+          The three most-viewed pages on tourn.lol, drawn by the same component
           their owners see in the editor. Hover a card to see more of it; click it
           to open the page.
         </p>

@@ -26,7 +26,7 @@ export default function SiteSettings() {
     allow_embeds: true,
     max_upload_mb: 25,
     max_links: 30,
-    default_meta_title: "swats.bio — personal links & bio pages",
+    default_meta_title: "tourn.lol — personal links & bio pages",
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -56,7 +56,7 @@ export default function SiteSettings() {
       const a = document.createElement("a");
       a.href = url;
       const dateStr = new Date().toISOString().slice(0, 10);
-      a.download = `swats-bio-backup-${dateStr}.json`;
+      a.download = `tourn-lol-backup-${dateStr}.json`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -563,7 +563,7 @@ export default function SiteSettings() {
             <input
               type="text"
               data-testid="site-fallback-announcement"
-              placeholder="e.g. Welcome to swats.bio v2! Join our official Discord for giveaways."
+              placeholder="e.g. Welcome to tourn.lol v2! Join our official Discord for giveaways."
               value={settings.announcement || ""}
               onChange={(e) => setSettings({ ...settings, announcement: e.target.value })}
               className="w-full px-4 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-zinc-100 placeholder-zinc-500 outline-none focus:border-brand-500/50 transition"

@@ -18,9 +18,9 @@ export const DOC_GROUPS = [
         id: "overview",
         icon: BookOpen,
         title: "Platform overview",
-        summary: "What swats.bio is and how the pieces fit together.",
+        summary: "What tourn.lol is and how the pieces fit together.",
         blocks: [
-          ["One page for everything", "swats.bio is a bio-link platform. Every account owns a single public page at swats.bio/yourname that holds your identity, links, live widgets, music, badges and visual effects."],
+          ["One page for everything", "tourn.lol is a bio-link platform. Every account owns a single public page at tourn.lol/yourname that holds your identity, links, live widgets, music, badges and visual effects."],
           ["Claiming your handle", "Type a name into the pill on the homepage. A green tick means the handle is free; Claim takes you to registration with that name pre-filled. Handles are case-insensitive and reserved names (admin, api, dashboard and similar) cannot be claimed."],
           ["The dashboard", "Everything you edit lives under /!/dashboard: Overview, Stats, Rewards, Badges, Leaderboard, Editor, Links, Widgets & Music, Templates and Settings. Changes are previewed live and saved with the Save button in the editor."],
           ["Public surfaces", "Besides your page there are four public areas: Explore (/!/explore) for discovery, the Leaderboard (/!/ranked) for ranking, Templates for community designs, and the Docs and Legal sections you are reading now."],
@@ -376,7 +376,7 @@ export default function Docs() {
           <div className="mb-4 inline-flex items-center gap-2 rounded-full glass px-3 py-1 font-mono2 text-xs text-brand-300">
             <BookOpen className="h-3.5 w-3.5" /> Documentation
           </div>
-          <h1 className="font-display text-4xl font-black text-zinc-50 sm:text-5xl">swats.bio Docs</h1>
+          <h1 className="font-display text-4xl font-black text-zinc-50 sm:text-5xl">tourn.lol Docs</h1>
           <p className="mt-3 max-w-2xl text-sm text-zinc-500">
             Everything about the platform — accounts, pages, widgets, customization, effects,
             crosshairs, rewards, pricing and administration. Written from the implementation.

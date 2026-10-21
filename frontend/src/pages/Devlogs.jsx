@@ -9,7 +9,7 @@ import { renderDevlogBody } from "@/lib/devlogBody";
  *
  * Bodies are still plain text — never HTML from an admin text box into a public
  * page. What changed is that the handful of constructs the devlog is actually
- * written with are formatted instead of printed literally: "# swats.bio devlog:"
+ * written with are formatted instead of printed literally: "# tourn.lol devlog:"
  * used to show up with the hash, and a quoted line with its own ">". See
  * lib/devlogBody.jsx for the supported syntax.
  */
@@ -44,7 +44,7 @@ export default function Devlogs() {
             <Newspaper className="h-7 w-7 text-brand-400" /> Devlog
           </h1>
           <p className="mt-2 max-w-xl text-sm text-zinc-400">
-            Everything that ships on swats.bio, in the order it shipped. Notifications in the dashboard point back
+            Everything that ships on tourn.lol, in the order it shipped. Notifications in the dashboard point back
             here.
           </p>
         </header>

@@ -10,7 +10,7 @@
 export const PREMIUM_PRICE = { amount: 5, label: "$5", cadence: "per month" };
 
 export const FREE_PERKS = [
-  "Your own swats.bio page",
+  "Your own tourn.lol page",
   "Every free font, colour and card layout",
   "Links, platform icons and standard widgets",
   "Four card layouts: Minimal, Floating, Banner",

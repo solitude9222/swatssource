@@ -18,7 +18,7 @@ export const API = getApiUrl();
 const API_OVERRIDDEN = !!(process.env.REACT_APP_BACKEND_URL || process.env.REACT_APP_API_URL);
 if (API_OVERRIDDEN || process.env.NODE_ENV === "development") {
   console.log(
-    `%c[swats.bio]%c Backend API Target: %c${API}%c ${
+    `%c[tourn.lol]%c Backend API Target: %c${API}%c ${
       API_OVERRIDDEN ? "(from REACT_APP_BACKEND_URL)" : "(default relative /api)"
     }`,
     "color: #b4bffa; font-weight: bold;",
@@ -35,10 +35,10 @@ export const clearToken = () => localStorage.removeItem(TOKEN_KEY);
 
 /* The public web origin a profile page lives on. Anything that links a visitor to
  * somebody's page (the landing showcase, a widget caption) has to build the URL
- * from this rather than writing https://swats.bio out by hand — otherwise every
+ * from this rather than writing https://tourn.lol out by hand — otherwise every
  * staging or self-hosted deploy sends its traffic to production. Override with
  * REACT_APP_PUBLIC_URL. */
-export const PUBLIC_ORIGIN = (process.env.REACT_APP_PUBLIC_URL || "https://swats.bio")
+export const PUBLIC_ORIGIN = (process.env.REACT_APP_PUBLIC_URL || "https://tourn.lol")
   .trim()
   .replace(/\/+$/, "");
 
@@ -93,7 +93,7 @@ api.interceptors.response.use(
     const detail = err.response?.data?.detail || err.response?.data || err.message;
 
     console.error(
-      `%c[swats.bio API Error]%c Request to %c${fullUrl}%c failed ${status ? `(Status ${status})` : "(Network Error)"}:`,
+      `%c[tourn.lol API Error]%c Request to %c${fullUrl}%c failed ${status ? `(Status ${status})` : "(Network Error)"}:`,
       "color: #ef4444; font-weight: bold;",
       "color: #a1a1aa;",
       "color: #f43f5e; font-weight: bold;",

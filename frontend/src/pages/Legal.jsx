@@ -16,14 +16,14 @@ const SECTIONS = [
     icon: Scale,
     title: "Terms of Service",
     items: [
-      ["1. Acceptance of Terms", "By accessing or using swats.bio (the \"Service\") you agree to be bound by these Terms of Service and all policies referenced here. If you do not agree, you may not use the Service. We may revise these terms at any time; material changes will be surfaced on this page and continued use after changes take effect constitutes acceptance."],
+      ["1. Acceptance of Terms", "By accessing or using tourn.lol (the \"Service\") you agree to be bound by these Terms of Service and all policies referenced here. If you do not agree, you may not use the Service. We may revise these terms at any time; material changes will be surfaced on this page and continued use after changes take effect constitutes acceptance."],
       ["2. Accounts & Eligibility", "You must be at least 13 years old (or the minimum digital-consent age in your jurisdiction) to create an account. You are responsible for all activity under your account and for keeping your password and any recovery codes secure. One person may hold multiple paired accounts, but automated mass-registration is prohibited."],
       ["3. Acceptable Use", "You agree not to upload, link to, or distribute content that is unlawful, infringing, malicious, sexually exploitative of minors, or that harasses or endangers others. You may not attempt to probe, scan, overload, or circumvent the security of the Service, scrape at scale, or resell access without written permission."],
-      ["4. User Content & Licence", "You retain ownership of the content you upload (avatars, banners, bios, links, crosshair images, widgets). You grant swats.bio a non-exclusive, worldwide, royalty-free licence to host, display, and serve that content solely to operate and promote the Service. You are solely responsible for content you publish on your page."],
+      ["4. User Content & Licence", "You retain ownership of the content you upload (avatars, banners, bios, links, crosshair images, widgets). You grant tourn.lol a non-exclusive, worldwide, royalty-free licence to host, display, and serve that content solely to operate and promote the Service. You are solely responsible for content you publish on your page."],
       ["5. Premium & Billing", "Premium subscriptions are billed through our payment processor (Stripe). Features unlock immediately upon successful payment. Prices may change with notice; changes do not affect the current paid period. You are responsible for applicable taxes. See the Refund Policy below."],
       ["6. Service Availability", "The Service is provided on an \"as is\" and \"as available\" basis. We do not guarantee uninterrupted availability and may modify, suspend, or discontinue features at any time. Scheduled maintenance and third-party outages may temporarily affect widgets and effects."],
       ["7. Termination", "We may suspend or terminate accounts that violate these terms, with or without notice. You may delete your account at any time. Upon termination your public page and associated content may be removed, and no refund is owed for a terminated account that breached these terms."],
-      ["8. Limitation of Liability", "To the maximum extent permitted by law, swats.bio and its operators are not liable for indirect, incidental, or consequential damages, or for loss of data, profits, or goodwill arising from your use of the Service. Our total liability is limited to the amount you paid in the twelve months preceding the claim."],
+      ["8. Limitation of Liability", "To the maximum extent permitted by law, tourn.lol and its operators are not liable for indirect, incidental, or consequential damages, or for loss of data, profits, or goodwill arising from your use of the Service. Our total liability is limited to the amount you paid in the twelve months preceding the claim."],
       ["9. Governing Law", "These terms are governed by the laws applicable to the operator's principal place of business, without regard to conflict-of-law rules. Disputes will be resolved in the competent courts of that jurisdiction."],
     ],
   },
@@ -55,7 +55,7 @@ const SECTIONS = [
     icon: FileText,
     title: "DMCA & Content",
     items: [
-      ["1. Copyright Claims", `If you believe content on swats.bio infringes your copyright, send a takedown notice to ${CONTACT_EMAIL} identifying the copyrighted work, the exact infringing URL, your contact details, and a good-faith statement that you are authorised to act.`],
+      ["1. Copyright Claims", `If you believe content on tourn.lol infringes your copyright, send a takedown notice to ${CONTACT_EMAIL} identifying the copyrighted work, the exact infringing URL, your contact details, and a good-faith statement that you are authorised to act.`],
       ["2. Counter-Notices", "If your content was removed and you believe this was a mistake or misidentification, you may submit a counter-notice with the same identifying details. We will review and may restore the content where appropriate."],
       ["3. Repeat Infringers", "Accounts subject to repeated, substantiated infringement notices will be terminated in accordance with applicable law."],
     ],
@@ -115,7 +115,7 @@ const SECTIONS = [
     items: [
       ["1. Policy Changes", "We may update these policies as the Service evolves. The \"last updated\" date on this page always reflects the current version, and material changes are announced in the dashboard or on the changelog."],
       ["2. Severability", "If any provision is found unenforceable, the remaining provisions stay in effect and the unenforceable part is limited to the minimum extent permitted by law."],
-      ["3. Entire Agreement", "These policies, together with the Terms of Service, are the entire agreement between you and swats.bio regarding the Service."],
+      ["3. Entire Agreement", "These policies, together with the Terms of Service, are the entire agreement between you and tourn.lol regarding the Service."],
       ["4. Contact", `All legal, privacy, security and accessibility correspondence goes to ${CONTACT_EMAIL}. We aim to acknowledge within five business days.`],
     ],
   },
@@ -125,7 +125,7 @@ const SECTIONS = [
     items: [
       ["1. No Warranty", "The Service, including all effects, overlays, widgets, and third-party data, is provided \"as is\" without warranties of any kind, express or implied, including merchantability, fitness for a particular purpose, and non-infringement."],
       ["2. Third-Party Data", "Widget data (Discord, Spotify, GitHub, Roblox, Valorant, Steam and others) originates from third-party APIs and may be delayed, incomplete, or temporarily unavailable. We are not responsible for the accuracy of third-party content."],
-      ["3. User Pages", "Profiles are created by their owners. swats.bio does not endorse and is not responsible for the content, links, or claims on any user page. Visit external links at your own discretion."],
+      ["3. User Pages", "Profiles are created by their owners. tourn.lol does not endorse and is not responsible for the content, links, or claims on any user page. Visit external links at your own discretion."],
     ],
   },
 ];export default function Legal() {
@@ -154,7 +154,7 @@ const SECTIONS = [
         <div className="mb-10 border-b border-white/10 pb-8">
           <div className="inline-flex items-center gap-2 rounded-full glass px-3 py-1 text-xs font-mono2 text-brand-300"><Scale className="h-3.5 w-3.5" /> Legal Center</div>
           <h1 className="mt-4 font-display text-4xl sm:text-5xl font-black text-zinc-50">Legal</h1>
-          <p className="mt-3 text-sm text-zinc-500 max-w-2xl">The terms, policies and notices that govern your use of swats.bio. Last updated {updated}.</p>
+          <p className="mt-3 text-sm text-zinc-500 max-w-2xl">The terms, policies and notices that govern your use of tourn.lol. Last updated {updated}.</p>
         </div>
 
         <div className="grid lg:grid-cols-[230px_1fr] gap-10">

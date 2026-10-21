@@ -167,7 +167,7 @@ export default function Leaderboard() {
       <PageHeader
         icon={Trophy}
         title="Leaderboard"
-        subtitle="The most-viewed profiles on swats.bio. Views are counted on real, dwelled visits only."
+        subtitle="The most-viewed profiles on tourn.lol. Views are counted on real, dwelled visits only."
         actions={
           <SmartSelect
             testid="leaderboard-sort"

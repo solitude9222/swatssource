@@ -43,7 +43,7 @@ const Card = ({ profile, offset, onClick }) => {
           <div className="flex items-center justify-between gap-2">
             <div className="min-w-0">
               <div className="truncate font-display text-lg font-black text-zinc-50">{profile.display_name || profile.username}</div>
-              <div className="truncate font-mono2 text-xs text-zinc-400">swats.bio/{profile.username}</div>
+              <div className="truncate font-mono2 text-xs text-zinc-400">tourn.lol/{profile.username}</div>
             </div>
             {typeof profile.views === "number" && (
               <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-black/60 px-2.5 py-1 text-xs text-zinc-300"><Eye className="h-3.5 w-3.5" /> {fmt(profile.views)}</span>

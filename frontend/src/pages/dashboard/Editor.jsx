@@ -119,7 +119,7 @@ export const CARD_STYLE_PRESETS = {
   },
 };
 
-const PREVIEW_WORD = "swats";
+const PREVIEW_WORD = "tourn";
 
 // Named sections plus the aliases older links still use. "layout" and "effects"
 // are not separate panels any more â€” the layout picker lives in Appearance and
@@ -1098,10 +1098,10 @@ export default function Editor() {
         </aside>
       )}
 
-      {/* Side rail navigation with Auto-Save Toggle */}
+      {/* Tab strip — full-width bordered bar, active = solid pill (cops.bio style) */}
       <div className="space-y-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <nav aria-label="Profile editor sections" className="flex flex-wrap gap-1.5 rounded-2xl border border-white/[0.08] bg-[#111113] p-1.5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <nav aria-label="Profile editor sections" className="flex w-full rounded-[16px] border border-white/[0.07] bg-[#0c0c0e] p-1">
           {SUBTAB_ITEMS.map((s) => {
             const Icon = s.icon;
             const active = sub === s.id;
@@ -1112,10 +1112,10 @@ export default function Editor() {
                 data-testid={`editor-subtab-${s.id}`}
                 onClick={() => switchSub(s.id)}
                 aria-current={active ? "page" : undefined}
-                className={`flex cursor-pointer items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-xs font-semibold transition-colors duration-200 ${
+                className={`flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-xs font-semibold transition-all duration-200 ${
                   active
-                    ? "bg-[#b4bffa] text-black font-bold shadow-sm"
-                    : "text-zinc-400 hover:bg-white/[0.04] hover:text-white"
+                    ? "bg-[#535978] text-white shadow-sm"
+                    : "text-zinc-500 hover:text-zinc-200"
                 }`}
               >
                 <Icon className="h-3.5 w-3.5 shrink-0" />
@@ -1124,7 +1124,7 @@ export default function Editor() {
             );
           })}
 
-          {/* Hidden test compatibility buttons for legacy suite selectors */}
+          {/* Hidden test compat */}
           <div className="sr-only" aria-hidden="true">
             <button data-testid="editor-subtab-profile" onClick={() => switchSub("about")}>Profile</button>
             <button data-testid="editor-subtab-card" onClick={() => switchSub("appearance")}>Card</button>
@@ -1134,8 +1134,8 @@ export default function Editor() {
           </div>
         </nav>
 
-        {/* Auto-save stays visible, but no longer competes with the section tabs. */}
-        <label className="flex w-fit items-center gap-3 rounded-xl border border-white/[0.08] bg-[#111113] px-3.5 py-2.5 text-xs text-zinc-300">
+        {/* Auto-save toggle */}
+        <label className="flex w-fit shrink-0 items-center gap-3 rounded-xl border border-white/[0.07] bg-[#0c0c0e] px-3.5 py-2.5 text-xs text-zinc-400">
           <span>Auto-save</span>
           <Switch
             checked={autoSave}
@@ -1816,7 +1816,7 @@ export default function Editor() {
                 />
                 <label className="mt-4 flex cursor-pointer items-center justify-between gap-4 text-xs text-zinc-300">
                   <span>
-                    Hide the &quot;made with swats.bio&quot; footer
+                    Hide the &quot;made with tourn.lol&quot; footer
                     {!isPremium && <span className="ml-2 text-[10px] uppercase tracking-wide text-amber-400">Premium</span>}
                   </span>
                   <Switch
@@ -2562,7 +2562,7 @@ export default function Editor() {
                       value={p.meta_title || ""}
                       onChange={(e) => set("meta_title", e.target.value)}
                       maxLength={60}
-                      placeholder={`${(displayName || user.username) + (" on swats.bio")}`}
+                      placeholder={`${(displayName || user.username) + (" on tourn.lol")}`}
                       className="w-full rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] px-4 py-2.5 text-xs text-white outline-none focus:border-[#b4bffa]"
                     />
                     <p className="mt-1.5 text-[11px] text-zinc-600">When shared on Discord, your profile shows your background with your avatar and this name centred below.</p>

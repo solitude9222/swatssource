@@ -250,7 +250,7 @@ export default function Templates() {
             <Wand2 className="w-6 h-6 text-brand-400" /> Community Templates
           </h1>
           <p className="text-sm text-zinc-400 mt-1">
-            Browse and apply themes created by the swats.bio community, or share your own design!
+            Browse and apply themes created by the tourn.lol community, or share your own design!
           </p>
         </div>
 

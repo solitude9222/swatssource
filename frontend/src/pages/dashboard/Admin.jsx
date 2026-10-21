@@ -402,7 +402,7 @@ export default function Admin() {
               </button>
             </div>
             <p className="text-xs text-zinc-400">
-              Push an urgent message directly into the notification bell of all members on swats.bio.
+              Push an urgent message directly into the notification bell of all members on tourn.lol.
             </p>
             <form onSubmit={handleSendQuickBroadcast} className="space-y-3">
               <input
