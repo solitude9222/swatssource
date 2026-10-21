@@ -2136,6 +2136,7 @@ export default function Editor() {
                     </>
                   )}
               </div>
+              </Section>
 
               {!advanced && (
                 <AdvancedNotice what="Synchronized lyrics, shuffle/autoplay/loop, default volume and the player's card styling live here." />
