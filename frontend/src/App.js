@@ -58,7 +58,7 @@ function BackendHealthCheck() {
       .then(({ data }) => {
         console.log(
           `%c[tourn.lol]%c Backend connected successfully to %c${API}%c (Status: ${data?.status || "ok"})`,
-          "color: #A48DF4; font-weight: bold;",
+          "color: #b4bffa; font-weight: bold;",
           "color: #22c55e; font-weight: bold;",
           "color: #38bdf8; font-weight: bold;",
           "color: #a1a1aa;"
@@ -68,7 +68,7 @@ function BackendHealthCheck() {
         const detail = err.response?.data?.detail || err.message;
         console.warn(
           `%c[tourn.lol]%c Backend health check failed for %c${API}%c!\nError: ${detail}\nIf deployed on Vercel/Railway, verify backend server is live and REACT_APP_BACKEND_URL is set in environment variables.`,
-          "color: #A48DF4; font-weight: bold;",
+          "color: #b4bffa; font-weight: bold;",
           "color: #f59e0b; font-weight: bold;",
           "color: #38bdf8; font-weight: bold;",
           "color: #a1a1aa;"

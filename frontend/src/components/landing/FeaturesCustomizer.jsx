@@ -79,7 +79,7 @@ const DiscordServerCard = ({ server, testid }) => {
             className="h-full w-full scale-150 object-cover opacity-70 blur-xl"
           />
         ) : (
-          <div className="h-full w-full" style={{ background: "linear-gradient(120deg, #5865F2, #8C71E8)" }} />
+          <div className="h-full w-full" style={{ background: "linear-gradient(120deg, #5865F2, #535978)" }} />
         )}
         <div
           className="absolute inset-0"

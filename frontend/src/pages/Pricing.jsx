@@ -10,7 +10,7 @@ import { toast } from "@/lib/notify";
 import { FREE_PERKS as FREE, PREMIUM_PERKS as PREMIUM, PREMIUM_PRICE } from "@/constants/plans";
 
 const COMPARISON = [
-  ["Your own swats.bio page", true, true],
+  ["Your own tourn.lol page", true, true],
   ["Links, platform icons and standard widgets", true, true],
   ["Validated profile views and analytics", true, true],
   ["Badges, leaderboard and rewards", true, true],
@@ -23,12 +23,12 @@ const COMPARISON = [
   ["Custom badges", false, true],
   ["Templates you can save", "Limited", "Up to 5"],
   ["Messaging", "Friends & received", "Send anywhere + groups"],
-  ["Remove the swats.bio footer", false, true],
+  ["Remove the tourn.lol footer", false, true],
 ];
 
 const FAQ = [
   ["Can I cancel any time?", "Yes. Manage billing opens the Stripe portal, where cancellation stops the renewal. You keep Premium until the end of the period you already paid for."],
-  ["What happens when Premium ends?", "Your page stays online and keeps every free feature. Premium-only settings are not rendered, so nothing breaks — re-subscribing restores them exactly as you saved them."],
+  ["What happens when Premium ends?", "Your page stays online and keeps every free feature. Premium-only settings are not rendered, so nothing breaks â€” re-subscribing restores them exactly as you saved them."],
   ["Do view rewards stack with a subscription?", "Yes. A reward milestone extends a running Premium period rather than replacing it, and a permanent subscription simply collects the milestone without adding days."],
   ["How are payments processed?", "Checkout and the billing portal are hosted by Stripe. Card details never reach our servers; we store only the subscription state and a transaction reference."],
   ["Are there refunds?", "Premium unlocks immediately, so purchases are generally non-refundable. The Refund Policy lists the exceptions and how to ask."],
@@ -43,9 +43,9 @@ const Cell = ({ value }) => {
 /* The Premium page.
  *
  * Two honest states, not a checkbox disguised as a button:
- *   • signed-out or free — "Go Premium" opens Stripe Checkout and returns here
+ *   â€¢ signed-out or free â€” "Go Premium" opens Stripe Checkout and returns here
  *     with a real confirmation;
- *   • already Premium — no plan grid to buy twice; a "manage billing" escape
+ *   â€¢ already Premium â€” no plan grid to buy twice; a "manage billing" escape
  *     (Stripe portal) and the countdown of nothing to prove.
  *
  * ?upgrade=success and ?upgrade=cancelled are what Checkout redirects back to,
@@ -66,11 +66,11 @@ export default function Pricing() {
 
   useEffect(() => {
     if (params.get("upgrade") === "success") {
-      toast.success("You are Premium — everything is unlocked. Thank you.");
+      toast.success("You are Premium â€” everything is unlocked. Thank you.");
     } else if (params.get("upgrade") === "cancelled") {
-      toast.info("Checkout closed — you were not charged.");
+      toast.info("Checkout closed â€” you were not charged.");
     }
-    // Runs once on arrival (add the params to the deps intentionally never — the greeting is for the arrival navigation only).
+    // Runs once on arrival (add the params to the deps intentionally never â€” the greeting is for the arrival navigation only).
   }, []);
 
   const upgrade = async () => {
@@ -109,7 +109,7 @@ export default function Pricing() {
           </h1>
           <p className="mt-3 text-sm text-zinc-500">
             {alreadyPremium
-              ? "Everything is unlocked on this account — no plans to buy, nothing to prove."
+              ? "Everything is unlocked on this account â€” no plans to buy, nothing to prove."
               : "No hidden fees. One price. Upgrade whenever you're ready to unlock everything."}
           </p>
         </div>
@@ -144,7 +144,7 @@ export default function Pricing() {
                 </button>
               </>
             ) : (
-              <button onClick={upgrade} disabled={busy} data-testid="premium-cta" className="mt-6 w-full text-center py-3 rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 text-white text-sm font-semibold hover:brightness-110 transition shadow-[0_0_24px_rgba(164, 141, 244,0.4)] disabled:opacity-50">
+              <button onClick={upgrade} disabled={busy} data-testid="premium-cta" className="mt-6 w-full text-center py-3 rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 text-white text-sm font-semibold hover:brightness-110 transition shadow-[0_0_24px_rgba(180, 191, 250,0.4)] disabled:opacity-50">
                 {busy ? <Loader2 className="inline h-4 w-4 animate-spin" /> : "Go Premium"}
               </button>
             )}
@@ -199,7 +199,7 @@ export default function Pricing() {
             </span>
             <div>
               <h2 className="text-sm font-bold text-zinc-100">Prefer a one-time thank-you?</h2>
-              <p className="mt-0.5 text-xs text-zinc-500">Donations keep the lights on too — card or crypto, no subscription.</p>
+              <p className="mt-0.5 text-xs text-zinc-500">Donations keep the lights on too â€” card or crypto, no subscription.</p>
             </div>
           </div>
           <Link

@@ -668,7 +668,7 @@ export default function Widgets() {
   const savedTrackStyle = resolveTrackStyle(user.profile?.track_style);
   const savedShuffle = !!user.profile?.track_shuffle;
   const savedVolume = user.profile?.track_volume ?? 80;
-  const accentColor = user.profile?.accent_color || "#A48DF4";
+  const accentColor = user.profile?.accent_color || "#b4bffa";
 
   const [widgets, setWidgets] = useState(user.profile?.widgets || []);
 
@@ -916,7 +916,7 @@ export default function Widgets() {
             <button
               type="button"
               onClick={saveWidgetEdit}
-              className="px-5 py-2 rounded-xl bg-[#a48df4] hover:opacity-90 text-white text-xs font-bold transition shadow-lg cursor-pointer"
+              className="px-5 py-2 rounded-xl bg-[#535978] hover:opacity-90 text-white text-xs font-bold transition shadow-lg cursor-pointer"
             >
               Apply widget
             </button>
@@ -979,7 +979,7 @@ export default function Widgets() {
                     value={editingWidget.widget.user_id || editingWidget.widget.username || ""}
                     onChange={(e) => patchEditingWidget({ user_id: e.target.value, username: e.target.value })}
                     placeholder="e.g. 94490510688792576"
-                    className="w-full px-4 py-2.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-[#a48df4]"
+                    className="w-full px-4 py-2.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-[#b4bffa]"
                   />
                 </div>
               ) : (
@@ -991,7 +991,7 @@ export default function Widgets() {
                       value={editingWidget.widget.invite_url || ""}
                       onChange={(e) => patchEditingWidget({ invite_url: e.target.value })}
                       placeholder="discord.gg/yourinvite"
-                      className="w-full px-4 py-2.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-[#a48df4]"
+                      className="w-full px-4 py-2.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-[#b4bffa]"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -1001,7 +1001,7 @@ export default function Widgets() {
                       value={editingWidget.widget.server_id || ""}
                       onChange={(e) => patchEditingWidget({ server_id: e.target.value })}
                       placeholder="e.g. 613712999795015681"
-                      className="w-full px-4 py-2.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-[#a48df4]"
+                      className="w-full px-4 py-2.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-[#b4bffa]"
                     />
                   </div>
                 </div>
@@ -1038,7 +1038,7 @@ export default function Widgets() {
                   value={editingWidget.widget.title || ""}
                   onChange={(e) => patchEditingWidget({ title: e.target.value })}
                   placeholder="e.g. swats.bio engine"
-                  className="w-full px-4 py-2.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-[#a48df4]"
+                  className="w-full px-4 py-2.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-[#b4bffa]"
                 />
               </div>
 
@@ -1050,7 +1050,7 @@ export default function Widgets() {
                   value={editingWidget.widget.description || ""}
                   onChange={(e) => patchEditingWidget({ description: e.target.value })}
                   placeholder="Short description of what the project does..."
-                  className="w-full px-4 py-2.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-[#a48df4]"
+                  className="w-full px-4 py-2.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-[#b4bffa]"
                 />
               </div>
 
@@ -1097,7 +1097,7 @@ export default function Widgets() {
                   value={editingWidget.widget.tags || ""}
                   onChange={(e) => patchEditingWidget({ tags: e.target.value })}
                   placeholder="Custom tags (comma-separated)..."
-                  className="w-full px-4 py-2 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-mono2 text-white placeholder-zinc-500 outline-none focus:border-[#a48df4]"
+                  className="w-full px-4 py-2 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-mono2 text-white placeholder-zinc-500 outline-none focus:border-[#b4bffa]"
                 />
               </div>
 
@@ -1125,7 +1125,7 @@ export default function Widgets() {
                   value={editingWidget.widget.url || ""}
                   onChange={(e) => patchEditingWidget({ url: e.target.value })}
                   placeholder="https://..."
-                  className="w-full px-4 py-2.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-[#a48df4]"
+                  className="w-full px-4 py-2.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-[#b4bffa]"
                 />
               </div>
             </div>
@@ -1139,7 +1139,7 @@ export default function Widgets() {
                     value={editingWidget.widget.title || ""}
                     onChange={(e) => patchEditingWidget({ title: e.target.value })}
                     placeholder="Favorite Games"
-                    className="w-full px-4 py-2.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-[#a48df4]"
+                    className="w-full px-4 py-2.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-[#b4bffa]"
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -1149,7 +1149,7 @@ export default function Widgets() {
                     value={editingWidget.widget.platform || ""}
                     onChange={(e) => patchEditingWidget({ platform: e.target.value })}
                     placeholder="e.g. PC / Steam"
-                    className="w-full px-4 py-2.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-[#a48df4]"
+                    className="w-full px-4 py-2.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-[#b4bffa]"
                   />
                 </div>
               </div>
@@ -1161,7 +1161,7 @@ export default function Widgets() {
                   value={editingWidget.widget.now_playing || ""}
                   onChange={(e) => patchEditingWidget({ now_playing: e.target.value })}
                   placeholder="e.g. Valorant Competitive"
-                  className="w-full px-4 py-2.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-[#a48df4]"
+                  className="w-full px-4 py-2.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-[#b4bffa]"
                 />
               </div>
 
@@ -1193,7 +1193,7 @@ export default function Widgets() {
                         }}
                         className={`relative overflow-hidden rounded-xl border p-2 text-left transition aspect-[3/4] flex flex-col justify-end group cursor-pointer ${
                           active
-                            ? "border-[#a48df4] ring-2 ring-[#a48df4] shadow-md"
+                            ? "border-[#b4bffa] ring-2 ring-[#b4bffa] shadow-md"
                             : "border-white/10 hover:border-white/30"
                         }`}
                       >
@@ -1203,7 +1203,7 @@ export default function Widgets() {
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
                         {active && (
-                          <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-[#a48df4] text-black flex items-center justify-center shadow">
+                          <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-[#535978] text-black flex items-center justify-center shadow">
                             <Check className="w-3 h-3 stroke-[3]" />
                           </div>
                         )}
@@ -1227,7 +1227,7 @@ export default function Widgets() {
                     value={editingWidget.widget[f.key] || ""}
                     onChange={(e) => patchEditingWidget({ [f.key]: e.target.value })}
                     placeholder={f.placeholder}
-                    className="w-full px-4 py-2.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-[#a48df4]"
+                    className="w-full px-4 py-2.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-[#b4bffa]"
                   />
                 </div>
               ))}
@@ -1313,7 +1313,7 @@ export default function Widgets() {
                 <Switch
                   checked={editingWidget.widget[item.key] !== false}
                   onCheckedChange={(checked) => patchEditingWidget({ [item.key]: checked })}
-                  className="data-[state=checked]:bg-[#a48df4]"
+                  className="data-[state=checked]:bg-[#535978]"
                 />
               </div>
             ))}
@@ -1350,7 +1350,7 @@ export default function Widgets() {
           <button
             type="button"
             onClick={saveWidgetEdit}
-            className="px-6 py-2.5 rounded-xl bg-[#a48df4] hover:opacity-90 text-white text-xs font-bold transition shadow-lg cursor-pointer"
+            className="px-6 py-2.5 rounded-xl bg-[#535978] hover:opacity-90 text-white text-xs font-bold transition shadow-lg cursor-pointer"
           >
             Apply widget
           </button>
@@ -1399,7 +1399,7 @@ export default function Widgets() {
                 className={`group relative flex flex-col items-center justify-center gap-2.5 p-3.5 rounded-2xl border text-center transition-all duration-200 outline-none cursor-pointer ${
                   locked
                     ? "border-white/[0.04] bg-[#0a0a0d]/60 opacity-75 hover:opacity-100 hover:border-white/10"
-                    : "border-white/[0.06] bg-[#0d0d10] hover:border-[#a48df4]/50 hover:bg-[#12121a] hover:shadow-[0_4px_20px_rgba(164,141,244,0.08)]"
+                    : "border-white/[0.06] bg-[#0d0d10] hover:border-[#b4bffa]/50 hover:bg-[#12121a] hover:shadow-[0_4px_20px_rgba(180,191,250,0.08)]"
                 }`}
               >
                 <div
@@ -1421,7 +1421,7 @@ export default function Widgets() {
                   )}
                 </div>
 
-                <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-md bg-[#a48df4] flex items-center justify-center text-white transition-all duration-200 opacity-0 group-hover:opacity-100 scale-75 group-hover:scale-100">
+                <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-md bg-[#535978] flex items-center justify-center text-white transition-all duration-200 opacity-0 group-hover:opacity-100 scale-75 group-hover:scale-100">
                   <Plus className="w-3 h-3" />
                 </div>
               </button>
@@ -1476,7 +1476,7 @@ export default function Widgets() {
                     isEnabled
                       ? "border-[#2a2a2e] bg-[#09090b]"
                       : "border-[#3f3f46]/20 bg-[#09090b]/40 opacity-60"
-                  } ${widgetDragIndex === i ? "border-[#a48df4] opacity-50" : "hover:border-white/30"}`}
+                  } ${widgetDragIndex === i ? "border-[#b4bffa] opacity-50" : "hover:border-white/30"}`}
                 >
                   {/* Left: Drag grip, platform icon, Title & Subtitle */}
                   <div className="flex items-center gap-3.5 min-w-0">
@@ -1507,7 +1507,7 @@ export default function Widgets() {
                       onCheckedChange={(checked) => {
                         setWidgets(widgets.map((item, idx) => (idx === i ? { ...item, enabled: checked } : item)));
                       }}
-                      className="data-[state=checked]:bg-[#a48df4]"
+                      className="data-[state=checked]:bg-[#535978]"
                     />
                     <button
                       type="button"
@@ -1676,7 +1676,7 @@ export default function Widgets() {
                   onClick={() => setDensity(d.id)}
                   className={`px-3 py-2 rounded-xl text-left border transition-all cursor-pointer ${
                     density === d.id
-                      ? "border-[#a48df4] bg-[#a48df4]/10 text-white shadow-sm"
+                      ? "border-[#b4bffa] bg-[#535978]/10 text-white shadow-sm"
                       : "border-[#2a2a2e] bg-[#141416] text-zinc-400 hover:text-zinc-200 hover:border-white/20"
                   }`}
                 >
@@ -1813,7 +1813,7 @@ export default function Widgets() {
       {/* Floating Save Bar */}
       {dirty && (
         <div className="fixed bottom-6 inset-x-0 z-40 flex justify-center px-4 animate-in fade-in slide-in-from-bottom-4 duration-200">
-          <div className="flex items-center gap-4 px-5 py-3 rounded-2xl bg-[#111111] border border-[#a48df4] shadow-2xl backdrop-blur-xl">
+          <div className="flex items-center gap-4 px-5 py-3 rounded-2xl bg-[#111111] border border-[#b4bffa] shadow-2xl backdrop-blur-xl">
             <div className="text-xs text-zinc-300">
               You have unsaved changes to your widgets and design.
             </div>
@@ -1822,7 +1822,7 @@ export default function Widgets() {
               data-testid="widget-save-btn"
               onClick={saveAll}
               disabled={saving}
-              className="px-4 py-2 rounded-xl bg-[#a48df4] hover:opacity-90 text-white text-xs font-bold transition flex items-center gap-2 shadow-lg cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-[#535978] hover:opacity-90 text-white text-xs font-bold transition flex items-center gap-2 shadow-lg cursor-pointer"
             >
               {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
               Save Changes

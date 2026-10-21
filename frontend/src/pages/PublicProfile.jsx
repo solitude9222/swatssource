@@ -215,7 +215,7 @@ export default function PublicProfile() {
   if (notFound) {
     return (
       <div className="min-h-screen sw-page-bg flex flex-col items-center justify-center text-center px-4" data-testid="public-notfound">
-        <img src="/logo.png" alt="tourn.lol" className="w-16 h-16 rounded-2xl mb-4 object-contain shadow-[0_0_30px_rgba(164,141,244,0.4)]" />
+        <img src="/logo.png" alt="tourn.lol" className="w-16 h-16 rounded-2xl mb-4 object-contain shadow-[0_0_30px_rgba(180,191,250,0.4)]" />
         <div className="font-display text-5xl font-black text-zinc-100">404</div>
         <p className="mt-3 text-zinc-400">tourn.lol/{alias} isn't claimed yet.</p>
         <Link to={`/!/login?claim=${alias}`} className="mt-6 px-5 py-2.5 rounded-full bg-gradient-to-r from-brand-500 to-brand-600 text-white text-sm font-semibold hover:brightness-110 transition">Claim this name</Link>
@@ -224,7 +224,7 @@ export default function PublicProfile() {
   }
   if (!data) return <div className="min-h-screen sw-page-bg" />;
 
-  const entryGlow = p.entry_glow_color || p.accent_color || "#A48DF4";
+  const entryGlow = p.entry_glow_color || p.accent_color || "#b4bffa";
   const entryTextColor = p.entry_color || "#f4f4f5";
   const entryBg = p.entry_bg_color || "rgba(255, 255, 255, 0.08)";
   const entryFont = fontStackOf(p.entry_font) || p.entry_font || "inherit";

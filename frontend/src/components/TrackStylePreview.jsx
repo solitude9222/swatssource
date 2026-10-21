@@ -16,7 +16,7 @@ const Bar = ({ w, h, className = "", style }) => (
   <span className={`block rounded-full ${className}`} style={{ width: w, height: h, ...style }} />
 );
 
-export function TrackStylePreview({ id, accent = "#A48DF4", size = "sm" }) {
+export function TrackStylePreview({ id, accent = "#b4bffa", size = "sm" }) {
   const S = SIZES[size] || SIZES.sm;
 
   const shell = (children) => (

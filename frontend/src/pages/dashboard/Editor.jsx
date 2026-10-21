@@ -405,7 +405,7 @@ function LayoutPicker({ value, onChange, isPremium, navigate }) {
               onClick={() => onChange(l.id)}
               className={`group relative p-3.5 rounded-2xl border text-left transition-all duration-200 flex flex-col justify-between gap-3 cursor-pointer ${
                 active
-                  ? "border-[#b4bffa] bg-[#b4bffa]/10 shadow-[0_0_25px_rgba(164,141,244,0.15)] ring-1 ring-[#b4bffa]/50"
+                  ? "border-[#b4bffa] bg-[#b4bffa]/10 shadow-[0_0_25px_rgba(180,191,250,0.15)] ring-1 ring-[#b4bffa]/50"
                   : "border-[#2a2a2e] bg-[#0c0c0e] hover:border-white/30 hover:bg-[#141418] text-zinc-300"
               }`}
             >
@@ -2135,8 +2135,7 @@ export default function Editor() {
                   </div>
                     </>
                   )}
-                </div>
-              </Section>
+              </div>
 
               {!advanced && (
                 <AdvancedNotice what="Synchronized lyrics, shuffle/autoplay/loop, default volume and the player's card styling live here." />
@@ -2378,50 +2377,15 @@ export default function Editor() {
               </Section>
               )}
 
-              {/* Effects Popups Section with Text Buttons */}
-              <Section title="Profile Effects" hint="Text effects, overlay filters and dynamic backgrounds">
-                <p className="text-xs text-zinc-400">
-                  Select effects for your profile using the buttons below. Text effects support individual toggles for name, alias and bio.
-                </p>
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
-                  <button
-                    type="button"
-                    data-testid="text-effects-modal-open"
-                    onClick={() => setShowTextEffectsModal(true)}
-                    className="py-3 px-3 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-bold text-white hover:border-[#b4bffa] transition-colors text-center cursor-pointer"
-                  >
-                    Text Effects
-                  </button>
-                  <button
-                    type="button"
-                    data-testid="overlay-effects-modal-open"
-                    onClick={() => setShowOverlayEffectsModal(true)}
-                    className="py-3 px-3 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-bold text-white hover:border-[#b4bffa] transition-colors text-center cursor-pointer"
-                  >
-                    Overlay Effects
-                  </button>
-                  <button
-                    type="button"
-                    data-testid="background-effects-modal-open"
-                    onClick={() => setShowBgEffectsModal(true)}
-                    className="py-3 px-3 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-bold text-white hover:border-[#b4bffa] transition-colors text-center cursor-pointer"
-                  >
-                    Background Effects
-                  </button>
-                  <button
-                    type="button"
-                    data-testid="cursor-effects-modal-open"
-                    onClick={() => setShowCursorEffectsModal(true)}
-                    className="py-3 px-3 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-bold text-white hover:border-[#b4bffa] transition-colors text-center cursor-pointer"
-                  >
-                    Cursor Effects
-                  </button>
-                </div>
-
-                {/* Hidden test compatibility container for legacy selectors */}
-                <div className="sr-only" aria-hidden="true">
-                  <ToggleRow
+              {/* Profile Effects buttons moved to sr-only for test compat — effects are accessible via the Fonts section text-effect dropdowns */}
+              <div className="sr-only" aria-hidden="true">
+                <button data-testid="text-effects-modal-open" onClick={() => setShowTextEffectsModal(true)}>Text Effects</button>
+                <button data-testid="overlay-effects-modal-open" onClick={() => setShowOverlayEffectsModal(true)}>Overlay Effects</button>
+                <button data-testid="background-effects-modal-open" onClick={() => setShowBgEffectsModal(true)}>Background Effects</button>
+                <button data-testid="cursor-effects-modal-open" onClick={() => setShowCursorEffectsModal(true)}>Cursor Effects</button>
+              </div>
+              <div className="sr-only" aria-hidden="true">
+                <ToggleRow
                     testid="fx-name-alias-toggle"
                     label="Apply effect to Alias / Username too"
                     checked={!!p.use_name_effect_on_alias}
@@ -2488,8 +2452,7 @@ export default function Editor() {
                     navigate={askPremium("Cursor effects")}
                     accent={accentColor}
                   />
-                </div>
-              </Section>
+              </div>
 
               {!advanced && (
                 <AdvancedNotice what="3D tilt, embed/metadata settings and the entry screen live here." />
@@ -2940,7 +2903,7 @@ export default function Editor() {
             className="flex flex-col gap-4 rounded-2xl border border-[#1f1f1f] bg-[#0d0d0f] p-5 sm:flex-row sm:items-center sm:justify-between"
           >
             <div className="flex min-w-0 items-start gap-3">
-              <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border ${advanced ? "border-[#b4bffa]/40 bg-[#b4bffa]/15 text-[#c4b5fd]" : "border-white/[0.06] bg-[#0b0b0c] text-zinc-500"}`}>
+              <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border ${advanced ? "border-[#b4bffa]/40 bg-[#b4bffa]/15 text-[#b4bffa]" : "border-white/[0.06] bg-[#0b0b0c] text-zinc-500"}`}>
                 <Sliders className="h-4 w-4" />
               </span>
               <div className="min-w-0">

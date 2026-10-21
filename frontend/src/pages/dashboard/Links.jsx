@@ -97,7 +97,7 @@ function ChipRow({ label, options, value, onChange, testid }) {
               title={o.label}
               className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-all duration-150 cursor-pointer ${
                 isSel
-                  ? "border-[#a48df4] bg-[#a48df4]/20 text-white shadow-sm"
+                  ? "border-[#b4bffa] bg-[#535978]/20 text-white shadow-sm"
                   : "border-white/10 bg-[#08080a] text-zinc-400 hover:border-white/20 hover:text-zinc-200"
               }`}
             >
@@ -286,7 +286,7 @@ export default function Links() {
       {/* 1. Sleek Top Action Header (No duplicate titles) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-white/10 bg-[#050505]/95 p-5 shadow-2xl backdrop-blur-xl">
         <div className="flex items-center gap-3.5">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#a48df4]/15 border border-[#a48df4]/30 text-white shadow-inner">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#535978]/15 border border-[#b4bffa]/30 text-white shadow-inner">
             <LinkIcon className="h-5 w-5 text-brand-300" />
           </div>
           <div>
@@ -315,7 +315,7 @@ export default function Links() {
           <button
             data-testid="add-link-btn"
             onClick={() => setShowAllPlatformsModal(true)}
-            className="flex items-center gap-2 rounded-xl bg-[#a48df4] hover:bg-[#8c71e8] px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-[#a48df4]/20 transition cursor-pointer active:scale-95"
+            className="flex items-center gap-2 rounded-xl bg-[#535978] hover:bg-[#424669] px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-[#535978]/20 transition cursor-pointer active:scale-95"
           >
             <Plus className="h-4 w-4 stroke-[2.5]" /> Add Link
           </button>
@@ -326,7 +326,7 @@ export default function Links() {
       <div className="rounded-2xl border border-white/10 bg-[#050505]/95 p-5 sm:p-6 shadow-2xl backdrop-blur-xl space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#a48df4]/10 border border-[#a48df4]/20 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-[#535978]/10 border border-[#b4bffa]/20 flex items-center justify-center">
               <Sparkles className="w-4 h-4 text-brand-300" />
             </div>
             <div>
@@ -337,7 +337,7 @@ export default function Links() {
           <button
             type="button"
             onClick={() => setShowAllPlatformsModal(true)}
-            className="flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold text-zinc-300 border border-white/10 bg-[#09090c] hover:bg-white/[0.08] hover:border-[#a48df4]/40 transition cursor-pointer shrink-0"
+            className="flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold text-zinc-300 border border-white/10 bg-[#09090c] hover:bg-white/[0.08] hover:border-[#b4bffa]/40 transition cursor-pointer shrink-0"
           >
             <LayoutGrid className="h-3.5 w-3.5 text-brand-300" />
             All {PLATFORM_PRESETS.length} platforms
@@ -356,11 +356,11 @@ export default function Links() {
                 data-testid={`link-quick-${id}`}
                 onClick={() => openAddLinkModal(id)}
                 style={{ minHeight: "86px" }}
-                className="group flex flex-col items-center justify-center gap-2 p-3.5 rounded-2xl border border-white/[0.06] bg-[#0d0d10] hover:border-[#a48df4]/50 hover:bg-[#12121a] hover:shadow-[0_4px_20px_rgba(164,141,244,0.08)] transition-all duration-200 cursor-pointer"
+                className="group flex flex-col items-center justify-center gap-2 p-3.5 rounded-2xl border border-white/[0.06] bg-[#0d0d10] hover:border-[#b4bffa]/50 hover:bg-[#12121a] hover:shadow-[0_4px_20px_rgba(180,191,250,0.08)] transition-all duration-200 cursor-pointer"
               >
                 <div
                   className="w-10 h-10 rounded-xl flex items-center justify-center border transition-all duration-200 group-hover:scale-110"
-                  style={{ background: `${p.color || "#a48df4"}18`, borderColor: `${p.color || "#a48df4"}38` }}
+                  style={{ background: `${p.color || "#b4bffa"}18`, borderColor: `${p.color || "#b4bffa"}38` }}
                 >
                   <p.Icon className="w-5 h-5" style={{ color: p.color || "#ffffff" }} />
                 </div>
@@ -376,10 +376,10 @@ export default function Links() {
             type="button"
             onClick={() => setShowAllPlatformsModal(true)}
             style={{ minHeight: "86px" }}
-            className="group flex flex-col items-center justify-center gap-2 p-3.5 rounded-2xl border border-dashed border-white/[0.08] bg-transparent hover:border-[#a48df4]/40 hover:bg-[#0d0d10] transition-all duration-200 cursor-pointer"
+            className="group flex flex-col items-center justify-center gap-2 p-3.5 rounded-2xl border border-dashed border-white/[0.08] bg-transparent hover:border-[#b4bffa]/40 hover:bg-[#0d0d10] transition-all duration-200 cursor-pointer"
           >
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center border border-white/[0.08] group-hover:border-[#a48df4]/40 bg-[#0a0a0d] transition-all duration-200">
-              <Plus className="w-5 h-5 text-zinc-600 group-hover:text-[#a48df4] transition-colors" />
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center border border-white/[0.08] group-hover:border-[#b4bffa]/40 bg-[#0a0a0d] transition-all duration-200">
+              <Plus className="w-5 h-5 text-zinc-600 group-hover:text-[#b4bffa] transition-colors" />
             </div>
             <span className="text-[11px] font-semibold text-zinc-600 group-hover:text-zinc-300 transition-colors">More</span>
           </button>
@@ -421,7 +421,7 @@ export default function Links() {
                   value={myLinksFilter}
                   onChange={(e) => setMyLinksFilter(e.target.value)}
                   placeholder="Search your links..."
-                  className="w-full h-8 rounded-xl border border-white/10 bg-[#09090c] pl-8 pr-2.5 text-xs text-white placeholder-zinc-500 outline-none transition focus:border-[#a48df4]"
+                  className="w-full h-8 rounded-xl border border-white/10 bg-[#09090c] pl-8 pr-2.5 text-xs text-white placeholder-zinc-500 outline-none transition focus:border-[#b4bffa]"
                 />
               </div>
             )}
@@ -441,8 +441,8 @@ export default function Links() {
 
         {links.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-white/[0.08] p-12 text-center bg-[#070709]/50 space-y-4">
-            <div className="w-14 h-14 rounded-2xl bg-[#a48df4]/10 border border-[#a48df4]/20 flex items-center justify-center mx-auto">
-              <LinkIcon className="h-6 w-6 text-[#a48df4]/70" />
+            <div className="w-14 h-14 rounded-2xl bg-[#535978]/10 border border-[#b4bffa]/20 flex items-center justify-center mx-auto">
+              <LinkIcon className="h-6 w-6 text-[#b4bffa]/70" />
             </div>
             <div>
               <p className="text-sm font-bold text-white">No links yet</p>
@@ -453,7 +453,7 @@ export default function Links() {
             <button
               type="button"
               onClick={() => setShowAllPlatformsModal(true)}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#a48df4] px-5 py-2.5 text-xs font-bold text-white transition hover:bg-[#8c71e8] shadow-md shadow-[#a48df4]/20 cursor-pointer"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#535978] px-5 py-2.5 text-xs font-bold text-white transition hover:bg-[#424669] shadow-md shadow-[#535978]/20 cursor-pointer"
             >
               <Plus className="h-4 w-4" /> Add your first link
             </button>
@@ -479,7 +479,7 @@ export default function Links() {
                   onDragEnd={() => setDragIndex(null)}
                   className={`flex cursor-grab items-center justify-between gap-3.5 rounded-xl border p-3 sm:p-3.5 transition-all duration-150 active:cursor-grabbing ${
                     dragIndex === i
-                      ? "border-[#a48df4] opacity-50 bg-[#09090c]"
+                      ? "border-[#b4bffa] opacity-50 bg-[#09090c]"
                       : "border-white/10 bg-[#070709] hover:border-white/25 hover:bg-[#09090c]"
                   }`}
                 >
@@ -489,11 +489,10 @@ export default function Links() {
                     {/* Glowing Platform Icon Pill */}
                     <span className="relative flex h-10 w-10 shrink-0 items-center justify-center">
                       <span
-                        className="flex h-10 w-10 items-center justify-center rounded-xl border shadow-md"
+                        className="flex h-10 w-10 items-center justify-center rounded-xl border"
                         style={{
                           background: `${c}22`,
                           borderColor: `${c}44`,
-                          boxShadow: glow ? `0 0 16px ${glow}` : undefined,
                         }}
                       >
                         {fileUrl(l.icon_url) ? (
@@ -509,9 +508,6 @@ export default function Links() {
                       <div className="flex items-center gap-2">
                         <span className="truncate text-xs font-bold text-white">
                           {l.label || meta.name || l.platform}
-                        </span>
-                        <span className="shrink-0 rounded-md bg-white/5 border border-white/10 px-2 py-0.5 font-mono2 text-[9px] uppercase font-bold text-zinc-300">
-                          {isCard ? "card" : "icon"}
                         </span>
                       </div>
                       <div className="truncate font-mono2 text-[11px] text-zinc-400 mt-0.5">
@@ -595,7 +591,7 @@ export default function Links() {
             data-testid="links-save-btn"
             onClick={saveAll}
             disabled={saving}
-            className="flex items-center gap-2 rounded-xl bg-[#a48df4] hover:bg-[#8c71e8] px-6 py-2 text-xs font-bold text-white shadow-lg transition cursor-pointer disabled:opacity-50"
+            className="flex items-center gap-2 rounded-xl bg-[#535978] hover:bg-[#424669] px-6 py-2 text-xs font-bold text-white shadow-lg transition cursor-pointer disabled:opacity-50"
           >
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
             {saving ? "Saving…" : "Save changes"}
@@ -613,7 +609,7 @@ export default function Links() {
             {/* Header */}
             <div className="flex items-center justify-between border-b border-white/[0.08] p-5 shrink-0">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-[#a48df4]/10 border border-[#a48df4]/20 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-xl bg-[#535978]/10 border border-[#b4bffa]/20 flex items-center justify-center">
                   <LayoutGrid className="w-4 h-4 text-brand-300" />
                 </div>
                 <div>
@@ -638,7 +634,7 @@ export default function Links() {
                   value={directorySearch}
                   onChange={(e) => setDirectorySearch(e.target.value)}
                   placeholder="Search all platforms…"
-                  className="w-full h-9 rounded-xl border border-white/10 bg-[#09090c] pl-9 pr-3 text-xs text-white placeholder-zinc-500 outline-none transition focus:border-[#a48df4]"
+                  className="w-full h-9 rounded-xl border border-white/10 bg-[#09090c] pl-9 pr-3 text-xs text-white placeholder-zinc-500 outline-none transition focus:border-[#b4bffa]"
                 />
               </div>
               <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
@@ -649,7 +645,7 @@ export default function Links() {
                     onClick={() => setSelectedCategory(cat.id)}
                     className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border ${
                       selectedCategory === cat.id
-                        ? "border-[#a48df4] bg-[#a48df4]/20 text-white shadow-sm"
+                        ? "border-[#b4bffa] bg-[#535978]/20 text-white shadow-sm"
                         : "border-white/[0.06] bg-[#08080a] text-zinc-400 hover:text-white hover:border-white/20"
                     }`}
                   >
@@ -671,11 +667,11 @@ export default function Links() {
                       data-testid={`link-preset-${p.id}`}
                       onClick={() => { openAddLinkModal(p.id); setShowAllPlatformsModal(false); }}
                       style={{ minHeight: "82px" }}
-                      className="group flex flex-col items-center justify-center gap-2 p-3 rounded-xl border border-white/[0.05] bg-[#08080a] hover:border-[#a48df4]/50 hover:bg-[#12121a] transition-all duration-200 cursor-pointer"
+                      className="group flex flex-col items-center justify-center gap-2 p-3 rounded-xl border border-white/[0.05] bg-[#08080a] hover:border-[#b4bffa]/50 hover:bg-[#12121a] transition-all duration-200 cursor-pointer"
                     >
                       <div
                         className="w-9 h-9 rounded-lg flex items-center justify-center border transition-all duration-200 group-hover:scale-110"
-                        style={{ background: `${p.color || "#a48df4"}18`, borderColor: `${p.color || "#a48df4"}35` }}
+                        style={{ background: `${p.color || "#b4bffa"}18`, borderColor: `${p.color || "#b4bffa"}35` }}
                       >
                         <p.Icon className="w-4 h-4" style={{ color: p.color || "#ffffff" }} />
                       </div>
@@ -683,9 +679,6 @@ export default function Links() {
                         <span className="text-[11px] font-semibold text-zinc-400 group-hover:text-white block transition-colors truncate max-w-[72px]">
                           {p.name}
                         </span>
-                        {isQuick && (
-                          <span className="text-[9px] text-zinc-600">Popular</span>
-                        )}
                       </div>
                     </button>
                   );
@@ -741,7 +734,7 @@ export default function Links() {
                     value={platformQuery}
                     onChange={(e) => setPlatformQuery(e.target.value)}
                     placeholder={`Search ${PLATFORM_PRESETS.length} platforms…`}
-                    className="w-full rounded-xl border border-white/10 bg-[#09090c] py-2 pl-9 pr-3 text-xs font-medium text-white placeholder-zinc-500 outline-none transition focus:border-[#a48df4]"
+                    className="w-full rounded-xl border border-white/10 bg-[#09090c] py-2 pl-9 pr-3 text-xs font-medium text-white placeholder-zinc-500 outline-none transition focus:border-[#b4bffa]"
                   />
                 </div>
 
@@ -760,7 +753,7 @@ export default function Links() {
                         title={p.name}
                         className={`flex flex-col items-center gap-1 rounded-xl border p-2 text-[10px] font-semibold transition cursor-pointer ${
                           selected
-                            ? "border-[#a48df4] bg-[#a48df4]/20 text-white shadow-sm"
+                            ? "border-[#b4bffa] bg-[#535978]/20 text-white shadow-sm"
                             : "border-white/5 bg-[#09090c] text-zinc-400 hover:border-white/20 hover:text-zinc-200"
                         }`}
                       >
@@ -787,7 +780,7 @@ export default function Links() {
                     value={activeModal.link.label || ""}
                     onChange={(e) => patchLink({ label: e.target.value })}
                     placeholder="e.g. Discord"
-                    className="w-full rounded-xl border border-white/10 bg-[#09090c] px-3.5 py-2 text-xs font-medium text-white placeholder-zinc-500 outline-none transition focus:border-[#a48df4]"
+                    className="w-full rounded-xl border border-white/10 bg-[#09090c] px-3.5 py-2 text-xs font-medium text-white placeholder-zinc-500 outline-none transition focus:border-[#b4bffa]"
                   />
                 </div>
 
@@ -799,7 +792,7 @@ export default function Links() {
                     value={activeModal.link.url || ""}
                     onChange={(e) => patchLink({ url: e.target.value })}
                     placeholder={placeholderFor(activeModal.link.platform)}
-                    className="w-full rounded-xl border border-white/10 bg-[#09090c] px-3.5 py-2 text-xs font-medium text-white placeholder-zinc-500 outline-none transition focus:border-[#a48df4]"
+                    className="w-full rounded-xl border border-white/10 bg-[#09090c] px-3.5 py-2 text-xs font-medium text-white placeholder-zinc-500 outline-none transition focus:border-[#b4bffa]"
                   />
                 </div>
               </div>
@@ -855,7 +848,7 @@ export default function Links() {
                     )}
                   </span>
                   <div className="flex items-center gap-2">
-                    <label className="flex cursor-pointer items-center gap-1.5 rounded-xl border border-[#a48df4]/40 bg-[#a48df4]/15 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#a48df4]/25">
+                    <label className="flex cursor-pointer items-center gap-1.5 rounded-xl border border-[#b4bffa]/40 bg-[#535978]/15 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#535978]/25">
                       {iconUploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
                       {activeModal.link.icon_url ? "Replace Icon" : "Upload Custom Icon"}
                       <input
@@ -888,7 +881,7 @@ export default function Links() {
                     value={activeModal.link.desc || ""}
                     onChange={(e) => patchLink({ desc: e.target.value })}
                     placeholder="Brief subtitle or note"
-                    className="w-full rounded-xl border border-white/10 bg-[#050505] px-3.5 py-2 text-xs font-medium text-white placeholder-zinc-500 outline-none transition focus:border-[#a48df4]"
+                    className="w-full rounded-xl border border-white/10 bg-[#050505] px-3.5 py-2 text-xs font-medium text-white placeholder-zinc-500 outline-none transition focus:border-[#b4bffa]"
                   />
                 </div>
 
@@ -900,7 +893,7 @@ export default function Links() {
                     value={activeModal.link.tooltip || ""}
                     onChange={(e) => patchLink({ tooltip: e.target.value })}
                     placeholder="Text shown when hovered"
-                    className="w-full rounded-xl border border-white/10 bg-[#050505] px-3.5 py-2 text-xs font-medium text-white placeholder-zinc-500 outline-none transition focus:border-[#a48df4]"
+                    className="w-full rounded-xl border border-white/10 bg-[#050505] px-3.5 py-2 text-xs font-medium text-white placeholder-zinc-500 outline-none transition focus:border-[#b4bffa]"
                   />
                 </div>
 
@@ -940,7 +933,7 @@ export default function Links() {
               <button
                 data-testid="link-modal-apply"
                 onClick={saveModalLink}
-                className="rounded-xl bg-[#a48df4] hover:bg-[#8c71e8] px-5 py-2 text-xs font-bold text-white shadow-lg transition cursor-pointer active:scale-95"
+                className="rounded-xl bg-[#535978] hover:bg-[#424669] px-5 py-2 text-xs font-bold text-white shadow-lg transition cursor-pointer active:scale-95"
               >
                 Apply Link
               </button>
@@ -1031,7 +1024,7 @@ export default function Links() {
                 <button
                   data-testid="link-global-modal-done"
                   onClick={() => setShowGlobalModal(false)}
-                  className="rounded-xl bg-[#a48df4] hover:bg-[#8c71e8] px-4 py-1.5 text-xs font-bold text-white shadow-md transition cursor-pointer"
+                  className="rounded-xl bg-[#535978] hover:bg-[#424669] px-4 py-1.5 text-xs font-bold text-white shadow-md transition cursor-pointer"
                 >
                   Done
                 </button>

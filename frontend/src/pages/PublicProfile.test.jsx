@@ -34,7 +34,7 @@ const payload = {
   profile: {
     bio: "hello world",
     audio_url: "/api/uploads/song.mp3",
-    theme_color: "#A48DF4",
+    theme_color: "#b4bffa",
     links: [],
     widgets: [],
     tracks: [],

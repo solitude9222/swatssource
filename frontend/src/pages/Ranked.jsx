@@ -23,7 +23,7 @@ const FALLBACK_TIERS = [
   { id: "diamond", name: "Diamond", minViews: 9500, color: "#a855f7", badge: "rank_diamond", blurb: "One of the big pages", stages: [{ stage: 1, name: "Diamond I", minViews: 9500 }, { stage: 2, name: "Diamond II", minViews: 14000 }, { stage: 3, name: "Diamond III", minViews: 20000 }] },
   { id: "master", name: "Master", minViews: 30000, color: "#ec4899", badge: "rank_master", blurb: "Elite creator status", stages: [{ stage: 1, name: "Master I", minViews: 30000 }, { stage: 2, name: "Master II", minViews: 45000 }] },
   { id: "grandmaster", name: "Grandmaster", minViews: 65000, color: "#f43f5e", badge: "rank_grandmaster", blurb: "Apex platform tier", stages: [{ stage: 1, name: "Grandmaster", minViews: 65000 }] },
-  { id: "legend", name: "Legend", minViews: 100000, color: "#A48DF4", badge: "rank_legend", blurb: "The top of the site", stages: [{ stage: 1, name: "Legend", minViews: 100000 }] },
+  { id: "legend", name: "Legend", minViews: 100000, color: "#b4bffa", badge: "rank_legend", blurb: "The top of the site", stages: [{ stage: 1, name: "Legend", minViews: 100000 }] },
 ];
 
 const seat = (offset) => {
@@ -37,7 +37,7 @@ const SpotlightCard = ({ user: u, offset, onFocus, onOpen }) => {
   const t = seat(offset);
   const center = offset === 0;
   const stageName = u.stage?.stageName || u.rank_tier?.name || "";
-  const stageColor = u.stage?.color || u.rank_tier?.color || "#A48DF4";
+  const stageColor = u.stage?.color || u.rank_tier?.color || "#b4bffa";
 
   return (
     <motion.div
@@ -55,7 +55,7 @@ const SpotlightCard = ({ user: u, offset, onFocus, onOpen }) => {
       <div
         className={`relative h-[310px] overflow-hidden rounded-3xl border bg-[#0b0b0f] transition-shadow duration-300 sm:h-[360px] ${
           center
-            ? "border-brand-400/50 shadow-[0_30px_80px_-30px_rgba(164,141,244,0.55)]"
+            ? "border-brand-400/50 shadow-[0_30px_80px_-30px_rgba(180,191,250,0.55)]"
             : "border-white/10 shadow-[0_18px_44px_-24px_rgba(0,0,0,0.95)]"
         }`}
       >
@@ -184,7 +184,7 @@ const Spotlight = ({ items, onOpen }) => {
 
 const Row = ({ u, onOpen }) => {
   const stageName = u.stage?.stageName || u.rank_tier?.name || "";
-  const stageColor = u.stage?.color || u.rank_tier?.color || "#A48DF4";
+  const stageColor = u.stage?.color || u.rank_tier?.color || "#b4bffa";
 
   return (
     <motion.button

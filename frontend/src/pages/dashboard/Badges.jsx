@@ -55,10 +55,10 @@ export default function Badges() {
 
   const [paintSettings, setPaintSettings] = useState({
     glow: user?.profile?.badge_glow !== false,
-    glow_color: user?.profile?.badge_glow_color || user?.profile?.accent_color || "#A48DF4",
+    glow_color: user?.profile?.badge_glow_color || user?.profile?.accent_color || "#b4bffa",
     glow_intensity: user?.profile?.badge_glow_intensity ?? 60,
     overlay: user?.profile?.badge_overlay === true,
-    overlay_color: user?.profile?.badge_overlay_color || user?.profile?.accent_color || "#A48DF4",
+    overlay_color: user?.profile?.badge_overlay_color || user?.profile?.accent_color || "#b4bffa",
     overlay_strength: user?.profile?.badge_overlay_strength ?? 60,
     badge_placement: user?.profile?.badge_placement || "next_to_name",
   });
@@ -295,7 +295,7 @@ export default function Badges() {
           <button
             type="button"
             onClick={() => (isPremium ? setShowCreateModal(true) : setPremiumFeature("Custom badges"))}
-            className="px-4 py-2 rounded-xl bg-[#a48df4] hover:brightness-110 text-white text-xs font-bold flex items-center gap-2 transition shadow-md cursor-pointer"
+            className="px-4 py-2 rounded-xl bg-[#535978] hover:brightness-110 text-white text-xs font-bold flex items-center gap-2 transition shadow-md cursor-pointer"
           >
             {!isPremium && <Lock className="w-3 h-3 text-amber-300" />}
             <Plus className="w-3.5 h-3.5" />
@@ -330,7 +330,7 @@ export default function Badges() {
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-sm font-bold text-white uppercase tracking-wider">Unlocked Badges</h2>
-              <span className="px-2 py-0.5 rounded-full bg-[#a48df4]/20 border border-[#a48df4]/35 text-[10px] font-bold text-white font-mono">
+              <span className="px-2 py-0.5 rounded-full bg-[#535978]/20 border border-[#b4bffa]/35 text-[10px] font-bold text-white font-mono">
                 {unlockedCount} / {totalCount}
               </span>
             </div>
@@ -386,7 +386,7 @@ export default function Badges() {
                     onDrop={() => { reorderEquipped(dragIndex, i); setDragIndex(null); }}
                     onDragEnd={() => setDragIndex(null)}
                     className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold text-zinc-200 transition ${
-                      dragIndex === i ? "border-[#a48df4] bg-[#a48df4]/20" : "border-white/10 bg-[#111111] hover:border-white/20"
+                      dragIndex === i ? "border-[#b4bffa] bg-[#535978]/20" : "border-white/10 bg-[#111111] hover:border-white/20"
                     }`}
                   >
                     <GripVertical className="w-3.5 h-3.5 text-zinc-500 cursor-grab" />
@@ -450,7 +450,7 @@ export default function Badges() {
                     onClick={() => handlePlacementChange(id)}
                     className={`px-3 py-1.5 rounded-xl text-[11px] font-semibold transition border cursor-pointer ${
                       active
-                        ? "bg-[#a48df4]/25 text-white border-[#a48df4]/60 shadow-sm"
+                        ? "bg-[#535978]/25 text-white border-[#b4bffa]/60 shadow-sm"
                         : "bg-[#111111] text-zinc-400 border-white/10 hover:bg-white/[0.05] hover:text-white"
                     }`}
                   >
@@ -475,7 +475,7 @@ export default function Badges() {
               onChange={(e) => setQuery(e.target.value)}
               data-testid="badges-search"
               placeholder="Search badges…"
-              className="w-full rounded-xl border border-white/10 bg-[#09090b] py-2 pl-10 pr-3 text-xs font-medium text-white placeholder-zinc-500 outline-none transition focus:border-[#a48df4]/60"
+              className="w-full rounded-xl border border-white/10 bg-[#09090b] py-2 pl-10 pr-3 text-xs font-medium text-white placeholder-zinc-500 outline-none transition focus:border-[#b4bffa]/60"
             />
           </div>
 
@@ -488,7 +488,7 @@ export default function Badges() {
                 data-testid={`badges-filter-${id}`}
                 aria-pressed={filterBy === id}
                 className={`rounded-lg px-3 py-1.5 text-[11px] font-semibold transition cursor-pointer ${
-                  filterBy === id ? "bg-[#a48df4]/25 text-white border border-[#a48df4]/50" : "text-zinc-400 hover:text-white"
+                  filterBy === id ? "bg-[#535978]/25 text-white border border-[#b4bffa]/50" : "text-zinc-400 hover:text-white"
                 }`}
               >
                 {label}
@@ -532,7 +532,7 @@ export default function Badges() {
                   key={b.id}
                   className={`group relative p-3.5 rounded-2xl border transition duration-200 flex items-center justify-between gap-3 ${
                     isOwned
-                      ? "border-white/[0.10] bg-[#111111] hover:border-[#a48df4]/50 shadow-md"
+                      ? "border-white/[0.10] bg-[#111111] hover:border-[#b4bffa]/50 shadow-md"
                       : "border-white/[0.05] bg-[#09090b]/60 opacity-80 hover:opacity-100 hover:border-white/10"
                   }`}
                 >
@@ -540,7 +540,7 @@ export default function Badges() {
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <div className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border transition-all duration-200 ${
                       isOwned
-                        ? "border-[#a48df4]/30 bg-[#a48df4]/15 shadow-sm"
+                        ? "border-[#b4bffa]/30 bg-[#535978]/15 shadow-sm"
                         : "border-white/10 bg-white/[0.02]"
                     }`}>
                       <BadgeChip
@@ -670,7 +670,7 @@ export default function Badges() {
           <div className="bg-[#111111] rounded-2xl p-6 sm:p-7 max-w-lg w-full relative border border-white/15 shadow-2xl animate-in zoom-in-95 duration-200 text-left">
             <div className="flex items-center justify-between pb-4 border-b border-white/10">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-[#a48df4]/15 border border-[#a48df4]/30 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-xl bg-[#535978]/15 border border-[#b4bffa]/30 flex items-center justify-center">
                   <Paintbrush className="w-4 h-4 text-white" />
                 </div>
                 <div>
@@ -754,7 +754,7 @@ export default function Badges() {
                 </button>
                 <button
                   onClick={savePaintSettings}
-                  className="px-5 py-2 rounded-xl bg-[#a48df4] hover:brightness-110 text-white text-xs font-bold transition shadow-md cursor-pointer"
+                  className="px-5 py-2 rounded-xl bg-[#535978] hover:brightness-110 text-white text-xs font-bold transition shadow-md cursor-pointer"
                 >
                   Save Badge Styling
                 </button>
@@ -773,7 +773,7 @@ export default function Badges() {
           <div className="bg-[#111111] rounded-2xl p-6 sm:p-7 max-w-lg w-full relative border border-white/15 shadow-2xl animate-in zoom-in-95 duration-200 text-left">
             <div className="flex items-center justify-between pb-4 border-b border-white/10">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-[#a48df4]/15 border border-[#a48df4]/30 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-xl bg-[#535978]/15 border border-[#b4bffa]/30 flex items-center justify-center">
                   <Plus className="w-4 h-4 text-white" />
                 </div>
                 <div>
@@ -795,7 +795,7 @@ export default function Badges() {
                   placeholder="e.g. VIP Creator, Top Supporter"
                   value={customBadge.name}
                   onChange={(e) => setCustomBadge({ ...customBadge, name: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#0d0d0d] border border-white/10 text-xs text-white placeholder-zinc-500 outline-none focus:border-[#a48df4]"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#0d0d0d] border border-white/10 text-xs text-white placeholder-zinc-500 outline-none focus:border-[#b4bffa]"
                 />
               </div>
 
@@ -806,7 +806,7 @@ export default function Badges() {
                   placeholder="Short description of this badge achievement…"
                   value={customBadge.desc}
                   onChange={(e) => setCustomBadge({ ...customBadge, desc: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#0d0d0d] border border-white/10 text-xs text-white placeholder-zinc-500 outline-none focus:border-[#a48df4] resize-none"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#0d0d0d] border border-white/10 text-xs text-white placeholder-zinc-500 outline-none focus:border-[#b4bffa] resize-none"
                 />
               </div>
 
@@ -849,7 +849,7 @@ export default function Badges() {
                 <button
                   type="submit"
                   disabled={iconUploading}
-                  className="px-5 py-2 rounded-xl bg-[#a48df4] hover:brightness-110 text-white text-xs font-bold transition shadow-md cursor-pointer disabled:opacity-50"
+                  className="px-5 py-2 rounded-xl bg-[#535978] hover:brightness-110 text-white text-xs font-bold transition shadow-md cursor-pointer disabled:opacity-50"
                 >
                   Create Badge
                 </button>

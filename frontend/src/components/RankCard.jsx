@@ -36,7 +36,7 @@ const Bar = ({ percent, color }) => (
   >
     <div
       className="h-full rounded-full transition-[width] duration-700"
-      style={{ width: `${Math.max(0, Math.min(100, percent))}%`, background: `linear-gradient(90deg, ${color}, #A48DF4)` }}
+      style={{ width: `${Math.max(0, Math.min(100, percent))}%`, background: `linear-gradient(90deg, ${color}, #b4bffa)` }}
     />
   </div>
 );
@@ -293,7 +293,7 @@ export default function RankCard() {
                 title={badgeMeta(id)?.label || id}
                 size="lg"
                 glow
-                glowColor={badgeMeta(id)?.color || "#A48DF4"}
+                glowColor={badgeMeta(id)?.color || "#b4bffa"}
                 data-seasonal={eventOfBadge(id) ? "true" : undefined}
               />
             ))}

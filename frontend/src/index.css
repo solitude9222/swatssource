@@ -327,14 +327,14 @@ body {
    grey/black one used behind neutral panels. */
 .sw-gradient-rose,
 .sw-gradient-purple {
-    background-image: linear-gradient(135deg, #D3C4FF 0%, #A48DF4 52%, #5938B8 100%);
+    background-image: linear-gradient(135deg, #D3C4FF 0%, #b4bffa 52%, #5938B8 100%);
 }
 .sw-gradient-silver {
     background-image: linear-gradient(135deg, #8D8D9E 0%, #32323E 52%, #0A0A0D 100%);
 }
 
 @layer utilities {
-    /* A light pink fill cannot carry white text (#A48DF4 on #fff is about 1.9:1),
+    /* A light pink fill cannot carry white text (#b4bffa on #fff is about 1.9:1),
        so every solid brand surface is switched to near-black ink here instead of
        editing the ~100 buttons that were written as `text-white`.
 
@@ -438,8 +438,8 @@ select:focus-visible,
 .animate-float { animation: sw-float 6s ease-in-out infinite; }
 
 @keyframes sw-pulse-glow {
-    0%,100% { box-shadow: 0 0 0 0 rgba(164, 141, 244, 0.25); }
-    50% { box-shadow: 0 0 36px 4px rgba(164, 141, 244, 0.35); }
+    0%,100% { box-shadow: 0 0 0 0 rgba(180, 191, 250, 0.25); }
+    50% { box-shadow: 0 0 36px 4px rgba(180, 191, 250, 0.35); }
 }
 .animate-pulse-glow { animation: sw-pulse-glow 3s ease-in-out infinite; }
 
@@ -449,7 +449,7 @@ select:focus-visible,
 @keyframes sw-fade-up { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
 .fade-up { animation: sw-fade-up 0.7s cubic-bezier(0.16,1,0.3,1) both; }
 
-.glow-ring { box-shadow: 0 0 0 1px rgba(164,141,244,0.4), 0 0 28px rgba(164,141,244,0.3); }
+.glow-ring { box-shadow: 0 0 0 1px rgba(180,191,250,0.4), 0 0 28px rgba(180,191,250,0.3); }
 
 @keyframes sw-eq { 0%,100% { height: 20%; } 50% { height: 100%; } }
 .eq-bar { animation: sw-eq 0.9s ease-in-out infinite; }
@@ -633,8 +633,8 @@ body.dash-theme .dash-card-lift {
 }
 body.dash-theme .dash-card-lift:hover {
     transform: translate3d(0, -2px, 0);
-    border-color: rgba(164, 141, 244, 0.35);
-    box-shadow: 0 16px 40px -24px rgba(164, 141, 244, 0.45);
+    border-color: rgba(180, 191, 250, 0.35);
+    box-shadow: 0 16px 40px -24px rgba(180, 191, 250, 0.45);
 }
 
 /* Buttons: quick press feedback and a consistent transition on every control. */
@@ -675,8 +675,8 @@ body.dash-theme .dash-segment-thumb {
     bottom: 4px;
     left: 0;
     border-radius: 0.5rem;
-    background: #a48df4;
-    box-shadow: 0 6px 18px -8px rgba(164, 141, 244, 0.8);
+    background: #b4bffa;
+    box-shadow: 0 6px 18px -8px rgba(180, 191, 250, 0.8);
     transition: transform 360ms var(--dash-ease), width 360ms var(--dash-ease);
 }
 
@@ -692,7 +692,7 @@ body.dash-theme .dash-sort-icon {
     transition: transform var(--dash-dur) var(--dash-ease), opacity var(--dash-dur-fast) var(--dash-ease);
     opacity: 0.35;
 }
-body.dash-theme .dash-sort-th[aria-sort] .dash-sort-icon { opacity: 1; color: #a48df4; }
+body.dash-theme .dash-sort-th[aria-sort] .dash-sort-icon { opacity: 1; color: #b4bffa; }
 body.dash-theme .dash-sort-th[aria-sort="descending"] .dash-sort-icon { transform: rotate(180deg); }
 
 /* Progress bars fill from the left on mount rather than appearing full. */

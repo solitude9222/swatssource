@@ -14,7 +14,7 @@ export function StatCard({ to, testId, label, icon: Icon, value, footer }) {
     <>
       <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
         <span>{label}</span>
-        {Icon && <Icon className="h-4 w-4 text-[#a48df4] transition-transform duration-300 group-hover:scale-110" />}
+        {Icon && <Icon className="h-4 w-4 text-[#b4bffa] transition-transform duration-300 group-hover:scale-110" />}
       </div>
       <div className="mt-3 font-display text-2xl font-bold text-zinc-50 tabular-nums">{value}</div>
       {footer && <div className="mt-1 text-[11px] text-zinc-500">{footer}</div>}
@@ -53,7 +53,7 @@ export function SegmentedTabs({ options, value, onChange, testid, className = ""
             data-testid={opt.testid}
             onClick={() => onChange(opt.id)}
             className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors duration-200 ${
-              active ? "bg-[#a48df4]/20 text-white" : "text-zinc-400 hover:text-zinc-200"
+              active ? "bg-[#535978]/20 text-white" : "text-zinc-400 hover:text-zinc-200"
             }`}
           >
             {opt.label}

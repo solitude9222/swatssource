@@ -84,7 +84,7 @@ const withA = (hex, a = 100) => {
 // means: the modern toggle still overrides the presets while it is on, and a
 // legacy numeric flag falls through to the preset the profile wears.
 function cardStyles(p) {
-  const accent = p.accent_color || "#A48DF4";
+  const accent = p.accent_color || "#b4bffa";
   const base = { card: {}, pill: {}, view: {} };
   const style = p.card_style || "classic";
   const borderWidth = p.card_border_width !== undefined 
@@ -164,7 +164,7 @@ function cardStyles(p) {
 }
 
 // Helper to construct custom audio player card styling from profile settings
-const buildAudioCardStyle = (p = {}, accent = "#A48DF4") => {
+const buildAudioCardStyle = (p = {}, accent = "#b4bffa") => {
   const bgColor = p.audio_bg_color || "#ffffff";
   const bgOpacity = Number.isFinite(Number(p.audio_bg_opacity)) ? Number(p.audio_bg_opacity) : 0.00;
   const bgBlur = Number.isFinite(Number(p.audio_bg_blur)) ? Number(p.audio_bg_blur) : 11;
@@ -1719,8 +1719,8 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
   // never read by any renderer, so a colour background "never showed" — the
   // page stayed on the default black. A media background still paints over it.
   const pageBg = p.background_color || "#050505";
-  const accent = p.accent_color || "#A48DF4";
-  const theme = p.theme_color || "#A48DF4";
+  const accent = p.accent_color || "#b4bffa";
+  const theme = p.theme_color || "#b4bffa";
   const links = p.links || [];
   const widgets = Array.isArray(p.widgets)
     ? p.widgets

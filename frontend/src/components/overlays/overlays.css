@@ -14,7 +14,7 @@
   --ov-surface-2: #14141B;   /* raised row / input */
   --ov-border: rgba(255, 255, 255, 0.08);
   --ov-border-strong: rgba(255, 255, 255, 0.16);
-  --ov-accent: #A48DF4;      /* Primary purple */
+  --ov-accent: #b4bffa;      /* Primary purple */
   --ov-text: #f4f4f7;
   --ov-text-2: #a1a1b0;
 }
@@ -193,7 +193,7 @@
   border: 1px solid var(--ov-border);
   border-radius: 0.9rem;
   background:
-    radial-gradient(120% 120% at 0% 0%, rgba(164, 141, 244, 0.12), transparent 60%),
+    radial-gradient(120% 120% at 0% 0%, rgba(180, 191, 250, 0.12), transparent 60%),
     var(--ov-surface-2);
   padding: 0.9rem 1rem;
 }
@@ -240,8 +240,8 @@
 }
 .ov-input::placeholder { color: #71717a; }
 .ov-input:focus {
-  border-color: rgba(164, 141, 244, 0.5);
-  box-shadow: 0 0 0 3px rgba(164, 141, 244, 0.16);
+  border-color: rgba(180, 191, 250, 0.5);
+  box-shadow: 0 0 0 3px rgba(180, 191, 250, 0.16);
 }
 
 .ov-section { display: flex; flex-direction: column; gap: 0.6rem; }
@@ -395,8 +395,8 @@
 .ov-tile:hover { border-color: var(--ov-border-strong); background: rgba(255, 255, 255, 0.08); }
 
 .ov-tile-active {
-  border-color: rgba(164, 141, 244, 0.7);
-  background: rgba(164, 141, 244, 0.14);
+  border-color: rgba(180, 191, 250, 0.7);
+  background: rgba(180, 191, 250, 0.14);
 }
 
 .ov-tile-locked { border-color: rgba(255, 255, 255, 0.05); background: rgba(0, 0, 0, 0.4); }
@@ -452,11 +452,11 @@
 
 .ov-btn-primary {
   border-color: transparent;
-  background-image: linear-gradient(135deg, #D3C4FF 0%, #A48DF4 50%, #7354D4 100%);
+  background-image: linear-gradient(135deg, #D3C4FF 0%, #b4bffa 50%, #7354D4 100%);
   color: #0A0A0D;
-  box-shadow: 0 6px 22px -10px rgba(164, 141, 244, 0.8);
+  box-shadow: 0 6px 22px -10px rgba(180, 191, 250, 0.8);
 }
-.ov-btn-primary:hover { filter: brightness(1.1); background-image: linear-gradient(135deg, #D3C4FF 0%, #A48DF4 50%, #7354D4 100%); }
+.ov-btn-primary:hover { filter: brightness(1.1); background-image: linear-gradient(135deg, #D3C4FF 0%, #b4bffa 50%, #7354D4 100%); }
 
 @keyframes ov-fade {
   from { opacity: 0; }

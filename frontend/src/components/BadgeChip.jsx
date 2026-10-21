@@ -81,7 +81,7 @@ export const badgeOverlay = (overlay, overlayColor, overlayStrength) => {
 export function BadgeChip({
   id,
   meta,
-  accent = "#A48DF4",
+  accent = "#b4bffa",
   glowColor = "",
   glowIntensity = 60,
   glow = true,

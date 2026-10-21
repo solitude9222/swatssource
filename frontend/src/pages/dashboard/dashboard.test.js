@@ -53,7 +53,7 @@ const FREE_USER = {
   badges: ["verified", "og"],
   equipped_badges: ["og"],
   discord: { linked: false },
-  profile: { bio: "hello world", links: [], widgets: [], tracks: [], accent_color: "#A48DF4" },
+  profile: { bio: "hello world", links: [], widgets: [], tracks: [], accent_color: "#b4bffa" },
 };
 
 const PREMIUM_USER = { ...FREE_USER, tier: "premium" };
@@ -1203,7 +1203,7 @@ describe("badges page", () => {
     expect(put.url).toBe("/me/profile");
     expect(put.body.badge_glow).toBe(false);
     expect(put.body.badge_overlay).toBe(true);
-    expect(put.body.badge_overlay_color).toBe("#A48DF4");
+    expect(put.body.badge_overlay_color).toBe("#b4bffa");
     expect(put.body.badge_overlay_strength).toBe(60);
     // A profile that still carries an old plate, wash, overlap or per-badge
     // override is cleaned out by the same save.

@@ -33,7 +33,7 @@ const WIDGETS = [
 // on machines with reduced motion, where the pointer response is skipped).
 const BASE_TILT = { x: 12, y: 8 };
 
-const Tilt = ({ children, index, accent = "#A48DF4" }) => {
+const Tilt = ({ children, index, accent = "#b4bffa" }) => {
   const tiltRef = useRef(null);
   const glareRef = useRef(null);
   const reduce = useReducedMotion();
@@ -111,7 +111,7 @@ export const WidgetShowcase = () => (
       aria-hidden="true"
       className="pointer-events-none absolute inset-0 opacity-30"
       style={{
-        background: "radial-gradient(circle at 50% 20%, rgba(164, 141, 244,0.12), transparent 60%)",
+        background: "radial-gradient(circle at 50% 20%, rgba(180, 191, 250,0.12), transparent 60%)",
       }}
     />
 

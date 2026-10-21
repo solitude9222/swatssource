@@ -50,7 +50,7 @@ function useOnScreen(ref) {
   return onScreen;
 }
 
-export function FxTile({ variant = "text", id = "", accent = "#A48DF4", avatarUrl = "" }) {
+export function FxTile({ variant = "text", id = "", accent = "#b4bffa", avatarUrl = "" }) {
   const ref = useRef(null);
   const onScreen = useOnScreen(ref);
   // `None`, or a tile scrolled out of view, draws the sample with nothing on it.

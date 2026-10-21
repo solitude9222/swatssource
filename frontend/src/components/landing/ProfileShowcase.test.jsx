@@ -49,7 +49,7 @@ const mockProfileFor = (i) => ({
   profile: {
     bio: `Page number ${i + 1}`,
     avatar_url: `/logo.png`,
-    accent_color: "#A48DF4",
+    accent_color: "#b4bffa",
     background_video: "https://example.com/bg.mp4",
     bg_effect: "rain",
     cursor_effect: "sparkle",

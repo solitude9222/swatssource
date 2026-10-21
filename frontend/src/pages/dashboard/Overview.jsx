@@ -10,13 +10,13 @@ import {
   Zap, RefreshCw, Ticket, BarChart3, Calendar,
 } from "lucide-react";
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const maskEmail = (email) => {
-  if (!email) return "—";
+  if (!email) return "â€”";
   const [local, domain] = String(email).split("@");
   if (!domain) return email;
-  const masked = local[0] + "•••" + (local.length > 4 ? local.slice(-1) : "");
+  const masked = local[0] + "â€¢â€¢â€¢" + (local.length > 4 ? local.slice(-1) : "");
   return `${masked}@${domain}`;
 };
 
@@ -35,9 +35,9 @@ const fmt = (n) => {
 };
 
 const joinedLabel = (dateStr) => {
-  if (!dateStr) return "—";
+  if (!dateStr) return "â€”";
   const d = new Date(dateStr);
-  if (Number.isNaN(d.getTime())) return "—";
+  if (Number.isNaN(d.getTime())) return "â€”";
   return d.toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
 };
 
@@ -52,7 +52,7 @@ function copy(text, label) {
   } catch { /* ignore */ }
 }
 
-// ── Sub-components ────────────────────────────────────────────────────────────
+// â”€â”€ Sub-components â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function StatTile({ label, value, icon: Icon, trend, to, testId }) {
   const inner = (
@@ -86,17 +86,17 @@ function Suggestion({ title, desc, done, to }) {
       className={`group flex items-center gap-3 rounded-xl border p-3 transition-all duration-200 ${
         done
           ? "border-emerald-500/20 bg-emerald-500/[0.05] opacity-60"
-          : "border-white/[0.07] bg-white/[0.02] hover:border-[#3b5bf0]/40 hover:bg-[#3b5bf0]/[0.06]"
+          : "border-white/[0.07] bg-white/[0.02] hover:border-[#b4bffa]/40 hover:bg-[#b4bffa]/[0.06]"
       }`}
     >
       <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border ${
         done
           ? "border-emerald-500/40 bg-emerald-500/20"
-          : "border-white/[0.07] bg-white/[0.03] group-hover:border-[#3b5bf0]/40"
+          : "border-white/[0.07] bg-white/[0.03] group-hover:border-[#b4bffa]/40"
       }`}>
         {done
           ? <Check className="h-3.5 w-3.5 text-emerald-400" />
-          : <ChevronRight className="h-3.5 w-3.5 text-zinc-500 group-hover:text-[#3b5bf0]" />}
+          : <ChevronRight className="h-3.5 w-3.5 text-zinc-500 group-hover:text-[#b4bffa]" />}
       </div>
       <div className="min-w-0">
         <div className="text-xs font-semibold text-white truncate">{title}</div>
@@ -132,7 +132,7 @@ function QuickAction({ icon: Icon, label, desc, to, onClick, accent }) {
     <>
       <div className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors ${
         accent
-          ? "bg-[#3b5bf0]/15 text-[#3b5bf0] group-hover:bg-[#3b5bf0]/25"
+          ? "bg-[#b4bffa]/15 text-[#b4bffa] group-hover:bg-[#b4bffa]/25"
           : "bg-white/[0.04] text-zinc-400 group-hover:text-zinc-200"
       }`}>
         <Icon className="h-4 w-4" />
@@ -147,7 +147,7 @@ function QuickAction({ icon: Icon, label, desc, to, onClick, accent }) {
   return <button type="button" onClick={onClick} className={cls}>{inner}</button>;
 }
 
-// ── Main ──────────────────────────────────────────────────────────────────────
+// â”€â”€ Main â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const RANGES = [
   { id: "7d",  label: "7d" },
@@ -198,7 +198,7 @@ export default function Overview() {
       if (data.user) setUser(data.user);
       toast.success("Discord synced");
     } catch {
-      toast.error("Sync failed — try reconnecting in Settings");
+      toast.error("Sync failed â€” try reconnecting in Settings");
     } finally {
       setSyncing(false);
     }
@@ -214,7 +214,7 @@ export default function Overview() {
   const changePct   = analytics?.change_pct ?? 0;
   const profileUrl  = `${window.location.origin}/${user.username}`;
 
-  // Completion suggestions — ranked by importance, capped at 4 pending ones shown
+  // Completion suggestions â€” ranked by importance, capped at 4 pending ones shown
   const suggestions = [
     { id: "avatar",     title: "Upload an avatar",       desc: "First thing visitors see",           done: !!p.avatar_url,                                            to: "/!/dashboard/editor?tab=about"      },
     { id: "bio",        title: "Write a bio",            desc: "Tell people about yourself",          done: !!p.bio,                                                   to: "/!/dashboard/editor?tab=about"      },
@@ -232,10 +232,10 @@ export default function Overview() {
   return (
     <div className="space-y-5 pb-20" data-testid="overview-page">
 
-      {/* ── Greeting header ─────────────────────────────────────────────── */}
+      {/* â”€â”€ Greeting header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <section className="relative overflow-hidden rounded-[20px] border border-white/[0.07] bg-[#111113] p-5">
         {/* ambient glow */}
-        <div className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-[#3b5bf0]/[0.08] blur-[70px]" />
+        <div className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-[#b4bffa]/[0.08] blur-[70px]" />
         <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           {/* Identity */}
           <div className="flex items-center gap-4">
@@ -267,7 +267,7 @@ export default function Overview() {
               </div>
               <div className="mt-0.5 flex items-center gap-2 text-xs text-zinc-500">
                 <span data-testid="stat-username" className="font-mono2">@{user.username}</span>
-                <span>·</span>
+                <span>Â·</span>
                 <span className="inline-flex items-center gap-1 text-emerald-400">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
                   {analytics?.alias_status || "Active"}
@@ -288,7 +288,7 @@ export default function Overview() {
               to={`/${user.username}`}
               target="_blank"
               data-testid="view-public-btn"
-              className="flex items-center gap-1.5 rounded-xl bg-[#3b5bf0] px-3 py-2 text-xs font-bold text-white shadow-md shadow-[#3b5bf0]/20 transition hover:bg-[#2c46d4]"
+              className="flex items-center gap-1.5 rounded-xl bg-[#b4bffa] px-3 py-2 text-xs font-bold text-white shadow-md shadow-[#b4bffa]/20 transition hover:bg-[#424669]"
             >
               <Eye className="h-3.5 w-3.5" /> View Profile
             </Link>
@@ -296,19 +296,19 @@ export default function Overview() {
         </div>
       </section>
 
-      {/* ── 4 Stat tiles ────────────────────────────────────────────────── */}
+      {/* â”€â”€ 4 Stat tiles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <StatTile
           testId="stat-views"
           label="Profile views"
-          value={loadingAnalytics ? "…" : fmt(views)}
+          value={loadingAnalytics ? "â€¦" : fmt(views)}
           icon={Eye}
           trend={changePct || undefined}
           to="/!/dashboard/stats"
         />
         <StatTile
           label="Link clicks"
-          value={loadingAnalytics ? "…" : fmt(linkClicks)}
+          value={loadingAnalytics ? "â€¦" : fmt(linkClicks)}
           icon={Link2}
           to="/!/dashboard/stats"
         />
@@ -326,7 +326,7 @@ export default function Overview() {
         />
       </div>
 
-      {/* ── Completion + Account info ────────────────────────────────────── */}
+      {/* â”€â”€ Completion + Account info â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div className="grid gap-5 xl:grid-cols-[1fr_360px]">
 
         {/* Completion meter */}
@@ -337,18 +337,18 @@ export default function Overview() {
           <div className="flex items-start justify-between gap-3">
             <div>
               <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-[#3b5bf0]" />
+                <Sparkles className="h-4 w-4 text-[#b4bffa]" />
                 <h2 className="text-sm font-bold text-white">Profile setup</h2>
               </div>
               <p className="mt-0.5 text-[11px] text-zinc-500">
-                {completedCount}/{suggestions.length} complete — finish these to stand out
+                {completedCount}/{suggestions.length} complete â€” finish these to stand out
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-2">
               <span className="text-sm font-bold tabular-nums text-white">{completionPct}%</span>
               <div className="h-1.5 w-20 overflow-hidden rounded-full bg-white/[0.07]">
                 <div
-                  className="h-full rounded-full bg-[#3b5bf0] transition-[width] duration-700 ease-out"
+                  className="h-full rounded-full bg-[#b4bffa] transition-[width] duration-700 ease-out"
                   style={{ width: `${completionPct}%` }}
                 />
               </div>
@@ -360,7 +360,7 @@ export default function Overview() {
             {pending.length === 0 && (
               <div className="sm:col-span-2 flex items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] px-4 py-3">
                 <Check className="h-4 w-4 shrink-0 text-emerald-400" />
-                <p className="text-xs font-semibold text-emerald-300">Your profile is fully set up 🎉</p>
+                <p className="text-xs font-semibold text-emerald-300">Your profile is fully set up ðŸŽ‰</p>
               </div>
             )}
           </div>
@@ -371,13 +371,13 @@ export default function Overview() {
               type="text"
               value={redeemCode}
               onChange={(e) => setRedeemCode(e.target.value)}
-              placeholder="Redeem invite / premium code…"
-              className="flex-1 min-w-0 rounded-xl border border-white/[0.07] bg-white/[0.03] px-3 py-2 text-xs text-white placeholder-zinc-600 outline-none transition focus:border-[#3b5bf0]/50 focus:bg-[#3b5bf0]/[0.04]"
+              placeholder="Redeem invite / premium codeâ€¦"
+              className="flex-1 min-w-0 rounded-xl border border-white/[0.07] bg-white/[0.03] px-3 py-2 text-xs text-white placeholder-zinc-600 outline-none transition focus:border-[#b4bffa]/50 focus:bg-[#b4bffa]/[0.04]"
             />
             <button
               type="submit"
               disabled={redeeming || !redeemCode.trim()}
-              className="flex shrink-0 items-center gap-1.5 rounded-xl bg-[#3b5bf0] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#2c46d4] disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
+              className="flex shrink-0 items-center gap-1.5 rounded-xl bg-[#b4bffa] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#424669] disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
             >
               {redeeming ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Ticket className="h-3.5 w-3.5" />}
               Redeem
@@ -388,11 +388,11 @@ export default function Overview() {
         {/* Account info */}
         <section className="rounded-[20px] border border-white/[0.07] bg-[#111113] p-5">
           <div className="mb-4 flex items-center gap-2">
-            <User className="h-4 w-4 text-[#3b5bf0]" />
+            <User className="h-4 w-4 text-[#b4bffa]" />
             <h2 className="text-sm font-bold text-white">Account info</h2>
           </div>
           <div className="space-y-0">
-            <AccountRow label="User ID"  value={`#${user.uid_number || "—"}`}     copyText={String(user.uid_number || "")} />
+            <AccountRow label="User ID"  value={`#${user.uid_number || "â€”"}`}     copyText={String(user.uid_number || "")} />
             <AccountRow label="Username" value={`@${user.username}`}              copyText={user.username} />
             <AccountRow label="Email"    value={maskEmail(user.email)}            copyText={user.email} />
             <AccountRow label="Tier"     value={<span className="capitalize">{tier}</span>} />
@@ -417,10 +417,10 @@ export default function Overview() {
         </section>
       </div>
 
-      {/* ── Quick actions ────────────────────────────────────────────────── */}
+      {/* â”€â”€ Quick actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <section className="rounded-[20px] border border-white/[0.07] bg-[#111113] p-5 space-y-3">
         <div className="flex items-center gap-2">
-          <Zap className="h-4 w-4 text-[#3b5bf0]" />
+          <Zap className="h-4 w-4 text-[#b4bffa]" />
           <h2 className="text-sm font-bold text-white">Quick actions</h2>
         </div>
         <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
@@ -439,18 +439,18 @@ export default function Overview() {
         </div>
       </section>
 
-      {/* ── Announcements + Recent activity ─────────────────────────────── */}
+      {/* â”€â”€ Announcements + Recent activity â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div className="grid gap-5 xl:grid-cols-2">
 
         {/* Announcements */}
         <section className="rounded-[20px] border border-white/[0.07] bg-[#111113] p-5 space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <ArrowUpRight className="h-4 w-4 text-[#3b5bf0]" />
+              <ArrowUpRight className="h-4 w-4 text-[#b4bffa]" />
               <h2 className="text-sm font-bold text-white">What's new</h2>
             </div>
             <Link to="/!/devlogs" className="text-[11px] text-zinc-500 transition hover:text-zinc-300">
-              All devlogs →
+              All devlogs â†’
             </Link>
           </div>
           <div className="space-y-2">
@@ -460,7 +460,7 @@ export default function Overview() {
               { title: "Links page redesigned",   desc: "Quick add strip and full platform modal",         live: false },
             ].map((item) => (
               <div key={item.title} className="flex items-start gap-2.5 rounded-xl border border-white/[0.07] bg-white/[0.02] p-3">
-                <span className={`mt-1 h-1.5 w-1.5 shrink-0 rounded-full ${item.live ? "bg-[#3b5bf0]" : "bg-zinc-600"}`} />
+                <span className={`mt-1 h-1.5 w-1.5 shrink-0 rounded-full ${item.live ? "bg-[#b4bffa]" : "bg-zinc-600"}`} />
                 <div>
                   <p className="text-xs font-semibold text-white">{item.title}</p>
                   <p className="text-[11px] text-zinc-500 mt-0.5">{item.desc}</p>
@@ -470,11 +470,11 @@ export default function Overview() {
           </div>
         </section>
 
-        {/* Recent activity — last N days from analytics series */}
+        {/* Recent activity â€” last N days from analytics series */}
         <section className="rounded-[20px] border border-white/[0.07] bg-[#111113] p-5 space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-[#3b5bf0]" />
+              <Clock className="h-4 w-4 text-[#b4bffa]" />
               <h2 className="text-sm font-bold text-white">Recent activity</h2>
             </div>
             <div className="flex items-center gap-0.5">
@@ -485,7 +485,7 @@ export default function Overview() {
                   onClick={() => setRange(r.id)}
                   className={`cursor-pointer rounded-lg px-2.5 py-1 text-[11px] font-semibold transition ${
                     range === r.id
-                      ? "bg-[#3b5bf0]/15 text-[#3b5bf0]"
+                      ? "bg-[#b4bffa]/15 text-[#b4bffa]"
                       : "text-zinc-600 hover:text-zinc-300"
                   }`}
                 >
@@ -501,7 +501,7 @@ export default function Overview() {
             </div>
           ) : series.length === 0 ? (
             <div className="flex h-24 items-center justify-center text-xs text-zinc-600">
-              No activity yet — share your profile to start tracking views
+              No activity yet â€” share your profile to start tracking views
             </div>
           ) : (
             <div className="space-y-2">
@@ -517,7 +517,7 @@ export default function Overview() {
                   <div key={i} className="flex items-center gap-2.5">
                     <span className="w-10 shrink-0 text-[11px] text-zinc-600 font-mono2">{dateLabel}</span>
                     <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/[0.05]">
-                      <div className="h-full rounded-full bg-[#3b5bf0]/60 transition-[width] duration-500" style={{ width: `${pct}%` }} />
+                      <div className="h-full rounded-full bg-[#b4bffa]/60 transition-[width] duration-500" style={{ width: `${pct}%` }} />
                     </div>
                     <span className="w-7 shrink-0 text-right text-[11px] font-medium tabular-nums text-zinc-400">
                       {fmt(v)}

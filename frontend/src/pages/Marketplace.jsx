@@ -15,7 +15,7 @@ export default function Marketplace() {
         className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[40rem]"
         style={{
           background:
-            "radial-gradient(120% 100% at 50% -10%, rgba(164, 141, 244, 0.35) 0%, rgba(164, 141, 244, 0.12) 35%, transparent 70%)",
+            "radial-gradient(120% 100% at 50% -10%, rgba(180, 191, 250, 0.35) 0%, rgba(180, 191, 250, 0.12) 35%, transparent 70%)",
         }}
       />
 
