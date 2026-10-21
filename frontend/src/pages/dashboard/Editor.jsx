@@ -1016,7 +1016,6 @@ export default function Editor() {
         tracks: p.tracks || user.profile?.tracks || [],
         display_name: displayName,
       };
-      }
       const { data } = await api.put("/me/profile", payload);
       setUser(data);
       baselineRef.current = makeSnapshot(p, displayName);
