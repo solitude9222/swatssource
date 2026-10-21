@@ -84,13 +84,12 @@ agenthub/agents/youtube/db
 # Build caches
 .cache/
 
-memory/test_credentials.md
+# AI & test runner artifacts
+.emergent/
+.freebuff/
+memory/
+test_reports/
 
-# Mobile development
-android-sdk/
-
-# overlay black-box crash/user-report dumps — session data, never history
-**/.emergent/recordings/
 frontend/node_modules/.cache/default-development/4.pack
 frontend/node_modules/.cache/default-development/0.pack
 frontend/node_modules/.cache/default-development/3.pack
