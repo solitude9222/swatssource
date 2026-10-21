@@ -1331,6 +1331,7 @@ export default function Editor() {
                       Sets a solid background color. Any image/video background will be removed.
                     </p>
                   </div>
+                ) : (
                   <div className="space-y-4">
                     <QuickUpload
                       testid="asset-background"
