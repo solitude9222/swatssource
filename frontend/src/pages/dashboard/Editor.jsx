@@ -28,6 +28,7 @@ import {
   FxModal,
   useEffectMemory,
   FxTuningProvider,
+  FxTile,
 } from "@/components/overlays";
 import {
   Upload, Trash2, Loader2, Lock, Save, Image as ImageIcon, Film, Layout, Check, ChevronDown,
@@ -115,19 +116,42 @@ const SWITCH_CLASS =
 function FontField({ label, value, onChange, isPremium, navigate, testid }) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [activeCategory, setActiveCategory] = useState("All");
+
   const selected =
     FONTS.find((f) => fontStackOf(value) === f.stack) ||
     FONTS.find((f) => f.name.toLowerCase() === String(value).toLowerCase()) ||
     FONTS.find((f) => f.free);
 
+  const categories = useMemo(() => {
+    const list = ["All"];
+    FONTS.forEach((f) => {
+      const cat = f.category || "Other";
+      if (!list.includes(cat)) list.push(cat);
+    });
+    return list;
+  }, []);
+
   const q = query.trim().toLowerCase();
-  const matches = q ? FONTS.filter((f) => f.name.toLowerCase().includes(q)) : FONTS;
-  const categorizedFonts = matches.reduce((acc, font) => {
-    const cat = font.category || "Other";
-    if (!acc[cat]) acc[cat] = [];
-    acc[cat].push(font);
-    return acc;
-  }, {});
+  const matches = useMemo(() => {
+    let list = FONTS;
+    if (activeCategory !== "All") {
+      list = list.filter((f) => (f.category || "Other") === activeCategory);
+    }
+    if (q) {
+      list = list.filter((f) => f.name.toLowerCase().includes(q));
+    }
+    return list;
+  }, [q, activeCategory]);
+
+  const categorizedFonts = useMemo(() => {
+    return matches.reduce((acc, font) => {
+      const cat = font.category || "Other";
+      if (!acc[cat]) acc[cat] = [];
+      acc[cat].push(font);
+      return acc;
+    }, {});
+  }, [matches]);
 
   return (
     <div data-testid={testid}>
@@ -137,7 +161,7 @@ function FontField({ label, value, onChange, isPremium, navigate, testid }) {
         type="button"
         data-testid={`${testid}-open`}
         onClick={() => { setQuery(""); setIsOpen(true); }}
-        className="w-full flex items-center justify-between rounded-xl border border-[#2a2a2e] bg-[#111111] px-4 py-3 hover:border-[#a48df4] transition-colors"
+        className="w-full flex items-center justify-between rounded-xl border border-[#2a2a2e] bg-[#111111] px-4 py-3 hover:border-[#a48df4] transition-colors cursor-pointer"
       >
         <span className="text-sm text-white" style={{ fontFamily: selected.stack }}>
           {selected.name}
@@ -155,14 +179,39 @@ function FontField({ label, value, onChange, isPremium, navigate, testid }) {
         eyebrow="Fonts"
         testid={`${testid}-drawer`}
       >
+        {/* Category Subtabs */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none mb-3 -mx-1 px-1">
+          {categories.map((cat) => {
+            const active = activeCategory === cat;
+            const count = cat === "All" ? FONTS.length : FONTS.filter((f) => (f.category || "Other") === cat).length;
+            return (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setActiveCategory(cat)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                  active
+                    ? "bg-[#a48df4] text-black shadow-md font-bold"
+                    : "bg-[#141418] text-zinc-400 hover:text-white border border-[#2a2a2e] hover:border-white/30"
+                }`}
+              >
+                <span>{cat}</span>
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono2 ${active ? "bg-black/20 text-black font-bold" : "bg-white/10 text-zinc-400"}`}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
         <input
           autoFocus
           type="search"
           data-testid={`${testid}-search`}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search fonts…"
-          className="ov-input mb-4 px-4 py-2.5 text-sm placeholder:text-zinc-500 bg-[#111111] border border-[#2a2a2e] text-white rounded-xl"
+          placeholder={`Search ${activeCategory === "All" ? "all" : activeCategory.toLowerCase()} fonts…`}
+          className="ov-input mb-4 px-4 py-2.5 text-sm placeholder:text-zinc-500 bg-[#111111] border border-[#2a2a2e] text-white rounded-xl w-full"
         />
 
         <div className="mb-5 rounded-xl border border-[#2a2a2e] bg-[#111111] px-4 py-3">
@@ -194,7 +243,7 @@ function FontField({ label, value, onChange, isPremium, navigate, testid }) {
                       if (locked) { setIsOpen(false); navigate("/!/pricing"); }
                       else { onChange(f.stack); setIsOpen(false); }
                     }}
-                    className={`flex items-center justify-between rounded-xl border p-3 text-left transition-colors duration-200 ${
+                    className={`flex items-center justify-between rounded-xl border p-3 text-left transition-colors duration-200 cursor-pointer ${
                       active
                         ? "border-[#a48df4] bg-[#a48df4] text-black font-bold"
                         : locked
@@ -2683,7 +2732,7 @@ export default function Editor() {
                 </div>
               </FxModal>
 
-              {/* Overlay Effects Modal */}
+              {/* Overlay Effects Modal with Live Previews */}
               <FxModal
                 open={showOverlayEffectsModal}
                 onOpenChange={setShowOverlayEffectsModal}
@@ -2694,7 +2743,7 @@ export default function Editor() {
                 testid="overlay-effects-modal"
                 footer={
                   <div className="flex justify-end">
-                    <button type="button" onClick={() => setShowOverlayEffectsModal(false)} className="px-4 py-2 text-xs bg-[#a48df4] text-black font-bold rounded-xl hover:brightness-110 transition shadow-sm">
+                    <button type="button" onClick={() => setShowOverlayEffectsModal(false)} className="px-4 py-2 text-xs bg-[#a48df4] text-black font-bold rounded-xl hover:brightness-110 transition shadow-sm cursor-pointer">
                       Done
                     </button>
                   </div>
@@ -2716,15 +2765,18 @@ export default function Editor() {
                           }
                           set("overlay_effect", fx.id);
                         }}
-                        className={`p-3.5 rounded-xl border text-left transition flex flex-col gap-1.5 ${
+                        className={`p-3 rounded-2xl border text-left transition flex flex-col gap-2.5 group cursor-pointer ${
                           active
-                            ? "border-[#a48df4] bg-[#a48df4] text-black font-bold shadow-sm"
+                            ? "border-[#a48df4] bg-[#a48df4]/15 text-white ring-1 ring-[#a48df4]"
                             : "border-[#2a2a2e] bg-[#09090b] text-zinc-300 hover:border-white/30"
                         }`}
                       >
-                        <div className="flex items-center justify-between text-xs font-bold">
-                          <span>{fx.label}</span>
-                          {locked ? <Lock className="w-3.5 h-3.5 text-amber-400" /> : active ? <Check className="w-3.5 h-3.5 text-black" /> : null}
+                        <div className="w-full h-16 rounded-xl bg-[#0a0a0e] border border-white/10 overflow-hidden relative flex items-center justify-center">
+                          <FxTile variant="overlay" id={fx.id} accent={accentColor} />
+                        </div>
+                        <div className="flex items-center justify-between text-xs font-bold w-full">
+                          <span className={active ? "text-[#a48df4]" : "text-white"}>{fx.label}</span>
+                          {locked ? <Lock className="w-3.5 h-3.5 text-amber-400" /> : active ? <Check className="w-3.5 h-3.5 text-[#a48df4]" /> : null}
                         </div>
                       </button>
                     );
@@ -2732,7 +2784,7 @@ export default function Editor() {
                 </div>
               </FxModal>
 
-              {/* Background Effects Modal */}
+              {/* Background Effects Modal with Live Previews */}
               <FxModal
                 open={showBgEffectsModal}
                 onOpenChange={setShowBgEffectsModal}
@@ -2743,7 +2795,7 @@ export default function Editor() {
                 testid="bg-effects-modal"
                 footer={
                   <div className="flex justify-end">
-                    <button type="button" onClick={() => setShowBgEffectsModal(false)} className="px-4 py-2 text-xs bg-[#a48df4] text-black font-bold rounded-xl hover:brightness-110 transition shadow-sm">
+                    <button type="button" onClick={() => setShowBgEffectsModal(false)} className="px-4 py-2 text-xs bg-[#a48df4] text-black font-bold rounded-xl hover:brightness-110 transition shadow-sm cursor-pointer">
                       Done
                     </button>
                   </div>
@@ -2765,15 +2817,18 @@ export default function Editor() {
                           }
                           set("background_effect", fx.id);
                         }}
-                        className={`p-3.5 rounded-xl border text-left transition flex flex-col gap-1.5 ${
+                        className={`p-3 rounded-2xl border text-left transition flex flex-col gap-2.5 group cursor-pointer ${
                           active
-                            ? "border-[#a48df4] bg-[#a48df4] text-black font-bold shadow-sm"
+                            ? "border-[#a48df4] bg-[#a48df4]/15 text-white ring-1 ring-[#a48df4]"
                             : "border-[#2a2a2e] bg-[#09090b] text-zinc-300 hover:border-white/30"
                         }`}
                       >
-                        <div className="flex items-center justify-between text-xs font-bold">
-                          <span>{fx.label}</span>
-                          {locked ? <Lock className="w-3.5 h-3.5 text-amber-400" /> : active ? <Check className="w-3.5 h-3.5 text-black" /> : null}
+                        <div className="w-full h-16 rounded-xl bg-[#0a0a0e] border border-white/10 overflow-hidden relative flex items-center justify-center">
+                          <FxTile variant="bg" id={fx.id} accent={accentColor} />
+                        </div>
+                        <div className="flex items-center justify-between text-xs font-bold w-full">
+                          <span className={active ? "text-[#a48df4]" : "text-white"}>{fx.label}</span>
+                          {locked ? <Lock className="w-3.5 h-3.5 text-amber-400" /> : active ? <Check className="w-3.5 h-3.5 text-[#a48df4]" /> : null}
                         </div>
                       </button>
                     );
@@ -2781,7 +2836,7 @@ export default function Editor() {
                 </div>
               </FxModal>
 
-              {/* Cursor Effects Modal */}
+              {/* Cursor Effects Modal with Live Previews */}
               <FxModal
                 open={showCursorEffectsModal}
                 onOpenChange={setShowCursorEffectsModal}
@@ -2792,7 +2847,7 @@ export default function Editor() {
                 testid="cursor-effects-modal"
                 footer={
                   <div className="flex justify-end">
-                    <button type="button" onClick={() => setShowCursorEffectsModal(false)} className="px-4 py-2 text-xs bg-[#a48df4] text-black font-bold rounded-xl hover:brightness-110 transition shadow-sm">
+                    <button type="button" onClick={() => setShowCursorEffectsModal(false)} className="px-4 py-2 text-xs bg-[#a48df4] text-black font-bold rounded-xl hover:brightness-110 transition shadow-sm cursor-pointer">
                       Done
                     </button>
                   </div>
@@ -2814,15 +2869,18 @@ export default function Editor() {
                           }
                           set("cursor_effect", fx.id);
                         }}
-                        className={`p-3.5 rounded-xl border text-left transition flex flex-col gap-1.5 ${
+                        className={`p-3 rounded-2xl border text-left transition flex flex-col gap-2.5 group cursor-pointer ${
                           active
-                            ? "border-[#a48df4] bg-[#a48df4] text-black font-bold shadow-sm"
+                            ? "border-[#a48df4] bg-[#a48df4]/15 text-white ring-1 ring-[#a48df4]"
                             : "border-[#2a2a2e] bg-[#09090b] text-zinc-300 hover:border-white/30"
                         }`}
                       >
-                        <div className="flex items-center justify-between text-xs font-bold">
-                          <span>{fx.label}</span>
-                          {locked ? <Lock className="w-3.5 h-3.5 text-amber-400" /> : active ? <Check className="w-3.5 h-3.5 text-black" /> : null}
+                        <div className="w-full h-14 rounded-xl bg-[#0a0a0e] border border-white/10 overflow-hidden relative flex items-center justify-center">
+                          <FxTile variant="cursor" id={fx.id} accent={accentColor} />
+                        </div>
+                        <div className="flex items-center justify-between text-xs font-bold w-full">
+                          <span className={active ? "text-[#a48df4]" : "text-white"}>{fx.label}</span>
+                          {locked ? <Lock className="w-3.5 h-3.5 text-amber-400" /> : active ? <Check className="w-3.5 h-3.5 text-[#a48df4]" /> : null}
                         </div>
                       </button>
                     );
