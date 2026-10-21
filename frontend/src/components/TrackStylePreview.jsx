@@ -1,18 +1,10 @@
 import { Play, Volume2 } from "lucide-react";
 
 /* ---------------------------------------------------------------------------
-   A thumbnail of each audio player style.
-
-   The Widgets page draws the shape of each player instead of listing bare
-   names, so the choice is made by eye. The catalogue is three styles now:
-   mini-bar (a slim line), compact (a small card) and corner-icon (a speaker
-   chip that reveals its bar on hover — drawn mid-reveal so the thumbnail
-   explains the interaction too).
-
-   `size` scales the whole mock: "sm" for the picker grid, "lg" inside the
-   browse dialog. Nothing here reads real track data on purpose: it is a
-   picture of a layout, so it renders identically before a single track is
-   added.
+   Small visual samples for the six audio player layouts. Each layout has its
+   own silhouette, so members can compare them without opening a separate
+   gallery. `size` scales the mock for the picker. The samples are intentionally
+   independent of track data, so they remain useful before a track is uploaded.
    --------------------------------------------------------------------------- */
 
 const SIZES = {
@@ -30,7 +22,8 @@ export function TrackStylePreview({ id, accent = "#A48DF4", size = "sm" }) {
   const shell = (children) => (
     <div
       data-testid={`track-style-preview-${id}`}
-      className="relative overflow-hidden border border-white/10 bg-[#0b0b10]"
+      data-style={id}
+      className="relative overflow-hidden border border-white/10 bg-[#080809]"
       style={{ width: S.w, height: S.h, borderRadius: 12, padding: S.pad }}
     >
       {children}

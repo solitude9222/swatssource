@@ -14,12 +14,31 @@ import {
   Trophy, BarChart3, Users, Ticket, SlidersHorizontal, LineChart, LogOut,
   ExternalLink, Crown, ChevronDown, Sparkles, BellRing, Newspaper, ShieldCheck, Plus,
   ScrollText, Loader2, Gift, ShoppingBag, Store, Search, User, Home, ChevronRight, Eye,
-  Layers, Star,
+  Layers, Star, PanelLeftClose, PanelLeftOpen,
 } from "lucide-react";
 import PremiumPlansModal from "@/components/PremiumPlansModal";
 import DevlogFeedModal from "@/components/DevlogFeedModal";
+import {
+  CommandDialog, CommandInput, CommandList, CommandEmpty, CommandGroup,
+  CommandItem, CommandShortcut,
+} from "@/components/ui/command";
 
 const DISCORD_INVITE = "https://discord.gg/a9uwptuepD";
+
+function LogoIcon() {
+  return <Link to="/!/dashboard" aria-label="swats.bio dashboard" className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.06] bg-[#0b0b0c]"><img src="/logo.png?v=8" alt="" className="h-7 w-7 object-contain" /></Link>;
+}
+
+function CompactTabLink({ t, label }) {
+  const { pathname, search } = useLocation();
+  const active = isTabActive(t, pathname, search);
+  return <Link to={t.to} title={label || t.label} aria-label={label || t.label} aria-current={active ? "page" : undefined} data-testid={t.testid} className={`mx-auto flex h-10 w-10 items-center justify-center rounded-xl transition-colors ${active ? "bg-[#151517] text-zinc-100" : "text-zinc-600 hover:bg-white/[0.035] hover:text-zinc-300"}`}><t.icon className="h-[18px] w-[18px]" /></Link>;
+}
+
+function CompactGroup({ group, onNavigate }) {
+  const Icon = group.icon;
+  return <div className="space-y-1"><div className="my-2 h-px bg-white/[0.05]" /><button type="button" title={group.label} aria-label={`${group.label} pages`} onClick={() => onNavigate(group.tabs[0]?.to || "/!/dashboard")} className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl text-zinc-600 transition-colors hover:bg-white/[0.035] hover:text-zinc-300"><Icon className="h-[18px] w-[18px]" /></button>{group.tabs.map((tab) => <CompactTabLink key={tab.to} t={tab} />)}</div>;
+}
 
 /* ---------------------------------------------------------------------------
    The sidebar is grouped into collapsible categories; the page header shows a
@@ -100,7 +119,7 @@ const ALL_TABS = [
 
 const spring = { type: "spring", stiffness: 420, damping: 34, mass: 0.7 };
 
-/* Is this tab the page we are on? The three editor tabs share one pathname and
+/* Is this tab the page we are on? The editor tabs share one pathname and
    differ only by ?tab=, so a plain pathname match would light all of them. */
 const EDITOR_PATH = "/!/dashboard/editor";
 const isTabActive = (t, pathname, search) => {
@@ -133,7 +152,7 @@ const groupFor = (pathname, search = "") => {
 
 /* Shared look of a top-level sidebar row (Home and the category headers). */
 const rowBase =
-  "group relative flex h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-sm font-medium outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-[#a48df4]/60";
+  "group relative flex h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-sm font-medium outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-white/20";
 
 /* A sub-page link inside an open category (or the flat Home link). */
 const TabLink = ({ t, sub = true, label }) => {
@@ -146,17 +165,17 @@ const TabLink = ({ t, sub = true, label }) => {
       aria-current={active ? "page" : undefined}
       className={
         sub
-          ? `group relative flex h-9 w-full items-center gap-2.5 rounded-lg border px-3 text-[13px] font-medium outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-[#a48df4]/60 ${
+          ? `group relative flex h-9 w-full items-center gap-2.5 rounded-lg border px-3 text-[13px] font-medium outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-white/20 ${
               active
-                ? "border-[#a48df4]/60 bg-[#25183e] text-white"
-                : "border-transparent text-zinc-400 hover:bg-white/[0.04] hover:text-white"
+                ? "border-white/[0.09] bg-[#151517] text-white"
+                : "border-transparent text-zinc-500 hover:bg-white/[0.035] hover:text-zinc-200"
             }`
-          : `${rowBase} ${active ? "bg-[#2e1b4d] text-[#d8b4fe]" : "text-zinc-400 hover:bg-white/[0.04] hover:text-white"}`
+          : `${rowBase} ${active ? "bg-[#151517] text-zinc-100" : "text-zinc-500 hover:bg-white/[0.035] hover:text-zinc-200"}`
       }
     >
       <t.icon
         className={`${sub ? "h-4 w-4" : "h-[18px] w-[18px]"} shrink-0 transition-colors duration-200 ${
-          active ? (sub ? "text-[#c084fc]" : "text-[#d8b4fe]") : "text-zinc-500 group-hover:text-zinc-200"
+          active ? "text-zinc-300" : "text-zinc-600 group-hover:text-zinc-300"
         }`}
       />
       <span className="truncate">{label || t.label}</span>
@@ -177,15 +196,15 @@ function NavGroup({ group, open, onToggle, containsActive }) {
         onClick={onToggle}
         aria-expanded={open}
         data-testid={`navgroup-${group.id}`}
-        className={`${rowBase} ${lit ? "bg-[#2e1b4d] text-[#d8b4fe]" : containsActive ? "bg-white/[0.03] text-zinc-200" : "text-zinc-400 hover:bg-white/[0.04] hover:text-white"}`}
+        className={`${rowBase} ${lit ? "bg-[#151517] text-zinc-100" : containsActive ? "bg-white/[0.025] text-zinc-300" : "text-zinc-500 hover:bg-white/[0.035] hover:text-zinc-200"}`}
       >
         {Icon && (
-          <Icon className={`h-[18px] w-[18px] shrink-0 ${lit ? "text-[#d8b4fe]" : "text-zinc-500 group-hover:text-zinc-200"}`} />
+          <Icon className={`h-[18px] w-[18px] shrink-0 ${lit ? "text-zinc-300" : "text-zinc-600 group-hover:text-zinc-300"}`} />
         )}
         <span className="truncate">{group.label}</span>
-        {containsActive && !open && <span className="h-1.5 w-1.5 rounded-full bg-[#c084fc] animate-pulse" />}
+        {containsActive && !open && <span className="h-1.5 w-1.5 rounded-full bg-zinc-400" />}
         <ChevronDown
-          className={`ml-auto h-4 w-4 shrink-0 transition-transform duration-300 ${lit ? "text-[#d8b4fe]" : "text-zinc-500"} ${
+          className={`ml-auto h-4 w-4 shrink-0 transition-transform duration-300 ${lit ? "text-zinc-300" : "text-zinc-600"} ${
             open ? "rotate-180" : "rotate-0"
           }`}
         />
@@ -227,10 +246,10 @@ function CommunityCard() {
       target="_blank"
       rel="noreferrer"
       data-testid="discord-card"
-      className="group block rounded-2xl border border-[#1f1f1f] bg-[#111111] px-3 py-2.5 transition-colors duration-200 hover:border-[#a48df4]/50"
+      className="group block rounded-xl border border-white/[0.06] bg-[#0a0a0b] px-3 py-2.5 transition-colors duration-200 hover:border-white/15"
     >
       <div className="flex items-center gap-2.5">
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-[#1f1f1f] bg-[#0d0d0d] transition-transform duration-300 group-hover:scale-105">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-white/[0.05] bg-[#080809] transition-transform duration-300 group-hover:scale-105">
           <FaDiscord className="h-4 w-4 text-white" />
         </span>
         <div className="min-w-0 flex-1">
@@ -254,7 +273,7 @@ function UserCard({ user, onLogout }) {
   const initial = (user.display_name || user.username || "?")[0]?.toUpperCase();
   const isPremium = user.tier === "premium" || user.tier === "admin" || user.is_owner;
   return (
-    <div className="flex h-[60px] w-full shrink-0 items-center gap-3 rounded-2xl border border-[#1f1f1f] bg-[#111111] px-3 transition-colors duration-200 hover:border-[#2a2a2e]">
+    <div className="flex h-[60px] w-full shrink-0 items-center gap-3 rounded-xl border border-white/[0.06] bg-[#0a0a0b] px-3 transition-colors duration-200 hover:border-white/15">
       <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full bg-zinc-800 text-xs ring-1 ring-white/10">
         {user.profile?.avatar_url ? (
           <img src={fileUrl(user.profile.avatar_url)} alt="" className="h-full w-full object-cover" />
@@ -282,7 +301,7 @@ function UserCard({ user, onLogout }) {
         data-testid="logout-btn"
         title="Log out"
         aria-label="Log out"
-        className="group flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-[#1f1f1f] bg-[#0d0d0d] text-zinc-400 outline-none transition-colors duration-200 hover:border-red-500/30 hover:bg-red-500/10 hover:text-red-300 focus-visible:ring-2 focus-visible:ring-red-500/40"
+        className="group flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-white/[0.06] bg-[#080809] text-zinc-500 outline-none transition-colors duration-200 hover:border-red-500/30 hover:bg-red-500/10 hover:text-red-300 focus-visible:ring-2 focus-visible:ring-red-500/40"
       >
         <LogOut className="h-4 w-4" />
       </button>
@@ -292,7 +311,7 @@ function UserCard({ user, onLogout }) {
 
 /* Round-cornered icon button used in the header's top-right cluster. */
 const headerBtn =
-  "flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-[#1f1f1f] bg-[#111111] text-[#c084fc] outline-none transition-colors duration-200 hover:border-[#a48df4]/50 hover:bg-[#1d132e] focus-visible:ring-2 focus-visible:ring-[#a48df4]/60";
+  "flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-white/[0.06] bg-[#0b0b0c] text-zinc-500 outline-none transition-colors duration-200 hover:border-white/15 hover:bg-[#101012] hover:text-zinc-200 focus-visible:ring-2 focus-visible:ring-white/20";
 
 /* The top-right account menu: a click on the avatar opens every account this
    session can reach — the current one, the paired accounts to swap between,
@@ -420,11 +439,11 @@ function AccountMenu({ user }) {
 
       {open && (
         <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="fixed inset-0 z-40 bg-black/55 backdrop-blur-sm" onClick={() => setOpen(false)} />
           <div
             ref={menuRef}
             data-testid="account-menu"
-            className="absolute right-0 top-10 z-50 w-72 overflow-hidden rounded-2xl border border-white/10 bg-[#101014] shadow-[0_20px_60px_rgba(0,0,0,0.7)]"
+            className="absolute right-0 top-10 z-50 w-72 overflow-hidden rounded-xl border border-white/[0.07] bg-[#09090a] shadow-[0_20px_60px_rgba(0,0,0,0.8)]"
           >
             <div data-testid="account-switcher" className="max-h-72 overflow-y-auto p-2">
               {switchable.map((acc) => {
@@ -437,14 +456,14 @@ function AccountMenu({ user }) {
                       <div className="truncate font-mono2 text-[10px] text-zinc-500">@{acc.username}</div>
                     </div>
                     {current ? (
-                      <span className="shrink-0 rounded-full bg-brand-500/15 px-2 py-0.5 text-[9px] font-bold uppercase text-brand-300">current</span>
+                      <span className="shrink-0 rounded-full bg-brand-500/15 px-2 py-0.5 text-[9px] font-bold uppercase text-zinc-300">current</span>
                     ) : (
                       <button
                         type="button"
                         data-testid={`switch-account-${acc.username}`}
                         disabled={busy}
                         onClick={() => doSwitch(acc.id)}
-                        className="shrink-0 rounded-lg border border-white/10 px-2.5 py-1 text-[10px] font-semibold text-zinc-300 transition hover:border-brand-500/40 hover:text-brand-200 disabled:opacity-50"
+                        className="shrink-0 rounded-lg border border-white/10 px-2.5 py-1 text-[10px] font-semibold text-zinc-300 transition hover:border-white/15 hover:text-white disabled:opacity-50"
                       >
                         Switch
                       </button>
@@ -460,7 +479,7 @@ function AccountMenu({ user }) {
                   onClick={() => { setAdding(true); setError(""); setAddMode("credentials"); }}
                   className="mt-1 flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-xs font-semibold text-zinc-300 transition hover:bg-white/[0.04]"
                 >
-                  <Plus className="h-3.5 w-3.5 text-brand-400" /> Add another account
+                  <Plus className="h-3.5 w-3.5 text-zinc-500" /> Add another account
                 </button>
               ) : (
                 <div data-testid="link-account-form" className="mt-1 space-y-2.5 rounded-xl border border-white/10 bg-white/[0.03] p-3">
@@ -468,14 +487,14 @@ function AccountMenu({ user }) {
                     <button
                       type="button"
                       onClick={() => { setAddMode("credentials"); setError(""); }}
-                      className={`flex-1 py-1 rounded-md transition ${addMode === "credentials" ? "bg-brand-500/25 text-brand-200" : "text-zinc-400 hover:text-zinc-200"}`}
+                      className={`flex-1 py-1 rounded-md transition ${addMode === "credentials" ? "bg-white/[0.08] text-white" : "text-zinc-500 hover:text-zinc-200"}`}
                     >
                       Password
                     </button>
                     <button
                       type="button"
                       onClick={() => { setAddMode("discord"); setError(""); }}
-                      className={`flex-1 py-1 rounded-md transition ${addMode === "discord" ? "bg-brand-500/25 text-brand-200" : "text-zinc-400 hover:text-zinc-200"}`}
+                      className={`flex-1 py-1 rounded-md transition ${addMode === "discord" ? "bg-white/[0.08] text-white" : "text-zinc-500 hover:text-zinc-200"}`}
                     >
                       Discord
                     </button>
@@ -512,7 +531,7 @@ function AccountMenu({ user }) {
                         <button
                           type="submit"
                           disabled={busy}
-                          className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-brand-500 to-brand-600 px-3 py-1.5 text-[11px] font-bold text-white transition hover:brightness-110 disabled:opacity-50"
+                          className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#18181a] px-3 py-1.5 text-[11px] font-bold text-zinc-100 transition hover:bg-[#222224] disabled:opacity-50"
                         >
                           {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Link account"}
                         </button>
@@ -556,7 +575,7 @@ function AccountMenu({ user }) {
                     <Link
                       to="/!/register"
                       onClick={() => setOpen(false)}
-                      className="text-[10px] text-zinc-500 hover:text-brand-300 transition"
+                      className="text-[10px] text-zinc-600 hover:text-zinc-300 transition"
                     >
                       Need to create a new profile? Register here →
                     </Link>
@@ -572,7 +591,7 @@ function AccountMenu({ user }) {
                 rel="noreferrer"
                 className="flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-xs font-semibold text-zinc-300 transition hover:bg-white/[0.04]"
               >
-                <ExternalLink className="h-3.5 w-3.5 text-brand-400" /> View public profile
+                <ExternalLink className="h-3.5 w-3.5 text-zinc-500" /> View public profile
               </a>
               <button
                 type="button"
@@ -600,13 +619,28 @@ export default function DashboardLayout() {
   const [popup, setPopup] = useState(null);
 
   const [navQuery, setNavQuery] = useState("");
+  const [commandOpen, setCommandOpen] = useState(false);
+  const [sidebarCompact, setSidebarCompact] = useState(() => {
+    try { return window.localStorage.getItem("swats_dashboard_sidebar_compact") === "true"; }
+    catch { return false; }
+  });
 
-  // The dashboard remaps the brand colour scale to blue (see index.css). It is a
-  // body class so dialogs portalled outside this tree are themed too, and it is
-  // removed again so the public site keeps its own palette.
+  // Scope shared dialog and form-control styling to the dashboard, and remove it
+  // again when leaving so the public pages keep their own palette.
   useEffect(() => {
     document.body.classList.add("dash-theme");
     return () => document.body.classList.remove("dash-theme");
+  }, []);
+
+  useEffect(() => {
+    const onKeyDown = (event) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setCommandOpen((open) => !open);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
   if (!user || user === false) return null;
@@ -632,6 +666,10 @@ export default function DashboardLayout() {
     }
     return g;
   });
+  const commandTabs = [
+    ...NAV_GROUPS.flatMap((group) => group.tabs),
+    ...(isAdmin ? [ADMIN_ITEM, ...adminTabs.filter((section) => section.to !== ADMIN_ITEM.to)] : []),
+  ];
 
   const activeGroup = groupFor(pathname, search);
   const activeTab = tabFor(pathname, search);
@@ -658,39 +696,49 @@ export default function DashboardLayout() {
   return (
     <div className="dash-font dash-checkered-bg flex min-h-screen text-zinc-100">
       {/* Navigation stays quiet and fixed while the page content owns the scroll. */}
-      <aside className="sticky top-0 hidden h-screen w-[292px] min-w-[292px] shrink-0 border-r border-white/[0.07] bg-[#0d0d0f] lg:block">
+      <aside className={`sticky top-0 hidden h-screen shrink-0 border-r border-white/[0.06] bg-[#080809] transition-[width] duration-200 lg:block ${sidebarCompact ? "w-[76px]" : "w-[292px]"}`}>
         <div className="flex h-full flex-col overflow-hidden">
           {/* Logo */}
-          <div className="flex h-[68px] shrink-0 items-center justify-center px-5">
-            <Logo size="text-2xl" />
+          <div className={`flex h-[68px] shrink-0 items-center ${sidebarCompact ? "justify-center px-2" : "justify-center px-5"}`}>
+            {sidebarCompact ? <LogoIcon /> : <Logo size="text-2xl" />}
           </div>
 
           {/* Search */}
-          <div className="shrink-0 px-4 pb-3">
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
-              <input
-                type="text"
-                data-testid="nav-search-bar"
-                value={navQuery}
-                onChange={(e) => setNavQuery(e.target.value)}
-                placeholder="search dashboard…"
-                className="h-10 w-full rounded-xl border border-white/10 bg-[#050505] pl-9 pr-3 text-[13px] text-white outline-none transition-colors placeholder:text-zinc-500 focus:border-[#a48df4]"
-              />
-            </div>
+          <div className={`shrink-0 pb-3 ${sidebarCompact ? "px-3" : "px-4"}`}>
+            {sidebarCompact ? (
+              <button type="button" title="Search dashboard (Ctrl+K)" aria-label="Search dashboard" onClick={() => setCommandOpen(true)} className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.06] bg-[#101012] text-zinc-500 hover:text-zinc-200">
+                <Search className="h-4 w-4" />
+              </button>
+            ) : (
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
+                <input
+                  type="text"
+                  data-testid="nav-search-bar"
+                  value={navQuery}
+                  onChange={(e) => setNavQuery(e.target.value)}
+                  onFocus={() => setCommandOpen(false)}
+                  placeholder="Search pages…"
+                  className="h-10 w-full rounded-xl border border-white/[0.06] bg-[#0b0b0c] pl-9 pr-14 text-[13px] text-white outline-none transition-colors placeholder:text-zinc-600 focus:border-white/15"
+                />
+                <button type="button" aria-label="Open command palette" onClick={() => setCommandOpen(true)} className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md border border-white/[0.07] px-1.5 py-0.5 font-mono2 text-[9px] text-zinc-600 hover:text-zinc-300">{navigator.platform?.includes("Mac") ? "⌘K" : "Ctrl K"}</button>
+              </div>
+            )}
           </div>
 
-          <div className="mx-4 h-px shrink-0 bg-white/10" />
+          {!sidebarCompact && <div className="mx-4 h-px shrink-0 bg-white/[0.05]" />}
 
           {/* Navigation list */}
-          <nav className="scrollbar-none mt-2 flex-1 space-y-1 overflow-y-auto px-3 pb-2">
+          <nav className={`scrollbar-none mt-2 flex-1 space-y-1 overflow-y-auto pb-2 ${sidebarCompact ? "px-2" : "px-3"}`}>
             {groups.map((group) => {
               if (group.flat) {
-                return group.tabs.map((t) => <TabLink key={t.to} t={t} sub={false} label={group.navLabel || t.label} />);
+                return group.tabs.map((t) => sidebarCompact ? <CompactTabLink key={t.to} t={t} label={group.navLabel || t.label} /> : <TabLink key={t.to} t={t} sub={false} label={group.navLabel || t.label} />);
               }
               const containsActive = activeGroup?.id === group.id;
               const isOpen = Boolean(q) || !collapsed[group.id];
-              return (
+              return sidebarCompact ? (
+                <CompactGroup key={group.id} group={group} onNavigate={navigate} />
+              ) : (
                 <NavGroup
                   key={group.id}
                   group={group}
@@ -706,26 +754,32 @@ export default function DashboardLayout() {
           </nav>
 
           {/* Bottom: upgrade card, community, account */}
-          <div className="shrink-0 space-y-2 border-t border-white/10 p-3">
+          <div className={`shrink-0 space-y-2 border-t border-white/[0.06] ${sidebarCompact ? "p-2" : "p-3"}`}>
             <button
               type="button"
               onClick={() => setPopup("premium")}
               data-testid="premium-link"
-              className="group flex h-[58px] w-full cursor-pointer items-center gap-3 rounded-2xl border border-white/10 bg-[#070709] px-3 text-left outline-none transition-colors duration-200 hover:border-[#a48df4]/50 focus-visible:ring-2 focus-visible:ring-[#a48df4]/60"
+              title={sidebarCompact ? "Upgrade to Premium" : undefined}
+              className={`group flex h-[54px] w-full cursor-pointer items-center rounded-xl border border-white/[0.06] bg-[#0b0b0c] text-left outline-none transition-colors duration-200 hover:border-white/15 focus-visible:ring-2 focus-visible:ring-[#a48df4]/60 ${sidebarCompact ? "justify-center px-2" : "gap-3 px-3"}`}
             >
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#2e1b4d] text-[#c084fc]">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#111113] text-zinc-400">
                 <Star className="h-4 w-4 fill-current transition-transform duration-200 group-hover:scale-110" />
               </span>
-              <span className="min-w-0 flex-1">
-                <span className="flex items-center gap-1 text-[13px] font-semibold text-white">
-                  Upgrade to Premium
-                </span>
-                <span className="block truncate text-[10px] text-zinc-500">Unlock exclusive features</span>
-              </span>
+              {!sidebarCompact && <span className="min-w-0 flex-1">
+                <span className="flex items-center gap-1 text-[13px] font-semibold text-zinc-200">Upgrade to Premium</span>
+                <span className="block truncate text-[10px] text-zinc-600">Unlock exclusive features</span>
+              </span>}
             </button>
 
-            <CommunityCard />
-            <UserCard user={user} onLogout={handleLogout} />
+            {!sidebarCompact && <CommunityCard />}
+            {sidebarCompact ? (
+              <div className="flex flex-col items-center gap-2">
+                <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-[#171719] text-xs ring-1 ring-white/10" title={user.display_name || user.username}>
+                  {user.profile?.avatar_url ? <img src={fileUrl(user.profile.avatar_url)} alt="" className="h-full w-full object-cover" /> : (user.display_name || user.username || "?")[0]?.toUpperCase()}
+                </div>
+                <button type="button" onClick={handleLogout} title="Log out" aria-label="Log out" className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/[0.06] bg-[#0b0b0c] text-zinc-500 hover:text-red-300"><LogOut className="h-4 w-4" /></button>
+              </div>
+            ) : <UserCard user={user} onLogout={handleLogout} />}
           </div>
         </div>
       </aside>
@@ -737,14 +791,14 @@ export default function DashboardLayout() {
           <div className="flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
               <div className="lg:hidden">
-                <Logo size="text-base" />
+                <Link to="/!/dashboard" aria-label="swats.bio dashboard" className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/[0.06] bg-[#0a0a0b]"><img src="/logo.png?v=8" alt="" className="h-6 w-6 object-contain" /></Link>
               </div>
               <nav
                 aria-label="Breadcrumb"
                 data-testid="dash-breadcrumb"
-                className="hidden min-w-0 items-center gap-2 rounded-xl border border-white/10 bg-[#050505]/85 backdrop-blur-md px-3.5 py-2 text-xs sm:flex shadow-sm"
+                className="hidden min-w-0 items-center gap-2 rounded-xl border border-white/[0.06] bg-[#0a0a0b] px-3.5 py-2 text-xs sm:flex"
               >
-                <Link to="/!/dashboard" aria-label="Dashboard home" className="text-zinc-400 transition-colors hover:text-white">
+                <Link to="/!/dashboard" aria-label="Dashboard home" className="text-zinc-500 transition-colors hover:text-zinc-200">
                   <Home className="h-3.5 w-3.5" />
                 </Link>
                 {crumbs.map((c, i) => (
@@ -759,6 +813,9 @@ export default function DashboardLayout() {
             </div>
 
             <div className="flex shrink-0 items-center gap-2.5">
+              <button type="button" data-testid="sidebar-compact-toggle" title={sidebarCompact ? "Expand sidebar" : "Collapse sidebar"} aria-label={sidebarCompact ? "Expand sidebar" : "Collapse sidebar"} aria-pressed={sidebarCompact} onClick={() => setSidebarCompact((current) => { const next = !current; try { window.localStorage.setItem("swats_dashboard_sidebar_compact", String(next)); } catch { /* Keep the control usable when storage is blocked. */ } return next; })} className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/[0.06] bg-[#09090a] text-zinc-600 transition hover:text-zinc-200 lg:flex">
+                {sidebarCompact ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+              </button>
               <button
                 type="button"
                 onClick={() => setPopup("devlog")}
@@ -769,6 +826,7 @@ export default function DashboardLayout() {
               >
                 <Newspaper className="h-4 w-4" />
               </button>
+              <button type="button" data-testid="command-palette-open" title="Search pages (Ctrl+K)" aria-label="Search pages" onClick={() => setCommandOpen(true)} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/[0.06] bg-[#0b0b0c] text-zinc-500 transition hover:text-zinc-200 sm:hidden"><Search className="h-4 w-4" /></button>
               <Link
                 to={`/${user.username}`}
                 target="_blank"
@@ -782,7 +840,7 @@ export default function DashboardLayout() {
               {/* The bell stays visible on mobile */}
               <NotificationBell />
               {user.tier !== "free" && (
-                <span className="hidden items-center gap-1 rounded-full border border-[#a48df4]/40 bg-[#a48df4]/15 px-2.5 py-1 text-[10px] font-bold uppercase text-white sm:inline-flex">
+                <span className="hidden items-center gap-1 rounded-full border border-white/[0.08] bg-white/[0.03] px-2.5 py-1 text-[10px] font-bold uppercase text-zinc-300 sm:inline-flex">
                   <Crown className="h-3 w-3 text-amber-400" /> {user.tier}
                 </span>
               )}
@@ -793,8 +851,8 @@ export default function DashboardLayout() {
           {/* Page title: icon tile, title, one-line description */}
           {!ownHeader && (
             <div className="mt-5 flex items-center gap-4" data-testid="dash-page-header">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-[#1f1f1f] bg-[#111111]">
-                <PageIcon className="h-6 w-6 text-[#c084fc]" />
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/[0.06] bg-[#0c0c0d]">
+                <PageIcon className="h-6 w-6 text-zinc-400" />
               </div>
               <div className="min-w-0">
                 <motion.h1
@@ -815,7 +873,7 @@ export default function DashboardLayout() {
           {strip.length > 0 && (
             <nav
               aria-label="Admin sections"
-              className="mt-5 flex gap-1 overflow-x-auto rounded-2xl border border-[#1f1f1f] bg-[#0d0d0d] p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              className="mt-5 flex gap-1 overflow-x-auto rounded-xl border border-white/[0.06] bg-[#0a0a0b] p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
               {strip.map((t) => (
                 <NavLink
@@ -826,8 +884,8 @@ export default function DashboardLayout() {
                   className={({ isActive }) =>
                     `flex min-w-[96px] flex-1 shrink-0 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-semibold outline-none transition-colors duration-200 ${
                       isActive
-                        ? "bg-[#a48df4] text-black shadow-sm"
-                        : "text-zinc-400 hover:bg-white/[0.04] hover:text-white"
+                        ? "bg-[#171719] text-white shadow-sm"
+                        : "text-zinc-600 hover:bg-white/[0.035] hover:text-zinc-200"
                     }`
                   }
                 >
@@ -843,7 +901,7 @@ export default function DashboardLayout() {
             they are read before whatever the page itself says. */}
         <AuthGateNotice />
         {/* Renders nothing (no padding, no border) when nothing is live. */}
-        <AnnouncementBanner className="mt-4 border-y border-[#1f1f1f] bg-white/[0.01] px-6 py-3" />
+        <AnnouncementBanner className="mt-4 border-y border-white/[0.05] bg-white/[0.01] px-6 py-3" />
 
         {/* Mobile tabs: every destination, since the sidebar is hidden. */}
         <div className="mt-4 flex snap-x gap-2 overflow-x-auto px-5 py-1 [scrollbar-width:none] lg:hidden [&::-webkit-scrollbar]:hidden">
@@ -855,8 +913,8 @@ export default function DashboardLayout() {
                 to={t.to}
                 className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium outline-none transition-colors duration-200 ${
                   active
-                    ? "border-[#a48df4]/60 bg-[#25183e] text-white"
-                    : "border-[#1f1f1f] bg-[#111111] text-zinc-400 hover:text-zinc-100"
+                    ? "border-white/15 bg-[#151517] text-white"
+                    : "border-white/[0.06] bg-[#0a0a0b] text-zinc-600 hover:text-zinc-200"
                 }`}
               >
                 <t.icon className="h-3.5 w-3.5" /> {t.label}
@@ -876,6 +934,21 @@ export default function DashboardLayout() {
           notification footer and any page all open the same instance. */}
       <PremiumPlansModal open={popup === "premium"} onClose={() => setPopup(null)} />
       <DevlogFeedModal open={popup === "devlog"} onClose={() => setPopup(null)} />
+      <CommandDialog open={commandOpen} onOpenChange={setCommandOpen}>
+        <CommandInput placeholder="Search dashboard pages…" aria-label="Search dashboard pages" />
+        <CommandList>
+          <CommandEmpty>No matching pages.</CommandEmpty>
+          <CommandGroup heading="Dashboard">
+            {commandTabs.map((tab) => (
+              <CommandItem key={tab.to} value={`${tab.label} ${tab.desc || ""}`} onSelect={() => { navigate(tab.to); setCommandOpen(false); }}>
+                <tab.icon className="h-4 w-4 text-zinc-500" />
+                <span>{tab.label}</span>
+                {tab.to === activeTab?.to && <CommandShortcut>Current</CommandShortcut>}
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        </CommandList>
+      </CommandDialog>
     </div>
   );
 }

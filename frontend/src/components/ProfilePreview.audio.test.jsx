@@ -192,10 +192,8 @@ it("keeps every track when shuffle is on", () => {
   expect(playButtons()).toHaveLength(3);
 });
 
-// Every player style HAS to look like its own style. The catalogue is exactly
-// three styles now — mini-bar, compact and corner-icon — and each renders
-// distinct markup; resolveTrackStyle folds every removed legacy id onto the
-// style it most looks like.
+// Every supported player style has distinct markup. Older persisted values are
+// still resolved to a working player instead of falling through to a blank view.
 it("renders each player style as its own markup", () => {
   const renderStyle = (track_style) => {
     render(profileWith({ tracks: [track("A", "/a.mp3")], track_style }));
@@ -203,13 +201,13 @@ it("renders each player style as its own markup", () => {
   };
 
   const html = {};
-  for (const style of ["mini-bar", "compact", "corner-icon"]) {
+  for (const style of ["compact", "lyrics", "marquee", "vinyl", "mini-bar", "corner-icon"]) {
     html[style] = renderStyle(style);
   }
-  expect(new Set(Object.values(html)).size).toBe(3);
+  expect(new Set(Object.values(html)).size).toBe(6);
 
-  // A removed legacy id must not fall into a dead branch: it renders the
-  // compact player, not nothing.
+  // An unknown or legacy id must not fall into a dead branch: it resolves to a
+  // real supported player instead of rendering nothing.
   expect(renderStyle("legacy-unknown")).toContain('data-testid="track-compact"');
   expect(renderStyle("simplistic")).toContain('data-testid="track-corner-icon"');
   expect(renderStyle("vinyl")).toContain('data-testid="track-vinyl"');

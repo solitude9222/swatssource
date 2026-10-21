@@ -16,6 +16,8 @@ import {
   TEXT_EFFECTS, OVERLAYS, CURSOR_EFFECTS, BACKGROUND_EFFECTS,
 } from "@/constants/effects";
 import { LAYOUTS, LAYOUT_MAP, DEFAULT_LAYOUT, SECTION_ANIMATIONS } from "@/constants/layouts";
+import { TRACK_STYLES, resolveTrackStyle } from "@/constants/effects";
+import { TrackStylePreview } from "@/components/TrackStylePreview";
 import { FONTS, FREE_FONTS, fontStackOf, ensureFontsLoaded } from "@/constants/fonts";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
@@ -100,13 +102,6 @@ export const CARD_STYLE_PRESETS = {
     card_glow: false,
   },
 };
-
-const AUDIO_STYLES = [
-  { id: "compact", label: "Compact", desc: "Clean streamlined player pill with controls and artwork" },
-  { id: "lyrics", label: "Lyrics", desc: "Scrolling real-time or formatted lyrics view under artwork" },
-  { id: "marquee", label: "Marquee", desc: "Classic scrolling animated marquee text title & audio wave" },
-  { id: "vinyl", label: "Vinyl", desc: "Realistic revolving vinyl record with turntable arm accent" },
-];
 
 const PREVIEW_WORD = "swats";
 
@@ -816,6 +811,7 @@ export default function Editor() {
   const [newTrackArtist, setNewTrackArtist] = useState("");
   const [newTrackUrl, setNewTrackUrl] = useState("");
   const [newTrackArtwork, setNewTrackArtwork] = useState("");
+  const [trackStyle, setTrackStyle] = useState(() => resolveTrackStyle(user.profile?.track_style || user.profile?.audio_style || "compact"));
   const [newTrackLyrics, setNewTrackLyrics] = useState("");
   const [uploadingAudio, setUploadingAudio] = useState(false);
   const [uploadingArtwork, setUploadingArtwork] = useState(false);
@@ -832,6 +828,7 @@ export default function Editor() {
         widgets: user.profile.widgets || [],
         tracks: user.profile.tracks || [],
       }));
+      setTrackStyle(resolveTrackStyle(user.profile.track_style || user.profile.audio_style || "compact"));
       setDisplayName(user.display_name || "");
       baselineRef.current = makeSnapshot(user.profile, user.display_name);
       if (user.profile.background_url) setBgMode("media");
@@ -839,6 +836,11 @@ export default function Editor() {
   }, [user?.profile, user?.display_name]);
 
   const set = (k, v) => setP((prev) => ({ ...prev, [k]: v }));
+  const setPlayerStyle = (id) => {
+    const next = resolveTrackStyle(id);
+    setTrackStyle(next);
+    setP((prev) => ({ ...prev, track_style: next, audio_style: next }));
+  };
   const accentColor = p.accent_color || "hsl(272, 24%, 46%)";
 
   const handleCardStylePreset = (styleId) => {
@@ -1741,44 +1743,67 @@ export default function Editor() {
               ======================================================== */}
           {sub === "audios" && (
             <div className="space-y-6">
-              {/* 1. TOP: PLAYER STYLES SELECTOR */}
-              <Section title="Player Styles" hint="Choose the visual aesthetic of your audio player">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {AUDIO_STYLES.map((style) => {
-                    const active = (p.track_style || p.audio_style || "compact") === style.id;
+              {/* Choose a real, separate player design from its visual sample first. */}
+              <Section title="Player style" hint="Pick a layout; the sample updates with your saved track and cover art">
+                <div className="grid grid-cols-1 gap-2.5 md:grid-cols-2 2xl:grid-cols-3">
+                  {TRACK_STYLES.map((style) => {
+                    const active = trackStyle === style.id;
                     return (
                       <button
                         key={style.id}
                         type="button"
                         data-testid={`audio-style-${style.id}`}
-                        onClick={() => {
-                          set("track_style", style.id);
-                          set("audio_style", style.id);
-                        }}
-                        className={`group p-4 rounded-2xl border text-left transition-all duration-200 flex flex-col justify-between gap-3 cursor-pointer ${
-                          active
-                            ? "border-[#a48df4] bg-[#a48df4]/10 shadow-[0_0_25px_rgba(164,141,244,0.18)] ring-1 ring-[#a48df4]/50"
-                            : "border-[#2a2a2e] bg-[#09090b] hover:border-white/30 text-zinc-300"
-                        }`}
+                        aria-pressed={active}
+                        onClick={() => setPlayerStyle(style.id)}
+                        className={`group flex min-w-0 items-center gap-3 rounded-xl border p-2.5 text-left transition-colors ${active ? "border-white/20 bg-[#151517]" : "border-white/[0.06] bg-[#0b0b0c] hover:border-white/12 hover:bg-[#101012]"}`}
                       >
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-white">{style.label}</span>
-                          {active ? (
-                            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#a48df4] text-black shadow-sm">
-                              <Check className="w-3 h-3 stroke-[3]" />
-                            </span>
-                          ) : (
-                            <span className="h-5 w-5 rounded-full border border-white/20 group-hover:border-white/40" />
-                          )}
+                        <div className="flex h-[68px] w-[150px] shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/[0.05] bg-[#070708] p-1">
+                          <TrackStylePreview id={style.id} accent={accentColor} size="sm" />
                         </div>
-                        <p className="text-[11px] leading-relaxed text-zinc-400">
-                          {style.desc}
-                        </p>
+                        <span className="min-w-0 flex-1">
+                          <span className="flex items-center gap-2 text-xs font-semibold text-zinc-100">{style.label}{active && <Check className="h-3.5 w-3.5 text-zinc-400" />}</span>
+                          <span className="mt-1 block text-[10px] leading-relaxed text-zinc-600">{style.desc}</span>
+                        </span>
                       </button>
                     );
                   })}
                 </div>
               </Section>
+
+              {/* Keep the live player directly under its style picker, rather than far below the upload and tuning controls. */}
+              <section className="space-y-3" aria-label="Audio player live preview" data-testid="audio-style-preview-section">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-zinc-200">Live preview</span>
+                    <span className="rounded-full border border-white/[0.07] bg-white/[0.03] px-2 py-0.5 text-[10px] font-medium text-zinc-500">{TRACK_STYLES.find((style) => style.id === trackStyle)?.label || "Compact"}</span>
+                  </div>
+                  <span className="text-[11px] text-zinc-600">Updates when you choose a style or edit your track</span>
+                </div>
+                <div className="relative flex min-h-[140px] items-center justify-center overflow-hidden rounded-xl border border-white/[0.06] bg-[#080809] p-6">
+                  {(() => {
+                    const effectiveTrack = {
+                      title: p.tracks?.[0]?.title || newTrackTitle || "Your track title",
+                      artist: p.tracks?.[0]?.artist || newTrackArtist || "Artist name",
+                      artwork: p.tracks?.[0]?.artwork || newTrackArtwork || "",
+                      lyrics: p.tracks?.[0]?.lyrics || newTrackLyrics || "",
+                      url: p.tracks?.[0]?.url || newTrackUrl || "",
+                      audio_url: p.tracks?.[0]?.audio_url || "",
+                    };
+                    return (
+                      <div className="w-full max-w-lg flex flex-col items-center">
+                        <TrackCardPreview
+                          track={effectiveTrack}
+                          style={trackStyle}
+                          accent={accentColor}
+                          volume={(Number.isFinite(Number(p.audio_volume ?? p.track_volume)) ? Number(p.audio_volume ?? p.track_volume) : 80) / 100}
+                          profile={p}
+                          embedded={true}
+                        />
+                      </div>
+                    );
+                  })()}
+                </div>
+              </section>
 
               {/* Positioning Styles Selector */}
               <Section title="Positioning Styles" hint="Choose where your audio player appears on your profile">
@@ -1799,9 +1824,9 @@ export default function Editor() {
                         onClick={() => {
                           set("track_position", posOption.id);
                           if (posOption.id === "corner-icon") {
-                            set("track_style", "corner-icon");
-                          } else if (p.track_style === "corner-icon") {
-                            set("track_style", "compact");
+                            setPlayerStyle("corner-icon");
+                          } else if (trackStyle === "corner-icon") {
+                            setPlayerStyle("compact");
                           }
                         }}
                         className={`p-3.5 rounded-xl border text-left transition-all duration-200 flex flex-col justify-between gap-1.5 cursor-pointer ${
@@ -1832,12 +1857,11 @@ export default function Editor() {
                       </div>
                       <div className="min-w-0">
                         <div className="truncate text-xs font-bold text-white">
-                          {p.tracks?.[0]?.url ? (p.tracks[0].url.split("/").pop() || "audio-track.mp3") : "LUCKI - Roundtripski (Offic....mp3"}
+                          {p.tracks?.[0]?.url ? (p.tracks[0].url.split("/").pop() || "Audio track uploaded") : "No audio uploaded"}
                         </div>
-                        <div className="flex items-center gap-2 mt-0.5 text-[11px] font-mono2 text-zinc-400">
-                          <span className="text-zinc-300 font-semibold">{p.tracks?.[0]?.size || "7066 KB"}</span>
-                          <span>•</span>
-                          <span className="text-emerald-400">Ready</span>
+                        <div className="flex items-center gap-2 mt-0.5 text-[11px] font-mono2 text-zinc-500">
+                          {p.tracks?.[0]?.size && <span className="text-zinc-400">{p.tracks[0].size}</span>}
+                          <span>{p.tracks?.[0]?.url ? "Uploaded" : "Add a track to preview the player"}</span>
                         </div>
                       </div>
                     </div>
@@ -1870,7 +1894,7 @@ export default function Editor() {
                       <input
                         type="text"
                         data-testid="editor-track-name"
-                        value={p.tracks?.[0]?.title ?? (newTrackTitle || "LUCKI - Roundtripski (Official Visualizer) - LUCKI")}
+                        value={p.tracks?.[0]?.title ?? newTrackTitle}
                         onChange={(e) => {
                           const val = e.target.value;
                           setNewTrackTitle(val);
@@ -1878,11 +1902,11 @@ export default function Editor() {
                             const updated = [...p.tracks];
                             updated[0] = { ...updated[0], title: val };
                             set("tracks", updated);
-                          } else {
-                            set("tracks", [{ title: val, url: newTrackUrl || "/audio/track.mp3", artist: newTrackArtist || "LUCKI" }]);
+                          } else if (newTrackUrl || newTrackArtwork || newTrackArtist) {
+                            set("tracks", [{ title: val, url: newTrackUrl, artwork: newTrackArtwork, artist: newTrackArtist }]);
                           }
                         }}
-                        placeholder="LUCKI - Roundtripski (Official Visualizer) - LUCKI"
+                        placeholder="Track name"
                         className="w-full px-4 py-3 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs text-white outline-none focus:border-[#a48df4] transition"
                       />
                     </div>
@@ -1893,7 +1917,7 @@ export default function Editor() {
                       </label>
                       <input
                         type="text"
-                        value={p.tracks?.[0]?.artist ?? (newTrackArtist || "LUCKI")}
+                        value={p.tracks?.[0]?.artist ?? newTrackArtist}
                         onChange={(e) => {
                           const val = e.target.value;
                           setNewTrackArtist(val);
@@ -1901,8 +1925,8 @@ export default function Editor() {
                             const updated = [...p.tracks];
                             updated[0] = { ...updated[0], artist: val };
                             set("tracks", updated);
-                          } else {
-                            set("tracks", [{ title: newTrackTitle || "Untitled Track", url: newTrackUrl || "/audio/track.mp3", artist: val }]);
+                          } else if (newTrackUrl || newTrackArtwork || newTrackTitle) {
+                            set("tracks", [{ title: newTrackTitle, url: newTrackUrl, artwork: newTrackArtwork, artist: val }]);
                           }
                         }}
                         placeholder="Artist / Band Name"
@@ -2256,45 +2280,7 @@ export default function Editor() {
                   </div>
                 </div>
 
-                {/* PREVIEW: 1 of 1 */}
-                <div className="pt-4 border-t border-[#1f1f1f] space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold uppercase tracking-wider text-white">Preview</span>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#a48df4]/20 text-[#a48df4] border border-[#a48df4]/30">
-                        1 of 1
-                      </span>
-                    </div>
-                    <span className="text-[11px] text-zinc-400 font-mono2">Live Widget Styling</span>
-                  </div>
 
-                  <div className="p-6 rounded-2xl bg-black/60 border border-white/5 flex items-center justify-center relative overflow-hidden min-h-[140px]">
-                    {/* Real Interactive Live Preview Player */}
-                    {(() => {
-                      const effectiveTrack = {
-                        title: p.tracks?.[0]?.title || newTrackTitle || "LUCKI - Roundtripski (Official Visualizer) - LUCKI",
-                        artist: p.tracks?.[0]?.artist || newTrackArtist || "LUCKI",
-                        artwork: p.tracks?.[0]?.artwork || newTrackArtwork || "",
-                        lyrics: p.tracks?.[0]?.lyrics || newTrackLyrics || "",
-                        url: p.tracks?.[0]?.url || newTrackUrl || "",
-                        audio_url: p.tracks?.[0]?.audio_url || "",
-                      };
-
-                      return (
-                        <div className="w-full max-w-lg flex flex-col items-center">
-                          <TrackCardPreview
-                            track={effectiveTrack}
-                            style={p.track_style || p.audio_style || "compact"}
-                            accent={accentColor}
-                            volume={(Number.isFinite(Number(p.audio_volume ?? p.track_volume)) ? Number(p.audio_volume ?? p.track_volume) : 80) / 100}
-                            profile={p}
-                            embedded={true}
-                          />
-                        </div>
-                      );
-                    })()}
-                  </div>
-                </div>
               </div>
 
               {/* Legacy backward-compatibility elements in sr-only */}

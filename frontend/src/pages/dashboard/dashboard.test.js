@@ -1043,6 +1043,27 @@ describe("links page", () => {
   });
 });
 
+describe("audio player style picker", () => {
+  it("keeps every distinct style visible before its live preview", () => {
+    renderAt("/!/dashboard/editor", <Editor />);
+    click(subtab("layout"));
+
+    const styles = container.querySelector('[data-testid="audio-style-compact"]')?.closest("section");
+    const preview = container.querySelector('[data-testid="audio-style-preview-section"]');
+    expect(styles).toBeTruthy();
+    expect(preview).toBeTruthy();
+    expect(styles.compareDocumentPosition(preview) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+    for (const id of ["compact", "lyrics", "marquee", "vinyl", "mini-bar", "corner-icon"]) {
+      expect(container.querySelector(`[data-testid="audio-style-${id}"]`)).toBeTruthy();
+      expect(container.querySelector(`[data-testid="track-style-preview-${id}"]`)).toBeTruthy();
+    }
+    expect(container.querySelector('[data-testid="track-compact"]')).toBeTruthy();
+    expect(container.textContent).not.toContain("LUCKI");
+    expect(container.textContent).not.toContain("Roundtripski");
+  });
+});
+
 describe("widgets page", () => {
   it("offers a preset gallery with an icon per widget", () => {
     renderAt("/!/dashboard", <Widgets />);
@@ -1081,41 +1102,12 @@ describe("widgets page", () => {
     expect(saved.card_border_width).toBe(1);
   });
 
-  it("draws every player style and browses them in a popup", () => {
+  it("does not expose a stale placeholder player-style gallery in the Widgets page", () => {
     global.__DASH_USER__ = PREMIUM_USER;
     renderAt("/!/dashboard", <Widgets />);
 
-    // The catalogue is three styles now: mini-bar, compact and corner-icon
-    // (removed legacy ids are folded onto these by resolveTrackStyle).
-    for (const id of ["mini-bar", "compact", "corner-icon"]) {
-      expect(container.querySelector(`[data-testid="track-style-preview-${id}"]`)).toBeTruthy();
-      expect(container.querySelector(`[data-testid="track-style-${id}"]`)).toBeTruthy();
-    }
-
-    // The popup shows them at full size, then applies the chosen one.
+    expect(container.querySelector('[data-testid="browse-track-styles"]')).toBeFalsy();
     expect(document.body.querySelector('[data-testid="track-style-gallery"]')).toBeFalsy();
-    click(container.querySelector('[data-testid="browse-track-styles"]'));
-    expect(document.body.querySelector('[data-testid="track-style-gallery"]')).toBeTruthy();
-    expect(document.body.querySelector('[data-testid="gallery-style-corner-icon"]')).toBeTruthy();
-
-    click(document.body.querySelector('[data-testid="gallery-use-corner-icon"]'));
-    expect(container.querySelector('[data-testid="track-style-corner-icon"]').getAttribute("aria-pressed")).toBe("true");
-    expect(container.querySelector('[data-testid="track-style-compact"]').getAttribute("aria-pressed")).toBe("false");
-  });
-
-  it("applies every player style directly — none of them is locked any more", () => {
-    // The catalogue was cut to three styles and all three are free, so a free
-    // account picks any of them without a premium popup.
-    global.__DASH_USER__ = FREE_USER;
-    renderAt("/!/dashboard", <Widgets />);
-
-    click(container.querySelector('[data-testid="track-style-corner-icon"]'));
-    expect(document.body.querySelector('[data-testid="premium-gate"]')).toBeFalsy();
-    expect(container.querySelector('[data-testid="track-style-corner-icon"]').getAttribute("aria-pressed")).toBe("true");
-
-    click(container.querySelector('[data-testid="track-style-mini-bar"]'));
-    expect(container.querySelector('[data-testid="track-style-mini-bar"]').getAttribute("aria-pressed")).toBe("true");
-    expect(container.querySelector('[data-testid="track-style-corner-icon"]').getAttribute("aria-pressed")).toBe("false");
   });
 
   it("never invents values for a widget the owner has not filled in", async () => {

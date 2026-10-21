@@ -741,7 +741,6 @@ export default function Widgets() {
   const [editingWidget, setEditingWidget] = useState(null);
   const [premiumFeature, setPremiumFeature] = useState(null);
   const [widgetDragIndex, setWidgetDragIndex] = useState(null);
-  const [showStyleGallery, setShowStyleGallery] = useState(false);
 
   const openWidgetEditor = (kind, existingIndex = null) => {
     if (kind.premium && !isPremium) {
@@ -1836,53 +1835,7 @@ export default function Widgets() {
         </div>
       )}
 
-      {/* Hidden test-compatibility elements for Track Styles */}
-      <div className="sr-only" aria-hidden="true">
-        <button
-          type="button"
-          data-testid="browse-track-styles"
-          onClick={() => setShowStyleGallery(true)}
-        >
-          Browse styles
-        </button>
-        {TRACK_STYLES.map((s) => (
-          <div key={s.id}>
-            <span data-testid={`track-style-preview-${s.id}`}>
-              <TrackStylePreview id={s.id} accent={accentColor} />
-            </span>
-            <button
-              type="button"
-              data-testid={`track-style-${s.id}`}
-              aria-pressed={trackStyle === s.id ? "true" : "false"}
-              onClick={() => setTrackStyle(s.id)}
-            >
-              {s.label}
-            </button>
-          </div>
-        ))}
-      </div>
-
-      {showStyleGallery && (
-        <div
-          data-testid="track-style-gallery"
-          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
-        >
-          <div className="glass rounded-2xl p-6 max-w-md w-full space-y-4">
-            <div data-testid="gallery-style-corner-icon">Corner Icon Style</div>
-            <button
-              type="button"
-              data-testid="gallery-use-corner-icon"
-              onClick={() => {
-                setTrackStyle("corner-icon");
-                setShowStyleGallery(false);
-              }}
-            >
-              Use
-            </button>
-            <button type="button" onClick={() => setShowStyleGallery(false)}>Close</button>
-          </div>
-        </div>
-      )}
+      {/* Player layouts are configured alongside the actual track in Customize → Appearance → Audios. */}
 
       {/* Premium upgrade modal gate if attempted */}
       {premiumFeature && (
