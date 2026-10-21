@@ -1380,12 +1380,13 @@ export default function Widgets() {
       </div>
 
       {/* Available Widgets Section */}
-      <div className="rounded-2xl border border-[#2a2a2e] bg-[#111111] p-5 sm:p-6 space-y-4">
+      <div className="rounded-[20px] border border-white/[0.07] bg-[#111113] p-5 sm:p-6 space-y-4">
         <div>
-          <h2 className="text-sm font-bold text-white tracking-tight">Available Widgets</h2>
+          <h2 className="text-base font-bold text-white">Available Widgets</h2>
+          <p className="text-xs text-zinc-500 mt-0.5">Select a widget to configure it</p>
         </div>
 
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2.5">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
           {WIDGET_KINDS.map((kind) => {
             const Icon = kind.Icon || GENERIC_WIDGET_ICON;
             const locked = kind.premium && !isPremium;
@@ -1395,34 +1396,29 @@ export default function Widgets() {
                 type="button"
                 data-testid={`add-widget-${kind.id}`}
                 onClick={() => openWidgetEditor(kind)}
-                style={{ minHeight: "96px" }}
-                className={`group relative flex flex-col items-center justify-center gap-2.5 p-3.5 rounded-2xl border text-center transition-all duration-200 outline-none cursor-pointer ${
+                className={`group flex items-center gap-3.5 p-4 rounded-xl border text-left transition-all duration-200 outline-none cursor-pointer ${
                   locked
-                    ? "border-white/[0.04] bg-[#0a0a0d]/60 opacity-75 hover:opacity-100 hover:border-white/10"
-                    : "border-white/[0.06] bg-[#0d0d10] hover:border-[#b4bffa]/50 hover:bg-[#12121a] hover:shadow-[0_4px_20px_rgba(180,191,250,0.08)]"
+                    ? "border-white/[0.04] bg-[#0a0a0d]/60 opacity-60 hover:opacity-90 hover:border-white/10"
+                    : "border-white/[0.07] bg-[#0c0c0e] hover:border-white/[0.15] hover:bg-[#141416]"
                 }`}
               >
                 <div
-                  className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border transition-all duration-200 group-hover:scale-110"
-                  style={{ background: `${kind.color}18`, borderColor: `${kind.color}38` }}
+                  className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border transition-transform duration-200 group-hover:scale-105"
+                  style={{ background: `${kind.color}15`, borderColor: `${kind.color}30` }}
                 >
                   <Icon className="w-5 h-5" style={{ color: kind.color }} />
                 </div>
 
-                <div className="min-w-0 w-full">
-                  <div className="text-[11px] font-semibold text-zinc-400 group-hover:text-white truncate transition-colors leading-tight">
-                    {kind.label}
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-sm font-semibold text-white">{kind.label}</span>
+                    {locked && (
+                      <span className="flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 text-[9px] font-bold">
+                        <Lock className="w-2.5 h-2.5" /> PRO
+                      </span>
+                    )}
                   </div>
-                  {locked && (
-                    <div className="flex items-center justify-center gap-0.5 mt-0.5">
-                      <Lock className="w-2.5 h-2.5 text-amber-400" />
-                      <span className="text-[9px] font-bold text-amber-400">PRO</span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-md bg-[#535978] flex items-center justify-center text-white transition-all duration-200 opacity-0 group-hover:opacity-100 scale-75 group-hover:scale-100">
-                  <Plus className="w-3 h-3" />
+                  <p className="text-[11px] text-zinc-500 mt-0.5 line-clamp-2 leading-relaxed">{kind.desc}</p>
                 </div>
               </button>
             );
@@ -1431,10 +1427,11 @@ export default function Widgets() {
       </div>
 
       {/* Connected Widgets Section */}
-      <div className="rounded-2xl border border-[#2a2a2e] bg-[#111111] p-5 sm:p-6 space-y-4">
+      <div className="rounded-[20px] border border-white/[0.07] bg-[#111113] p-5 sm:p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-sm font-bold text-white tracking-tight">Connected Widgets</h2>
+            <h2 className="text-base font-bold text-white">Connected Widgets</h2>
+            <p className="text-xs text-zinc-500 mt-0.5">Manage your active profile widgets</p>
           </div>
           {widgets.length > 0 && (
             <button

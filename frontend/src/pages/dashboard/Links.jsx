@@ -283,190 +283,83 @@ export default function Links() {
 
   return (
     <div data-testid="links-page" className="w-full text-left space-y-6 pb-28">
-      {/* 1. Sleek Top Action Header (No duplicate titles) */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-white/10 bg-[#050505]/95 p-5 shadow-2xl backdrop-blur-xl">
-        <div className="flex items-center gap-3.5">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#535978]/15 border border-[#b4bffa]/30 text-white shadow-inner">
-            <LinkIcon className="h-5 w-5 text-brand-300" />
-          </div>
+
+      {/* Add Platform — full grid like cops.bio */}
+      <div className="rounded-[20px] border border-white/[0.07] bg-[#111113] p-5 sm:p-6 space-y-5">
+        <div className="flex items-center justify-between">
           <div>
-            <div className="flex items-center gap-2.5">
-              <h1 className="text-xl font-bold tracking-tight text-white">
-                Links & Socials
-              </h1>
-              <span className="text-xs font-mono2 text-brand-300 font-semibold px-2.5 py-0.5 rounded-full bg-brand-500/10 border border-brand-500/25">
-                {links.length} connected
+            <h2 className="text-base font-bold text-white">Add Platform</h2>
+            <p className="text-xs text-zinc-500 mt-0.5">Select a platform to connect</p>
+          </div>
+          <span className="text-xs font-mono2 text-zinc-500 border border-white/[0.07] rounded-lg px-2.5 py-1">
+            {links.length} / 10
+          </span>
+        </div>
+
+        <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3">
+          {PLATFORM_PRESETS.map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              data-testid={`link-preset-${p.id}`}
+              onClick={() => openAddLinkModal(p.id)}
+              className="group flex flex-col items-center gap-2.5 py-4 px-2 rounded-xl border border-white/[0.06] bg-[#0c0c0e] hover:border-white/[0.15] hover:bg-[#141416] transition-all duration-200 cursor-pointer"
+            >
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center">
+                <p.Icon className="w-6 h-6" style={{ color: p.color || "#ffffff" }} />
+              </div>
+              <span className="text-[10px] font-medium text-zinc-400 group-hover:text-white truncate w-full text-center transition-colors">
+                {p.name}
               </span>
-            </div>
-            <p className="text-xs text-zinc-400 mt-0.5">
-              Organize, sort, and customize all platform link cards on your profile
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2.5">
-          <button
-            data-testid="link-global-styles-btn"
-            onClick={() => setShowGlobalModal(true)}
-            className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-semibold text-zinc-200 border border-white/10 bg-[#09090c] hover:bg-white/[0.08] hover:border-white/20 transition cursor-pointer shadow-sm active:scale-95"
-          >
-            <Paintbrush className="h-4 w-4 text-brand-300" /> Global Styles
-          </button>
-          <button
-            data-testid="add-link-btn"
-            onClick={() => setShowAllPlatformsModal(true)}
-            className="flex items-center gap-2 rounded-xl bg-[#535978] hover:bg-[#424669] px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-[#535978]/20 transition cursor-pointer active:scale-95"
-          >
-            <Plus className="h-4 w-4 stroke-[2.5]" /> Add Link
-          </button>
-        </div>
-      </div>
-
-      {/* 2. Quick Add — top 5 + More button */}
-      <div className="rounded-2xl border border-white/10 bg-[#050505]/95 p-5 sm:p-6 shadow-2xl backdrop-blur-xl space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#535978]/10 border border-[#b4bffa]/20 flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-brand-300" />
-            </div>
-            <div>
-              <h2 className="text-sm font-bold text-white tracking-tight">Add a Platform</h2>
-              <p className="text-[11px] text-zinc-400">Connect your socials, gaming & portfolio accounts</p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => setShowAllPlatformsModal(true)}
-            className="flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold text-zinc-300 border border-white/10 bg-[#09090c] hover:bg-white/[0.08] hover:border-[#b4bffa]/40 transition cursor-pointer shrink-0"
-          >
-            <LayoutGrid className="h-3.5 w-3.5 text-brand-300" />
-            All {PLATFORM_PRESETS.length} platforms
-          </button>
-        </div>
-
-        {/* Top 5 popular + More card */}
-        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2.5">
-          {QUICK_PRESETS.slice(0, 5).map((id) => {
-            const p = ALL_MAP[id];
-            if (!p) return null;
-            return (
-              <button
-                key={id}
-                type="button"
-                data-testid={`link-quick-${id}`}
-                onClick={() => openAddLinkModal(id)}
-                style={{ minHeight: "86px" }}
-                className="group flex flex-col items-center justify-center gap-2 p-3.5 rounded-2xl border border-white/[0.06] bg-[#0d0d10] hover:border-[#b4bffa]/50 hover:bg-[#12121a] hover:shadow-[0_4px_20px_rgba(180,191,250,0.08)] transition-all duration-200 cursor-pointer"
-              >
-                <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center border transition-all duration-200 group-hover:scale-110"
-                  style={{ background: `${p.color || "#b4bffa"}18`, borderColor: `${p.color || "#b4bffa"}38` }}
-                >
-                  <p.Icon className="w-5 h-5" style={{ color: p.color || "#ffffff" }} />
-                </div>
-                <span className="text-[11px] font-semibold text-zinc-400 group-hover:text-white truncate w-full text-center transition-colors">
-                  {p.name}
-                </span>
-              </button>
-            );
-          })}
-
-          {/* "More" tile — opens full directory */}
-          <button
-            type="button"
-            onClick={() => setShowAllPlatformsModal(true)}
-            style={{ minHeight: "86px" }}
-            className="group flex flex-col items-center justify-center gap-2 p-3.5 rounded-2xl border border-dashed border-white/[0.08] bg-transparent hover:border-[#b4bffa]/40 hover:bg-[#0d0d10] transition-all duration-200 cursor-pointer"
-          >
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center border border-white/[0.08] group-hover:border-[#b4bffa]/40 bg-[#0a0a0d] transition-all duration-200">
-              <Plus className="w-5 h-5 text-zinc-600 group-hover:text-[#b4bffa] transition-colors" />
-            </div>
-            <span className="text-[11px] font-semibold text-zinc-600 group-hover:text-zinc-300 transition-colors">More</span>
-          </button>
-        </div>
-
-        {/* Hidden test-compatibility targets for all QUICK_PRESETS */}
-        <div className="sr-only" aria-hidden="true">
-          {QUICK_PRESETS.map((id) => (
-            <button key={id} type="button" data-testid={`link-preset-${id}`} onClick={() => openAddLinkModal(id)}>
-              {id}
             </button>
           ))}
         </div>
       </div>
 
-      {/* 3. Active Profile Links */}
-      <div className="rounded-2xl border border-white/10 bg-[#050505]/95 p-5 sm:p-6 shadow-2xl space-y-4 backdrop-blur-xl">
+      {/* Connected Links */}
+      <div className="rounded-[20px] border border-white/[0.07] bg-[#111113] p-5 sm:p-6 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center">
-              <ArrowUpDown className="w-4 h-4 text-zinc-400" />
-            </div>
-            <div>
-              <h2 className="text-sm font-bold text-white tracking-tight">
-                Active Profile Links
-              </h2>
-              <p className="text-[11px] text-zinc-400">
-                Drag to reorder · {links.length} link{links.length !== 1 ? "s" : ""} connected
-              </p>
-            </div>
+          <div>
+            <h2 className="text-base font-bold text-white">Connected Links</h2>
+            <p className="text-xs text-zinc-500 mt-0.5">Manage and reorder your social links</p>
           </div>
 
           <div className="flex items-center gap-2">
+            <button
+              data-testid="link-global-styles-btn"
+              onClick={() => setShowGlobalModal(true)}
+              className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-semibold text-zinc-300 border border-white/[0.07] bg-white/[0.03] hover:bg-white/[0.06] transition cursor-pointer"
+            >
+              <Paintbrush className="h-3 w-3" /> Set Color for All
+            </button>
             {links.length > 3 && (
-              <div className="relative w-44">
-                <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-500" />
+              <div className="relative w-36">
+                <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3 w-3 -translate-y-1/2 text-zinc-600" />
                 <input
                   type="text"
                   value={myLinksFilter}
                   onChange={(e) => setMyLinksFilter(e.target.value)}
-                  placeholder="Search your links..."
-                  className="w-full h-8 rounded-xl border border-white/10 bg-[#09090c] pl-8 pr-2.5 text-xs text-white placeholder-zinc-500 outline-none transition focus:border-[#b4bffa]"
+                  placeholder="Filter…"
+                  className="w-full h-7 rounded-lg border border-white/[0.07] bg-[#0c0c0e] pl-7 pr-2 text-[11px] text-white placeholder-zinc-600 outline-none transition focus:border-[#b4bffa]/40"
                 />
               </div>
-            )}
-            {links.length > 0 && (
-              <button
-                type="button"
-                onClick={() => {
-                  if (window.confirm("Remove all links from your profile?")) setLinks([]);
-                }}
-                className="text-xs font-semibold text-red-400 hover:text-red-300 transition px-2 py-1 rounded-lg hover:bg-red-500/10 cursor-pointer"
-              >
-                Clear all
-              </button>
             )}
           </div>
         </div>
 
         {links.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-white/[0.08] p-12 text-center bg-[#070709]/50 space-y-4">
-            <div className="w-14 h-14 rounded-2xl bg-[#535978]/10 border border-[#b4bffa]/20 flex items-center justify-center mx-auto">
-              <LinkIcon className="h-6 w-6 text-[#b4bffa]/70" />
+          <div className="rounded-xl border border-dashed border-white/[0.07] p-10 text-center space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-white/[0.03] border border-white/[0.07] flex items-center justify-center mx-auto">
+              <LinkIcon className="h-5 w-5 text-zinc-600" />
             </div>
-            <div>
-              <p className="text-sm font-bold text-white">No links yet</p>
-              <p className="text-xs text-zinc-500 mt-1 max-w-xs mx-auto">
-                Pick a platform above or use Add Link to start building your profile.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setShowAllPlatformsModal(true)}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#535978] px-5 py-2.5 text-xs font-bold text-white transition hover:bg-[#424669] shadow-md shadow-[#535978]/20 cursor-pointer"
-            >
-              <Plus className="h-4 w-4" /> Add your first link
-            </button>
+            <p className="text-xs text-zinc-500">No social links added yet</p>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             {visibleLinks.map((l) => {
               const i = l.originalIndex;
               const meta = ALL_MAP[l.platform] || {};
               const Icon = meta.Icon || LinkIcon;
-              const c = l.color || globals.color || meta.color || "hsl(272, 24%, 46%)";
-              const glow = l.glow || globals.glow || "";
-              const isCard = (l.mode || globals.mode) !== "icon";
 
               return (
                 <div
@@ -477,88 +370,54 @@ export default function Links() {
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={() => { moveLink(dragIndex, i); setDragIndex(null); }}
                   onDragEnd={() => setDragIndex(null)}
-                  className={`flex cursor-grab items-center justify-between gap-3.5 rounded-xl border p-3 sm:p-3.5 transition-all duration-150 active:cursor-grabbing ${
+                  className={`flex cursor-grab items-center gap-3 rounded-xl border p-3 transition-all duration-150 active:cursor-grabbing ${
                     dragIndex === i
-                      ? "border-[#b4bffa] opacity-50 bg-[#09090c]"
-                      : "border-white/10 bg-[#070709] hover:border-white/25 hover:bg-[#09090c]"
+                      ? "border-[#b4bffa]/40 opacity-50 bg-[#0c0c0e]"
+                      : "border-white/[0.06] bg-[#0c0c0e] hover:border-white/[0.12]"
                   }`}
                 >
-                  <div className="flex min-w-0 flex-1 items-center gap-3.5">
-                    <GripVertical className="h-4 w-4 shrink-0 text-zinc-600 hover:text-zinc-300" aria-hidden />
+                  <GripVertical className="h-4 w-4 shrink-0 text-zinc-700" aria-hidden />
 
-                    {/* Glowing Platform Icon Pill */}
-                    <span className="relative flex h-10 w-10 shrink-0 items-center justify-center">
-                      <span
-                        className="flex h-10 w-10 items-center justify-center rounded-xl border"
-                        style={{
-                          background: `${c}22`,
-                          borderColor: `${c}44`,
-                        }}
-                      >
-                        {fileUrl(l.icon_url) ? (
-                          <img src={fileUrl(l.icon_url)} alt="" className="h-5 w-5 rounded object-cover" />
-                        ) : (
-                          <Icon className="h-5 w-5" style={{ color: c }} />
-                        )}
-                      </span>
-                    </span>
-
-                    {/* Title & URL / Details */}
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="truncate text-xs font-bold text-white">
-                          {l.label || meta.name || l.platform}
-                        </span>
-                      </div>
-                      <div className="truncate font-mono2 text-[11px] text-zinc-400 mt-0.5">
-                        {l.url || l.username || "No link configured"}
-                      </div>
-                    </div>
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg">
+                    {fileUrl(l.icon_url) ? (
+                      <img src={fileUrl(l.icon_url)} alt="" className="h-5 w-5 rounded object-cover" />
+                    ) : (
+                      <Icon className="h-5 w-5" style={{ color: meta.color || "#9ca3af" }} />
+                    )}
                   </div>
 
-                  {/* Actions Row */}
-                  <div className="flex shrink-0 items-center gap-2">
-                    <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        data-testid={`link-up-${i}`}
-                        disabled={i === 0}
-                        onClick={() => moveLink(i, i - 1)}
-                        aria-label={`Move ${l.label || l.platform || "link"} up`}
-                        className="rounded-lg bg-white/5 border border-white/10 p-1.5 text-zinc-400 hover:text-white disabled:opacity-20 transition cursor-pointer"
-                        title="Move Up"
-                      >
-                        <ChevronUp className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        data-testid={`link-down-${i}`}
-                        disabled={i === links.length - 1}
-                        onClick={() => moveLink(i, i + 1)}
-                        aria-label={`Move ${l.label || l.platform || "link"} down`}
-                        className="rounded-lg bg-white/5 border border-white/10 p-1.5 text-zinc-400 hover:text-white disabled:opacity-20 transition cursor-pointer"
-                        title="Move Down"
-                      >
-                        <ChevronDown className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
+                  <div className="min-w-0 flex-1">
+                    <span className="text-xs font-semibold text-white truncate block">
+                      {l.label || meta.name || l.platform}
+                    </span>
+                    <span className="text-[11px] text-zinc-500 font-mono2 truncate block">
+                      {l.url || l.username || "—"}
+                    </span>
+                  </div>
 
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    <Switch
+                      checked={l.enabled !== false}
+                      onCheckedChange={(checked) => {
+                        setLinks(links.map((item, idx) => (idx === i ? { ...item, enabled: checked } : item)));
+                      }}
+                      className="data-[state=checked]:bg-[#535978]"
+                    />
                     <button
                       type="button"
                       data-testid={`link-edit-${i}`}
                       onClick={() => openEditLinkModal(i)}
-                      className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 px-3 py-1.5 text-xs font-semibold text-zinc-200 transition cursor-pointer"
+                      className="rounded-lg p-1.5 text-zinc-500 hover:text-white hover:bg-white/[0.06] transition cursor-pointer"
+                      title="Edit"
                     >
-                      <Edit2 className="h-3.5 w-3.5 text-brand-300" /> Edit
+                      <Edit2 className="h-3.5 w-3.5" />
                     </button>
-
                     <button
                       type="button"
                       data-testid={`link-delete-${i}`}
                       onClick={() => removeLink(i)}
-                      className="rounded-lg border border-red-500/20 bg-red-500/10 p-2 text-red-400 hover:bg-red-500/20 transition cursor-pointer"
-                      title="Delete Link"
-                      aria-label={`Delete ${l.label || l.platform || "link"}`}
+                      className="rounded-lg p-1.5 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 transition cursor-pointer"
+                      title="Delete"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
