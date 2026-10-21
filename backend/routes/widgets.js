@@ -387,6 +387,19 @@ function discordBanner(guild) {
   }
   return null;
 }
+function discordSplash(guild) {
+  if (guild?.splash) {
+    return `https://cdn.discordapp.com/splashes/${guild.id}/${guild.splash}.png?size=1024`;
+  }
+  if (guild?.discovery_splash) {
+    return `https://cdn.discordapp.com/discovery-splashes/${guild.id}/${guild.discovery_splash}.png?size=1024`;
+  }
+  if (guild?.banner) {
+    const ext = guild.banner.startsWith('a_') ? 'gif' : 'png';
+    return `https://cdn.discordapp.com/banners/${guild.id}/${guild.banner}.${ext}?size=1024`;
+  }
+  return null;
+}
 
 router.get('/discord/server', async (req, res) => {
   // `id` is the invite code (or a bare server ID). `guild` is an optional server
@@ -455,6 +468,9 @@ router.get('/discord/server', async (req, res) => {
         name: guild.name,
         icon: discordIcon(guild),
         banner: discordBanner(guild),
+        splash: discordSplash(guild),
+        boost_level: guild.premium_tier ?? null,
+        boost_count: guild.premium_subscription_count ?? null,
         description: guild.description || null,
         online,
         total_members: total,
@@ -489,6 +505,9 @@ router.get('/discord/server', async (req, res) => {
         name: preview?.name || data.name,
         icon: preview?.icon ? discordIcon({ id: preview.id || data.id, icon: preview.icon }) : null,
         banner: preview ? discordBanner(preview) : null,
+        splash: preview ? discordSplash(preview) : null,
+        boost_level: preview?.premium_tier ?? null,
+        boost_count: preview?.premium_subscription_count ?? null,
         description: preview?.description || null,
         online,
         total_members: total,

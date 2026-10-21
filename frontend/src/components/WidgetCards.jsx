@@ -292,9 +292,8 @@ function WidgetShell({
   const bgFill = hexOrRgba(w?.card_bg_color || defBgColor, fillAlpha);
   const blurVal = numOr(w?.card_bg_blur ?? defBgBlur, defBgBlur);
 
-  const isDiscord = w?.type === "discord";
   let bgImage = "";
-  if (!isDiscord && w?.type !== "games" && w?.type !== "projects") {
+  if (w?.type !== "games" && w?.type !== "projects") {
     const allowBanner = (w?.show_banner === true || w?.artwork_bg === "banner") && w?.show_banner !== false && w?.artwork_bg !== "none";
     if (w?.artwork_bg && w.artwork_bg !== "none") {
       if (w.artwork_bg === "banner") {
@@ -302,7 +301,7 @@ function WidgetShell({
           bgImage = data?.banner || data?.banner_url || data?.backdrop || (w.banner_url ? fileUrl(w.banner_url) : "");
         }
       } else if (w.artwork_bg === "splash") {
-        bgImage = data?.splash || data?.banner || "";
+        bgImage = data?.splash || data?.splash_url || data?.banner || "";
       } else if (w.artwork_bg === "thumbnail") {
         bgImage = data?.thumbnail || data?.latest?.thumbnail || data?.album_art || data?.cover || "";
       } else if (w.artwork_bg === "avatar") {
@@ -533,9 +532,11 @@ function RobloxProfile({ w, accent, data, status, error, refresh }) {
   return (
     <div className="relative flex items-center justify-between gap-3 py-1">
       {/* Subtle brand watermark on top right */}
-      <span className="absolute top-0 right-0 text-[10px] font-mono2 font-bold tracking-widest text-zinc-600 uppercase select-none opacity-40">
-        ROBLOX
-      </span>
+      {w.platform_badge !== false && (
+        <span className="absolute top-0 right-0 text-[10px] font-mono2 font-bold tracking-widest text-zinc-600 uppercase select-none opacity-40">
+          ROBLOX
+        </span>
+      )}
 
       <div className="flex items-center gap-3.5 min-w-0 flex-1">
         {/* 3D Avatar Headshot */}
@@ -559,19 +560,25 @@ function RobloxProfile({ w, accent, data, status, error, refresh }) {
           </div>
 
           {/* Stats line with Star and Users icons (Directly matching Image 2) */}
-          <div className="flex items-center gap-3 text-xs text-zinc-300 font-medium mt-0.5 truncate">
-            <span className="flex items-center gap-1">
-              <Star className="w-3 h-3 text-zinc-400 fill-zinc-400" /> {friendsCount} Friends
-            </span>
-            <span className="flex items-center gap-1">
-              <Users className="w-3 h-3 text-zinc-400" /> {followersCount} Followers
-            </span>
-          </div>
+          {w.stats_row !== false && (
+            <div className="flex items-center gap-3 text-xs text-zinc-300 font-medium mt-0.5 truncate">
+              {w.show_online !== false && (
+                <span className="flex items-center gap-1">
+                  <Star className="w-3 h-3 text-zinc-400 fill-zinc-400" /> {friendsCount} Friends
+                </span>
+              )}
+              {w.show_members !== false && (
+                <span className="flex items-center gap-1">
+                  <Users className="w-3 h-3 text-zinc-400" /> {followersCount} Followers
+                </span>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
       {/* Green pill button View Profile (Directly matching Image 2) */}
-      {profileHref && (
+      {w.view_button !== false && profileHref && (
         <WidgetInternalButton
           href={profileHref}
           className="shrink-0 px-3.5 py-1.5 rounded-full bg-[#22c55e] hover:bg-[#16a34a] text-white text-[11px] font-semibold transition active:scale-95 shadow-[0_2px_10px_rgba(34,197,94,0.3)] select-none"
@@ -795,33 +802,37 @@ function GitHubUser({ w, accent, data, status, error, refresh }) {
             <FaGithub className="w-3 h-3 text-zinc-400 shrink-0" />
             <span>@{data.username}</span>
           </div>
-          <div className="text-xs text-zinc-300 font-normal mt-1 truncate">
-            <span>{followers} Followers</span>
-            <span className="mx-1 text-zinc-500">•</span>
-            <span>{following} Following</span>
-            <span className="mx-1 text-zinc-500">•</span>
-            <span>{repos} Repos</span>
-          </div>
+          {w.stats_row !== false && (
+            <div className="text-xs text-zinc-300 font-normal mt-1 truncate">
+              {w.show_online !== false && <span>{followers} Followers</span>}
+              {w.show_online !== false && w.show_boost !== false && <span className="mx-1 text-zinc-500">•</span>}
+              {w.show_boost !== false && <span>{following} Following</span>}
+              {(w.show_online !== false || w.show_boost !== false) && w.show_members !== false && <span className="mx-1 text-zinc-500">•</span>}
+              {w.show_members !== false && <span>{repos} Repos</span>}
+            </div>
+          )}
         </div>
       </div>
 
       {/* About, Company, Joined */}
-      <div className="mt-2 pt-2 border-t border-white/[0.06] space-y-1.5 text-xs">
-        <div className="text-[11px] font-semibold text-zinc-400">About</div>
-        <div className="text-zinc-200 leading-snug line-clamp-2">
-          {data.bio || w.bio || "No description provided."}
-        </div>
-        {data.company && (
-          <div className="flex items-center gap-2 text-zinc-400">
-            <Building2 className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
-            <span>{data.company.startsWith("@") ? data.company : `@${data.company}`}</span>
+      {w.show_subtitle !== false && (
+        <div className="mt-2 pt-2 border-t border-white/[0.06] space-y-1.5 text-xs">
+          <div className="text-[11px] font-semibold text-zinc-400">About</div>
+          <div className="text-zinc-200 leading-snug line-clamp-2">
+            {data.bio || w.bio || "No description provided."}
           </div>
-        )}
-        <div className="flex items-center gap-2 text-zinc-400">
-          <Clock className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
-          <span>{joinedText}</span>
+          {data.company && (
+            <div className="flex items-center gap-2 text-zinc-400">
+              <Building2 className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+              <span>{data.company.startsWith("@") ? data.company : `@${data.company}`}</span>
+            </div>
+          )}
+          <div className="flex items-center gap-2 text-zinc-400">
+            <Clock className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+            <span>{joinedText}</span>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Realistic Activity Graph Heatmap */}
       <GithubHeatmap username={data.username} seed={data.repos || 228} />
@@ -1086,50 +1097,56 @@ function DiscordProfile({ w, accent, data, status, error, refresh }) {
 
   // Official Discord client popout style
   if (style === "discord") {
-    const showPopoutBanner = (w.show_banner === true || w.artwork_bg === "banner" || w.discord_style === "banner") && w.show_banner !== false && w.artwork_bg !== "none";
+    const showPopoutBanner = (w.show_banner !== false) && (w.artwork_bg === "banner" || (!w.artwork_bg && w.show_banner !== false)) && w.artwork_bg !== "none";
     const bannerUrl = showPopoutBanner ? (data.banner || "") : "";
     return (
       <div className="-m-4 overflow-hidden rounded-2xl" style={{ background: DC.panel }} data-testid="discord-profile-style">
-        <div
-          className="h-16 w-full bg-cover bg-center relative"
-          style={{
-            backgroundImage: bannerUrl ? `url(${bannerUrl})` : undefined,
-            backgroundColor: data.banner_color || DC.blurple,
-            background: !bannerUrl && !data.banner_color ? `linear-gradient(120deg, ${DC.blurple}, #8C71E8)` : undefined,
-          }}
-        />
-        <div className="px-3 pb-3">
-          <span className="relative -mt-7 mb-1 inline-block">
+        {showPopoutBanner && (
+          <div
+            className="h-16 w-full bg-cover bg-center relative"
+            style={{
+              backgroundImage: bannerUrl ? `url(${bannerUrl})` : undefined,
+              backgroundColor: data.banner_color || DC.blurple,
+              background: !bannerUrl && !data.banner_color ? `linear-gradient(120deg, ${DC.blurple}, #8C71E8)` : undefined,
+            }}
+          />
+        )}
+        <div className={`px-3 pb-3 ${showPopoutBanner ? "" : "pt-3"}`}>
+          <span className={`relative ${showPopoutBanner ? "-mt-7" : ""} mb-1 inline-block`}>
             <span className="block rounded-full border-4" style={{ borderColor: DC.panel }}>
               <img src={data.avatar} alt={handle} className="w-14 h-14 rounded-full object-cover" />
             </span>
-            <span className={`absolute -bottom-0.5 right-0.5 h-4 w-4 rounded-full border-4 ${dot}`} style={{ borderColor: DC.panel }} />
+            {w.show_online !== false && (
+              <span className={`absolute -bottom-0.5 right-0.5 h-4 w-4 rounded-full border-4 ${dot}`} style={{ borderColor: DC.panel }} />
+            )}
           </span>
           <div className="text-sm font-bold" style={{ color: DC.text }}>{display}</div>
           <div className="text-[11px]" style={{ color: DC.muted }}>@{handle}</div>
 
-          <div className="mt-2.5 space-y-1.5 rounded-xl p-2.5" style={{ background: DC.row }}>
-            {data.custom_status && <div className="text-[11px]" style={{ color: DC.text }}>{data.custom_status}</div>}
-            {data.activity && (
-              <div className="text-[11px]" style={{ color: DC.muted }}>
-                {data.activity.name}{data.activity.details ? ` · ${data.activity.details}` : ""}
-              </div>
-            )}
-            {data.spotify && (
-              <div className="flex items-center gap-2">
-                {data.spotify.album_art && (
-                  <img src={data.spotify.album_art} alt="" className="h-8 w-8 rounded-md object-cover" loading="lazy" />
-                )}
-                <div className="min-w-0">
-                  <div className="truncate text-[10px] font-bold text-[#1DB954]">{data.spotify.song}</div>
-                  <div className="truncate text-[9px]" style={{ color: DC.muted }}>{data.spotify.artist}</div>
+          {w.stats_row !== false && (
+            <div className="mt-2.5 space-y-1.5 rounded-xl p-2.5" style={{ background: DC.row }}>
+              {w.show_subtitle !== false && data.custom_status && <div className="text-[11px]" style={{ color: DC.text }}>{data.custom_status}</div>}
+              {data.activity && (
+                <div className="text-[11px]" style={{ color: DC.muted }}>
+                  {data.activity.name}{data.activity.details ? ` · ${data.activity.details}` : ""}
                 </div>
-              </div>
-            )}
-            {!data.custom_status && !data.activity && !data.spotify && (
-              <div className="text-[10px]" style={{ color: DC.muted }}>No status set right now</div>
-            )}
-          </div>
+              )}
+              {data.spotify && (
+                <div className="flex items-center gap-2">
+                  {data.spotify.album_art && (
+                    <img src={data.spotify.album_art} alt="" className="h-8 w-8 rounded-md object-cover" loading="lazy" />
+                  )}
+                  <div className="min-w-0">
+                    <div className="truncate text-[10px] font-bold text-[#1DB954]">{data.spotify.song}</div>
+                    <div className="truncate text-[9px]" style={{ color: DC.muted }}>{data.spotify.artist}</div>
+                  </div>
+                </div>
+              )}
+              {!data.custom_status && !data.activity && !data.spotify && (
+                <div className="text-[10px]" style={{ color: DC.muted }}>No status set right now</div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     );
@@ -1144,15 +1161,19 @@ function DiscordProfile({ w, accent, data, status, error, refresh }) {
         <div className="w-[48px] h-[48px] rounded-full overflow-hidden bg-zinc-900 border border-white/10 shadow-md">
           <img src={data.avatar} alt={handle} className="w-full h-full object-cover" />
         </div>
-        <span className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-[#0c0d12] ${dot}`} />
+        {w.show_online !== false && (
+          <span className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-[#0c0d12] ${dot}`} />
+        )}
       </div>
       <div className="min-w-0 flex-1">
         <div className="text-sm sm:text-base font-bold text-white tracking-wide truncate">
           {display || handle}
         </div>
-        <div className="text-xs text-zinc-400 italic font-normal truncate mt-0.5">
-          {statusSubtitle}
-        </div>
+        {w.show_subtitle !== false && (
+          <div className="text-xs text-zinc-400 italic font-normal truncate mt-0.5">
+            {statusSubtitle}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1201,6 +1222,8 @@ function DiscordServer({ w, accent, data, status, error, refresh }) {
       </div>
     );
 
+  const hasCardBg = (w?.artwork_bg && w.artwork_bg !== "none") || (!w?.artwork_bg && w.show_banner !== false && (data?.banner || data?.splash));
+
   if (style === "minimal") {
     return (
       <div className="flex items-center gap-3">
@@ -1209,12 +1232,16 @@ function DiscordServer({ w, accent, data, status, error, refresh }) {
         </div>
         <div className="min-w-0 flex-1">
           <div className="truncate text-xs font-bold text-zinc-100">{name}</div>
-          <div className="text-[10px] text-zinc-400 truncate">
-            <span className="text-emerald-400 font-medium">{online} online</span>
-            {data.total_members != null && <span> · {members} members</span>}
-          </div>
+          {w.stats_row !== false && (
+            <div className="text-[10px] text-zinc-400 truncate">
+              {w.show_online !== false && <span className="text-emerald-400 font-medium">{online} online</span>}
+              {w.show_members !== false && data.total_members != null && (
+                <span>{w.show_online !== false ? " · " : ""}{members} members</span>
+              )}
+            </div>
+          )}
         </div>
-        {joinHref && (
+        {w.view_button !== false && joinHref && (
           <WidgetInternalButton
             href={joinHref}
             className="shrink-0 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-[11px] font-semibold text-white transition"
@@ -1225,22 +1252,24 @@ function DiscordServer({ w, accent, data, status, error, refresh }) {
     );
   }
 
-  // Banner: the server banner fills the top half of the card and the icon
-  // straddles the halfway mark. A server without a banner falls back to an
-  // uploadable one (w.banner_url) or a brand gradient.
+  // Banner style: If hasCardBg is true, WidgetShell already handles card background.
+  // Otherwise if show_banner is enabled and artwork_bg is not none, render the top header banner.
   if (style === "banner") {
+    const showHeaderBanner = (w.show_banner !== false) && (w.artwork_bg !== "none") && (w.artwork_bg !== "splash") && (w.artwork_bg !== "avatar") && !hasCardBg;
     return (
       <>
-        <div className="relative h-24 w-full overflow-hidden rounded-2xl">
-          {bannerSrc ? (
-            <img src={bannerSrc} alt="" className="h-full w-full object-cover" />
-          ) : (
-            <div className="h-full w-full" style={{ background: `linear-gradient(120deg, ${DC.blurple}, #8C71E8)` }} />
-          )}
-          <div className="absolute inset-x-0 bottom-0 h-1/2" style={{ background: "linear-gradient(to top, rgba(12,13,18,0.9), transparent)" }} />
-        </div>
+        {showHeaderBanner && (
+          <div className="relative h-24 w-full overflow-hidden rounded-2xl">
+            {bannerSrc ? (
+              <img src={bannerSrc} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <div className="h-full w-full" style={{ background: `linear-gradient(120deg, ${DC.blurple}, #8C71E8)` }} />
+            )}
+            <div className="absolute inset-x-0 bottom-0 h-1/2" style={{ background: "linear-gradient(to top, rgba(12,13,18,0.9), transparent)" }} />
+          </div>
+        )}
 
-        <div className="relative z-10 -mt-7 px-2 flex items-end gap-3">
+        <div className={`relative z-10 ${showHeaderBanner ? "-mt-7" : "pt-1"} px-2 flex items-end gap-3`}>
           <div className="h-14 w-14 rounded-2xl overflow-hidden bg-zinc-900 shrink-0 ring-4 ring-[#0c0d12]">
             <ServerGlyph size={24} />
           </div>
@@ -1253,28 +1282,44 @@ function DiscordServer({ w, accent, data, status, error, refresh }) {
         </div>
 
         <div className="px-2 pt-2.5 space-y-2.5">
-          <div className="flex items-center gap-3 text-xs flex-wrap">
-            <span className="flex items-center gap-1.5 text-zinc-200 font-medium">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]" />
-              {online} online
-            </span>
-            {offline != null && (
-              <span className="flex items-center gap-1.5 text-zinc-400 font-medium">
-                <span className="w-2 h-2 rounded-full bg-zinc-500" />
-                {offline} offline
-              </span>
-            )}
-            {members !== "—" && <span className="text-zinc-500 text-[11px]">· {members} total</span>}
-          </div>
+          {w.stats_row !== false && (
+            <div className="flex items-center gap-3 text-xs flex-wrap">
+              {w.show_online !== false && (
+                <span className="flex items-center gap-1.5 text-zinc-200 font-medium">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]" />
+                  {online} online
+                </span>
+              )}
+              {w.show_online !== false && offline != null && (
+                <span className="flex items-center gap-1.5 text-zinc-400 font-medium">
+                  <span className="w-2 h-2 rounded-full bg-zinc-500" />
+                  {offline} offline
+                </span>
+              )}
+              {w.show_members !== false && members !== "—" && (
+                <span className="text-zinc-500 text-[11px]">· {members} total</span>
+              )}
+              {w.show_boost !== false && (data.boost_level != null || data.boost_count != null) && (
+                <span className="flex items-center gap-1 text-purple-400 font-medium text-[11px]">
+                  <Sparkles className="w-3 h-3 text-purple-400" />
+                  {data.boost_level != null ? `Level ${data.boost_level}` : `${data.boost_count} Boosts`}
+                </span>
+              )}
+            </div>
+          )}
           <div className="flex items-center justify-between gap-3 pt-0.5">
-            <p className="text-xs text-zinc-300 leading-snug truncate flex-1">
-              {description || (data.description ? data.description : "")}
-            </p>
-            <WidgetInternalButton
-              href={joinHref || "#"}
-              className="px-4 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 active:scale-95 text-white text-xs font-semibold transition border border-white/5 shrink-0"
-              label="Join"
-            />
+            {w.show_subtitle !== false && (description || data.description) && (
+              <p className="text-xs text-zinc-300 leading-snug truncate flex-1">
+                {description || data.description}
+              </p>
+            )}
+            {w.view_button !== false && (
+              <WidgetInternalButton
+                href={joinHref || "#"}
+                className="px-4 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 active:scale-95 text-white text-xs font-semibold transition border border-white/5 shrink-0"
+                label="Join"
+              />
+            )}
           </div>
         </div>
       </>
@@ -1282,7 +1327,7 @@ function DiscordServer({ w, accent, data, status, error, refresh }) {
   }
 
   // Classic: Authentic Discord Invite Preview (Rich card matching Studio design)
-  const showClassicBanner = (w.show_banner === true || w.artwork_bg === "banner") && w.show_banner !== false && w.artwork_bg !== "none";
+  const showClassicBanner = (w.show_banner !== false) && (w.artwork_bg === "banner" || (!w.artwork_bg && bannerSrc)) && !hasCardBg;
   return (
     <div className="relative flex flex-col gap-2.5 py-1">
       {bannerSrc && showClassicBanner && (
@@ -1292,17 +1337,19 @@ function DiscordServer({ w, accent, data, status, error, refresh }) {
         </div>
       )}
       {/* Top Header Row with Platform Badge */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-[#5865F2]/20 border border-[#5865F2]/40 text-[#5865F2]">
-            <FaDiscord className="w-3.5 h-3.5" />
+      {w.platform_badge !== false && (
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-[#5865F2]/20 border border-[#5865F2]/40 text-[#5865F2]">
+              <FaDiscord className="w-3.5 h-3.5" />
+            </div>
+            <span className="text-xs font-bold text-white tracking-wide">Discord Server</span>
           </div>
-          <span className="text-xs font-bold text-white tracking-wide">Discord Server</span>
+          <span className="px-2 py-0.5 rounded-md bg-white/10 text-[10px] font-bold text-zinc-300 border border-white/15 uppercase tracking-wider">
+            Discord
+          </span>
         </div>
-        <span className="px-2 py-0.5 rounded-md bg-white/10 text-[10px] font-bold text-zinc-300 border border-white/15 uppercase tracking-wider">
-          Discord
-        </span>
-      </div>
+      )}
 
       <div className="flex items-center justify-between gap-3.5 pt-0.5">
         <div className="flex items-center gap-3.5 min-w-0 flex-1">
@@ -1318,33 +1365,43 @@ function DiscordServer({ w, accent, data, status, error, refresh }) {
                 {name}
               </span>
             </div>
-            {description ? (
+            {w.show_subtitle !== false && description ? (
               <div className="text-xs text-zinc-300/80 mt-0.5 line-clamp-2 leading-relaxed">
                 {description}
               </div>
             ) : null}
-            <div className="flex items-center gap-3 text-xs mt-1.5 flex-wrap">
-              <span className="flex items-center gap-1.5 text-emerald-400 font-semibold">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#34d399]" />
-                {online} Online
-              </span>
-              {offline != null && (
-                <span className="flex items-center gap-1.5 text-zinc-400 font-medium">
-                  <span className="w-2 h-2 rounded-full bg-zinc-500" />
-                  {offline} Offline
-                </span>
-              )}
-              {members !== "—" && (
-                <span className="flex items-center gap-1.5 text-zinc-300 font-medium">
-                  {members} Members
-                </span>
-              )}
-            </div>
+            {w.stats_row !== false && (
+              <div className="flex items-center gap-3 text-xs mt-1.5 flex-wrap">
+                {w.show_online !== false && (
+                  <span className="flex items-center gap-1.5 text-emerald-400 font-semibold">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#34d399]" />
+                    {online} Online
+                  </span>
+                )}
+                {w.show_online !== false && offline != null && (
+                  <span className="flex items-center gap-1.5 text-zinc-400 font-medium">
+                    <span className="w-2 h-2 rounded-full bg-zinc-500" />
+                    {offline} Offline
+                  </span>
+                )}
+                {w.show_members !== false && members !== "—" && (
+                  <span className="flex items-center gap-1.5 text-zinc-300 font-medium">
+                    {members} Members
+                  </span>
+                )}
+                {w.show_boost !== false && (data.boost_level != null || data.boost_count != null) && (
+                  <span className="flex items-center gap-1 text-purple-400 font-medium text-xs">
+                    <Sparkles className="w-3 h-3 text-purple-400" />
+                    {data.boost_level != null ? `Level ${data.boost_level}` : `${data.boost_count} Boosts`}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
         {/* Join Button */}
-        {joinHref && (
+        {w.view_button !== false && joinHref && (
           <WidgetInternalButton
             href={joinHref}
             className="shrink-0 px-4 py-2 rounded-xl bg-[#5865F2] hover:bg-[#4752c4] active:scale-95 text-white text-xs font-bold shadow-[0_2px_12px_rgba(88,101,242,0.4)] transition border border-white/10 select-none flex items-center gap-1.5"
@@ -1380,9 +1437,11 @@ function YouTubeChannel({ w, accent, data, status, error, refresh }) {
   return (
     <div className="relative flex items-center justify-between gap-3 py-1">
       {/* Top right subtle watermark */}
-      <span className="absolute top-0 right-0 flex items-center gap-1 text-[10px] font-mono2 font-bold tracking-wider text-zinc-600 uppercase select-none opacity-40">
-        <FaYoutube className="w-3 h-3 text-red-500" /> YOUTUBE
-      </span>
+      {w.platform_badge !== false && (
+        <span className="absolute top-0 right-0 flex items-center gap-1 text-[10px] font-mono2 font-bold tracking-wider text-zinc-600 uppercase select-none opacity-40">
+          <FaYoutube className="w-3 h-3 text-red-500" /> YOUTUBE
+        </span>
+      )}
 
       <div className="flex items-center gap-3.5 min-w-0 flex-1">
         {/* Avatar with red ring */}
@@ -1402,15 +1461,17 @@ function YouTubeChannel({ w, accent, data, status, error, refresh }) {
             <span className="truncate">{data.title || "YouTube Channel"}</span>
             <Check className="w-3.5 h-3.5 text-red-500 shrink-0" />
           </div>
-          <div className="flex items-center gap-1.5 text-xs text-zinc-300 font-medium mt-0.5 truncate">
-            <Users className="w-3 h-3 text-zinc-400" />
-            <span>{subs} Subscribers</span>
-          </div>
+          {w.stats_row !== false && w.show_online !== false && (
+            <div className="flex items-center gap-1.5 text-xs text-zinc-300 font-medium mt-0.5 truncate">
+              <Users className="w-3 h-3 text-zinc-400" />
+              <span>{subs} Subscribers</span>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Red View Channel button */}
-      {channelUrl && (
+      {w.view_button !== false && channelUrl && (
         <WidgetInternalButton
           href={channelUrl}
           className="shrink-0 px-3.5 py-1.5 rounded-full bg-[#ff0000] hover:bg-red-600 active:scale-95 text-white text-[11px] font-semibold transition shadow-[0_2px_12px_rgba(255,0,0,0.35)] select-none"
@@ -1446,9 +1507,11 @@ function SteamProfile({ w, accent, data, status, error, refresh }) {
   return (
     <div className="relative flex items-center justify-between gap-3 py-1">
       {/* Subtle top-right watermark */}
-      <span className="absolute top-0 right-0 flex items-center gap-1 text-[10px] font-mono2 font-bold tracking-wider text-zinc-600 uppercase select-none opacity-40">
-        <FaSteam className="w-3 h-3 text-[#171a21]" /> STEAM
-      </span>
+      {w.platform_badge !== false && (
+        <span className="absolute top-0 right-0 flex items-center gap-1 text-[10px] font-mono2 font-bold tracking-wider text-zinc-600 uppercase select-none opacity-40">
+          <FaSteam className="w-3 h-3 text-[#171a21]" /> STEAM
+        </span>
+      )}
 
       <div className="flex items-center gap-3.5 min-w-0 flex-1">
         <div
@@ -1461,14 +1524,16 @@ function SteamProfile({ w, accent, data, status, error, refresh }) {
           <div className="text-sm sm:text-base font-bold text-white tracking-wide truncate">
             {data.persona || "Steam User"}
           </div>
-          <div className="flex items-center gap-1.5 text-xs font-medium mt-0.5 truncate" style={{ color: statusColor }}>
-            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: statusColor }} />
-            <span>{inGame ? `Playing ${data.current_game.name}` : data.state_message || (data.online ? "Online" : "Offline")}</span>
-          </div>
+          {w.stats_row !== false && w.show_online !== false && (
+            <div className="flex items-center gap-1.5 text-xs font-medium mt-0.5 truncate" style={{ color: statusColor }}>
+              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: statusColor }} />
+              <span>{inGame ? `Playing ${data.current_game.name}` : data.state_message || (data.online ? "Online" : "Offline")}</span>
+            </div>
+          )}
         </div>
       </div>
 
-      {profileUrl && (
+      {w.view_button !== false && profileUrl && (
         <WidgetInternalButton
           href={profileUrl}
           className="px-4 py-1.5 rounded-full bg-[#1b2838] hover:bg-[#2a475e] active:scale-95 text-[#66c0f4] hover:text-white text-xs font-bold transition border border-[#66c0f4]/20 shrink-0 shadow-sm"

@@ -405,6 +405,72 @@ const DEFAULT_SHARED = {
 const snapshot = (widgets, shared, tracks, trackStyle, shuffle, volume, trackPosition) =>
   JSON.stringify({ widgets, shared, tracks, trackStyle, shuffle, volume, trackPosition });
 
+function getPreviewStats(widget, kind, data) {
+  const isDiscord = widget.type === "discord";
+  if (isDiscord) {
+    const online = data?.online != null ? `${formatCount(data.online)} Online` : "13 Online";
+    const members = data?.total_members != null ? `${formatCount(data.total_members)} Members` : "88 Members";
+    const boost = data?.boost_level != null ? `Level ${data.boost_level}` : (data?.boost_count != null ? `${data.boost_count} Boosts` : "Level 3");
+    return {
+      stat1: { label: online, color: "text-emerald-400", dot: "bg-emerald-400" },
+      stat2: { label: members, color: "text-zinc-300" },
+      stat3: { label: boost, color: "text-purple-400" },
+    };
+  }
+  if (widget.type === "youtube") {
+    const subs = data?.stats?.subscribers != null ? `${formatCount(data.stats.subscribers)} Subs` : "10.4K Subs";
+    const vids = data?.stats?.video_count != null ? `${formatCount(data.stats.video_count)} Videos` : "142 Videos";
+    const views = data?.stats?.view_count != null ? `${formatCount(data.stats.view_count)} Views` : "1.2M Views";
+    return {
+      stat1: { label: subs, color: "text-red-400", dot: "bg-red-400" },
+      stat2: { label: vids, color: "text-zinc-300" },
+      stat3: { label: views, color: "text-amber-400" },
+    };
+  }
+  if (widget.type === "github") {
+    const followers = data?.followers != null ? `${formatCount(data.followers)} Followers` : "42 Followers";
+    const repos = data?.repos != null ? `${formatCount(data.repos)} Repos` : "18 Repos";
+    const stars = data?.stars != null ? `${formatCount(data.stars)} Stars` : "120 Stars";
+    return {
+      stat1: { label: followers, color: "text-blue-400", dot: "bg-blue-400" },
+      stat2: { label: repos, color: "text-zinc-300" },
+      stat3: { label: stars, color: "text-amber-400" },
+    };
+  }
+  if (widget.type === "roblox") {
+    const playing = data?.playing != null ? `${formatCount(data.playing)} Playing` : (data?.presence || "Online");
+    const friends = data?.friends != null ? `${formatCount(data.friends)} Friends` : (data?.members != null ? `${formatCount(data.members)} Members` : "84 Friends");
+    const visits = data?.visits != null ? `${formatCount(data.visits)} Visits` : (data?.followers != null ? `${formatCount(data.followers)} Followers` : "Level 40");
+    return {
+      stat1: { label: playing, color: "text-emerald-400", dot: "bg-emerald-400" },
+      stat2: { label: friends, color: "text-zinc-300" },
+      stat3: { label: visits, color: "text-purple-400" },
+    };
+  }
+  if (widget.type === "steam") {
+    const status = data?.current_game ? `In: ${data.current_game}` : (data?.online ? "Online" : "Offline");
+    const game = data?.game_info || "Counter-Strike 2";
+    const lvl = data?.level ? `Level ${data.level}` : "Level 64";
+    return {
+      stat1: { label: status, color: data?.current_game ? "text-emerald-400" : "text-sky-400", dot: "bg-emerald-400" },
+      stat2: { label: game, color: "text-zinc-300" },
+      stat3: { label: lvl, color: "text-purple-400" },
+    };
+  }
+  if (widget.type === "spotify") {
+    return {
+      stat1: { label: data?.author || "The Weeknd", color: "text-emerald-400", dot: "bg-emerald-400" },
+      stat2: { label: data?.duration || "3:24", color: "text-zinc-300" },
+      stat3: { label: "Lossless Audio", color: "text-brand-400" },
+    };
+  }
+  return {
+    stat1: { label: data?.online != null ? `${formatCount(data.online)} Online` : "Active", color: "text-emerald-400", dot: "bg-emerald-400" },
+    stat2: { label: data?.total_members != null ? `${formatCount(data.total_members)} Total` : "Connected", color: "text-zinc-300" },
+    stat3: { label: "Synced", color: "text-purple-400" },
+  };
+}
+
 /**
  * Real Live Data Widget Preview Component
  * Fetches real API data dynamically using useWidgetData
@@ -416,18 +482,22 @@ function RealLiveWidgetPreview({ widget, kind, styleOverride }) {
 
   // Background artwork
   let bgImage = "";
-  if (!isDiscord) {
+  if (widget.artwork_bg && widget.artwork_bg !== "none") {
     if (widget.artwork_bg === "banner") {
-      bgImage = data?.banner || data?.banner_url || data?.backdrop || (widget.type === "youtube" ? "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80" : "");
+      if (widget.show_banner !== false) {
+        bgImage = data?.banner || data?.banner_url || data?.backdrop || (widget.banner_url ? fileUrl(widget.banner_url) : "") || (widget.type === "youtube" ? "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80" : (isDiscord ? "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80" : ""));
+      }
     } else if (widget.artwork_bg === "splash") {
-      bgImage = data?.splash || data?.banner;
+      bgImage = data?.splash || data?.splash_url || data?.banner || (isDiscord ? "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=800&auto=format&fit=crop&q=80" : "");
     } else if (widget.artwork_bg === "thumbnail") {
       bgImage = data?.thumbnail || data?.latest?.thumbnail || data?.album_art || data?.cover || (widget.type === "youtube" ? "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80" : (widget.type === "spotify" ? "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&auto=format&fit=crop&q=80" : ""));
     } else if (widget.artwork_bg === "game") {
       bgImage = data?.game_image || data?.current_game?.image || "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&auto=format&fit=crop&q=80";
     } else if (widget.artwork_bg === "avatar") {
-      bgImage = data?.icon || data?.avatar;
+      bgImage = data?.icon || data?.avatar || (isDiscord ? "https://cdn.discordapp.com/embed/avatars/0.png" : "");
     }
+  } else if (!widget.artwork_bg && widget.show_banner !== false && (data?.banner || data?.splash)) {
+    bgImage = data.banner || data.splash;
   }
 
   // Filter overlays
@@ -481,12 +551,11 @@ function RealLiveWidgetPreview({ widget, kind, styleOverride }) {
     subtitle = "";
   }
 
-  const avatarUrl = data?.icon || data?.avatar || data?.thumbnail || "";
-  const stats = (typeof getPreviewStats === "function") ? getPreviewStats(widget, kind, data) : {
-    stat1: { label: "13 Online", color: "text-emerald-400", dot: "bg-emerald-400" },
-    stat2: { label: "88 Members", color: "text-zinc-300" },
-    stat3: { label: "Level 3", color: "text-purple-400" },
-  };
+  const avatarUrl = data?.icon || data?.avatar || data?.thumbnail || (isDiscord ? "https://cdn.discordapp.com/embed/avatars/0.png" : "");
+  const stats = getPreviewStats(widget, kind, data);
+
+  // If artwork_bg is "none" but show_banner is enabled, show banner header
+  const showTopHeaderBanner = widget.show_banner !== false && widget.artwork_bg === "none" && (data?.banner || data?.splash || widget.banner_url || (isDiscord && "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80"));
 
   return (
     <div
@@ -503,6 +572,18 @@ function RealLiveWidgetPreview({ widget, kind, styleOverride }) {
 
       {/* Background Filter Overlay */}
       <div className={`relative z-10 p-5 space-y-3.5 ${widget.artwork_bg !== "none" && bgImage ? overlayClass : ""}`}>
+        {/* Optional Top Header Banner if artwork_bg is none and show_banner is true */}
+        {showTopHeaderBanner && (
+          <div className="relative -mx-5 -mt-5 mb-3 h-20 overflow-hidden border-b border-white/10">
+            <img
+              src={typeof showTopHeaderBanner === "string" ? showTopHeaderBanner : (data?.banner || data?.splash || widget.banner_url || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80")}
+              alt=""
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+          </div>
+        )}
+
         {/* Header row */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
