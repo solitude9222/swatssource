@@ -1079,7 +1079,7 @@ export default function Editor() {
 
       {/* Tab strip — full-width bordered bar, active = solid pill (cops.bio style) */}
       <div className="space-y-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <nav aria-label="Profile editor sections" className="flex w-full rounded-[16px] border border-white/[0.07] bg-[#0c0c0e] p-1">
           {SUBTAB_ITEMS.map((s) => {
             const Icon = s.icon;
@@ -2946,6 +2946,7 @@ export default function Editor() {
               Save Changes
             </button>
           )}
+      </div>
       </div>
       </div>
 
