@@ -1410,6 +1410,96 @@ export default function Editor() {
               ======================================================== */}
           {sub === "appearance" && (
             <>
+              {/* Media upload tiles — cops.bio-style row */}
+              <div className="rounded-[20px] border border-white/[0.07] bg-[#111113] p-5 sm:p-6 space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-500/15">
+                    <ImageIcon className="h-4 w-4 text-brand-400" />
+                  </div>
+                  <div>
+                    <h2 className="text-sm font-bold text-white">Media</h2>
+                    <p className="text-[11px] text-zinc-500">Avatar, background, audio and cursor</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {/* Avatar */}
+                  <label className="group flex flex-col items-center justify-center gap-2.5 rounded-xl border border-dashed border-white/[0.08] bg-[#0c0c0e] p-5 text-center transition hover:border-white/[0.15] hover:bg-[#141416] cursor-pointer min-h-[120px]">
+                    <div className="text-xs font-semibold text-white mb-1">Avatar</div>
+                    {p.avatar_url ? (
+                      <img src={fileUrl(p.avatar_url)} alt="" className="h-12 w-12 rounded-full object-cover ring-2 ring-white/10" />
+                    ) : (
+                      <ImageIcon className="h-8 w-8 text-zinc-600" />
+                    )}
+                    <span className="text-[10px] text-zinc-600 leading-tight">
+                      {p.avatar_url ? "Click to replace" : "Upload an avatar"}
+                    </span>
+                    <span className="text-[9px] text-zinc-700">or drag & drop · max 10 MB</span>
+                    <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                      const file = e.target.files?.[0]; if (!file) return;
+                      try {
+                        const fd = new FormData(); fd.append("file", file); fd.append("kind", "avatar");
+                        const { data } = await api.post("/upload", fd, { headers: { "Content-Type": "multipart/form-data" } });
+                        set("avatar_url", data.url); toast.success("Avatar updated!");
+                      } catch (err) { toast.error(err.response?.data?.detail || "Upload failed"); }
+                      e.target.value = "";
+                    }} />
+                  </label>
+
+                  {/* Background */}
+                  <label className="group flex flex-col items-center justify-center gap-2.5 rounded-xl border border-dashed border-white/[0.08] bg-[#0c0c0e] p-5 text-center transition hover:border-white/[0.15] hover:bg-[#141416] cursor-pointer min-h-[120px]">
+                    <div className="text-xs font-semibold text-white mb-1">Background</div>
+                    {p.background_url ? (
+                      <img src={fileUrl(p.background_url)} alt="" className="h-12 w-20 rounded-lg object-cover ring-1 ring-white/10" />
+                    ) : (
+                      <ImageIcon className="h-8 w-8 text-zinc-600" />
+                    )}
+                    <span className="text-[10px] text-zinc-600 leading-tight">
+                      {p.background_url ? "Click to replace" : "Upload a background"}
+                    </span>
+                    <span className="text-[9px] text-zinc-700">or drag & drop · max 100 MB</span>
+                    <input type="file" accept="image/*,video/*" className="hidden" onChange={async (e) => {
+                      const file = e.target.files?.[0]; if (!file) return;
+                      try {
+                        const fd = new FormData(); fd.append("file", file); fd.append("kind", "background");
+                        const { data } = await api.post("/upload", fd, { headers: { "Content-Type": "multipart/form-data" } });
+                        set("background_url", data.url); toast.success("Background updated!");
+                      } catch (err) { toast.error(err.response?.data?.detail || "Upload failed"); }
+                      e.target.value = "";
+                    }} />
+                  </label>
+
+                  {/* Audio */}
+                  <button
+                    type="button"
+                    onClick={() => switchSub("audios")}
+                    className="group flex flex-col items-center justify-center gap-2.5 rounded-xl border border-dashed border-white/[0.08] bg-[#0c0c0e] p-5 text-center transition hover:border-white/[0.15] hover:bg-[#141416] cursor-pointer min-h-[120px]"
+                  >
+                    <div className="text-xs font-semibold text-white mb-1">Audio</div>
+                    <Music className="h-8 w-8 text-zinc-600" />
+                    <span className="text-[10px] text-zinc-600 leading-tight">Click to open audio manager</span>
+                    <span className="text-[9px] text-zinc-700">Manage up to 3 audio files</span>
+                  </button>
+
+                  {/* Cursor */}
+                  <label className="group flex flex-col items-center justify-center gap-2.5 rounded-xl border border-dashed border-white/[0.08] bg-[#0c0c0e] p-5 text-center transition hover:border-white/[0.15] hover:bg-[#141416] cursor-pointer min-h-[120px]">
+                    <div className="text-xs font-semibold text-white mb-1">Cursor</div>
+                    <MousePointer2 className="h-8 w-8 text-zinc-600" />
+                    <span className="text-[10px] text-zinc-600 leading-tight">Manage Cursors</span>
+                    <span className="text-[9px] text-zinc-700">Click to upload default & pointer cursors</span>
+                    <input type="file" accept="image/*,.cur,.ani" className="hidden" onChange={async (e) => {
+                      const file = e.target.files?.[0]; if (!file) return;
+                      try {
+                        const fd = new FormData(); fd.append("file", file); fd.append("kind", "cursor");
+                        const { data } = await api.post("/upload", fd, { headers: { "Content-Type": "multipart/form-data" } });
+                        set("custom_cursor", data.url); toast.success("Cursor uploaded!");
+                      } catch (err) { toast.error(err.response?.data?.detail || "Upload failed"); }
+                      e.target.value = "";
+                    }} />
+                  </label>
+                </div>
+              </div>
+
               <Section title="Card Appearance" hint="Surface, glow, borders and presets">
                 <div className="space-y-5">
                   <div>

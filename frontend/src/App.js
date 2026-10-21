@@ -45,6 +45,7 @@ const AuditLog = lazy(() => import("@/pages/dashboard/AuditLog"));
 const Notices = lazy(() => import("@/pages/dashboard/Notices"));
 // The encrypted inbox: friends, requests, conversations and groups.
 const AdminDevlogs = lazy(() => import("@/pages/dashboard/Devlogs"));
+const Connections = lazy(() => import("@/pages/dashboard/Connections"));
 const DashboardDevlog = lazy(() => import("@/pages/dashboard/Devlog"));
 const AdminHub = lazy(() => import("@/pages/dashboard/Admin"));
 const RankedManager = lazy(() => import("@/pages/dashboard/RankedManager"));
@@ -176,6 +177,7 @@ function App() {
                 <Route path="links" element={<Links />} />
                 <Route path="badges" element={<Badges />} />
                 <Route path="widgets" element={<Widgets />} />
+                <Route path="connections" element={<Connections />} />
                 <Route path="effects" element={<EffectsMedia />} />
                 <Route path="settings" element={<Settings />} />
                 <Route path="templates" element={<Templates />} />

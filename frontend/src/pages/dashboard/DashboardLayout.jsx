@@ -127,7 +127,7 @@ const NAV_GROUPS = [
     expandable: true,
     tabs: [
       { to: "/!/dashboard/settings", label: "Settings", icon: Settings, testid: "tab-settings", desc: "Account, security, 2FA and redeem codes" },
-      { to: "/!/dashboard/settings?tab=connections", label: "Connections", icon: Globe, testid: "tab-connections", desc: "Link Discord and other external accounts" },
+      { to: "/!/dashboard/connections", label: "Connections", icon: Globe, testid: "tab-connections", desc: "Link Discord and other external accounts" },
       { to: "/!/dashboard/stats", label: "Statistics", icon: BarChart3, testid: "tab-stats", desc: "Profile views, link clicks and referrer breakdown" },
     ],
   },
