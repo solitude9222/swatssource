@@ -19,14 +19,6 @@ const WIDGET_KEY_PROVIDERS = [
   { id: "github", label: "GitHub token", hint: "Higher rate limit for GitHub widgets", url: "https://github.com/settings/tokens" },
 ];
 
-const SETTINGS_TABS = [
-  { id: "all", label: "All Settings", icon: Sliders },
-  { id: "account", label: "Account", icon: UserCheck },
-  { id: "security", label: "Security & 2FA", icon: KeyRound },
-  { id: "integrations", label: "Integrations", icon: Plug },
-  { id: "danger", label: "Danger Zone", icon: AlertTriangle },
-];
-
 function calcPasswordStrength(pw) {
   if (!pw) return { score: 0, label: "None", color: "bg-zinc-700" };
   let score = 0;
@@ -68,6 +60,9 @@ export default function Settings() {
   const [savingKeys, setSavingKeys] = useState(false);
 
   // Local preferences
+  const [autoSave, setAutoSave] = useState(() => {
+    return localStorage.getItem("swats_editor_autosave") === "true";
+  });
   const [autoplayAudio, setAutoplayAudio] = useState(() => {
     return localStorage.getItem("swats_pref_autoplay") !== "false";
   });
@@ -77,6 +72,12 @@ export default function Settings() {
   const [soundEffects, setSoundEffects] = useState(() => {
     return localStorage.getItem("swats_sound_effects") !== "false";
   });
+
+  const toggleAutoSave = (val) => {
+    setAutoSave(val);
+    localStorage.setItem("swats_editor_autosave", String(val));
+    toast.success(val ? "Editor auto-save enabled" : "Editor auto-save disabled");
+  };
 
   const toggleAutoplay = (val) => {
     setAutoplayAudio(val);
@@ -180,41 +181,16 @@ export default function Settings() {
 
   const strength = calcPasswordStrength(newPassword);
 
-  const showSection = (tabId) => activeTab === "all" || activeTab === tabId;
+  const showSection = () => true;
 
   return (
     <div data-testid="settings-page" className="w-full space-y-6 pb-16">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-white/5">
-        <div>
-          <h1 className="font-display text-2xl font-bold text-zinc-100">Settings</h1>
-          <p className="text-xs text-zinc-400 mt-0.5">
-            Manage your credentials, public identity, security, and connected integrations.
-          </p>
-        </div>
-
-        {/* Category Tabs */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-          {SETTINGS_TABS.map((t) => {
-            const Icon = t.icon;
-            const active = activeTab === t.id;
-            return (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => setActiveTab(t.id)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 shrink-0 cursor-pointer ${
-                  active
-                    ? "bg-brand-500/20 text-brand-200 border border-brand-500/40 shadow-[0_0_15px_rgba(164, 141, 244,0.15)]"
-                    : "bg-white/[0.03] text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.06] border border-white/5"
-                }`}
-              >
-                <Icon className="w-3.5 h-3.5 shrink-0" />
-                {t.label}
-              </button>
-            );
-          })}
-        </div>
+      <div className="pb-2 border-b border-white/5">
+        <h1 className="font-display text-2xl font-bold text-zinc-100">Settings</h1>
+        <p className="text-xs text-zinc-400 mt-0.5">
+          Manage your credentials, public identity, preferences, security, and connected integrations.
+        </p>
       </div>
 
       {/* ACCOUNT & IDENTITY SECTION */}
@@ -304,6 +280,56 @@ export default function Settings() {
                     {user?.tier}
                   </span>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Preferences & Experience */}
+          <div className="glass rounded-2xl p-5 space-y-4 shadow-[0_10px_40px_rgba(0,0,0,0.4)]">
+            <div className="flex items-center gap-2">
+              <Sliders className="w-5 h-5 text-brand-400" />
+              <h2 className="text-base font-bold text-zinc-100">Preferences & Experience</h2>
+            </div>
+            <div className="divide-y divide-white/5">
+              <div className="flex items-center justify-between py-3">
+                <div>
+                  <div className="text-xs font-bold text-zinc-200">Auto-Save Profile Changes</div>
+                  <div className="text-[11px] text-zinc-400">Automatically save draft modifications in the Editor</div>
+                </div>
+                <Switch
+                  checked={autoSave}
+                  onCheckedChange={toggleAutoSave}
+                />
+              </div>
+              <div className="flex items-center justify-between py-3">
+                <div>
+                  <div className="text-xs font-bold text-zinc-200">Autoplay Music on Profile Entry</div>
+                  <div className="text-[11px] text-zinc-400">Start track playback immediately when visitors arrive</div>
+                </div>
+                <Switch
+                  checked={autoplayAudio}
+                  onCheckedChange={toggleAutoplay}
+                />
+              </div>
+              <div className="flex items-center justify-between py-3">
+                <div>
+                  <div className="text-xs font-bold text-zinc-200">Reduced Motion</div>
+                  <div className="text-[11px] text-zinc-400">Minimizes heavy floating animations and motion blur</div>
+                </div>
+                <Switch
+                  checked={reducedMotion}
+                  onCheckedChange={toggleReducedMotion}
+                />
+              </div>
+              <div className="flex items-center justify-between py-3">
+                <div>
+                  <div className="text-xs font-bold text-zinc-200">Sound Effects</div>
+                  <div className="text-[11px] text-zinc-400">Subtle audio feedback on button clicks and badge equips</div>
+                </div>
+                <Switch
+                  checked={soundEffects}
+                  onCheckedChange={toggleSoundEffects}
+                />
               </div>
             </div>
           </div>

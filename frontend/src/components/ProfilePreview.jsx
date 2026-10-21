@@ -1173,6 +1173,7 @@ function SlideshowView({
 }) {
   const [activeSlide, setActiveSlide] = useState(0);
   const containerRef = useRef(null);
+  const pageBg = p?.background_color || "#050505";
 
   const sections = useMemo(() => [
     { id: "profile-header", label: "Profile" },

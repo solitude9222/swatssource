@@ -25,8 +25,8 @@ export default function Stats() {
       </div>
       <div className="glass rounded-3xl p-7">
         <div className="text-base font-semibold text-zinc-200 mb-5">Views this week</div>
-        <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
+        <div className="h-64 w-full min-w-0">
+          <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={180}>
             <AreaChart data={data}>
               <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#587fee" stopOpacity={0.5} /><stop offset="100%" stopColor="#587fee" stopOpacity={0} /></linearGradient></defs>
               <XAxis dataKey="day" stroke="#52525b" fontSize={12} />

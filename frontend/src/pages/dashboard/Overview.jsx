@@ -325,7 +325,7 @@ export default function Overview() {
         <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
           {/* Views Area Chart */}
           <div className="flex flex-col justify-between" data-testid="overview-activity">
-            <div className="h-60 w-full">
+            <div className="h-60 w-full min-w-0">
               {loadingAnalytics ? (
                 <div className="flex h-full w-full items-center justify-center">
                   <Loader2 className="h-6 w-6 animate-spin text-brand-400" />
@@ -339,7 +339,7 @@ export default function Overview() {
                   </p>
                 </div>
               ) : (
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={180}>
                   <AreaChart data={analytics.series} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <defs>
                       <linearGradient id="viewsGradient" x1="0" y1="0" x2="0" y2="1">

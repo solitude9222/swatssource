@@ -36,16 +36,6 @@ const PLATFORM_BADGES = {
   donater: { src: "gifters.png", color: "#34d399" },
   donator: { src: "gifters.png", color: "#34d399" },
   partner: { src: "partner.png", color: "#60a5fa" },
-  // Ranked tier badges
-  rank_rookie: { src: "ranks/rank_rookie.svg", color: "#a1a1aa", label: "Rookie Rank" },
-  rank_bronze: { src: "ranks/rank_bronze.svg", color: "#cd7f32", label: "Bronze Rank" },
-  rank_silver: { src: "ranks/rank_silver.svg", color: "#cbd5e1", label: "Silver Rank" },
-  rank_gold: { src: "ranks/rank_gold.svg", color: "#fbbf24", label: "Gold Rank" },
-  rank_platinum: { src: "ranks/rank_platinum.svg", color: "#22d3ee", label: "Platinum Rank" },
-  rank_diamond: { src: "ranks/rank_diamond.svg", color: "#a855f7", label: "Diamond Rank" },
-  rank_master: { src: "ranks/rank_master.svg", color: "#ec4899", label: "Master Rank" },
-  rank_grandmaster: { src: "ranks/rank_grandmaster.svg", color: "#f43f5e", label: "Grandmaster Rank" },
-  rank_legend: { src: "ranks/rank_legend.svg", color: "#A48DF4", label: "Legend Rank" },
 };
 
 const PLATFORM_ART = `${process.env.PUBLIC_URL || ""}/badges`;
@@ -139,14 +129,6 @@ export const BADGE_CATALOG = [
   { id: "premium", name: "Premium", desc: "Supporter with unlocked premium perks", type: "auto", group: "platform" },
   { id: "donater", name: "Donater", desc: "Contributed to platform development fund", type: "mod", group: "platform" },
   { id: "partner", name: "Partner", desc: "Official platform partner", type: "mod", group: "platform" },
-  { id: "rank_bronze", name: "Bronze Rank", desc: "Reached the Bronze ranked tier", type: "auto", group: "ranked" },
-  { id: "rank_silver", name: "Silver Rank", desc: "Reached the Silver ranked tier", type: "auto", group: "ranked" },
-  { id: "rank_gold", name: "Gold Rank", desc: "Reached the Gold ranked tier", type: "auto", group: "ranked" },
-  { id: "rank_platinum", name: "Platinum Rank", desc: "Reached the Platinum ranked tier", type: "auto", group: "ranked" },
-  { id: "rank_diamond", name: "Diamond Rank", desc: "Reached the Diamond ranked tier", type: "auto", group: "ranked" },
-  { id: "rank_master", name: "Master Rank", desc: "Reached the Master ranked tier", type: "auto", group: "ranked" },
-  { id: "rank_grandmaster", name: "Grandmaster Rank", desc: "Reached the Grandmaster ranked tier", type: "auto", group: "ranked" },
-  { id: "rank_legend", name: "Legend Rank", desc: "Reached the Legend apex ranked tier", type: "auto", group: "ranked" },
 ];
 
 /* Every Discord badge, handed out by staff like any other. One list rather than

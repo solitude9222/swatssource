@@ -100,11 +100,51 @@ export const toast = {
 };
 
 const VARIANTS = {
-  success: { Icon: CheckCircle2, accent: "text-emerald-300", ring: "ring-emerald-400/25", chip: "bg-emerald-500/15 border-emerald-500/30", bar: "bg-emerald-400", edge: "border-emerald-400/25" },
-  error: { Icon: AlertCircle, accent: "text-rose-300", ring: "ring-rose-400/25", chip: "bg-rose-500/15 border-rose-500/30", bar: "bg-rose-400", edge: "border-rose-400/25" },
-  warning: { Icon: AlertTriangle, accent: "text-amber-300", ring: "ring-amber-400/25", chip: "bg-amber-500/15 border-amber-500/30", bar: "bg-amber-400", edge: "border-amber-400/25" },
-  info: { Icon: Info, accent: "text-brand-300", ring: "ring-brand-400/25", chip: "bg-brand-500/15 border-brand-500/30", bar: "bg-brand-400", edge: "border-brand-400/25" },
-  loading: { Icon: Loader2, accent: "text-brand-300", ring: "ring-brand-400/25", chip: "bg-brand-500/15 border-brand-500/30", bar: "bg-brand-400", edge: "border-brand-400/25" },
+  success: {
+    Icon: CheckCircle2,
+    accent: "text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.6)]",
+    ring: "ring-emerald-500/20",
+    chip: "bg-emerald-950/40 border-emerald-500/30 text-emerald-300 shadow-[0_0_12px_rgba(16,185,129,0.15)]",
+    bar: "bg-gradient-to-r from-emerald-500 to-teal-400 shadow-[0_0_10px_rgba(16,185,129,0.7)]",
+    edge: "border-emerald-500/20",
+    glow: "rgba(16,185,129,0.06)",
+  },
+  error: {
+    Icon: AlertCircle,
+    accent: "text-rose-400 drop-shadow-[0_0_8px_rgba(244,63,94,0.6)]",
+    ring: "ring-rose-500/20",
+    chip: "bg-rose-950/40 border-rose-500/30 text-rose-300 shadow-[0_0_12px_rgba(244,63,94,0.15)]",
+    bar: "bg-gradient-to-r from-rose-500 to-pink-500 shadow-[0_0_10px_rgba(244,63,94,0.7)]",
+    edge: "border-rose-500/20",
+    glow: "rgba(244,63,94,0.06)",
+  },
+  warning: {
+    Icon: AlertTriangle,
+    accent: "text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]",
+    ring: "ring-amber-500/20",
+    chip: "bg-amber-950/40 border-amber-500/30 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.15)]",
+    bar: "bg-gradient-to-r from-amber-500 to-yellow-400 shadow-[0_0_10px_rgba(245,158,11,0.7)]",
+    edge: "border-amber-500/20",
+    glow: "rgba(245,158,11,0.06)",
+  },
+  info: {
+    Icon: Info,
+    accent: "text-brand-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.6)]",
+    ring: "ring-brand-500/20",
+    chip: "bg-brand-950/40 border-brand-500/30 text-brand-300 shadow-[0_0_12px_rgba(168,85,247,0.15)]",
+    bar: "bg-gradient-to-r from-brand-500 to-indigo-400 shadow-[0_0_10px_rgba(168,85,247,0.7)]",
+    edge: "border-brand-500/20",
+    glow: "rgba(168,85,247,0.06)",
+  },
+  loading: {
+    Icon: Loader2,
+    accent: "text-brand-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.6)]",
+    ring: "ring-brand-500/20",
+    chip: "bg-brand-950/40 border-brand-500/30 text-brand-300 shadow-[0_0_12px_rgba(168,85,247,0.15)]",
+    bar: "bg-gradient-to-r from-brand-500 to-cyan-400 shadow-[0_0_10px_rgba(168,85,247,0.7)]",
+    edge: "border-brand-500/20",
+    glow: "rgba(168,85,247,0.06)",
+  },
 };
 
 /* One notification card.
@@ -121,22 +161,25 @@ function NotificationCard({ item }) {
   return (
     <li
       data-testid={`notification-${item.type}`}
-      className={`pointer-events-auto relative flex w-full items-start gap-3.5 overflow-hidden rounded-2xl border border-white/12 bg-[#0b0b10] px-4 py-3.5 text-left shadow-[0_24px_60px_-16px_rgba(0,0,0,0.95)] ring-1 backdrop-blur-xl ${variant.ring} ${variant.edge} ${
+      style={{ backgroundImage: `radial-gradient(ellipse at top left, ${variant.glow}, transparent 70%)` }}
+      className={`pointer-events-auto relative flex w-full items-start gap-3.5 overflow-hidden rounded-2xl border border-white/10 bg-[#0b0b10] p-4 text-left shadow-[0_20px_50px_rgba(0,0,0,0.9),0_0_30px_rgba(0,0,0,0.4)] ring-1 backdrop-blur-2xl transition-all duration-300 hover:border-white/20 ${variant.ring} ${variant.edge} ${
         item.closing
           ? "animate-out fade-out slide-out-to-right-4 duration-200"
           : "animate-in fade-in slide-in-from-right-4 duration-200"
       }`}
     >
-      <span className={`absolute inset-y-0 left-0 w-0.5 ${variant.bar}`} aria-hidden="true" />
+      {/* Sleek rounded vertical accent pill */}
+      <span className={`absolute top-2.5 bottom-2.5 left-1.5 w-1 rounded-full ${variant.bar}`} aria-hidden="true" />
 
-      <span className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border ${variant.chip}`}>
-        <Icon className={`h-3.5 w-3.5 ${variant.accent} ${item.type === "loading" ? "animate-spin" : ""}`} />
+      {/* Ambient glowing badge chip */}
+      <span className={`ml-1 mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-xl border ${variant.chip}`}>
+        <Icon className={`h-4 w-4 ${variant.accent} ${item.type === "loading" ? "animate-spin" : ""}`} />
       </span>
 
-      <div className="min-w-0 flex-1">
-        {item.title && <div className="text-xs font-bold text-zinc-100 tracking-tight">{item.title}</div>}
+      <div className="min-w-0 flex-1 pt-0.5">
+        {item.title && <div className="text-xs font-bold text-white tracking-wide">{item.title}</div>}
         {text && (
-          <div className={`text-xs leading-relaxed text-zinc-200 font-medium ${item.title ? "mt-0.5 text-zinc-300" : ""}`}>
+          <div className={`text-xs leading-relaxed text-zinc-100 font-medium ${item.title ? "mt-0.5 text-zinc-300" : ""}`}>
             {item.message || (item.title ? "" : null)}
           </div>
         )}
@@ -149,7 +192,7 @@ function NotificationCard({ item }) {
         type="button"
         aria-label="Dismiss notification"
         onClick={() => dismiss(item.id)}
-        className="-mr-1 -mt-1 shrink-0 rounded-lg p-1.5 text-zinc-500 outline-none transition-colors duration-200 hover:bg-white/10 hover:text-zinc-200 focus-visible:ring-2 focus-visible:ring-brand-500/50 cursor-pointer"
+        className="-mr-1 -mt-1 shrink-0 rounded-xl p-1.5 text-zinc-400 outline-none transition-all duration-200 hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-brand-500/50 cursor-pointer active:scale-95"
       >
         <X className="h-3.5 w-3.5" />
       </button>
@@ -158,7 +201,7 @@ function NotificationCard({ item }) {
         <span
           data-testid="notification-timer"
           aria-hidden="true"
-          className={`absolute bottom-0 left-0 h-0.5 ${variant.bar} opacity-75`}
+          className={`absolute bottom-0 left-0 h-0.5 ${variant.bar}`}
           style={{ animation: `sw-toast-timer ${item.duration}ms linear forwards` }}
         />
       )}

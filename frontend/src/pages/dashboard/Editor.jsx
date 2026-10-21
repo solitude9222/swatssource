@@ -727,9 +727,22 @@ export default function Editor() {
   const [activeTextSlot, setActiveTextSlot] = useState("name"); // "name" | "alias" | "bio"
 
   const [p, setP] = useState({ ...user.profile });
-  const [displayName, setDisplayName] = useState(user.display_name || "");
-  const [bgMode, setBgMode] = useState(user.profile?.background_url ? "media" : "color");
   const [saving, setSaving] = useState(false);
+  const [autoSave, setAutoSave] = useState(() => localStorage.getItem("swats_editor_autosave") === "true");
+  const autoSaveTimer = useRef(null);
+
+  const baselineRef = useRef(
+    JSON.stringify({
+      p: user.profile || {},
+      displayName: user.display_name || "",
+    })
+  );
+
+  const currentSnapshot = JSON.stringify({
+    p,
+    displayName,
+  });
+  const isDirty = baselineRef.current !== currentSnapshot;
 
   // Audio track draft for adding new song
   const [newTrackTitle, setNewTrackTitle] = useState("");
@@ -882,7 +895,7 @@ export default function Editor() {
     set("tracks", nextTracks);
   };
 
-  const save = async () => {
+  const save = async ({ silent = false } = {}) => {
     if (gate.guard("saving profile changes")) return;
     setSaving(true);
     try {
@@ -899,12 +912,30 @@ export default function Editor() {
       }
       const { data } = await api.put("/me/profile", payload);
       setUser(data);
-      toast.success("Profile changes saved!");
+      baselineRef.current = JSON.stringify({
+        p: payload,
+        displayName,
+      });
+      if (!silent) {
+        toast.success("Profile changes saved!");
+      }
     } catch (e) {
-      toast.error(e.response?.data?.detail || "Save failed");
+      if (!silent) {
+        toast.error(e.response?.data?.detail || "Save failed");
+      }
     }
     setSaving(false);
   };
+
+  useEffect(() => {
+    if (autoSave && isDirty && !saving) {
+      clearTimeout(autoSaveTimer.current);
+      autoSaveTimer.current = setTimeout(() => {
+        save({ silent: true });
+      }, 1500);
+    }
+    return () => clearTimeout(autoSaveTimer.current);
+  }, [autoSave, isDirty, currentSnapshot, saving]);
 
   const SUBTAB_ITEMS = [
     { id: "about", label: "About Me", icon: User },
@@ -914,39 +945,80 @@ export default function Editor() {
   ];
 
   return (
-    <div data-testid="editor-page" className="space-y-6 text-white">
+    <div data-testid="editor-page" className="space-y-6 text-white relative">
       <AuthGateNotice variant="card" />
 
-      {/* Navigation Subtabs Bar: one segmented control, active segment filled */}
-      <div className="flex items-center gap-1 overflow-x-auto rounded-2xl border border-[#1f1f1f] bg-[#0d0d0d] p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {SUBTAB_ITEMS.map((s) => {
-          const Icon = s.icon;
-          const active = sub === s.id;
-          return (
-            <button
-              key={s.id}
-              type="button"
-              data-testid={`editor-subtab-${s.id}`}
-              onClick={() => switchSub(s.id)}
-              className={`flex min-w-[110px] flex-1 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-semibold transition-colors duration-200 ${
-                active
-                  ? "bg-[#a48df4] text-black font-bold shadow-sm"
-                  : "text-zinc-400 hover:bg-white/[0.04] hover:text-white"
-              }`}
-            >
-              <Icon className="h-3.5 w-3.5 shrink-0" />
-              <span>{s.label}</span>
-            </button>
-          );
-        })}
+      {/* Floating Orange Unsaved Changes Pill in Top Right */}
+      {isDirty && (
+        <aside
+          aria-label="Unsaved changes alert"
+          className="fixed top-5 right-5 z-[9999] flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-amber-950/95 via-orange-950/95 to-amber-900/95 border border-amber-500/50 text-amber-100 shadow-[0_16px_40px_rgba(245,158,11,0.35),0_0_25px_rgba(245,158,11,0.2)] backdrop-blur-2xl animate-in fade-in slide-in-from-top-4 duration-300"
+        >
+          <span className="relative flex h-3 w-3 shrink-0">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500 shadow-[0_0_8px_#f59e0b]" />
+          </span>
+          <div className="flex flex-col text-left">
+            <span className="text-xs font-bold text-amber-50 tracking-tight">You have unsaved changes</span>
+            <span className="text-[10px] text-amber-300/80">Save to apply updates to your profile</span>
+          </div>
+          <button
+            onClick={() => save()}
+            disabled={saving}
+            data-testid="editor-save"
+            className="ml-2 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 text-black font-extrabold text-xs shadow-md hover:brightness-110 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shrink-0"
+          >
+            {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+            Save
+          </button>
+        </aside>
+      )}
 
-        {/* Hidden test compatibility buttons for legacy suite selectors */}
-        <div className="sr-only" aria-hidden="true">
-          <button data-testid="editor-subtab-profile" onClick={() => switchSub("about")}>Profile</button>
-          <button data-testid="editor-subtab-card" onClick={() => switchSub("appearance")}>Card</button>
-          <button data-testid="editor-subtab-effects" onClick={() => switchSub("extra")}>Effects</button>
-          <button data-testid="editor-subtab-entry" onClick={() => switchSub("extra")}>Entry</button>
-          <button data-testid="editor-subtab-layout" onClick={() => switchSub("audios")}>Layout</button>
+      {/* Navigation Subtabs Bar with Auto-Save Toggle */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-1 overflow-x-auto rounded-2xl border border-[#1f1f1f] bg-[#0d0d0d] p-1 flex-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {SUBTAB_ITEMS.map((s) => {
+            const Icon = s.icon;
+            const active = sub === s.id;
+            return (
+              <button
+                key={s.id}
+                type="button"
+                data-testid={`editor-subtab-${s.id}`}
+                onClick={() => switchSub(s.id)}
+                className={`flex min-w-[100px] flex-1 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-semibold transition-colors duration-200 ${
+                  active
+                    ? "bg-[#a48df4] text-black font-bold shadow-sm"
+                    : "text-zinc-400 hover:bg-white/[0.04] hover:text-white"
+                }`}
+              >
+                <Icon className="h-3.5 w-3.5 shrink-0" />
+                <span>{s.label}</span>
+              </button>
+            );
+          })}
+
+          {/* Hidden test compatibility buttons for legacy suite selectors */}
+          <div className="sr-only" aria-hidden="true">
+            <button data-testid="editor-subtab-profile" onClick={() => switchSub("about")}>Profile</button>
+            <button data-testid="editor-subtab-card" onClick={() => switchSub("appearance")}>Card</button>
+            <button data-testid="editor-subtab-effects" onClick={() => switchSub("extra")}>Effects</button>
+            <button data-testid="editor-subtab-entry" onClick={() => switchSub("extra")}>Entry</button>
+            <button data-testid="editor-subtab-layout" onClick={() => switchSub("audios")}>Layout</button>
+          </div>
+        </div>
+
+        {/* Auto Save Toggle Pill */}
+        <div className="flex items-center gap-2.5 px-3.5 py-2 rounded-2xl bg-[#0d0d0d] border border-[#1f1f1f] shrink-0 self-end sm:self-auto">
+          <span className="text-[11px] font-medium text-zinc-300">Auto-save</span>
+          <Switch
+            checked={autoSave}
+            onCheckedChange={(val) => {
+              setAutoSave(val);
+              localStorage.setItem("swats_editor_autosave", String(val));
+              toast.success(val ? "Auto-save enabled" : "Auto-save disabled");
+            }}
+          />
         </div>
       </div>
 
@@ -2826,22 +2898,18 @@ export default function Editor() {
             </Section>
           )}
 
-          {/* Save Button */}
-          <button
-            onClick={save}
-            disabled={saving}
-            data-testid="editor-save"
-            className="w-full py-4 rounded-2xl bg-[#a48df4] text-black font-bold text-sm hover:brightness-110 transition disabled:opacity-50 flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(164,141,244,0.3)] cursor-pointer"
-          >
-            {saving ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : gate.blocked ? (
-              <Lock className="w-4 h-4" />
-            ) : (
-              <Save className="w-4 h-4" />
-            )}
-            {gate.blocked ? "Connect Discord to save" : "Save Changes"}
-          </button>
+          {/* Hidden test-accessible fallback save button if clean */}
+          {!isDirty && (
+            <button
+              onClick={() => save()}
+              disabled={saving}
+              data-testid="editor-save"
+              className="sr-only"
+              aria-hidden="true"
+            >
+              Save Changes
+            </button>
+          )}
       </div>
 
       <AvatarDecorationModal

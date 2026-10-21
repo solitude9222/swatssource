@@ -1,7 +1,6 @@
 import { query } from './db.js';
 import { earnedEventBadges, EVENTS } from './eventBadges.js';
 import { loadBotSettings } from './discordBot.js';
-import { loadRankedSettings, computeRankDetails, ALL_RANK_BADGE_IDS } from './rankedSettings.js';
 
 export const BADGE_CATALOG = [
   { id: 'og', name: 'OG', desc: 'First 10 users on swats.bio', type: 'auto' },
@@ -16,14 +15,6 @@ export const BADGE_CATALOG = [
   { id: 'premium', name: 'Premium', desc: 'Supporter with unlocked premium perks', type: 'auto' },
   { id: 'donater', name: 'Donater', desc: 'Contributed to platform development fund', type: 'auto' },
   { id: 'partner', name: 'Partner', desc: 'Official platform partner', type: 'mod' },
-  { id: 'rank_bronze', name: 'Bronze Rank', desc: 'Reached the Bronze ranked tier', type: 'mod' },
-  { id: 'rank_silver', name: 'Silver Rank', desc: 'Reached the Silver ranked tier', type: 'mod' },
-  { id: 'rank_gold', name: 'Gold Rank', desc: 'Reached the Gold ranked tier', type: 'mod' },
-  { id: 'rank_platinum', name: 'Platinum Rank', desc: 'Reached the Platinum ranked tier', type: 'mod' },
-  { id: 'rank_diamond', name: 'Diamond Rank', desc: 'Reached the Diamond ranked tier', type: 'mod' },
-  { id: 'rank_master', name: 'Master Rank', desc: 'Reached the Master ranked tier', type: 'mod' },
-  { id: 'rank_grandmaster', name: 'Grandmaster Rank', desc: 'Reached the Grandmaster ranked tier', type: 'mod' },
-  { id: 'rank_legend', name: 'Legend Rank', desc: 'Reached the Legend apex ranked tier', type: 'mod' },
 ];
 
 /* Badges that something OTHER than the account itself may hand out: an admin
@@ -33,7 +24,6 @@ export const BADGE_CATALOG = [
    claim them. */
 export const STAFF_GRANTABLE_BADGES = [
   'og', 'verified', 'bug_hunter', 'team', 'media', 'featured', 'partner', 'donater',
-  'rank_bronze', 'rank_silver', 'rank_gold', 'rank_platinum', 'rank_diamond', 'rank_master', 'rank_grandmaster', 'rank_legend',
 ];
 
 /* Whatever a form posted, the only grants that survive are catalog ids, minus
@@ -187,43 +177,11 @@ export async function computeAutoBadges(user, now = new Date()) {
     currentBadges.add(earned.id);
   }
 
-  // Ranked badge: higher the rank, the exclusive rank badge they wear
-  try {
-    const rankedConfig = await loadRankedSettings();
-    if (rankedConfig.auto_grant_badges !== false) {
-      const details = computeRankDetails(user, rankedConfig, now);
-      const RANK_ORDER = [
-        'rank_rookie', 'rank_bronze', 'rank_silver', 'rank_gold',
-        'rank_platinum', 'rank_diamond', 'rank_master', 'rank_grandmaster', 'rank_legend'
-      ];
-
-      // Check if user already holds a manually assigned rank badge
-      let highestRankIndex = 0;
-      for (const b of currentBadges) {
-        const idx = RANK_ORDER.indexOf(b);
-        if (idx > highestRankIndex) {
-          highestRankIndex = idx;
-        }
-      }
-
-      // Check rank badge calculated from views
-      const viewsRankIndex = RANK_ORDER.indexOf(details?.badge);
-      if (viewsRankIndex > highestRankIndex) {
-        highestRankIndex = viewsRankIndex;
-      }
-
-      // Clean out lower rank badges so only their peak rank badge is worn
-      for (const rId of ALL_RANK_BADGE_IDS) {
-        currentBadges.delete(rId);
-      }
-
-      // Keep the peak rank badge (if higher than rookie)
-      if (highestRankIndex > 0) {
-        currentBadges.add(RANK_ORDER[highestRankIndex]);
-      }
+  // Clean out any legacy rank badges
+  for (const b of Array.from(currentBadges)) {
+    if (b.startsWith('rank_')) {
+      currentBadges.delete(b);
     }
-  } catch (err) {
-    // If settings unreadable, continue gracefully
   }
 
   return Array.from(currentBadges);

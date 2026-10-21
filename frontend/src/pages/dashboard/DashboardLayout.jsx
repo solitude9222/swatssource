@@ -65,7 +65,6 @@ const NAV_GROUPS = [
     expandable: true,
     tabs: [
       { to: "/!/dashboard/shop", label: "Marketplace", icon: Store, testid: "tab-shop", desc: "Browse cosmetics, effects and extras for your profile" },
-      { to: "/!/dashboard/leaderboard", label: "Leaderboard", icon: Trophy, testid: "tab-leaderboard", ownHeader: true },
       { to: "/!/dashboard/templates", label: "Templates", icon: LayoutTemplate, testid: "tab-templates", desc: "Start from a ready-made profile template" },
       { to: "/!/dashboard/settings", label: "Settings", icon: Settings, testid: "tab-settings", desc: "Account, security and integrations" },
     ],
@@ -75,7 +74,6 @@ const NAV_GROUPS = [
 /* Admin section definitions */
 const ADMIN_SECTIONS = [
   { to: "/!/dashboard/admin", end: true, label: "Overview", icon: ShieldCheck, testid: "tab-admin-overview", ownHeader: true },
-  { to: "/!/dashboard/admin/ranked", label: "Ranked", icon: Trophy, testid: "tab-admin-ranked", desc: "Manage ranked seasons and standings" },
   { to: "/!/dashboard/admin/users", label: "Users", icon: Users, testid: "tab-admin-users", ownHeader: true },
   { to: "/!/dashboard/admin/invites", label: "Invites", icon: Ticket, testid: "tab-admin-invites", desc: "Create and review invite codes" },
   { to: "/!/dashboard/admin/notify", label: "Notify", icon: BellRing, testid: "tab-admin-notify", ownHeader: true },
