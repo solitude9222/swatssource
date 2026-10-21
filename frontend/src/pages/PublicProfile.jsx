@@ -365,13 +365,13 @@ export default function PublicProfile() {
           href="/!/home"
           target="_blank"
           rel="noreferrer"
-          className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 inline-flex w-auto items-center gap-2 rounded-full border border-white/10 bg-black/90 px-4 py-1.5 text-[10px] sm:text-[11px] font-semibold leading-none text-zinc-300 shadow-2xl backdrop-blur-md transition-all duration-200 hover:bg-black hover:border-white/25 hover:text-white group cursor-pointer"
+          className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[90] inline-flex w-auto items-center gap-2 rounded-full border border-white/10 bg-black/90 px-4 py-1.5 text-[10px] sm:text-[11px] font-semibold leading-none text-zinc-300 shadow-2xl backdrop-blur-md transition-all duration-200 hover:bg-black hover:border-white/25 hover:text-white group cursor-pointer"
           data-testid="profile-footer-pill"
-          title="Made in tourn.lol"
+          title="Made on tourn.lol"
         >
           <img src="/logo.png" alt="tourn.lol" className="h-3.5 w-3.5 rounded object-contain opacity-80 group-hover:opacity-100 transition-opacity" />
           <span className="tracking-wide">
-            Made in <span className="font-bold text-white">tourn.lol</span>
+            Made on <span className="font-bold text-white">tourn.lol</span>
           </span>
         </a>
       )}
