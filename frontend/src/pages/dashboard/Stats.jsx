@@ -1,7 +1,6 @@
 import { useAuth } from "@/context/AuthContext";
 import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { Eye, Award, Link2, BarChart3, TrendingUp, Clock, MousePointer, Globe } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
 
 export default function Stats() {
   const { user } = useAuth();
