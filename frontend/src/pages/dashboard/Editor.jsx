@@ -1,10 +1,10 @@
-import { memo, useDeferredValue, useMemo, useState, useEffect, useRef } from "react";
+import { useDeferredValue, useMemo, useState, useEffect, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import { PremiumGate } from "@/components/ui-shared/PremiumGate";
 import { api, fileUrl } from "@/lib/api";
-import { ProfilePreview, TrackCardPreview } from "@/components/ProfilePreview";
+
 import AvatarDecorationModal from "@/components/AvatarDecorationModal";
 import { ColorPicker } from "@/components/ColorPicker";
 import { SmartSelect } from "@/components/ui-shared/SmartSelect";
@@ -28,12 +28,11 @@ import { Slider } from "@/components/ui/slider";
 import { toast } from "@/lib/notify";
 import { useEditGate } from "@/hooks/useEditGate";
 import AuthGateNotice from "@/components/AuthGateNotice";
-import { useClearFxPreviewOnUnmount, setFxPreview, useFxPreview } from "@/components/overlays/useFxPreview";
+import { useClearFxPreviewOnUnmount } from "@/components/overlays/useFxPreview";
 import {
   EffectDrawer,
   FxModal,
   useEffectMemory,
-  FxTuningProvider,
   FxTile,
 } from "@/components/overlays";
 import {
@@ -450,25 +449,6 @@ const Section = ({ title, hint, children }) => (
   </section>
 );
 
-// Everything past the everyday controls is \"advanced\": surface dials, playback
-// behaviour, page/privacy and embed settings. It stays out of the page entirely
-// until Advanced mode is on, and the switch that turns it on sits at the bottom
-// of the editor (see the AdvancedBar) instead of at the top of one section.
-const AdvancedNotice = ({ what }) => (
-  <div
-    data-testid="advanced-hidden-notice"
-    className="flex items-start gap-3 rounded-2xl border border-dashed border-white/[0.09] bg-[#0d0d0f] px-4 py-3.5"
-  >
-    <Lock className="mt-0.5 h-4 w-4 shrink-0 text-zinc-500" />
-    <div className="min-w-0">
-      <p className="text-xs font-semibold text-zinc-300">Advanced settings are hidden</p>
-      <p className="mt-0.5 text-[11px] leading-relaxed text-zinc-500">
-        {what} Turn on Advanced mode at the bottom of this page to reveal them.
-      </p>
-    </div>
-  </div>
-);
-
 const ChipGrid = ({ options, value, onChange, onLocked, testid, cols = 3 }) => (
   <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
     {options.map((o) => {
@@ -549,23 +529,6 @@ const ToggleRow = ({ testid, label, hint, checked, onCheckedChange }) => (
     <Switch data-testid={testid} className={SWITCH_CLASS} checked={checked} onCheckedChange={onCheckedChange} />
   </label>
 );
-
-const LivePreviewCard = memo(function LivePreviewCard({ user, profile, displayName, tuning }) {
-  const fxPreview = useFxPreview();
-
-  const data = useMemo(() => {
-    const previewProfile = { ...profile };
-    if (fxPreview?.slot === "name") previewProfile.name_effect = fxPreview.id;
-    if (fxPreview?.slot === "bio") previewProfile.bio_effect = fxPreview.id;
-    return { ...user, display_name: displayName, profile: previewProfile };
-  }, [user, profile, displayName, fxPreview]);
-
-  return (
-    <FxTuningProvider tuning={tuning}>
-      <ProfilePreview data={data} embedded />
-    </FxTuningProvider>
-  );
-});
 
 function EffectStage({ variant, id, accent, label, size = "lg" }) {
   const compact = size === "compact";
@@ -886,9 +849,10 @@ export default function Editor() {
   // renderer could disagree with.
   const layout = resolveLayout(p.layout || DEFAULT_LAYOUT);
   const placement = trackPositionForLayout(layout);
-  // One switch reveals every advanced control in the editor; it lives at the
-  // bottom of the page so the everyday controls stay up top.
-  const advanced = !!p.advanced_mode;
+  // Everything is always visible now — there is no hidden "advanced" tier. The
+  // flag stays defined and true so every previously gated control renders and
+  // every "hidden" notice drops out.
+  const advanced = true;
 
   const handleCardStylePreset = (styleId) => {
     const preset = CARD_STYLE_PRESETS[styleId] || { card_style: styleId };
@@ -1032,11 +996,8 @@ export default function Editor() {
         tracks: p.tracks || user.profile?.tracks || [],
         display_name: displayName,
       };
-      if (p.advanced_mode) {
-        payload.advanced_mode = true;
-      } else {
-        delete payload.advanced_mode;
-      }
+      // Advanced mode is gone — never persist the legacy flag.
+      delete payload.advanced_mode;
       const { data } = await api.put("/me/profile", payload);
       setUser(data);
       baselineRef.current = makeSnapshot(p, displayName);
@@ -1148,8 +1109,8 @@ export default function Editor() {
         </label>
       </div>
 
-      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(320px,400px)]">
-      <div className="w-full min-w-0 space-y-6">
+      <div className="w-full">
+      <div className="mx-auto w-full min-w-0 max-w-3xl space-y-6">
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={sub}
@@ -1201,6 +1162,111 @@ export default function Editor() {
                   </div>
                 </div>
               </ProfileRow>
+            </Section>
+
+            {/* ============================================================
+                MEDIA — avatar, background, audio and cursor live here. Each
+                tile opens its dedicated modal. This is always visible so the
+                profile picture and media uploads are never hidden.
+                ============================================================ */}
+            <Section title="Media" hint="Profile picture, background, audio and cursor">
+              <div className="grid gap-3 sm:grid-cols-2">
+                {/* Avatar */}
+                <button
+                  type="button"
+                  data-testid="media-open-avatar"
+                  onClick={() => setShowAvatarModal(true)}
+                  className="group flex items-center gap-3.5 rounded-2xl border border-[#2a2a2e] bg-[#09090b] p-3.5 text-left transition-colors hover:border-[#b4bffa]/50 hover:bg-[#0d0d12]"
+                >
+                  <span className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-[#111113]">
+                    {p.avatar_url ? (
+                      <img src={fileUrl(p.avatar_url)} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <User className="h-5 w-5 text-zinc-500" />
+                    )}
+                    {p.avatar_decoration && (
+                      <img
+                        src={p.avatar_decoration}
+                        alt=""
+                        className="pointer-events-none absolute inset-0 h-full w-full scale-[1.28] object-contain"
+                        style={Number(p.avatar_decoration_hue) ? { filter: `hue-rotate(${Number(p.avatar_decoration_hue)}deg)` } : undefined}
+                      />
+                    )}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-semibold text-white">Profile Picture</span>
+                    <span className="mt-0.5 block truncate text-[11px] text-zinc-500">
+                      {p.avatar_url ? "Uploaded — tap to change or decorate" : "Upload, adjust and decorate your avatar"}
+                    </span>
+                  </span>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-zinc-600 transition-colors group-hover:text-[#b4bffa]" />
+                </button>
+
+                {/* Background */}
+                <button
+                  type="button"
+                  data-testid="media-open-background"
+                  onClick={() => setShowBackgroundModal(true)}
+                  className="group flex items-center gap-3.5 rounded-2xl border border-[#2a2a2e] bg-[#09090b] p-3.5 text-left transition-colors hover:border-[#b4bffa]/50 hover:bg-[#0d0d12]"
+                >
+                  <span className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-[#111113]">
+                    {p.background_url ? (
+                      /\.(mp4|webm|mov)$/i.test(p.background_url) ? (
+                        <Film className="h-5 w-5 text-[#b4bffa]" />
+                      ) : (
+                        <img src={fileUrl(p.background_url)} alt="" className="h-full w-full object-cover" />
+                      )
+                    ) : (
+                      <ImageIcon className="h-5 w-5 text-zinc-500" />
+                    )}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-semibold text-white">Background</span>
+                    <span className="mt-0.5 block truncate text-[11px] text-zinc-500">
+                      {p.background_url ? "Media set — tap to change" : "Solid colour or an image / video"}
+                    </span>
+                  </span>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-zinc-600 transition-colors group-hover:text-[#b4bffa]" />
+                </button>
+
+                {/* Audio */}
+                <button
+                  type="button"
+                  data-testid="media-open-audio"
+                  onClick={() => setShowAudioModal(true)}
+                  className="group flex items-center gap-3.5 rounded-2xl border border-[#2a2a2e] bg-[#09090b] p-3.5 text-left transition-colors hover:border-[#b4bffa]/50 hover:bg-[#0d0d12]"
+                >
+                  <span className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[#b4bffa]/25 bg-[#b4bffa]/10">
+                    <Music className="h-5 w-5 text-[#b4bffa]" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-semibold text-white">Audio</span>
+                    <span className="mt-0.5 block truncate text-[11px] text-zinc-500">
+                      {p.tracks?.length ? `${p.tracks.length} track${p.tracks.length > 1 ? "s" : ""} in your playlist` : "Add up to 3 songs to your profile"}
+                    </span>
+                  </span>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-zinc-600 transition-colors group-hover:text-[#b4bffa]" />
+                </button>
+
+                {/* Cursor */}
+                <button
+                  type="button"
+                  data-testid="media-open-cursor"
+                  onClick={() => setShowCursorModal(true)}
+                  className="group flex items-center gap-3.5 rounded-2xl border border-[#2a2a2e] bg-[#09090b] p-3.5 text-left transition-colors hover:border-[#b4bffa]/50 hover:bg-[#0d0d12]"
+                >
+                  <span className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-[#111113]">
+                    <MousePointer2 className="h-5 w-5 text-zinc-400" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-semibold text-white">Cursor</span>
+                    <span className="mt-0.5 block truncate text-[11px] text-zinc-500">
+                      {p.custom_cursor ? "Custom cursor set" : "Upload a custom cursor and particle trails"}
+                    </span>
+                  </span>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-zinc-600 transition-colors group-hover:text-[#b4bffa]" />
+                </button>
+              </div>
             </Section>
             </>
           )}
@@ -1511,8 +1577,6 @@ export default function Editor() {
               </Section>
 
 
-              {advanced ? (
-                <>
               <Section title="Page & Privacy" hint="Footer branding and text sizing">
                 <SliderRow
                   testid="bio-size"
@@ -1559,10 +1623,6 @@ export default function Editor() {
                   />
                 </label>
               </Section>
-                </>
-              ) : (
-                <AdvancedNotice what="Page privacy, text sizing, entry animations and section folding live here." />
-              )}
             </>
           )}
 
@@ -1597,41 +1657,6 @@ export default function Editor() {
                   })}
                 </div>
               </Section>
-
-              {/* Keep the live player directly under its style picker, rather than far below the upload and tuning controls. */}
-              <section className="space-y-3" aria-label="Audio player live preview" data-testid="audio-style-preview-section">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold text-zinc-200">Live preview</span>
-                    <span className="rounded-full border border-white/[0.07] bg-white/[0.03] px-2 py-0.5 text-[10px] font-medium text-zinc-500">{TRACK_STYLES.find((style) => style.id === trackStyle)?.label || "Compact"}</span>
-                  </div>
-                  <span className="text-[11px] text-zinc-600">Updates when you choose a style or edit your track</span>
-                </div>
-                <div className="relative flex min-h-[140px] items-center justify-center overflow-hidden rounded-xl border border-white/[0.06] bg-[#080809] p-6">
-                  {(() => {
-                    const effectiveTrack = {
-                      title: p.tracks?.[0]?.title || newTrackTitle || "Your track title",
-                      artist: p.tracks?.[0]?.artist || newTrackArtist || "Artist name",
-                      artwork: p.tracks?.[0]?.artwork || newTrackArtwork || "",
-                      lyrics: p.tracks?.[0]?.lyrics || newTrackLyrics || "",
-                      url: p.tracks?.[0]?.url || newTrackUrl || "",
-                      audio_url: p.tracks?.[0]?.audio_url || "",
-                    };
-                    return (
-                      <div className="w-full max-w-lg flex flex-col items-center">
-                        <TrackCardPreview
-                          track={effectiveTrack}
-                          style={trackStyle}
-                          accent={accentColor}
-                          volume={(Number.isFinite(Number(p.audio_volume ?? p.track_volume)) ? Number(p.audio_volume ?? p.track_volume) : 80) / 100}
-                          profile={p}
-                          embedded={true}
-                        />
-                      </div>
-                    );
-                  })()}
-                </div>
-              </section>
 
               {/* Placement is not a separate switch any more: the layout owns it.
                   This row only reports what the current layout does, so the
@@ -1937,10 +1962,6 @@ export default function Editor() {
                   )}
               </div>
               </Section>
-
-              {!advanced && (
-                <AdvancedNotice what="Synchronized lyrics, shuffle/autoplay/loop, default volume and the player's card styling live here." />
-              )}
 
               {/* 3. BOTTOM: WIDGET CARD CUSTOMIZATION */}
               {advanced && (
@@ -2254,10 +2275,6 @@ export default function Editor() {
                     accent={accentColor}
                   />
               </div>
-
-              {!advanced && (
-                <AdvancedNotice what="3D tilt, embed/metadata settings and the entry screen live here." />
-              )}
 
               {advanced && (
                 <>
@@ -2672,33 +2689,8 @@ export default function Editor() {
             </>
           )}
 
-          {/* The one switch that reveals the advanced controls, at the bottom of
-              the page where the everyday settings end. */}
           </motion.div>
           </AnimatePresence>
-
-          <div
-            data-testid="editor-advanced-bar"
-            className="flex flex-col gap-4 rounded-2xl border border-[#1f1f1f] bg-[#0d0d0f] p-5 sm:flex-row sm:items-center sm:justify-between"
-          >
-            <div className="flex min-w-0 items-start gap-3">
-              <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border ${advanced ? "border-[#b4bffa]/40 bg-[#b4bffa]/15 text-[#b4bffa]" : "border-white/[0.06] bg-[#0b0b0c] text-zinc-500"}`}>
-                <Sliders className="h-4 w-4" />
-              </span>
-              <div className="min-w-0">
-                <p className="text-xs font-bold text-white">Advanced mode</p>
-                <p className="mt-0.5 text-[11px] leading-relaxed text-zinc-500">
-                  Surface dials, playback behaviour, page &amp; privacy, embed settings and the entry screen stay hidden until this is on.
-                </p>
-              </div>
-            </div>
-            <Switch
-              data-testid="advanced-mode-toggle"
-              className={SWITCH_CLASS}
-              checked={advanced}
-              onCheckedChange={(v) => set("advanced_mode", v)}
-            />
-          </div>
 
           {/* Hidden test-accessible fallback save button if clean */}
           {!isDirty && (
@@ -2713,10 +2705,6 @@ export default function Editor() {
             </button>
           )}
       </div>
-
-      <aside className="min-w-0 xl:sticky xl:top-6" aria-label="Live profile preview">
-        <LivePreviewCard user={user} profile={p} displayName={displayName} tuning={fxTuning} />
-      </aside>
       </div>
       </div>
 

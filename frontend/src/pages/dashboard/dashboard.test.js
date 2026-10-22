@@ -173,9 +173,9 @@ const picker = (id) => inDialog(`[data-testid="fx-${id}"]`);
 const chipsIn = (id) => [...inDialog(`[data-testid="fx-${id}-choices"]`).querySelectorAll("button")];
 const option = (group, id) => inDialog(`[data-testid="fx-${group}-${id}"]`);
 
-// Advanced controls (surface dials, playback behaviour, tilt, entry screen and
-// embed settings) only exist while Advanced mode is on. Its switch lives at the
-// bottom of the editor.
+// Advanced mode was removed: every control (surface dials, playback behaviour,
+// tilt, entry screen and embed settings) is always on the page. The flag below
+// is now inert — kept only so legacy fixtures still construct a premium user.
 const ADVANCED_USER = {
   ...PREMIUM_USER,
   profile: { ...PREMIUM_USER.profile, advanced_mode: true },
@@ -484,7 +484,7 @@ describe("editor card panel", () => {
     click(subtab("card"));
   };
 
-  it("hides the surface dials behind advanced mode; the placement map stays gone", () => {
+  it("shows the surface dials without any advanced gate; the placement map stays gone", () => {
     global.__DASH_USER__ = PREMIUM_USER;
     openCard();
 
@@ -499,28 +499,29 @@ describe("editor card panel", () => {
       expect(container.querySelector(`[data-testid="${testid}"]`)).toBeFalsy();
     }
 
-    // This is the owner's ask: the glass blur, surface/outline alpha, rounding
-    // and width dials only exist while Advanced mode is on, and the Themes
-    // grid is gone entirely.
+    // Advanced mode was removed entirely: there is no toggle and no hidden
+    // notice, and every control — the style chips, the surface/glow dials and
+    // the colour pickers — is on the page from the start.
+    expect(container.querySelector('[data-testid="advanced-mode-toggle"]')).toBeFalsy();
+    expect(container.querySelector('[data-testid="advanced-hidden-notice"]')).toBeFalsy();
     expect(container.querySelector('[data-testid="cardstyle-classic"]')).toBeTruthy();
     expect(container.querySelector('[data-testid="cardstyle-advanced"]')).toBeFalsy();
     expect(container.querySelector('[data-testid="card-bg-toggle"]')).toBeTruthy();
     expect(container.querySelector('[data-testid="card-glow-toggle"]')).toBeTruthy();
-    expect(container.querySelector('[data-testid="card-blur"]')).toBeFalsy();
-    expect(container.querySelector('[data-testid="card-fill-alpha"] [role="slider"]')).toBeFalsy();
-    expect(container.querySelector('[data-testid="card-outline-alpha"] [role="slider"]')).toBeFalsy();
-    expect(container.querySelector('[data-testid="card-radius"] [role="slider"]')).toBeFalsy();
-    expect(container.querySelector('[data-testid="card-width"] [role="slider"]')).toBeFalsy();
+    // The dials that used to hide behind the gate are present up front now.
+    expect(container.querySelector('[data-testid="card-blur"] [role="slider"]')).toBeTruthy();
+    expect(container.querySelector('[data-testid="card-fill-alpha"] [role="slider"]')).toBeTruthy();
+    expect(container.querySelector('[data-testid="card-outline-alpha"] [role="slider"]')).toBeTruthy();
+    expect(container.querySelector('[data-testid="card-radius"] [role="slider"]')).toBeTruthy();
+    expect(container.querySelector('[data-testid="card-width"] [role="slider"]')).toBeTruthy();
     expect(container.querySelector('[data-testid="cardtheme-ocean"]')).toBeFalsy();
   });
 
-  it("advanced mode reveals the surface dials and the colour pickers", async () => {
+  it("shows the surface dials and colour pickers up front, and never saves advanced_mode", async () => {
     global.__DASH_USER__ = PREMIUM_USER;
     openCard();
 
-    // Toggle off: none of the dials or pickers are on the page at all.
-    expect(container.querySelector('[data-testid="card-fill-color"]')).toBeFalsy();
-    click(container.querySelector('[data-testid="advanced-mode-toggle"]'));
+    // Everything is on the page immediately — no toggle to flip first.
     expect(container.querySelector('[data-testid="advanced-appearance"]')).toBeTruthy();
     for (const testid of ["card-blur", "card-fill-alpha", "card-outline-alpha", "card-radius", "card-width", "card-glow-strength"]) {
       expect(container.querySelector(`[data-testid="${testid}"] [role="slider"]`)).toBeTruthy();
@@ -529,13 +530,14 @@ describe("editor card panel", () => {
     expect(container.querySelector('[data-testid="card-outline-color"]')).toBeTruthy();
     expect(container.querySelector('[data-testid="card-glow-color"]')).toBeTruthy();
 
-    // Saving carries the switch through to the backend.
+    // Saving never carries the retired advanced_mode flag to the backend.
     await act(async () => {
       click(container.querySelector('[data-testid="editor-save"]'));
     });
 
     const put = calls("put").find((c) => c.url === "/me/profile");
-    expect(put?.body.advanced_mode).toBe(true);
+    expect(put).toBeTruthy();
+    expect("advanced_mode" in put.body).toBe(false);
   });
 
   // The style chips and the sliders drive the very card the editor preview
