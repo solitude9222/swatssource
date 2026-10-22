@@ -910,7 +910,7 @@ router.get('/discord/callback', async (req, res) => {
 });
 
 // POST /api/auth/discord/sync - Manually sync Discord data for linked account
-router.post('/discord/sync', requireAuth, async (req, res) => {
+router.post(['/discord/sync', '/sync'], requireAuth, async (req, res) => {
   try {
     if (!req.user.discord?.linked || !req.user.discord?.id) {
       return res.status(400).json({ detail: 'Discord account is not linked' });

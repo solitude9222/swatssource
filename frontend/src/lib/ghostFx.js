@@ -80,7 +80,7 @@ const mkbolt = (W, H) => {
    refraction rims and trickling drip trails down the plate. */
 const rain = (W, H) => {
   const mk = () => ({ x: R() * W, y: R() * H, r: 2 + R() * 5, v: 0, y0: 0, tr: 0 });
-  const D = [...Array(110)].map(mk);
+  const D = [...Array(70)].map(mk);
   return (c) => {
     const g = c.createLinearGradient(0, 0, 0, H);
     g.addColorStop(0, 'rgba(11, 14, 19, 0.04)');
@@ -629,7 +629,7 @@ const tv = (W, H) => {
 
 /* grain: film noise as four alpha buckets of single-pixel specks. */
 const grain = (W, H) => {
-  const n = Math.max(260, Math.min(900, Math.round((W * H) / 2400)));
+  const n = Math.max(160, Math.min(460, Math.round((W * H) / 4800)));
   const ALPHAS = [0.03, 0.055, 0.08, 0.11];
   const buckets = ALPHAS.map(() => []);
   for (let i = 0; i < n; i += 1) buckets[i % ALPHAS.length].push({ x: R() * W, y: R() * H });
@@ -686,8 +686,8 @@ export const GHOST_OVERLAY_IDS = ['snow', 'rain', 'vhs', 'grain', 'spotlight'];
 export function createGhostBgPainter(id, w, h, pointer = pointerRef()) {
   switch (id) {
     case 'rain': return rain(w, h);
-    case 'snow-v1': return snow(w, h, 150, 0, 1);
-    case 'snow-v2': return pile(w, h, 120, 24);
+    case 'snow-v1': return snow(w, h, 90, 0, 1);
+    case 'snow-v2': return pile(w, h, 90, 24);
     case 'shooting-stars': {
       const stars = starsFx(w, h, 1, 9);
       return (c, t) => {

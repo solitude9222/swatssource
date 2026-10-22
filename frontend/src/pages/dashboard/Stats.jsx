@@ -65,8 +65,8 @@ export default function Stats() {
             <span>Last 7 days</span>
           </div>
         </div>
-        <div className="h-64 w-full min-w-0">
-          <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={180}>
+        <div className="w-full min-w-0" style={{ height: 240, minHeight: 200 }}>
+          <ResponsiveContainer width="100%" height={240} minWidth={0} minHeight={200}>
             <AreaChart data={data}>
               <defs>
                 <linearGradient id="viewGradient" x1="0" y1="0" x2="0" y2="1">

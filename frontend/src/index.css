@@ -741,7 +741,8 @@ body.dash-theme .stagger-children > * {
     body.dash-theme .dash-progress-fill,
     body.dash-theme .dash-modal-scrim,
     body.dash-theme .dash-modal-panel {
-        animation: none !important;
+        animation-duration: 0.001s !important;
+        opacity: 1 !important;
     }
     body.dash-theme .dash-card-lift:hover,
     body.dash-theme .dash-press:active {

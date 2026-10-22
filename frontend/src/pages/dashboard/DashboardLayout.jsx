@@ -14,7 +14,7 @@ import {
   Trophy, BarChart3, Users, Ticket, SlidersHorizontal, LineChart, LogOut,
   ExternalLink, Crown, ChevronDown, Sparkles, BellRing, Newspaper, ShieldCheck, Plus,
   ScrollText, Loader2, Gift, ShoppingBag, Store, Search, User, Home, ChevronRight, Eye,
-  Layers, Star, PanelLeftClose, PanelLeftOpen, Globe,
+  Layers, Star, PanelLeftClose, PanelLeftOpen, Globe, UserCheck,
 } from "lucide-react";
 import PremiumPlansModal from "@/components/PremiumPlansModal";
 import DevlogFeedModal from "@/components/DevlogFeedModal";
@@ -92,6 +92,7 @@ const NAV_GROUPS = [
       { to: "/!/dashboard/badges", label: "Badges", icon: Award, testid: "tab-badges", desc: "Earn, equip and reorder your profile badges", ownHeader: true },
       { to: "/!/dashboard/editor?tab=about", label: "About me", icon: User, testid: "tab-editor", desc: "Display name, bio, avatar, background and accent colour" },
       { to: "/!/dashboard/links", label: "Links", icon: Link2, testid: "tab-links", desc: "Add, order and style the links on your page", ownHeader: true },
+      { to: "/!/dashboard/widgets", label: "Widgets", icon: LayoutGrid, testid: "tab-widgets", desc: "Live platform widgets shown on your profile", ownHeader: true },
     ],
   },
   {
@@ -102,7 +103,6 @@ const NAV_GROUPS = [
     tabs: [
       { to: "/!/dashboard/editor?tab=appearance", label: "Appearance", icon: Paintbrush, testid: "tab-appearance", desc: "Card surface, decorations, glow, borders and fonts" },
       { to: "/!/dashboard/editor?tab=layout", label: "Layout", icon: LayoutTemplate, testid: "tab-layout", desc: "Page structure, audio player and section placement" },
-      { to: "/!/dashboard/widgets", label: "Widgets", icon: LayoutGrid, testid: "tab-widgets", desc: "Live platform widgets shown on your profile", ownHeader: true },
       { to: "/!/dashboard/editor?tab=extra", label: "Extra", icon: Sparkles, testid: "tab-extra", desc: "View counter, stats, card title and advanced toggles" },
       { to: "/!/dashboard/editor?tab=entry", label: "Entry screen", icon: Eye, testid: "tab-entry", desc: "What visitors see before entering your profile" },
     ],
@@ -121,12 +121,21 @@ const NAV_GROUPS = [
     ],
   },
   {
+    id: "settings",
+    label: "Settings",
+    icon: Settings,
+    expandable: true,
+    tabs: [
+      { to: "/!/dashboard/settings", label: "Account settings", icon: UserCheck, testid: "tab-settings", desc: "Standing, profile info, active sessions & preferences" },
+      { to: "/!/dashboard/settings?tab=billing", label: "Billing & security", icon: ShieldCheck, testid: "tab-settings-billing", desc: "Account balance, purchases, security & 2FA" },
+    ],
+  },
+  {
     id: "other",
     label: "Other",
     icon: Layers,
     expandable: true,
     tabs: [
-      { to: "/!/dashboard/settings", label: "Settings", icon: Settings, testid: "tab-settings", desc: "Account, security, 2FA and redeem codes" },
       { to: "/!/dashboard/connections", label: "Connections", icon: Globe, testid: "tab-connections", desc: "Link Discord and other external accounts" },
       { to: "/!/dashboard/stats", label: "Statistics", icon: BarChart3, testid: "tab-stats", desc: "Profile views, link clicks and referrer breakdown" },
     ],
@@ -165,11 +174,18 @@ const spring = { type: "spring", stiffness: 420, damping: 34, mass: 0.7 };
 /* Is this tab the page we are on? The editor tabs share one pathname and
    differ only by ?tab=, so a plain pathname match would light all of them. */
 const EDITOR_PATH = "/!/dashboard/editor";
+const SETTINGS_PATH = "/!/dashboard/settings";
 const isTabActive = (t, pathname, search) => {
   const [path, query] = t.to.split("?");
-  const exact = t.end || Boolean(query) || path === EDITOR_PATH;
+  const exact = t.end || Boolean(query) || path === EDITOR_PATH || path === SETTINGS_PATH;
   const pathMatch = exact ? pathname === path : pathname === path || pathname.startsWith(`${path}/`);
   if (!pathMatch) return false;
+  if (path === SETTINGS_PATH) {
+    const current = new URLSearchParams(search).get("tab") || "";
+    const wanted = new URLSearchParams(query || "").get("tab") || "";
+    if (wanted === "billing") return current === "billing";
+    return current !== "billing";
+  }
   if (path !== EDITOR_PATH) return true;
   const current = new URLSearchParams(search).get("tab") || "";
   const wanted = new URLSearchParams(query || "").get("tab") || "";

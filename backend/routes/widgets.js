@@ -440,19 +440,29 @@ router.get('/discord/server', async (req, res) => {
           `https://discord.com/api/v10/invites/${encodeURIComponent(code)}?with_counts=true`
         ).catch((err) => {
           if (err.status === 404) {
-            const bad = new Error('That Discord invite is invalid or has expired');
-            bad.status = 404;
-            throw bad;
+            return { invalid: true, guild: { id: code, name: code } };
           }
           throw err;
         });
-        if (!data?.guild?.id) {
-          const err = new Error('That Discord invite is invalid or has expired');
-          err.status = 404;
-          throw err;
+        if (data?.invalid || !data?.guild?.id) {
+          return { invalid: true, guild: { id: code, name: code } };
         }
         return data;
       });
+
+      if (invite?.invalid) {
+        return res.json({
+          kind: 'server',
+          id: code,
+          name: code,
+          icon: null,
+          banner: null,
+          online: 0,
+          total: 0,
+          invalid: true,
+          detail: 'That Discord invite is invalid or has expired',
+        });
+      }
 
       const guild = invite.guild;
       const online = invite.approximate_presence_count ?? null;

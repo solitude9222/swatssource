@@ -134,15 +134,40 @@ export function FxText({
         return 400;
       }, 100);
     } else if (/sparkle/.test(id)) {
+      // guns.lol-style starfield: 200 tiny shimmering dots scattered like stars
+      // around and across the text, plus periodic star flares.
       const col =
         id[0] === "w"
           ? () => "#fff"
           : id[0] === "g"
             ? () => (Math.random() < 0.5 ? "#4dff88" : "#b6ffd0")
             : () => `hsl(${(Math.random() * 360) | 0},100%,70%)`;
+      const COUNT = 200;
+      for (let i = 0; i < COUNT; i++) {
+        const e = document.createElement("i");
+        e.className = "fx-star";
+        const size = (0.5 + Math.random() * 1.5).toFixed(2);
+        const x = (-8 + Math.random() * 116).toFixed(2);
+        const y = (-15 + Math.random() * 130).toFixed(2);
+        e.style.cssText =
+          `left:${x}%;` +
+          `top:${y}%;` +
+          `width:${size}px;height:${size}px;` +
+          `color:${col()};` +
+          `animation-duration:${(0.8 + Math.random() * 2.2).toFixed(2)}s;` +
+          `animation-delay:${(-Math.random() * 3.5).toFixed(2)}s;` +
+          `--drift-x:${((Math.random() - 0.5) * 6).toFixed(1)}px;` +
+          `--drift-y:${((Math.random() - 0.5) * 6).toFixed(1)}px;`;
+        host.append(e);
+      }
+      cleanups.push(() => {
+        host.querySelectorAll(".fx-star").forEach((n) => n.remove());
+      });
+
+      // Occasional star flares
       loop(() => {
         if (gen() !== genRef.current) return undefined;
-        spawn("fx-spark", `left:${Math.random() * 100}%;top:${Math.random() * 100}%;background:${col()}`, 900);
+        spawn("fx-spark", `left:${Math.random() * 100}%;top:${Math.random() * 100}%;color:${col()}`, 900);
         return 90;
       }, 90);
     } else if (id === "flames") {

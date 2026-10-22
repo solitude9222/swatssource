@@ -1842,11 +1842,12 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
   // preview panel's corner, so what the editor shows is what the page does.
   const pos = trackPositionForLayout(p.layout);
   const pagePin = pos === "top-right" || pos === "top-left" || pos === "bottom-center" || pos === "bottom-right";
+  const hasFooter = p.hide_footer !== true;
   const pinnedPlayer = !cornerStyle && pagePin && tracks.length > 0;
   const pinClass =
     pos === "top-left" ? "top-3 left-3 w-64 sm:w-72" :
-    pos === "bottom-center" ? "bottom-4 left-1/2 -translate-x-1/2 w-[92%] max-w-sm sm:max-w-md" :
-    pos === "bottom-right" ? "bottom-4 right-4 w-64 sm:w-72" :
+    pos === "bottom-center" ? `${hasFooter ? "bottom-16 sm:bottom-20" : "bottom-4"} left-1/2 -translate-x-1/2 w-[92%] max-w-sm sm:max-w-md` :
+    pos === "bottom-right" ? `${hasFooter ? "bottom-16 sm:bottom-20" : "bottom-4"} right-4 w-64 sm:w-72` :
     "top-3 right-3 w-64 sm:w-72";
   const pinKind = embedded ? "absolute" : "fixed";
 
@@ -1859,8 +1860,9 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
       )}
       <div className="absolute inset-0" style={{ background: `rgba(0,0,0,${((Number(p.bg_dim ?? 50)) / 100).toFixed(2)})` }} />
       {p.background_effect && <BackgroundEffect effect={p.background_effect} />}
-      {/* Overlays sit above cards with pointer-events-none so all interactive elements remain clickable */}
-      {p.overlay && <OverlayEffect effect={p.overlay} color={accent} opacity={p.overlay_opacity ?? 100} zIndex="z-[25]" />}
+      {/* Overlays sit above cards with pointer-events-none so all interactive elements remain clickable.
+          The editor saves the choice as `overlay_effect`; `p.overlay` is a legacy alias kept for old profiles. */}
+      {(p.overlay_effect || p.overlay) && <OverlayEffect effect={p.overlay_effect || p.overlay} color={accent} opacity={p.overlay_opacity ?? 100} zIndex="z-[25]" />}
       {p.overlay_enabled && <div className="absolute inset-0 pointer-events-none z-[25]" style={{ background: withA(p.overlay_color || accent, p.overlay_opacity ?? 18) }} />}
       {/* The lifted player: fixed to page coordinates, above the
           card. Every layout includes BgLayers, so the pin works on Minimal,

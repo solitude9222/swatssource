@@ -7,7 +7,6 @@ import { api, fileUrl } from "@/lib/api";
 
 import AvatarDecorationModal from "@/components/AvatarDecorationModal";
 import { ColorPicker } from "@/components/ColorPicker";
-import { SmartSelect } from "@/components/ui-shared/SmartSelect";
 import { CrosshairPicker } from "@/components/CrosshairPicker";
 import { BackgroundEffect } from "@/components/BackgroundEffect";
 import { OverlayEffect } from "@/components/OverlayEffect";
@@ -1024,7 +1023,7 @@ export default function Editor() {
   }, [autoSave, isDirty, saving, p, displayName]);
 
   const SUBTAB_ITEMS = [
-    { id: "about", label: "About Me", icon: User },
+    { id: "about", label: "Profile", icon: User },
     { id: "appearance", label: "Appearance", icon: Paintbrush },
     { id: "audios", label: "Audio", icon: Music },
     { id: "extra", label: "Extra", icon: Sparkles },
@@ -1356,6 +1355,68 @@ export default function Editor() {
                   </div>
                 </div>
               </ProfileRow>
+
+              {/* Fonts live right under the text boxes they style. */}
+              <ProfileRow label="Fonts">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <FontField
+                    testid="font-display"
+                    label="Username font"
+                    value={p.font_display}
+                    onChange={(stack) => set("font_display", stack)}
+                    isPremium={isPremium}
+                    navigate={navigate}
+                  />
+                  <FontField
+                    testid="font-bio"
+                    label="Bio font"
+                    value={p.font_bio}
+                    onChange={(stack) => set("font_bio", stack)}
+                    isPremium={isPremium}
+                    navigate={navigate}
+                  />
+                </div>
+              </ProfileRow>
+            </Section>
+
+            {/* Page & Privacy moved here from Appearance. */}
+            <Section title="Page & Privacy" hint="Footer branding and text sizing">
+              <SliderRow
+                testid="bio-size"
+                label="Bio text size"
+                value={Number(p.bio_size ?? 100)}
+                min={80}
+                max={160}
+                step={5}
+                suffix="%"
+                onChange={(v) => set("bio_size", v)}
+              />
+              <label className="mt-4 flex cursor-pointer items-center justify-between gap-4 text-xs text-zinc-300">
+                <span>
+                  Hide the &quot;made with tourn.lol&quot; footer
+                  {!isPremium && <span className="ml-2 text-[10px] uppercase tracking-wide text-amber-400">Premium</span>}
+                </span>
+                <Switch
+                  data-testid="hide-footer"
+                  className={SWITCH_CLASS}
+                  checked={!!p.hide_footer}
+                  onCheckedChange={(v) => (isPremium ? set("hide_footer", v) : setPremiumFeature("Footer removal"))}
+                />
+              </label>
+            </Section>
+
+            {/* Page Identity moved here from Extra — it is identity info. */}
+            <Section title="Page Identity" hint="Custom name shown in share embeds">
+              <label className="mb-1.5 block text-xs font-semibold text-zinc-300">Custom page name</label>
+              <input
+                data-testid="editor-meta-title"
+                value={p.meta_title || ""}
+                onChange={(e) => set("meta_title", e.target.value)}
+                maxLength={60}
+                placeholder={`${(displayName || user.username) + (" on tourn.lol")}`}
+                className="w-full rounded-xl bg-[#060606] border border-[#1f1f1f] px-4 py-2.5 text-xs text-white outline-none focus:border-[#b4bffa]"
+              />
+              <p className="mt-1.5 text-[11px] text-zinc-600">When shared on Discord, your profile shows your background with your avatar and this name centred below.</p>
             </Section>
             </>
           )}
@@ -1367,24 +1428,145 @@ export default function Editor() {
             <>
               <Section title="Card Appearance" hint="Surface, glow, borders and presets">
                 <div className="space-y-5">
+                  {/* Card Layouts with interactive visual mockups */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-xs font-semibold text-zinc-300">Card Layout</label>
+                      <span className="text-[11px] text-zinc-500">Pick how your profile card is structured</span>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                      {[
+                        {
+                          id: "minimal",
+                          label: "Minimal",
+                          hint: "Centered wide card",
+                          mock: (
+                            <div className="flex h-12 w-full flex-col items-center justify-center gap-1 rounded-md bg-[#09090b] p-1.5 border border-white/5">
+                              <div className="h-4 w-4 rounded-full bg-white/40 border border-white/20" />
+                              <div className="h-1 w-12 rounded-full bg-white/50" />
+                              <div className="h-1 w-8 rounded-full bg-white/20" />
+                            </div>
+                          ),
+                        },
+                        {
+                          id: "floating",
+                          label: "Floating",
+                          hint: "Hovering avatar",
+                          mock: (
+                            <div className="relative flex h-12 w-full flex-col items-center justify-end rounded-md bg-[#09090b] pb-1.5 px-1.5 border border-white/5">
+                              <div className="absolute top-1 h-3.5 w-3.5 rounded-full bg-white/50 border border-black/40 shadow-sm" />
+                              <div className="h-1 w-12 rounded-full bg-white/50 mb-0.5" />
+                              <div className="h-0.5 w-16 rounded-full bg-white/20" />
+                            </div>
+                          ),
+                        },
+                        {
+                          id: "banner",
+                          label: "Banner",
+                          hint: "Hero header",
+                          mock: (
+                            <div className="flex h-12 w-full flex-col overflow-hidden rounded-md bg-[#09090b] border border-white/5">
+                              <div className="relative h-4 w-full bg-white/20 border-b border-white/10">
+                                <div className="absolute -bottom-1.5 left-1.5 h-3.5 w-3.5 rounded-full bg-white/50 border border-black/50" />
+                              </div>
+                              <div className="flex-1 pl-6 pt-1 space-y-0.5">
+                                <div className="h-1 w-8 rounded-full bg-white/50" />
+                                <div className="h-0.5 w-10 rounded-full bg-white/20" />
+                              </div>
+                            </div>
+                          ),
+                        },
+                        {
+                          id: "slideshow",
+                          label: "Slideshow",
+                          hint: "Multi-slide navigation",
+                          premium: true,
+                          mock: (
+                            <div className="flex h-12 w-full items-center justify-between px-1.5 gap-1 rounded-md bg-[#09090b] border border-white/5">
+                              <div className="h-4 w-1 rounded-sm bg-white/15" />
+                              <div className="flex h-9 flex-1 flex-col items-center justify-center gap-0.5 rounded bg-white/10 border border-white/5">
+                                <div className="h-2.5 w-2.5 rounded-full bg-white/40" />
+                                <div className="h-0.5 w-6 rounded-full bg-white/30" />
+                              </div>
+                              <div className="h-4 w-1 rounded-sm bg-white/15" />
+                            </div>
+                          ),
+                        },
+                      ].map((ly) => {
+                        const active = (p.layout || "minimal") === ly.id;
+                        return (
+                          <button
+                            key={ly.id}
+                            type="button"
+                            data-testid={`layout-option-${ly.id}`}
+                            onClick={() => {
+                              if (ly.premium && !isPremium) {
+                                askPremium("Slideshow layout")();
+                                return;
+                              }
+                              set("layout", ly.id);
+                            }}
+                            className={`group rounded-xl border p-2 transition cursor-pointer flex flex-col justify-between ${
+                              active
+                                ? "border-[#b4bffa] ring-1 ring-[#b4bffa] bg-[#b4bffa]/10"
+                                : "border-[#1a1a1a] bg-[#060606] hover:border-white/30"
+                            }`}
+                          >
+                            <span className="relative flex h-14 w-full items-center justify-center overflow-hidden rounded-lg bg-[#050505]">
+                              {ly.mock}
+                            </span>
+                            <div className="mt-1.5 flex items-center justify-between">
+                              <span className={`text-[11px] font-semibold ${active ? "text-[#b4bffa]" : "text-zinc-300"}`}>
+                                {ly.label}
+                              </span>
+                              {ly.premium && !isPremium && (
+                                <Lock className="h-3 w-3 text-amber-400" />
+                              )}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
                   <div>
                     <label className="block text-xs font-semibold text-zinc-300 mb-2">Card Style Presets</label>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                       {Object.keys(CARD_STYLE_PRESETS).map((styleId) => {
                         const active = (p.card_style || "classic") === styleId;
+                        // A little mock card drawn in each tile so the preset is
+                        // read as a real example, not just a word.
+                        const previews = {
+                          classic: { background: "rgba(19,19,22,0.92)", border: "1px solid rgba(255,255,255,0.12)" },
+                          frosted: { background: "rgba(255,255,255,0.10)", border: "1px solid rgba(255,255,255,0.28)", backdropFilter: "blur(3px)" },
+                          "frosted-soft": { background: "rgba(255,255,255,0.055)", border: "1px solid rgba(255,255,255,0.16)" },
+                          outlined: { background: "transparent", border: `1.5px solid ${accentColor}` },
+                          aurora: { background: "rgba(15,16,21,0.92)", border: "1px solid rgba(255,255,255,0.10)", boxShadow: `0 0 20px ${accentColor}66` },
+                          transparent: { background: "transparent", border: "1px dashed rgba(255,255,255,0.18)" },
+                        };
+                        const pv = previews[styleId] || previews.classic;
                         return (
                           <button
                             key={styleId}
                             type="button"
                             data-testid={`cardstyle-${styleId}`}
                             onClick={() => handleCardStylePreset(styleId)}
-                            className={`p-3 rounded-xl border text-xs font-semibold transition text-left ${
+                            className={`group rounded-xl border p-2 transition ${
                               active
-                                ? "border-[#b4bffa] bg-[#b4bffa] text-black font-bold shadow-sm"
-                                : "border-[#2a2a2e] bg-[#09090b] text-zinc-300 hover:border-white/30"
+                                ? "border-[#b4bffa] ring-1 ring-[#b4bffa]"
+                                : "border-[#1a1a1a] bg-[#060606] hover:border-white/30"
                             }`}
                           >
-                            <span className="capitalize">{styleId.replace("-", " ")}</span>
+                            <span className="relative flex h-16 w-full items-center justify-center overflow-hidden rounded-lg bg-[#050505]">
+                              <span className="flex h-11 w-[72px] flex-col items-center justify-center gap-1 rounded-md" style={pv}>
+                                <span className="h-3 w-3 rounded-full" style={{ background: accentColor }} />
+                                <span className="h-1 w-10 rounded-full bg-white/50" />
+                                <span className="h-1 w-7 rounded-full bg-white/25" />
+                              </span>
+                            </span>
+                            <span className={`mt-1.5 block text-center text-[11px] font-semibold capitalize ${active ? "text-[#b4bffa]" : "text-zinc-300"}`}>
+                              {styleId.replace("-", " ")}
+                            </span>
                           </button>
                         );
                       })}
@@ -1608,88 +1790,9 @@ export default function Editor() {
                 />
               </div>
 
-              <Section title="Fonts" hint="Typography for your username, bio and text effects">
-                <div className="space-y-4">
-                  <FontField
-                    testid="font-display"
-                    label="Username font"
-                    value={p.font_display}
-                    onChange={(stack) => set("font_display", stack)}
-                    isPremium={isPremium}
-                    navigate={navigate}
-                  />
-
-                  <FontField
-                    testid="font-bio"
-                    label="Bio font"
-                    value={p.font_bio}
-                    onChange={(stack) => set("font_bio", stack)}
-                    isPremium={isPremium}
-                    navigate={navigate}
-                  />
-
-                  <div className="space-y-3 border-t border-[#1f1f1f] pt-4">
-                    <p className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wide">Text effects</p>
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <div>
-                        <label className="mb-1.5 block text-xs font-semibold text-zinc-300">Name effect</label>
-                        <SmartSelect
-                          value={p.name_effect || ""}
-                          onChange={(v) => set("name_effect", v)}
-                          options={[{ value: "", label: "None" }, ...TEXT_EFFECTS.map((e) => ({ value: e.id, label: e.label }))]}
-                        />
-                      </div>
-                      <div>
-                        <label className="mb-1.5 block text-xs font-semibold text-zinc-300">Bio effect</label>
-                        <SmartSelect
-                          value={p.bio_effect || ""}
-                          onChange={(v) => set("bio_effect", v)}
-                          options={[{ value: "", label: "None" }, ...TEXT_EFFECTS.map((e) => ({ value: e.id, label: e.label }))]}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between border-t border-[#1f1f1f] pt-3">
-                    <div>
-                      <div className="text-xs font-semibold text-white">Social Icons Glow</div>
-                      <div className="text-[11px] text-zinc-400">Glow on social platform icons and link pills</div>
-                    </div>
-                    <Switch
-                      data-testid="social-glow-toggle"
-                      className={SWITCH_CLASS}
-                      checked={p.social_glow === true}
-                      onCheckedChange={(v) => set("social_glow", v)}
-                    />
-                  </div>
-                </div>
-              </Section>
-
-
-              <Section title="Page & Privacy" hint="Footer branding and text sizing">
-                <SliderRow
-                  testid="bio-size"
-                  label="Bio text size"
-                  value={Number(p.bio_size ?? 100)}
-                  min={80}
-                  max={160}
-                  step={5}
-                  suffix="%"
-                  onChange={(v) => set("bio_size", v)}
-                />
-                <label className="mt-4 flex cursor-pointer items-center justify-between gap-4 text-xs text-zinc-300">
-                  <span>
-                    Hide the &quot;made with tourn.lol&quot; footer
-                    {!isPremium && <span className="ml-2 text-[10px] uppercase tracking-wide text-amber-400">Premium</span>}
-                  </span>
-                  <Switch
-                    data-testid="hide-footer"
-                    className={SWITCH_CLASS}
-                    checked={!!p.hide_footer}
-                    onCheckedChange={(v) => (isPremium ? set("hide_footer", v) : setPremiumFeature("Footer removal"))}
-                  />
-                </label>
-              </Section>
+              {/* Fonts, Page & Privacy, and text effects moved to the Profile
+                  tab (Fonts under the text boxes). Social Icons Glow lives with
+                  the Links settings now. */}
 
               <Section title="Animations" hint="Page entry animations and folding">
                 <ChipGrid
@@ -1753,7 +1856,7 @@ export default function Editor() {
                   to hold it. */}
               <div
                 data-testid="audio-placement-note"
-                className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#1f1f1f] bg-[#111111] px-4 py-3.5"
+                className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#161616] bg-black px-4 py-3.5"
               >
                 <div className="flex min-w-0 items-center gap-3">
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/[0.06] bg-[#0b0b0c] text-zinc-500">
@@ -2054,7 +2157,7 @@ export default function Editor() {
 
               {/* 3. BOTTOM: WIDGET CARD CUSTOMIZATION */}
               {advanced && (
-              <div data-testid="audio-widget-customization" className="rounded-2xl border border-[#2a2a2e] bg-[#111111] p-5 sm:p-6 space-y-6">
+              <div data-testid="audio-widget-customization" className="rounded-2xl border border-[#161616] bg-black p-5 sm:p-6 space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
                     <h2 className="text-base font-bold text-white tracking-tight">Widget Card Customization</h2>
@@ -2367,24 +2470,7 @@ export default function Editor() {
 
               {advanced && (
                 <>
-              <Section title="Page Identity" hint="Custom name shown in share embeds">
-                <div className="space-y-3">
-                  <div>
-                    <label className="mb-1.5 block text-xs font-semibold text-zinc-300">
-                      Custom page name
-                    </label>
-                    <input
-                      data-testid="editor-meta-title"
-                      value={p.meta_title || ""}
-                      onChange={(e) => set("meta_title", e.target.value)}
-                      maxLength={60}
-                      placeholder={`${(displayName || user.username) + (" on tourn.lol")}`}
-                      className="w-full rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] px-4 py-2.5 text-xs text-white outline-none focus:border-[#b4bffa]"
-                    />
-                    <p className="mt-1.5 text-[11px] text-zinc-600">When shared on Discord, your profile shows your background with your avatar and this name centred below.</p>
-                  </div>
-                </div>
-              </Section>
+              {/* Page Identity moved to the Profile tab. */}
               {/* Hidden test compat -- meta fields simplified; legacy testids kept for tests */}
               <div className="sr-only" aria-hidden="true">
                 <input data-testid="editor-meta-description" value={p.meta_description || ""} onChange={(e) => set("meta_description", e.target.value)} readOnly />
@@ -2837,98 +2923,101 @@ export default function Editor() {
         }
       >
         <div className="space-y-6">
-          {/* Avatar Upload Section */}
-          <div className="space-y-3">
-            <label className="block text-xs font-semibold text-zinc-300">Upload Avatar</label>
-            <div className="flex items-center gap-4">
-              <div className="relative h-20 w-20 shrink-0">
-                <div className="h-full w-full overflow-hidden rounded-full ring-1 ring-white/10 bg-[#111111]">
-                  {p.avatar_url ? (
-                    <img src={fileUrl(p.avatar_url)} alt="" className="h-full w-full object-cover" />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center font-bold text-zinc-400">
-                      {(displayName || user.username || "?")[0]?.toUpperCase()}
-                    </div>
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* LEFT — upload + live preview */}
+            <div className="space-y-3">
+              <label className="block text-xs font-semibold text-zinc-300">Upload</label>
+              <div className="flex flex-col items-center gap-5 rounded-2xl border border-[#1a1a1a] bg-[#060606] p-6">
+                <div className="relative h-28 w-28 shrink-0">
+                  <div className="h-full w-full overflow-hidden rounded-full ring-1 ring-white/10 bg-[#0d0d0f]">
+                    {p.avatar_url ? (
+                      <img src={fileUrl(p.avatar_url)} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-2xl font-bold text-zinc-400">
+                        {(displayName || user.username || "?")[0]?.toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+                  {p.avatar_decoration && (
+                    <img
+                      src={p.avatar_decoration}
+                      alt=""
+                      className="pointer-events-none absolute inset-0 h-full w-full scale-[1.28] object-contain"
+                      style={Number(p.avatar_decoration_hue) ? { filter: `hue-rotate(${Number(p.avatar_decoration_hue)}deg)` } : undefined}
+                    />
                   )}
                 </div>
-                {p.avatar_decoration && (
-                  <img
-                    src={p.avatar_decoration}
-                    alt=""
-                    className="pointer-events-none absolute inset-0 h-full w-full scale-[1.28] object-contain"
-                    style={Number(p.avatar_decoration_hue) ? { filter: `hue-rotate(${Number(p.avatar_decoration_hue)}deg)` } : undefined}
-                  />
-                )}
+                <QuickUpload
+                  testid="modal-avatar-upload"
+                  label=""
+                  buttonLabel={p.avatar_url ? "Change" : "Upload"}
+                  value={p.avatar_url}
+                  accept="image/*"
+                  onUploaded={(u) => set("avatar_url", u)}
+                  onRemove={() => set("avatar_url", "")}
+                />
               </div>
-              <QuickUpload
-                testid="modal-avatar-upload"
-                label=""
-                buttonLabel={p.avatar_url ? "Change" : "Upload"}
-                value={p.avatar_url}
-                accept="image/*"
-                onUploaded={(u) => set("avatar_url", u)}
-                onRemove={() => set("avatar_url", "")}
-              />
             </div>
-          </div>
 
-          {/* Avatar Adjustments */}
-          {p.avatar_url && (
-            <div className="space-y-4 pt-4 border-t border-white/[0.06]">
-              <label className="block text-xs font-semibold text-zinc-300">Adjustments</label>
-              <SliderRow
-                testid="modal-avatar-zoom"
-                label="Zoom"
-                value={Number(p.avatar_zoom ?? 100)}
-                min={100}
-                max={250}
-                step={5}
-                suffix="%"
-                onChange={(v) => set("avatar_zoom", v)}
-              />
-              <SliderRow
-                testid="modal-avatar-crop-x"
-                label="Position X"
-                value={Number(p.avatar_pos_x ?? 50)}
-                min={0}
-                max={100}
-                step={1}
-                suffix="%"
-                onChange={(v) => set("avatar_pos_x", v)}
-              />
-              <SliderRow
-                testid="modal-avatar-crop-y"
-                label="Position Y"
-                value={Number(p.avatar_pos_y ?? 50)}
-                min={0}
-                max={100}
-                step={1}
-                suffix="%"
-                onChange={(v) => set("avatar_pos_y", v)}
-              />
-            </div>
-          )}
-
-          {/* Decoration Section */}
-          <div className="space-y-3 pt-4 border-t border-white/[0.06]">
-            <label className="block text-xs font-semibold text-zinc-300">Decoration</label>
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={() => { setShowAvatarModal(false); setShowDecoModal(true); }}
-                className="rounded-xl bg-[#b4bffa] px-4 py-2.5 text-xs font-bold text-black transition hover:brightness-110 cursor-pointer"
-              >
-                {p.avatar_decoration ? "Change Decoration" : "Add Decoration"}
-              </button>
-              {p.avatar_decoration && (
-                <button
-                  type="button"
-                  onClick={() => { set("avatar_decoration", ""); set("avatar_decoration_hue", 0); }}
-                  className="rounded-xl border border-[#2a2a2e] bg-[#09090b] px-4 py-2.5 text-xs font-semibold text-zinc-300 transition hover:bg-white/[0.08]"
-                >
-                  Remove
-                </button>
+            {/* RIGHT — adjustments + decoration */}
+            <div className="space-y-5">
+              {p.avatar_url && (
+                <div className="space-y-4">
+                  <label className="block text-xs font-semibold text-zinc-300">Adjustments</label>
+                  <SliderRow
+                    testid="modal-avatar-zoom"
+                    label="Zoom"
+                    value={Number(p.avatar_zoom ?? 100)}
+                    min={100}
+                    max={250}
+                    step={5}
+                    suffix="%"
+                    onChange={(v) => set("avatar_zoom", v)}
+                  />
+                  <SliderRow
+                    testid="modal-avatar-crop-x"
+                    label="Position X"
+                    value={Number(p.avatar_pos_x ?? 50)}
+                    min={0}
+                    max={100}
+                    step={1}
+                    suffix="%"
+                    onChange={(v) => set("avatar_pos_x", v)}
+                  />
+                  <SliderRow
+                    testid="modal-avatar-crop-y"
+                    label="Position Y"
+                    value={Number(p.avatar_pos_y ?? 50)}
+                    min={0}
+                    max={100}
+                    step={1}
+                    suffix="%"
+                    onChange={(v) => set("avatar_pos_y", v)}
+                  />
+                </div>
               )}
+
+              <div className={`space-y-3 ${p.avatar_url ? "border-t border-white/[0.06] pt-4" : ""}`}>
+                <label className="block text-xs font-semibold text-zinc-300">Decoration</label>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => { setShowAvatarModal(false); setShowDecoModal(true); }}
+                    className="rounded-xl bg-[#b4bffa] px-4 py-2.5 text-xs font-bold text-black transition hover:brightness-110 cursor-pointer"
+                  >
+                    {p.avatar_decoration ? "Change Decoration" : "Add Decoration"}
+                  </button>
+                  {p.avatar_decoration && (
+                    <button
+                      type="button"
+                      onClick={() => { set("avatar_decoration", ""); set("avatar_decoration_hue", 0); }}
+                      className="rounded-xl border border-[#2a2a2e] bg-[#09090b] px-4 py-2.5 text-xs font-semibold text-zinc-300 transition hover:bg-white/[0.08]"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -2951,36 +3040,75 @@ export default function Editor() {
           </div>
         }
       >
-        <div className="space-y-6">
-          {/* Mode Toggle */}
-          <div className="inline-flex rounded-xl border border-[#2a2a2e] bg-[#09090b] p-1">
-            {[
-              { id: "color", label: "Color" },
-              { id: "media", label: "Media" },
-            ].map((mode) => (
-              <button
-                key={mode.id}
-                type="button"
-                onClick={() => {
-                  if (mode.id === "color" && p.background_url) set("background_url", "");
-                  setBgMode(mode.id);
-                }}
-                className={`rounded-lg px-4 py-1.5 text-xs font-semibold transition ${
-                  bgMode === mode.id ? "bg-[#b4bffa] text-black font-bold" : "text-zinc-400 hover:text-white"
-                }`}
-              >
-                {mode.label}
-              </button>
-            ))}
-          </div>
-
-          {bgMode === "color" ? (
-            <div className="space-y-3">
-              <label className="block text-xs font-semibold text-zinc-300">Background Color</label>
-              <ColorPicker value={p.background_color || ""} onChange={(v) => set("background_color", v)} testid="modal-bg-color" />
+        <div className="grid gap-6 md:grid-cols-2">
+          {/* LEFT — upload & live background preview */}
+          <div className="space-y-4">
+            <div className="inline-flex rounded-xl border border-[#2a2a2e] bg-[#09090b] p-1">
+              {[
+                { id: "color", label: "Color" },
+                { id: "media", label: "Media" },
+              ].map((mode) => (
+                <button
+                  key={mode.id}
+                  type="button"
+                  onClick={() => {
+                    if (mode.id === "color" && p.background_url) set("background_url", "");
+                    setBgMode(mode.id);
+                  }}
+                  className={`rounded-lg px-4 py-1.5 text-xs font-semibold transition cursor-pointer ${
+                    bgMode === mode.id ? "bg-[#b4bffa] text-black font-bold" : "text-zinc-400 hover:text-white"
+                  }`}
+                >
+                  {mode.label}
+                </button>
+              ))}
             </div>
-          ) : (
-            <div className="space-y-4">
+
+            <div className="relative aspect-video sm:aspect-square w-full rounded-2xl border border-[#1f1f1f] bg-[#060606] overflow-hidden flex flex-col items-center justify-center p-4">
+              {bgMode === "media" && p.background_url ? (
+                p.background_url.match(/\.(mp4|webm)(\?|$)/i) ? (
+                  <video
+                    src={fileUrl(p.background_url)}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="absolute inset-0 h-full w-full object-cover"
+                    style={{
+                      opacity: Number(p.background_opacity ?? 98) / 100,
+                      filter: p.background_blur ? `blur(${p.background_blur}px)` : undefined,
+                    }}
+                  />
+                ) : (
+                  <img
+                    src={fileUrl(p.background_url)}
+                    alt=""
+                    className="absolute inset-0 h-full w-full object-cover"
+                    style={{
+                      opacity: Number(p.background_opacity ?? 98) / 100,
+                      filter: p.background_blur ? `blur(${p.background_blur}px)` : undefined,
+                    }}
+                  />
+                )
+              ) : (
+                <div
+                  className="absolute inset-0 h-full w-full"
+                  style={{ background: p.background_color || "#09090b" }}
+                />
+              )}
+              {p.background_dim && (
+                <div
+                  className="absolute inset-0 pointer-events-none"
+                  style={{ background: `rgba(0,0,0,${Number(p.background_dim) / 100})` }}
+                />
+              )}
+              <div className="relative z-10 flex flex-col items-center gap-1 rounded-xl bg-black/70 backdrop-blur-md px-3.5 py-1.5 border border-white/10 text-center">
+                <span className="text-xs font-semibold text-white">Live Background Preview</span>
+                <span className="text-[10px] text-zinc-400">Updates live as you tweak settings</span>
+              </div>
+            </div>
+
+            {bgMode === "media" && (
               <QuickUpload
                 testid="modal-bg-upload"
                 label=""
@@ -2990,44 +3118,52 @@ export default function Editor() {
                 onUploaded={(u) => set("background_url", u)}
                 onRemove={() => set("background_url", "")}
               />
+            )}
+          </div>
 
-              {p.background_url && (
-                <>
-                  <SliderRow
-                    testid="modal-bg-opacity"
-                    label="Opacity"
-                    value={Number(p.background_opacity ?? 98)}
-                    min={0}
-                    max={100}
-                    step={1}
-                    suffix="%"
-                    onChange={(v) => set("background_opacity", v)}
-                  />
-                  <SliderRow
-                    testid="modal-bg-dim"
-                    label="Dim"
-                    value={Number(p.background_dim ?? 0)}
-                    min={0}
-                    max={100}
-                    step={1}
-                    suffix="%"
-                    onChange={(v) => set("background_dim", v)}
-                  />
-                  <SliderRow
-                    testid="modal-bg-blur"
-                    label="Blur"
-                    value={Number(p.background_blur ?? 0)}
-                    min={0}
-                    max={20}
-                    step={1}
-                    suffix="px"
-                    onChange={(v) => set("background_blur", v)}
-                  />
-                </>
-              )}
-            </div>
-          )}
-
+          {/* RIGHT — settings & adjustments */}
+          <div className="space-y-4">
+            {bgMode === "color" ? (
+              <div className="space-y-3">
+                <label className="block text-xs font-semibold text-zinc-300">Background Color</label>
+                <ColorPicker value={p.background_color || ""} onChange={(v) => set("background_color", v)} testid="modal-bg-color" />
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <label className="block text-xs font-semibold text-zinc-300">Display Adjustments</label>
+                <SliderRow
+                  testid="modal-bg-opacity"
+                  label="Opacity"
+                  value={Number(p.background_opacity ?? 98)}
+                  min={0}
+                  max={100}
+                  step={1}
+                  suffix="%"
+                  onChange={(v) => set("background_opacity", v)}
+                />
+                <SliderRow
+                  testid="modal-bg-dim"
+                  label="Dim"
+                  value={Number(p.background_dim ?? 0)}
+                  min={0}
+                  max={100}
+                  step={1}
+                  suffix="%"
+                  onChange={(v) => set("background_dim", v)}
+                />
+                <SliderRow
+                  testid="modal-bg-blur"
+                  label="Blur"
+                  value={Number(p.background_blur ?? 0)}
+                  min={0}
+                  max={20}
+                  step={1}
+                  suffix="px"
+                  onChange={(v) => set("background_blur", v)}
+                />
+              </div>
+            )}
+          </div>
         </div>
       </FxModal>
 
@@ -3048,26 +3184,39 @@ export default function Editor() {
           </div>
         }
       >
-        <div className="space-y-5">
-          {p.banner_url && (
-            <div className="overflow-hidden rounded-xl border border-white/10 bg-[#0d0d0f]">
-              <img src={fileUrl(p.banner_url)} alt="" className="h-32 w-full object-cover" />
+        <div className="grid gap-6 md:grid-cols-2">
+          {/* LEFT — upload + preview */}
+          <div className="space-y-4">
+            <label className="block text-xs font-semibold text-zinc-300">Banner Preview</label>
+            <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-white/10 bg-[#0d0d0f] flex items-center justify-center">
+              {p.banner_url ? (
+                <img src={fileUrl(p.banner_url)} alt="" className="h-full w-full object-cover" />
+              ) : (
+                <div className="flex flex-col items-center gap-1.5 text-zinc-500">
+                  <Layout className="h-8 w-8 opacity-40" />
+                  <span className="text-xs">No banner uploaded</span>
+                </div>
+              )}
+              {p.banner_effect === "dim" && <div className="absolute inset-0 bg-black/50 pointer-events-none" />}
+              {p.banner_effect === "vignette" && <div className="absolute inset-0 [background:radial-gradient(ellipse_at_center,transparent_40%,black_100%)] pointer-events-none" />}
+              {p.banner_effect === "fade" && <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black pointer-events-none" />}
             </div>
-          )}
 
-          <QuickUpload
-            testid="modal-banner-upload"
-            label=""
-            buttonLabel={p.banner_url ? "Change Banner" : "Upload Banner"}
-            value={p.banner_url}
-            accept="image/*"
-            onUploaded={(u) => set("banner_url", u)}
-            onRemove={() => set("banner_url", "")}
-          />
+            <QuickUpload
+              testid="modal-banner-upload"
+              label=""
+              buttonLabel={p.banner_url ? "Change Banner" : "Upload Banner"}
+              value={p.banner_url}
+              accept="image/*"
+              onUploaded={(u) => set("banner_url", u)}
+              onRemove={() => set("banner_url", "")}
+            />
+          </div>
 
-          <div>
-            <label className="mb-2 block text-xs font-semibold text-zinc-300">Banner Overlay</label>
-            <div className="grid grid-cols-4 gap-1.5">
+          {/* RIGHT — settings */}
+          <div className="space-y-4">
+            <label className="block text-xs font-semibold text-zinc-300">Banner Overlay</label>
+            <div className="grid grid-cols-2 gap-2">
               {[
                 { id: "fade", label: "Fade" },
                 { id: "dim", label: "Dim" },
@@ -3078,7 +3227,7 @@ export default function Editor() {
                   key={opt.id}
                   type="button"
                   onClick={() => set("banner_effect", opt.id)}
-                  className={`px-2 py-1.5 rounded-lg text-xs font-semibold border transition cursor-pointer ${
+                  className={`px-3 py-2.5 rounded-xl text-xs font-semibold border transition cursor-pointer ${
                     (p.banner_effect || "fade") === opt.id
                       ? "border-[#b4bffa] bg-[#b4bffa] text-black font-bold"
                       : "border-[#1f1f1f] bg-[#060606] text-zinc-300 hover:border-white/30"
@@ -3088,7 +3237,7 @@ export default function Editor() {
                 </button>
               ))}
             </div>
-            <p className="mt-2 text-[11px] text-zinc-500">The banner appears when your layout is set to Banner (change it in Appearance).</p>
+            <p className="text-[11px] text-zinc-500">The banner appears when your layout is set to Banner (change it under Card Appearance).</p>
           </div>
         </div>
       </FxModal>
@@ -3110,77 +3259,92 @@ export default function Editor() {
           </div>
         }
       >
-        <div className="space-y-4">
-          <div className="text-xs text-zinc-400 mb-2">
-            {p.tracks?.length || 0} of 3 tracks used
+        <div className="grid gap-6 md:grid-cols-2">
+          {/* LEFT — tracks & upload */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-semibold text-zinc-300">Audio Tracks</label>
+              <span className="text-[11px] text-zinc-500">{p.tracks?.length || 0} of 3 used</span>
+            </div>
+
+            <div className="space-y-2">
+              {(p.tracks || []).map((track, idx) => (
+                <div key={idx} className="flex items-center gap-3 p-3 rounded-xl border border-[#2a2a2e] bg-[#09090b]">
+                  <Disc className="w-7 h-7 text-zinc-500 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs font-medium text-white truncate">{track.title || `Track ${idx + 1}`}</div>
+                    <div className="text-[11px] text-zinc-500 truncate">{track.audio_url?.split('/').pop() || 'Audio file'}</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newTracks = [...(p.tracks || [])];
+                      newTracks.splice(idx, 1);
+                      set("tracks", newTracks);
+                    }}
+                    className="p-1.5 rounded-lg hover:bg-white/[0.08] text-zinc-500 hover:text-white transition cursor-pointer"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+
+              {(!p.tracks || p.tracks.length < 3) && (
+                <label className="flex items-center justify-center gap-2 p-4 rounded-xl border border-dashed border-white/[0.08] hover:border-white/[0.15] cursor-pointer transition">
+                  <Plus className="w-4 h-4 text-zinc-500" />
+                  <span className="text-xs text-zinc-400">Add Track</span>
+                  <input
+                    type="file"
+                    accept="audio/*"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      try {
+                        const fd = new FormData();
+                        fd.append("file", file);
+                        fd.append("kind", "audio");
+                        const { data } = await api.post("/upload", fd, { headers: { "Content-Type": "multipart/form-data" } });
+                        const newTrack = { audio_url: data.url, title: file.name.replace(/\.[^/.]+$/, "") };
+                        set("tracks", [...(p.tracks || []), newTrack]);
+                        toast.success("Audio uploaded!");
+                      } catch (err) {
+                        toast.error(err.response?.data?.detail || "Upload failed");
+                      }
+                      e.target.value = "";
+                    }}
+                  />
+                </label>
+              )}
+            </div>
           </div>
 
-          {(p.tracks || []).map((track, idx) => (
-            <div key={idx} className="flex items-center gap-3 p-3 rounded-xl border border-[#2a2a2e] bg-[#09090b]">
-              <Disc className="w-8 h-8 text-zinc-500 shrink-0" />
-              <div className="flex-1 min-w-0">
-                <div className="text-xs font-medium text-white truncate">{track.title || `Track ${idx + 1}`}</div>
-                <div className="text-[11px] text-zinc-500">{track.audio_url?.split('/').pop() || 'Audio file'}</div>
+          {/* RIGHT — playback settings */}
+          <div className="space-y-4">
+            <label className="block text-xs font-semibold text-zinc-300">Playback Settings</label>
+            <div className="space-y-3 rounded-xl border border-[#2a2a2e] bg-[#09090b] p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-xs font-medium text-white">Autoplay</div>
+                  <div className="text-[11px] text-zinc-500">Play automatically on entry</div>
+                </div>
+                <Switch
+                  checked={p.audio_autoplay !== false}
+                  onCheckedChange={(v) => set("audio_autoplay", v)}
+                  className={SWITCH_CLASS}
+                />
               </div>
-              <button
-                type="button"
-                onClick={() => {
-                  const newTracks = [...(p.tracks || [])];
-                  newTracks.splice(idx, 1);
-                  set("tracks", newTracks);
-                }}
-                className="p-1.5 rounded-lg hover:bg-white/[0.08] text-zinc-500 hover:text-white transition"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-          ))}
-
-          {(!p.tracks || p.tracks.length < 3) && (
-            <label className="flex items-center justify-center gap-2 p-4 rounded-xl border border-dashed border-white/[0.08] hover:border-white/[0.15] cursor-pointer transition">
-              <Plus className="w-4 h-4 text-zinc-500" />
-              <span className="text-xs text-zinc-400">Add Track</span>
-              <input
-                type="file"
-                accept="audio/*"
-                className="hidden"
-                onChange={async (e) => {
-                  const file = e.target.files?.[0];
-                  if (!file) return;
-                  try {
-                    const fd = new FormData();
-                    fd.append("file", file);
-                    fd.append("kind", "audio");
-                    const { data } = await api.post("/upload", fd, { headers: { "Content-Type": "multipart/form-data" } });
-                    const newTrack = { audio_url: data.url, title: file.name.replace(/\.[^/.]+$/, "") };
-                    set("tracks", [...(p.tracks || []), newTrack]);
-                    toast.success("Audio uploaded!");
-                  } catch (err) {
-                    toast.error(err.response?.data?.detail || "Upload failed");
-                  }
-                  e.target.value = "";
-                }}
-              />
-            </label>
-          )}
-
-          <div className="pt-4 border-t border-white/[0.06] space-y-3">
-            <label className="block text-xs font-semibold text-zinc-300">Playback</label>
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-zinc-400">Autoplay</span>
-              <Switch
-                checked={p.audio_autoplay !== false}
-                onCheckedChange={(v) => set("audio_autoplay", v)}
-                className={SWITCH_CLASS}
-              />
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-zinc-400">Shuffle</span>
-              <Switch
-                checked={p.audio_shuffle === true}
-                onCheckedChange={(v) => set("audio_shuffle", v)}
-                className={SWITCH_CLASS}
-              />
+              <div className="flex items-center justify-between border-t border-white/[0.06] pt-3">
+                <div>
+                  <div className="text-xs font-medium text-white">Shuffle</div>
+                  <div className="text-[11px] text-zinc-500">Randomize track order</div>
+                </div>
+                <Switch
+                  checked={p.audio_shuffle === true}
+                  onCheckedChange={(v) => set("audio_shuffle", v)}
+                  className={SWITCH_CLASS}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -3203,16 +3367,26 @@ export default function Editor() {
           </div>
         }
       >
-        <div className="space-y-6">
-          {/* Cursor Upload */}
-          <div className="space-y-3">
-            <label className="block text-xs font-semibold text-zinc-300">Custom Cursor</label>
-            <div className="flex items-center gap-4">
-              {p.custom_cursor && (
-                <img src={fileUrl(p.custom_cursor)} alt="cursor" className="w-8 h-8 object-contain" />
+        <div className="grid gap-6 md:grid-cols-2">
+          {/* LEFT — upload & live cursor preview */}
+          <div className="space-y-4">
+            <label className="block text-xs font-semibold text-zinc-300">Cursor Upload</label>
+            <div className="flex flex-col items-center justify-center gap-3 aspect-square rounded-2xl border border-[#1a1a1a] bg-[#060606] p-6">
+              {p.custom_cursor ? (
+                <div className="flex flex-col items-center gap-2">
+                  <img src={fileUrl(p.custom_cursor)} alt="cursor" className="h-10 w-10 object-contain drop-shadow" />
+                  <span className="text-[11px] text-zinc-400">Custom pointer active</span>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center gap-2 text-zinc-500">
+                  <MousePointer2 className="h-10 w-10 opacity-40" />
+                  <span className="text-[11px]">Default browser cursor</span>
+                </div>
               )}
-              <label className="rounded-xl border border-[#2a2a2e] bg-[#09090b] px-4 py-2.5 text-xs font-semibold text-zinc-300 transition hover:border-[#b4bffa] cursor-pointer">
-                {p.custom_cursor ? "Change" : "Upload Cursor"}
+            </div>
+            <div className="flex items-center gap-3">
+              <label className="flex-1 text-center rounded-xl border border-[#2a2a2e] bg-[#09090b] px-4 py-2.5 text-xs font-semibold text-zinc-300 transition hover:border-[#b4bffa] cursor-pointer">
+                {p.custom_cursor ? "Change Cursor" : "Upload Cursor"}
                 <input
                   type="file"
                   accept="image/*,.cur,.ani"
@@ -3238,7 +3412,7 @@ export default function Editor() {
                 <button
                   type="button"
                   onClick={() => set("custom_cursor", "")}
-                  className="rounded-xl border border-[#2a2a2e] bg-[#09090b] px-4 py-2.5 text-xs font-semibold text-zinc-300 transition hover:bg-white/[0.08]"
+                  className="rounded-xl border border-[#2a2a2e] bg-[#09090b] px-4 py-2.5 text-xs font-semibold text-zinc-300 transition hover:bg-white/[0.08] cursor-pointer"
                 >
                   Remove
                 </button>
@@ -3246,6 +3420,19 @@ export default function Editor() {
             </div>
           </div>
 
+          {/* RIGHT — details & tips */}
+          <div className="space-y-4">
+            <label className="block text-xs font-semibold text-zinc-300">Cursor Settings</label>
+            <div className="rounded-xl border border-[#2a2a2e] bg-[#09090b] p-4 space-y-3">
+              <p className="text-xs text-zinc-300 font-medium">Supported Formats</p>
+              <p className="text-[11px] text-zinc-400 leading-relaxed">
+                Upload a 32x32px PNG, SVG, or .cur file for crisp rendering across all browsers.
+              </p>
+              <div className="pt-2 border-t border-white/[0.06] text-[11px] text-zinc-500">
+                Custom cursors automatically deactivate on touchscreen mobile devices.
+              </div>
+            </div>
+          </div>
         </div>
       </FxModal>
 

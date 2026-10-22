@@ -42,6 +42,34 @@
   100% { transform: scale(0) rotate(90deg); opacity: 0; }
 }
 
+/* THE STARFIELD SPARKLE — a dense scatter of tiny dots that twinkle like stars
+   (guns.lol style). FxText seeds ~170 of these; each gets its own duration and
+   a negative delay so the field is already mid-shimmer on the first frame. The
+   dot's colour rides on `color` so white / green / rainbow all reuse one rule. */
+.fx-text-white-sparkle,
+.fx-text-green-sparkle,
+.fx-text-rainbow-sparkle {
+  position: relative;
+  display: inline-block;
+}
+.fx-star {
+  position: absolute;
+  margin: 0;
+  border-radius: 50%;
+  pointer-events: none;
+  background: currentColor;
+  box-shadow: 0 0 3px currentColor, 0 0 6px currentColor;
+  opacity: 0;
+  will-change: transform, opacity;
+  animation-name: twk;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+@keyframes twk {
+  0%, 100% { opacity: 0; transform: translate(0, 0) scale(0.3); }
+  50% { opacity: 0.95; transform: translate(var(--drift-x, 0px), var(--drift-y, 0px)) scale(1.15); }
+}
+
 /* Typewriter — the typing itself is FxText's timer; this is ghost's caret. */
 .fx-text-typewriter::after {
   content: '';

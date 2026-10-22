@@ -147,7 +147,6 @@ export const TRACK_STYLES = [
   { id: "marquee", label: "Marquee", premium: false, desc: "Classic scrolling animated marquee text title & audio wave" },
   { id: "vinyl", label: "Vinyl", premium: false, desc: "Realistic revolving vinyl record with turntable arm accent" },
   { id: "mini-bar", label: "Mini Bar", premium: false, desc: "Slim line with play glyph and scrubber" },
-  { id: "corner-icon", label: "Corner Icon", premium: false, desc: "Corner speaker icon with hover reveal" },
 ];
 
 export const resolveTrackStyle = (id) => {
@@ -157,12 +156,12 @@ export const resolveTrackStyle = (id) => {
     raw === "lyrics" ||
     raw === "marquee" ||
     raw === "vinyl" ||
-    raw === "mini-bar" ||
-    raw === "corner-icon"
+    raw === "mini-bar"
   ) {
     return raw;
   }
-  if (raw === "simplistic") return "corner-icon";
+  // Retired styles (corner-icon / simplistic) fall back to the slim Mini Bar.
+  if (raw === "corner-icon" || raw === "simplistic") return "mini-bar";
   return "compact";
 };
 

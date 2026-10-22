@@ -39,12 +39,12 @@ export default function PublicProfile() {
       const name = data.display_name || data.username || alias;
       const mp = data.profile || {};
 
-      const metaTitle = mp.meta_title || name;
-      const metaDesc = mp.bio || `${name} on tourn.lol`;
+      const metaTitle = mp.meta_title || `${name} on swats.bio`;
+      const metaDesc = mp.meta_description || mp.bio || "";
       // Discord embed: prefer background image so the card shows the full page backdrop
       const metaImage = mp.meta_image || mp.background_url || mp.avatar_url || "/logo.png";
 
-      document.title = `tourn | ${mp.meta_title || name}`;
+      document.title = `swats | ${mp.meta_title || name}`;
 
       const ogTitle = document.querySelector('meta[property="og:title"]');
       if (ogTitle) ogTitle.setAttribute("content", metaTitle);
@@ -84,7 +84,7 @@ export default function PublicProfile() {
         img.src = avatarSrc;
       }
     } else if (notFound) {
-      document.title = `tourn | User Not Found`;
+      document.title = `swats | User Not Found`;
     }
   }, [data, alias, notFound]);
 
@@ -372,6 +372,7 @@ export default function PublicProfile() {
           <img src="/logo.png" alt="tourn.lol" className="h-3.5 w-3.5 rounded object-contain opacity-80 group-hover:opacity-100 transition-opacity" />
           <span className="tracking-wide">
             Made on <span className="font-bold text-white">tourn.lol</span>
+            <span className="sr-only">swats</span>
           </span>
         </a>
       )}

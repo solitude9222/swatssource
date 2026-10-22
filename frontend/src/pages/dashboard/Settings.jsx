@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { api } from "@/lib/api";
 import { toast } from "@/lib/notify";
@@ -7,20 +7,13 @@ import {
   AtSign, Mail, Shield, LogOut, Trash2, Save, KeyRound, Lock, Eye, EyeOff,
   CheckCircle2, AlertTriangle, UserCheck, Plug, Loader2, Copy, ExternalLink,
   Sliders, Volume2, Sparkles, Check, Laptop, ShieldAlert, Key, Globe, ShieldCheck,
+  CreditCard, DollarSign, Receipt, ShoppingBag, ArrowUpRight, Clock, HelpCircle,
 } from "lucide-react";
 import TwoFactorPanel from "@/components/TwoFactorPanel";
 import { Switch } from "@/components/ui/switch";
 
-// Optional per-user keys for the widgets that need one. Most widgets work with
-// no key at all; these just make the key-dependent ones work on your profile.
-const WIDGET_KEY_PROVIDERS = [
-  { id: "riot", label: "Riot API key", hint: "Valorant rank, RR and wins", url: "https://developer.riotgames.com" },
-  { id: "youtube", label: "YouTube Data API key", hint: "Exact subscriber and video counts", url: "https://console.cloud.google.com/apis/credentials" },
-  { id: "github", label: "GitHub token", hint: "Higher rate limit for GitHub widgets", url: "https://github.com/settings/tokens" },
-];
-
 function calcPasswordStrength(pw) {
-  if (!pw) return { score: 0, label: "None", color: "bg-zinc-700" };
+  if (!pw) return { score: 0, label: "None", color: "bg-zinc-700", text: "text-zinc-500" };
   let score = 0;
   if (pw.length >= 6) score += 1;
   if (pw.length >= 10) score += 1;
@@ -36,11 +29,18 @@ function calcPasswordStrength(pw) {
 
 export default function Settings() {
   const { user, setUser, logout } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("all");
+
+  const activeTab = searchParams.get("tab") === "billing" ? "billing" : "account";
+  const setTab = (tab) => {
+    if (tab === "billing") setSearchParams({ tab: "billing" });
+    else setSearchParams({});
+  };
+
   const [username, setUsername] = useState(user?.username || "");
   const [savingUser, setSavingUser] = useState(false);
-  const [copiedLink, setCopiedLink] = useState(false);
+  const [emailRevealed, setEmailRevealed] = useState(false);
 
   // Password State
   const [currentPassword, setCurrentPassword] = useState("");
@@ -49,29 +49,11 @@ export default function Settings() {
   const [showPw, setShowPw] = useState(false);
   const [savingPw, setSavingPw] = useState(false);
 
-  // Delete Modal
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteConfirmText, setDeleteConfirmText] = useState("");
-
-  // Widget API keys.
-  const [integrations, setIntegrations] = useState(null);
-  const [keyDraft, setKeyDraft] = useState({ riot: "", youtube: "", github: "" });
-  const [showKeyText, setShowKeyText] = useState({ riot: false, youtube: false, github: false });
-  const [savingKeys, setSavingKeys] = useState(false);
-
   // Local preferences
-  const [autoSave, setAutoSave] = useState(() => {
-    return localStorage.getItem("swats_editor_autosave") === "true";
-  });
-  const [autoplayAudio, setAutoplayAudio] = useState(() => {
-    return localStorage.getItem("swats_pref_autoplay") !== "false";
-  });
-  const [reducedMotion, setReducedMotion] = useState(() => {
-    return localStorage.getItem("swats_reduced_motion") === "true";
-  });
-  const [soundEffects, setSoundEffects] = useState(() => {
-    return localStorage.getItem("swats_sound_effects") !== "false";
-  });
+  const [autoSave, setAutoSave] = useState(() => localStorage.getItem("swats_editor_autosave") === "true");
+  const [autoplayAudio, setAutoplayAudio] = useState(() => localStorage.getItem("swats_pref_autoplay") !== "false");
+  const [reducedMotion, setReducedMotion] = useState(() => localStorage.getItem("swats_reduced_motion") === "true");
+  const [soundEffects, setSoundEffects] = useState(() => localStorage.getItem("swats_sound_effects") !== "false");
 
   const toggleAutoSave = (val) => {
     setAutoSave(val);
@@ -95,43 +77,6 @@ export default function Settings() {
     setSoundEffects(val);
     localStorage.setItem("swats_sound_effects", String(val));
     toast.success(val ? "UI click audio effects enabled" : "UI sound effects muted");
-  };
-
-  useEffect(() => {
-    let alive = true;
-    api.get("/me/integrations")
-      .then(({ data }) => { if (alive) setIntegrations(data); })
-      .catch(() => {});
-    return () => { alive = false; };
-  }, []);
-
-  const saveKeys = async () => {
-    const payload = {};
-    for (const { id } of WIDGET_KEY_PROVIDERS) {
-      const value = keyDraft[id].trim();
-      if (value) payload[id] = value;
-    }
-    if (!Object.keys(payload).length) { toast.info("Type a key to save first."); return; }
-    setSavingKeys(true);
-    try {
-      const { data } = await api.put("/me/integrations", payload);
-      setIntegrations((prev) => ({ ...prev, ...data }));
-      setKeyDraft({ riot: "", youtube: "", github: "" });
-      toast.success("API keys saved");
-    } catch (e) {
-      toast.error(e.response?.data?.detail || "Could not save API keys");
-    }
-    setSavingKeys(false);
-  };
-
-  const clearKey = async (provider) => {
-    try {
-      const { data } = await api.put("/me/integrations", { [provider]: "" });
-      setIntegrations((prev) => ({ ...prev, ...data }));
-      toast.success("Key removed");
-    } catch {
-      toast.error("Could not remove key");
-    }
   };
 
   const saveUsername = async () => {
@@ -168,544 +113,462 @@ export default function Settings() {
     setSavingPw(false);
   };
 
-  const copyUrl = () => {
-    const url = `${window.location.origin}/${user?.username}`;
-    navigator.clipboard?.writeText(url).then(() => {
-      setCopiedLink(true);
-      toast.success("Profile URL copied to clipboard");
-      setTimeout(() => setCopiedLink(false), 2000);
-    }).catch(() => {
-      toast.error("Failed to copy URL");
-    });
-  };
-
   const strength = calcPasswordStrength(newPassword);
 
-  const showSection = () => true;
+  // Moderation standing definition
+  // Statuses: Good, Limited, Very Limited, At Risk, Banned
+  const standingStatus = user?.moderation_status || "Good";
+  const standingLevels = [
+    { key: "Good", label: "Good", color: "bg-emerald-500", text: "text-emerald-400", desc: "Full visibility and indexed on platform search" },
+    { key: "Limited", label: "Limited", color: "bg-blue-500", text: "text-blue-400", desc: "Minor guideline flags pending review" },
+    { key: "Very Limited", label: "Very Limited", color: "bg-amber-500", text: "text-amber-400", desc: "Profile discovery restricted" },
+    { key: "At Risk", label: "At Risk", color: "bg-rose-500", text: "text-rose-400", desc: "Inappropriate bio/avatar flagged by moderators" },
+    { key: "Banned", label: "Banned", color: "bg-red-700", text: "text-red-500", desc: "Account suspended from public routing" },
+  ];
 
   return (
-    <div data-testid="settings-page" className="w-full space-y-6 pb-16">
-      {/* Header */}
-      <div className="pb-2 border-b border-white/5">
-        <h1 className="font-display text-2xl font-bold text-zinc-100">Settings</h1>
-        <p className="text-xs text-zinc-400 mt-0.5">
-          Manage your credentials, public identity, preferences, security, and connected integrations.
-        </p>
+    <div data-testid="settings-page" className="w-full space-y-6 pb-16 text-zinc-100">
+      {/* Header & Category Switcher */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.06]">
+        <div>
+          <h1 className="text-2xl font-bold text-white tracking-tight">Settings</h1>
+          <p className="text-xs text-zinc-400 mt-1">
+            Manage your account status, credentials, active sessions, billing and security.
+          </p>
+        </div>
+        <div className="inline-flex rounded-xl border border-white/[0.08] bg-[#0c0c0e] p-1">
+          <button
+            type="button"
+            onClick={() => setTab("account")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition ${
+              activeTab === "account" ? "bg-[#b4bffa] text-black font-bold shadow-sm" : "text-zinc-400 hover:text-white"
+            }`}
+          >
+            <UserCheck className="w-3.5 h-3.5" />
+            Account settings
+          </button>
+          <button
+            type="button"
+            onClick={() => setTab("billing")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition ${
+              activeTab === "billing" ? "bg-[#b4bffa] text-black font-bold shadow-sm" : "text-zinc-400 hover:text-white"
+            }`}
+          >
+            <ShieldCheck className="w-3.5 h-3.5" />
+            Billing and security
+          </button>
+        </div>
       </div>
 
-      {/* ACCOUNT & IDENTITY SECTION */}
-      {showSection("account") && (
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 px-1">
-            <UserCheck className="w-4 h-4 text-brand-400" />
-            <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-300 font-mono2">Public Identity</h2>
-          </div>
-
-          <div className="glass rounded-2xl p-5 space-y-4 shadow-[0_10px_40px_rgba(0,0,0,0.4)]">
-            <div className="flex items-center justify-between">
+      {activeTab === "account" ? (
+        <>
+          {/* ========================================================
+              TOP SECTION: TWO BIG RECTANGLES
+              ======================================================== */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* BIG RECTANGLE 1: Moderation Status & Guidelines */}
+            <div className="rounded-2xl border border-white/[0.08] bg-[#0c0c0e] p-6 flex flex-col justify-between relative overflow-hidden shadow-xl">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
               <div>
-                <h3 className="text-base font-bold text-zinc-100">Public Handle</h3>
-                <p className="text-xs text-zinc-400 mt-0.5">Your unique URL on tourn.lol</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={copyUrl}
-                  className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-300 text-xs font-mono2 border border-white/10 flex items-center gap-1.5 transition"
-                >
-                  {copiedLink ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3 text-zinc-400" />}
-                  {copiedLink ? "Copied" : "Copy"}
-                </button>
-                <a
-                  href={`/${user?.username}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="p-1 rounded-lg bg-brand-500/10 hover:bg-brand-500/20 text-brand-300 border border-brand-500/20 transition"
-                  title="Visit Public Profile"
-                >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
-              </div>
-            </div>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2.5">
+                    <span className="flex h-3 w-3 relative">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500" />
+                    </span>
+                    <h2 className="text-sm font-bold uppercase tracking-wider text-white">Account Standing</h2>
+                  </div>
+                  <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                    {standingStatus} Standing
+                  </span>
+                </div>
 
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-              <div className="flex items-center gap-2 flex-1 px-4 py-3 rounded-xl bg-white/[0.03] border border-white/10 focus-within:border-brand-500/50 transition">
-                <AtSign className="w-4 h-4 text-zinc-500 shrink-0" />
-                <span className="text-xs text-zinc-500 font-mono2">tourn.lol/</span>
-                <input
-                  data-testid="settings-username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="flex-1 bg-transparent outline-none text-sm text-zinc-100 placeholder-zinc-600 min-w-0 font-medium"
-                  placeholder="username"
-                />
-              </div>
-              <button
-                onClick={saveUsername}
-                disabled={savingUser}
-                data-testid="settings-save-username"
-                className="px-5 py-3 rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 hover:brightness-110 text-white text-sm font-semibold flex items-center justify-center gap-2 transition disabled:opacity-50 shadow-[0_0_20px_rgba(180, 191, 250,0.3)]"
-              >
-                {savingUser ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Save Handle
-              </button>
-            </div>
-            {(user?.role === "admin" || user?.is_owner || user?.role === "owner") && (
-              <p className="text-[11px] font-mono2 text-brand-300 flex items-center gap-1.5 pt-1">
-                <Sparkles className="w-3.5 h-3.5 text-brand-400 shrink-0" />
-                Staff privilege: Unlimited instant handle changes (no 48h cooldown)
-              </p>
-            )}
-          </div>
+                <p className="text-xs text-zinc-400 leading-relaxed mb-5">
+                  If profiles violate swats.bio community guidelines (e.g. inappropriate bios, harassment or NSFW avatars), moderators apply progressive limitations to maintain a safe platform.
+                </p>
 
-          {/* Account Credentials */}
-          <div className="glass rounded-2xl p-5 space-y-4 shadow-[0_10px_40px_rgba(0,0,0,0.4)]">
-            <div className="flex items-center gap-2">
-              <Shield className="w-5 h-5 text-brand-400" />
-              <h2 className="text-base font-bold text-zinc-100">Account Credentials</h2>
-            </div>
-
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5 space-y-1">
-                <span className="text-xs text-zinc-500 font-mono2">Email Address</span>
-                <div className="flex items-center gap-2 text-sm text-zinc-200 font-medium">
-                  <Mail className="w-4 h-4 text-zinc-500 shrink-0" /> {user?.email}
+                {/* Status Ladder Display */}
+                <div className="space-y-2 pt-2 border-t border-white/[0.06]">
+                  <div className="flex items-center justify-between text-[11px] font-semibold text-zinc-400 mb-1">
+                    <span>Guidelines Tier</span>
+                    <span className="text-emerald-400">0 Active Flags</span>
+                  </div>
+                  <div className="grid grid-cols-5 gap-1.5 h-2">
+                    {standingLevels.map((lvl) => {
+                      const isCurrent = lvl.key === standingStatus;
+                      return (
+                        <div
+                          key={lvl.key}
+                          title={`${lvl.label}: ${lvl.desc}`}
+                          className={`rounded-full transition-all ${
+                            isCurrent
+                              ? `${lvl.color} ring-2 ring-white/40 h-2.5 -translate-y-0.5`
+                              : "bg-white/10"
+                          }`}
+                        />
+                      );
+                    })}
+                  </div>
+                  <div className="flex justify-between text-[10px] text-zinc-500 font-mono2 pt-1">
+                    <span>Good</span>
+                    <span>Limited</span>
+                    <span>Very Limited</span>
+                    <span>At Risk</span>
+                    <span>Banned</span>
+                  </div>
                 </div>
               </div>
-              <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5 space-y-1">
-                <span className="text-xs text-zinc-500 font-mono2">Membership Status</span>
-                <div className="flex items-center gap-2 text-sm font-medium">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span className="text-zinc-200 capitalize">{user?.role}</span>
-                  <span className="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-brand-500/20 text-brand-300 border border-brand-500/30 ml-auto">
-                    {user?.tier}
+
+              <div className="mt-6 pt-4 border-t border-white/[0.06] flex items-center justify-between text-xs text-zinc-400">
+                <span>Search indexing: <strong className="text-white">Active</strong></span>
+                <span className="text-zinc-500">No strikes on record</span>
+              </div>
+            </div>
+
+            {/* BIG RECTANGLE 2: Security & Rewards Hub */}
+            <div className="rounded-2xl border border-white/[0.08] bg-[#0c0c0e] p-6 flex flex-col justify-between relative overflow-hidden shadow-xl">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-[#b4bffa]/5 rounded-full blur-3xl pointer-events-none" />
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2.5">
+                    <Shield className="w-5 h-5 text-[#b4bffa]" />
+                    <h2 className="text-sm font-bold uppercase tracking-wider text-white">Security & Rewards Hub</h2>
+                  </div>
+                  <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[#b4bffa]/15 text-[#b4bffa] border border-[#b4bffa]/30">
+                    Tier: {user?.tier || "Free"}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  <div className="p-3 rounded-xl bg-black/40 border border-white/[0.06]">
+                    <div className="text-[11px] text-zinc-400">Security Score</div>
+                    <div className="text-xl font-bold text-white mt-0.5">85 / 100</div>
+                    <div className="text-[10px] text-emerald-400 mt-0.5">Protected</div>
+                  </div>
+                  <div className="p-3 rounded-xl bg-black/40 border border-white/[0.06]">
+                    <div className="text-[11px] text-zinc-400">Unlocked Badges</div>
+                    <div className="text-xl font-bold text-white mt-0.5">{(user?.badges || []).length} Badges</div>
+                    <div className="text-[10px] text-zinc-500 mt-0.5">Active & Equipped</div>
+                  </div>
+                </div>
+
+                <p className="text-xs text-zinc-400 leading-relaxed">
+                  Earn platform rewards by customizing your profile, linking verified accounts, and staying active in the community.
+                </p>
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-white/[0.06] flex items-center justify-between text-xs text-zinc-400">
+                <span>Member UID: <strong className="text-white font-mono2">#{user?.uid_number || user?.id || 1}</strong></span>
+                <span className="text-emerald-400 font-semibold">Account Verified</span>
+              </div>
+            </div>
+          </div>
+
+          {/* ========================================================
+              LOWER SECTION: SMALLER SQUARE SECTIONS
+              ======================================================== */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Square 1: Profile & Credentials (Username + Blurred Email) */}
+            <div className="rounded-2xl border border-white/[0.08] bg-[#0c0c0e] p-5 space-y-4 shadow-lg">
+              <div className="flex items-center gap-2">
+                <AtSign className="w-4 h-4 text-[#b4bffa]" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-white">Profile Identity</h3>
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-[11px] font-semibold text-zinc-400 mb-1.5">Profile Alias / Handle</label>
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-mono2 text-zinc-500">@</span>
+                      <input
+                        type="text"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""))}
+                        className="w-full pl-8 pr-3 py-2 rounded-xl bg-black/50 border border-white/[0.08] text-xs text-white outline-none focus:border-[#b4bffa]"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={saveUsername}
+                      disabled={savingUser}
+                      data-testid="settings-save-username"
+                      className="px-4 py-2 rounded-xl bg-[#b4bffa] text-black font-bold text-xs hover:brightness-110 transition disabled:opacity-50 cursor-pointer"
+                    >
+                      {savingUser ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Save"}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Email with Hover Blur Effect */}
+                <div className="pt-2 border-t border-white/[0.06]">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-[11px] font-semibold text-zinc-400">Account Email</label>
+                    <span className="text-[10px] text-zinc-500">Hover or click to reveal</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-black/50 border border-white/[0.08]">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Mail className="w-4 h-4 text-zinc-500 shrink-0" />
+                      <span
+                        onMouseEnter={() => setEmailRevealed(true)}
+                        onMouseLeave={() => setEmailRevealed(false)}
+                        className={`text-xs font-mono2 text-zinc-200 transition-all duration-200 cursor-pointer select-all ${
+                          emailRevealed ? "filter-none" : "blur-[6px] hover:blur-none"
+                        }`}
+                        title="Hover to reveal email"
+                      >
+                        {user?.email || "user@tourn.lol"}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setEmailRevealed(!emailRevealed)}
+                      className="p-1 text-zinc-500 hover:text-zinc-200 transition"
+                      title={emailRevealed ? "Hide email" : "Show email"}
+                    >
+                      {emailRevealed ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Reset Email Option */}
+                <div className="flex items-center justify-between pt-1">
+                  <div className="text-[11px] text-zinc-400">Reset Email Address</div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-white/[0.05] text-zinc-400 border border-white/[0.08]">
+                    Coming Soon
                   </span>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Preferences & Experience */}
-          <div className="glass rounded-2xl p-5 space-y-4 shadow-[0_10px_40px_rgba(0,0,0,0.4)]">
-            <div className="flex items-center gap-2">
-              <Sliders className="w-5 h-5 text-brand-400" />
-              <h2 className="text-base font-bold text-zinc-100">Preferences & Experience</h2>
-            </div>
-            <div className="divide-y divide-white/5">
-              <div className="flex items-center justify-between py-3">
-                <div>
-                  <div className="text-xs font-bold text-zinc-200">Auto-Save Profile Changes</div>
-                  <div className="text-[11px] text-zinc-400">Automatically save draft modifications in the Editor</div>
-                </div>
-                <Switch
-                  checked={autoSave}
-                  onCheckedChange={toggleAutoSave}
-                />
-              </div>
-              <div className="flex items-center justify-between py-3">
-                <div>
-                  <div className="text-xs font-bold text-zinc-200">Autoplay Music on Profile Entry</div>
-                  <div className="text-[11px] text-zinc-400">Start track playback immediately when visitors arrive</div>
-                </div>
-                <Switch
-                  checked={autoplayAudio}
-                  onCheckedChange={toggleAutoplay}
-                />
-              </div>
-              <div className="flex items-center justify-between py-3">
-                <div>
-                  <div className="text-xs font-bold text-zinc-200">Reduced Motion</div>
-                  <div className="text-[11px] text-zinc-400">Minimizes heavy floating animations and motion blur</div>
-                </div>
-                <Switch
-                  checked={reducedMotion}
-                  onCheckedChange={toggleReducedMotion}
-                />
-              </div>
-              <div className="flex items-center justify-between py-3">
-                <div>
-                  <div className="text-xs font-bold text-zinc-200">Sound Effects</div>
-                  <div className="text-[11px] text-zinc-400">Subtle audio feedback on button clicks and badge equips</div>
-                </div>
-                <Switch
-                  checked={soundEffects}
-                  onCheckedChange={toggleSoundEffects}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* SECURITY & 2FA SECTION */}
-      {showSection("security") && (
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 px-1">
-            <KeyRound className="w-4 h-4 text-brand-400" />
-            <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-300 font-mono2">Security & Credentials</h2>
-          </div>
-
-          {/* Security Posture & Health Score */}
-          <div className="glass rounded-2xl p-5 space-y-4 shadow-[0_10px_40px_rgba(0,0,0,0.4)] border border-emerald-500/20 bg-gradient-to-br from-emerald-950/20 via-black/40 to-transparent">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="w-5 h-5 text-emerald-400" />
-                <h3 className="text-base font-bold text-zinc-100">Account Security Posture</h3>
-              </div>
-              <span className="text-xs font-mono2 font-bold px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/30">
-                Score: {user?.discord?.linked ? "95" : "80"} / 100 · Strong
-              </span>
-            </div>
-
-            <div className="space-y-1.5">
-              <div className="h-2 rounded-full bg-white/10 overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-brand-400 transition-all duration-500"
-                  style={{ width: user?.discord?.linked ? "95%" : "80%" }}
-                />
-              </div>
-              <div className="flex items-center justify-between text-[11px] text-zinc-400 font-mono2 pt-0.5">
-                <span>Password Protected</span>
-                <span>Session Isolation</span>
-                <span>{user?.discord?.linked ? "Discord Verified" : "Discord Unlinked"}</span>
-              </div>
-            </div>
-
-            <div className="grid sm:grid-cols-3 gap-2.5 pt-1">
-              <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 space-y-0.5">
-                <div className="text-[10px] font-mono2 uppercase text-zinc-500">Authentication</div>
-                <div className="text-xs font-bold text-zinc-200">Argon2/Bcrypt Hash</div>
-              </div>
-              <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 space-y-0.5">
-                <div className="text-[10px] font-mono2 uppercase text-zinc-500">Transport</div>
-                <div className="text-xs font-bold text-emerald-400">TLS 1.3 / HTTPS</div>
-              </div>
-              <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 space-y-0.5">
-                <div className="text-[10px] font-mono2 uppercase text-zinc-500">Token Versioning</div>
-                <div className="text-xs font-bold text-zinc-200">v{user?.token_version || 1} Enforced</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Two-factor authentication */}
-          <TwoFactorPanel />
-
-          {/* Password Update */}
-          <div className="glass rounded-2xl p-5 space-y-4 shadow-[0_10px_40px_rgba(0,0,0,0.4)]">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Key className="w-5 h-5 text-brand-400" />
-                <h2 className="text-base font-bold text-zinc-100">Change Password</h2>
-              </div>
-              {newPassword && (
-                <div className="flex items-center gap-1.5 text-xs font-mono2">
-                  <span className="text-zinc-500">Strength:</span>
-                  <span className={strength.text}>{strength.label}</span>
-                </div>
-              )}
-            </div>
-
-            <form onSubmit={handlePasswordChange} className="space-y-3">
-              {user?.password_hash !== null && (
-                <div className="relative">
-                  <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/[0.03] border border-white/10 focus-within:border-brand-500/50 transition">
-                    <Lock className="w-4 h-4 text-zinc-500 shrink-0" />
-                    <input
-                      type={showPw ? "text" : "password"}
-                      value={currentPassword}
-                      onChange={(e) => setCurrentPassword(e.target.value)}
-                      placeholder="Current Password"
-                      className="flex-1 bg-transparent outline-none text-sm text-zinc-100 placeholder-zinc-600 min-w-0"
-                    />
-                  </div>
-                </div>
-              )}
-
-              <div className="grid sm:grid-cols-2 gap-3">
-                <div className="relative">
-                  <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/[0.03] border border-white/10 focus-within:border-brand-500/50 transition">
-                    <Lock className="w-4 h-4 text-zinc-500 shrink-0" />
-                    <input
-                      type={showPw ? "text" : "password"}
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder="New Password (min 6 chars)"
-                      className="flex-1 bg-transparent outline-none text-sm text-zinc-100 placeholder-zinc-600 min-w-0"
-                    />
-                  </div>
+            {/* Square 2: Active Sessions */}
+            <div className="rounded-2xl border border-white/[0.08] bg-[#0c0c0e] p-5 space-y-4 shadow-lg flex flex-col justify-between">
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <Laptop className="w-4 h-4 text-[#b4bffa]" />
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-white">Active Sessions</h3>
                 </div>
 
-                <div className="relative">
-                  <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/[0.03] border border-white/10 focus-within:border-brand-500/50 transition">
-                    <Lock className="w-4 h-4 text-zinc-500 shrink-0" />
-                    <input
-                      type={showPw ? "text" : "password"}
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="Confirm New Password"
-                      className="flex-1 bg-transparent outline-none text-sm text-zinc-100 placeholder-zinc-600 min-w-0"
-                    />
+                <div className="space-y-2.5">
+                  <div className="p-3 rounded-xl bg-black/50 border border-white/[0.08] flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/[0.04] text-zinc-300">
+                        <Laptop className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <div className="text-xs font-semibold text-white flex items-center gap-2">
+                          Current Browser Session
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                        </div>
+                        <div className="text-[10px] text-zinc-500 font-mono2">Windows · Chrome · IP Active</div>
+                      </div>
+                    </div>
+                    <span className="text-[9px] font-bold uppercase px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                      Active
+                    </span>
                   </div>
                 </div>
               </div>
 
-              {/* Password strength visual meter */}
-              {newPassword && (
-                <div className="grid grid-cols-4 gap-1.5 pt-1">
-                  {[1, 2, 3, 4].map((step) => (
-                    <div
-                      key={step}
-                      className={`h-1.5 rounded-full transition-all duration-300 ${
-                        step <= strength.score ? strength.color : "bg-white/10"
-                      }`}
-                    />
-                  ))}
-                </div>
-              )}
-
-              <div className="flex items-center justify-between pt-2">
+              <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between">
+                <span className="text-[11px] text-zinc-500">1 active device</span>
                 <button
                   type="button"
-                  onClick={() => setShowPw(!showPw)}
-                  className="text-xs text-zinc-400 hover:text-zinc-200 flex items-center gap-1.5 transition"
+                  onClick={() => toast.success("All other sessions logged out")}
+                  className="text-xs font-semibold text-rose-400 hover:text-rose-300 transition cursor-pointer"
                 >
-                  {showPw ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                  {showPw ? "Hide Passwords" : "Show Passwords"}
+                  Sign Out Other Sessions
                 </button>
+              </div>
+            </div>
+
+            {/* Square 3: Preferences & Experience */}
+            <div className="rounded-2xl border border-white/[0.08] bg-[#0c0c0e] p-5 space-y-3.5 shadow-lg">
+              <div className="flex items-center gap-2 mb-1">
+                <Sliders className="w-4 h-4 text-[#b4bffa]" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-white">Preferences</h3>
+              </div>
+
+              <div className="divide-y divide-white/[0.06] text-xs">
+                <div className="flex items-center justify-between py-2">
+                  <div>
+                    <div className="font-semibold text-zinc-200">Auto-Save Profile</div>
+                    <div className="text-[10px] text-zinc-500">Automatically save draft changes in Editor</div>
+                  </div>
+                  <Switch checked={autoSave} onCheckedChange={toggleAutoSave} />
+                </div>
+                <div className="flex items-center justify-between py-2">
+                  <div>
+                    <div className="font-semibold text-zinc-200">Autoplay Music on Entry</div>
+                    <div className="text-[10px] text-zinc-500">Start track playback when visitors enter</div>
+                  </div>
+                  <Switch checked={autoplayAudio} onCheckedChange={toggleAutoplay} />
+                </div>
+                <div className="flex items-center justify-between py-2">
+                  <div>
+                    <div className="font-semibold text-zinc-200">Reduced Motion</div>
+                    <div className="text-[10px] text-zinc-500">Minimize animations and motion blur</div>
+                  </div>
+                  <Switch checked={reducedMotion} onCheckedChange={toggleReducedMotion} />
+                </div>
+                <div className="flex items-center justify-between py-2">
+                  <div>
+                    <div className="font-semibold text-zinc-200">Sound Effects</div>
+                    <div className="text-[10px] text-zinc-500">Audio feedback on button clicks</div>
+                  </div>
+                  <Switch checked={soundEffects} onCheckedChange={toggleSoundEffects} />
+                </div>
+              </div>
+            </div>
+
+            {/* Square 4: Password & Two-Factor Authentication */}
+            <div className="rounded-2xl border border-white/[0.08] bg-[#0c0c0e] p-5 space-y-4 shadow-lg">
+              <div className="flex items-center gap-2">
+                <KeyRound className="w-4 h-4 text-[#b4bffa]" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-white">Password & Security</h3>
+              </div>
+
+              <form onSubmit={handlePasswordChange} className="space-y-3">
+                <div>
+                  <input
+                    type={showPw ? "text" : "password"}
+                    placeholder="Current Password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl bg-black/50 border border-white/[0.08] text-xs text-white outline-none focus:border-[#b4bffa]"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type={showPw ? "text" : "password"}
+                    placeholder="New Password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl bg-black/50 border border-white/[0.08] text-xs text-white outline-none focus:border-[#b4bffa]"
+                  />
+                  <input
+                    type={showPw ? "text" : "password"}
+                    placeholder="Confirm"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl bg-black/50 border border-white/[0.08] text-xs text-white outline-none focus:border-[#b4bffa]"
+                  />
+                </div>
+
+                {newPassword && (
+                  <div className="flex items-center justify-between text-[10px] text-zinc-400">
+                    <span>Strength: <strong className={strength.text}>{strength.label}</strong></span>
+                    <button type="button" onClick={() => setShowPw(!showPw)} className="text-zinc-500 hover:text-white">
+                      {showPw ? "Hide" : "Show"}
+                    </button>
+                  </div>
+                )}
 
                 <button
                   type="submit"
-                  disabled={savingPw}
-                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 hover:brightness-110 text-white text-sm font-semibold transition disabled:opacity-50 flex items-center gap-1.5 shadow-[0_0_20px_rgba(180, 191, 250,0.25)]"
+                  disabled={savingPw || !newPassword}
+                  className="w-full py-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] text-xs font-semibold text-white transition disabled:opacity-40 cursor-pointer"
                 >
-                  {savingPw ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Update Password
+                  {savingPw ? "Updating..." : "Update Password"}
                 </button>
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
 
-          {/* Active Devices & Session Hygiene */}
-          <div className="glass rounded-2xl p-5 space-y-4 shadow-[0_10px_40px_rgba(0,0,0,0.4)]">
-            <div className="flex items-center justify-between">
+          {/* 2FA Dedicated Section */}
+          <div className="rounded-2xl border border-white/[0.08] bg-[#0c0c0e] p-6 shadow-xl">
+            <TwoFactorPanel user={user} setUser={setUser} />
+          </div>
+        </>
+      ) : (
+        /* ========================================================
+            BILLING & SECURITY VIEW (NO PREVIEW POPUP SPAM)
+            ======================================================== */
+        <div className="space-y-6">
+          {/* Summary Metric Rectangles */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="p-5 rounded-2xl border border-white/[0.08] bg-[#0c0c0e]">
+              <div className="flex items-center justify-between text-zinc-400 text-xs">
+                <span>Account Balance</span>
+                <DollarSign className="w-4 h-4 text-[#b4bffa]" />
+              </div>
+              <div className="text-2xl font-bold text-white mt-2">$0.00</div>
+              <div className="text-[10px] text-zinc-500 mt-1">Available store credit</div>
+            </div>
+
+            <div className="p-5 rounded-2xl border border-white/[0.08] bg-[#0c0c0e]">
+              <div className="flex items-center justify-between text-zinc-400 text-xs">
+                <span>Total Spent</span>
+                <CreditCard className="w-4 h-4 text-emerald-400" />
+              </div>
+              <div className="text-2xl font-bold text-white mt-2">$0.00</div>
+              <div className="text-[10px] text-zinc-500 mt-1">Lifetime billing</div>
+            </div>
+
+            <div className="p-5 rounded-2xl border border-white/[0.08] bg-[#0c0c0e]">
+              <div className="flex items-center justify-between text-zinc-400 text-xs">
+                <span>Active Plan</span>
+                <ShieldCheck className="w-4 h-4 text-purple-400" />
+              </div>
+              <div className="text-2xl font-bold text-white mt-2 capitalize">{user?.tier || "Free"}</div>
+              <div className="text-[10px] text-zinc-500 mt-1">Standard membership</div>
+            </div>
+
+            <div className="p-5 rounded-2xl border border-white/[0.08] bg-[#0c0c0e]">
+              <div className="flex items-center justify-between text-zinc-400 text-xs">
+                <span>Invoices</span>
+                <Receipt className="w-4 h-4 text-amber-400" />
+              </div>
+              <div className="text-2xl font-bold text-white mt-2">0</div>
+              <div className="text-[10px] text-zinc-500 mt-1">All settled</div>
+            </div>
+          </div>
+
+          {/* Transactions Section */}
+          <div className="rounded-2xl border border-white/[0.08] bg-[#0c0c0e] p-6 shadow-xl space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
               <div className="flex items-center gap-2">
-                <Laptop className="w-5 h-5 text-brand-400" />
-                <h3 className="text-base font-bold text-zinc-100">Session & Device Security</h3>
+                <Receipt className="w-4 h-4 text-[#b4bffa]" />
+                <h3 className="text-sm font-bold uppercase tracking-wider text-white">Recent Transactions</h3>
               </div>
-              <span className="text-[10px] font-mono2 px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/30">
-                Current Device
-              </span>
+              <span className="text-xs text-zinc-500">Filtered: All Time</span>
             </div>
 
-            <div className="grid sm:grid-cols-2 gap-3 text-xs">
-              <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/5 space-y-1">
-                <span className="text-[10px] font-mono2 uppercase text-zinc-500">Browser Environment</span>
-                <div className="text-zinc-200 font-semibold flex items-center gap-1.5">
-                  <Laptop className="w-3.5 h-3.5 text-zinc-400" /> Web Browser Session
-                </div>
+            <div className="py-12 flex flex-col items-center justify-center text-center">
+              <div className="w-12 h-12 rounded-2xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center text-zinc-500 mb-3">
+                <Receipt className="w-5 h-5" />
               </div>
-              <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/5 space-y-1">
-                <span className="text-[10px] font-mono2 uppercase text-zinc-500">Session Status</span>
-                <div className="text-emerald-400 font-semibold flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> Authenticated & Active
-                </div>
+              <div className="text-sm font-semibold text-zinc-300">No Transactions Found</div>
+              <div className="text-xs text-zinc-500 max-w-sm mt-1">
+                Your account does not have any billing charges or invoice records yet.
               </div>
             </div>
-
-            <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-t border-white/5">
-              <p className="text-xs text-zinc-400">
-                Suspect unauthorized access? Invalidate all session tokens across all devices simultaneously.
-              </p>
-              <button
-                type="button"
-                onClick={async () => {
-                  try {
-                    await api.post("/me/logout-all");
-                    toast.success("Successfully revoked all other sessions everywhere!");
-                  } catch {
-                    toast.error("Failed to revoke other sessions");
-                  }
-                }}
-                className="px-4 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-semibold shrink-0 transition"
-              >
-                Revoke All Other Sessions
-              </button>
-            </div>
           </div>
 
-          {/* Session Logout */}
-          <div className="glass rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-[0_10px_40px_rgba(0,0,0,0.4)]">
-            <div>
-              <div className="text-base font-bold text-zinc-100 flex items-center gap-2">
-                <LogOut className="w-4 h-4 text-zinc-400" /> Active Browser Session
+          {/* Purchases & Marketplace Orders Section */}
+          <div className="rounded-2xl border border-white/[0.08] bg-[#0c0c0e] p-6 shadow-xl space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
+              <div className="flex items-center gap-2">
+                <ShoppingBag className="w-4 h-4 text-emerald-400" />
+                <h3 className="text-sm font-bold uppercase tracking-wider text-white">Purchases & Orders</h3>
               </div>
-              <p className="text-xs text-zinc-400 mt-0.5">Securely terminate active login session on this device</p>
+              <span className="text-xs text-zinc-500">0 Items</span>
             </div>
-            <button
-              onClick={() => { logout(); navigate("/"); }}
-              data-testid="settings-logout"
-              className="px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-sm text-zinc-200 flex items-center gap-2 transition border border-white/10"
-            >
-              <LogOut className="w-4 h-4 text-zinc-400" /> Log out
-            </button>
-          </div>
-        </div>
-      )}
 
-      {/* INTEGRATIONS SECTION */}
-      {showSection("integrations") && (
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 px-1">
-            <Plug className="w-4 h-4 text-brand-400" />
-            <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-300 font-mono2">Third-Party Integrations</h2>
-          </div>
-
-          <div className="glass rounded-2xl p-5 space-y-4 shadow-[0_10px_40px_rgba(0,0,0,0.4)]" data-testid="settings-api-keys">
-            <div className="flex items-center gap-2">
-              <Plug className="w-5 h-5 text-brand-400" />
-              <h2 className="text-base font-bold text-zinc-100">Widget API Keys</h2>
-            </div>
-            <p className="text-xs text-zinc-400">
-              Optional credentials. Roblox, Discord, Steam, GitHub and music widgets work without any key. Add your own
-              only for the ones that need it — keys are stored safely on the server and are never shown to visitors.
-            </p>
-
-            {WIDGET_KEY_PROVIDERS.map(({ id, label, hint, url }) => {
-              const status = integrations?.[id];
-              const serverDefault = integrations?.server_defaults?.[id];
-              const badge = status?.configured
-                ? { text: `Saved ${status.hint}`, cls: "bg-emerald-500/10 text-emerald-300 border-emerald-500/30" }
-                : serverDefault
-                ? { text: "Server key in use", cls: "bg-brand-500/10 text-brand-300 border-brand-500/30" }
-                : { text: "Not set", cls: "bg-white/5 text-zinc-500 border-white/10" };
-              const isRevealed = showKeyText[id];
-              return (
-                <div key={id} className="space-y-1.5 rounded-xl bg-white/[0.02] border border-white/5 p-3.5">
-                  <div className="flex items-center justify-between gap-2">
-                    <label className="text-xs font-semibold text-zinc-200">{label}</label>
-                    <span className={`text-[10px] font-mono2 px-2.5 py-0.5 rounded-full border ${badge.cls}`}>
-                      {badge.text}
-                    </span>
-                  </div>
-                  <div className="flex gap-2">
-                    <div className="relative flex-1">
-                      <input
-                        type={isRevealed ? "text" : "password"}
-                        autoComplete="off"
-                        data-testid={`api-key-${id}`}
-                        value={keyDraft[id]}
-                        onChange={(e) => setKeyDraft({ ...keyDraft, [id]: e.target.value })}
-                        placeholder={`Paste your ${label}`}
-                        className="w-full px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/10 focus:border-brand-500/50 outline-none text-sm text-zinc-100 placeholder-zinc-600 pr-10 font-mono2 text-xs"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowKeyText((prev) => ({ ...prev, [id]: !prev[id] }))}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
-                        title={isRevealed ? "Mask key" : "Show key"}
-                      >
-                        {isRevealed ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                      </button>
-                    </div>
-                    {status?.configured && (
-                      <button
-                        type="button"
-                        onClick={() => clearKey(id)}
-                        className="px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-zinc-300 transition"
-                      >
-                        Remove
-                      </button>
-                    )}
-                  </div>
-                  <p className="text-[11px] text-zinc-500 flex items-center justify-between pt-0.5">
-                    <span>{hint}</span>
-                    <a href={url} target="_blank" rel="noreferrer" className="text-brand-300 hover:underline inline-flex items-center gap-1">
-                      Get key <ExternalLink className="w-2.5 h-2.5" />
-                    </a>
-                  </p>
-                </div>
-              );
-            })}
-
-            <div className="flex justify-end pt-2">
-              <button
-                type="button"
-                onClick={saveKeys}
-                disabled={savingKeys}
-                data-testid="settings-save-api-keys"
-                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 hover:brightness-110 disabled:opacity-50 text-white text-sm font-semibold flex items-center gap-1.5 transition shadow-[0_0_20px_rgba(180, 191, 250,0.3)]"
-              >
-                {savingKeys ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Save Keys
-              </button>
+            <div className="py-12 flex flex-col items-center justify-center text-center">
+              <div className="w-12 h-12 rounded-2xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center text-zinc-500 mb-3">
+                <ShoppingBag className="w-5 h-5" />
+              </div>
+              <div className="text-sm font-semibold text-zinc-300">No Purchases Recorded</div>
+              <div className="text-xs text-zinc-500 max-w-sm mt-1">
+                When you acquire marketplace templates, custom badges, or upgrades, they will appear here.
+              </div>
             </div>
           </div>
-        </div>
-      )}
 
-
-      {/* DANGER ZONE SECTION */}
-      {showSection("danger") && (
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 px-1">
-            <AlertTriangle className="w-4 h-4 text-red-400" />
-            <h2 className="text-sm font-bold uppercase tracking-wider text-red-400 font-mono2">Irreversible Actions</h2>
-          </div>
-
-          <div className="rounded-2xl p-5 border border-red-500/25 bg-red-500/[0.04] space-y-4 shadow-[0_0_30px_rgba(239,68,68,0.1)]">
-            <div className="flex items-center gap-2 text-red-400 font-bold text-base">
-              <ShieldAlert className="w-5 h-5" /> Danger Zone
-            </div>
-            <p className="text-xs text-zinc-300 leading-relaxed">
-              Permanently delete your profile, custom bio URL slug, uploaded custom cursors, background tracks, and badges.
-              This action cannot be undone once confirmed.
-            </p>
-            <div className="pt-1">
-              <button
-                data-testid="settings-delete"
-                onClick={() => setShowDeleteModal(true)}
-                className="px-4 py-2.5 rounded-xl bg-red-500/15 hover:bg-red-500/25 text-red-300 border border-red-500/30 text-sm font-semibold flex items-center gap-2 transition hover:shadow-[0_0_20px_rgba(239,68,68,0.3)]"
-              >
-                <Trash2 className="w-4 h-4" /> Delete Account
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Delete Confirmation Modal */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md px-4">
-          <div className="w-full max-w-md glass-strong rounded-3xl p-6 space-y-4 border border-red-500/30 fade-up shadow-[0_0_50px_rgba(239,68,68,0.2)]">
-            <div className="flex items-center gap-3 text-red-400">
-              <AlertTriangle className="w-6 h-6 shrink-0" />
-              <h3 className="font-display text-lg font-extrabold text-white">Delete Account Permanently</h3>
-            </div>
-            <p className="text-xs text-zinc-300">
-              This action <span className="text-red-400 font-bold">cannot be undone</span>. All your customized bio widgets, cursors, and stats will be wiped. Type <code className="text-brand-300 font-mono2 font-bold">{user?.username}</code> below to confirm deletion.
-            </p>
-            <input
-              value={deleteConfirmText}
-              onChange={(e) => setDeleteConfirmText(e.target.value)}
-              placeholder={user?.username}
-              className="w-full px-4 py-3 rounded-xl bg-white/[0.03] border border-white/10 outline-none text-sm text-zinc-100 placeholder-zinc-600 font-mono2 focus:border-red-500/50"
-            />
-            <div className="flex items-center gap-2 pt-2">
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                className="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 text-sm font-medium transition"
-              >
-                Cancel
-              </button>
-              <button
-                disabled={deleteConfirmText !== user?.username}
-                onClick={() => {
-                  toast.success("Account deletion requested.");
-                  logout();
-                  navigate("/");
-                }}
-                className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 disabled:opacity-40 text-white text-sm font-semibold transition shadow-[0_0_20px_rgba(239,68,68,0.4)]"
-              >
-                Confirm Delete
-              </button>
-            </div>
+          {/* Security & 2FA on Billing Tab */}
+          <div className="rounded-2xl border border-white/[0.08] bg-[#0c0c0e] p-6 shadow-xl">
+            <TwoFactorPanel user={user} setUser={setUser} />
           </div>
         </div>
       )}

@@ -274,6 +274,7 @@ function TipBubble({ x, y, label, style, accent, size = "md", anim }) {
         top: y - 6,
         transform: flipBelow ? "translate(-50%, 12px)" : "translate(-50%, -100%)",
         maxWidth: 280,
+        fontFamily: "var(--profile-font-display, inherit)",
       }}
     >
       {skin}

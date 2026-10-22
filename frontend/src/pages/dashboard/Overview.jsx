@@ -7,7 +7,7 @@ import { FaDiscord } from "react-icons/fa6";
 import {
   Award, Check, ChevronRight, Copy, Crown, Eye, Loader2,
   Pencil, Sparkles, Link2, ArrowUpRight, Clock, User,
-  Zap, RefreshCw, Ticket, BarChart3, Calendar,
+  Zap, RefreshCw, Ticket, BarChart3, Calendar, Globe,
 } from "lucide-react";
 
 // â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -296,6 +296,57 @@ export default function Overview() {
         </div>
       </section>
 
+      {/* Your domains */}
+      <div className="rounded-[20px] border border-white/[0.07] bg-[#111113] p-4 sm:p-5 shadow-lg">
+        <div className="flex items-center justify-between mb-3 pb-3 border-b border-white/[0.06]">
+          <div className="flex items-center gap-2">
+            <Globe className="h-4 w-4 text-[#b4bffa]" />
+            <h2 className="text-xs font-bold uppercase tracking-wider text-white">Your domains:</h2>
+          </div>
+          <span className="text-[11px] font-mono2 text-emerald-400 flex items-center gap-1.5">
+            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+            2 Active Domains
+          </span>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {[
+            { domain: "tourn.lol", url: `https://tourn.lol/${user.username}`, label: `tourn.lol/${user.username}` },
+            { domain: "swats.bio", url: `https://swats.bio/${user.username}`, label: `swats.bio/${user.username}` },
+          ].map((item) => (
+            <div
+              key={item.domain}
+              className="flex items-center justify-between p-3 rounded-xl border border-white/[0.06] bg-black/40 hover:border-white/15 transition-all group"
+            >
+              <div className="min-w-0 pr-2">
+                <div className="text-xs font-bold text-white group-hover:text-[#b4bffa] transition-colors truncate">
+                  {item.label}
+                </div>
+                <div className="text-[10px] text-zinc-500 font-mono2 mt-0.5">Canonical · Verified Active</div>
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => copy(item.url, `${item.domain} link`)}
+                  title={`Copy ${item.domain} link`}
+                  className="p-1.5 rounded-lg border border-white/[0.06] bg-white/[0.03] hover:bg-white/[0.08] text-zinc-400 hover:text-white transition cursor-pointer"
+                >
+                  <Copy className="h-3.5 w-3.5" />
+                </button>
+                <a
+                  href={item.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  title={`Visit ${item.domain}`}
+                  className="p-1.5 rounded-lg border border-white/[0.06] bg-white/[0.03] hover:bg-white/[0.08] text-zinc-400 hover:text-white transition cursor-pointer"
+                >
+                  <ArrowUpRight className="h-3.5 w-3.5" />
+                </a>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* â”€â”€ 4 Stat tiles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <StatTile
@@ -366,8 +417,9 @@ export default function Overview() {
           </div>
 
           {/* Redeem code inline */}
-          <form onSubmit={redeemPremium} className="flex gap-2 pt-1 border-t border-white/[0.05]">
+          <form data-testid="redeem-premium-card" onSubmit={redeemPremium} className="flex gap-2 pt-1 border-t border-white/[0.05]">
             <input
+              data-testid="redeem-premium-input"
               type="text"
               value={redeemCode}
               onChange={(e) => setRedeemCode(e.target.value)}

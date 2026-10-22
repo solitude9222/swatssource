@@ -141,6 +141,7 @@ app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Mount all API routes under /api
 app.use('/api/auth', authRouter);
+app.use('/api/discord', authRouter);
 app.use('/api/me', profileRouter);
 app.use('/api/upload', uploadRouter);
 app.use('/api', publicRouter);
