@@ -628,9 +628,22 @@ export default function Settings() {
             </div>
           </div>
 
-          {/* Security & 2FA on Billing Tab */}
+          {/* Support Contact */}
           <div className="rounded-2xl border border-white/[0.08] bg-[#0c0c0e] p-6 shadow-xl">
-            <TwoFactorPanel user={user} setUser={setUser} />
+            <div className="flex items-center gap-2 mb-4">
+              <HelpCircle className="w-4 h-4 text-[#b4bffa]" />
+              <h3 className="text-sm font-bold uppercase tracking-wider text-white">Need Help?</h3>
+            </div>
+            <p className="text-xs text-zinc-400 mb-4">
+              For billing inquiries, subscription issues, or account assistance, reach out to our support team.
+            </p>
+            <a
+              href="mailto:support@tourn.lol"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#b4bffa] text-black font-bold text-xs hover:brightness-110 transition"
+            >
+              <Mail className="w-3.5 h-3.5" />
+              support@tourn.lol
+            </a>
           </div>
         </div>
       )}

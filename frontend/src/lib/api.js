@@ -42,7 +42,7 @@ export const PUBLIC_ORIGIN = (process.env.REACT_APP_PUBLIC_URL || "https://tourn
   .trim()
   .replace(/\/+$/, "");
 
-export const CONTACT_EMAIL = "riotsoffical@proton.me";
+export const CONTACT_EMAIL = "support@tourn.lol";
 
 export const profileUrl = (username) =>
   `${PUBLIC_ORIGIN}/${encodeURIComponent(String(username || "").trim())}`;
