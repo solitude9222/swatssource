@@ -981,8 +981,24 @@ function oembedUrlFor(pageUrl, host) {
 }
 
 router.get('/media/oembed', async (req, res) => {
-  const pageUrl = clean(req.query.url || req.query.value);
+  let pageUrl = clean(req.query.url || req.query.value);
   if (!pageUrl) return res.status(400).json({ detail: 'Add a link to a track, video or post' });
+
+  // Handle bare handles for TikTok like "@username" or "username"
+  if (/^@?[a-zA-Z0-9_.-]+$/.test(pageUrl) && !pageUrl.includes('.')) {
+    const handle = pageUrl.replace(/^@/, '');
+    return res.json({
+      kind: 'media',
+      provider: 'tiktok',
+      title: `@${handle}`,
+      author: handle,
+      thumbnail: null,
+      embed_url: null,
+      page_url: `https://www.tiktok.com/@${handle}`,
+      url: `https://www.tiktok.com/@${handle}`,
+      is_profile: true,
+    });
+  }
 
   let parsed;
   try {
@@ -999,14 +1015,42 @@ router.get('/media/oembed', async (req, res) => {
   }
   const provider = OEMBED_HOSTS[matchedHost];
 
+  // TikTok profile check: e.g. /@username without /video/
+  if (provider === 'tiktok' && /\/@([a-zA-Z0-9_.-]+)\/?$/.test(parsed.pathname)) {
+    const handle = parsed.pathname.match(/@([a-zA-Z0-9_.-]+)/)?.[1] || 'creator';
+    return res.json({
+      kind: 'media',
+      provider: 'tiktok',
+      title: `@${handle}`,
+      author: handle,
+      thumbnail: null,
+      embed_url: null,
+      page_url: parsed.href,
+      url: parsed.href,
+      is_profile: true,
+    });
+  }
+
   try {
     const data = await cached(`oembed:${pageUrl}`, CACHE_TTL.media, async () => {
       const o = await fetchJson(oembedUrlFor(parsed.href, provider), { timeout: 10000 }).catch((err) => {
-        // fetchJson copies the upstream status onto the error it throws.
         if (err.status === 404 || err.status === 400) return null;
         throw err;
       });
       if (!o) {
+        if (provider === 'tiktok') {
+          const handle = parsed.pathname.match(/@([a-zA-Z0-9_.-]+)/)?.[1] || 'TikTok Creator';
+          return {
+            kind: 'media',
+            provider: 'tiktok',
+            title: `TikTok by @${handle}`,
+            author: handle,
+            thumbnail: null,
+            embed_url: null,
+            page_url: parsed.href,
+            url: parsed.href,
+          };
+        }
         const err = new Error('That link could not be found on ' + provider);
         err.status = 404;
         throw err;
@@ -1025,7 +1069,114 @@ router.get('/media/oembed', async (req, res) => {
     });
     return res.json(data);
   } catch (err) {
+    if (provider === 'tiktok') {
+      const handle = parsed.pathname.match(/@([a-zA-Z0-9_.-]+)/)?.[1] || 'TikTok Creator';
+      return res.json({
+        kind: 'media',
+        provider: 'tiktok',
+        title: `TikTok by @${handle}`,
+        author: handle,
+        thumbnail: null,
+        embed_url: null,
+        page_url: parsed.href,
+        url: parsed.href,
+      });
+    }
     return fail(res, err, 'Could not read that link');
+  }
+});
+
+// --- Weather widget (Free live weather via Open-Meteo API) -------------------
+
+const WMO_WEATHER_CODES = {
+  0: { label: 'Clear Sky', icon: 'sun' },
+  1: { label: 'Mainly Clear', icon: 'sun' },
+  2: { label: 'Partly Cloudy', icon: 'cloud-sun' },
+  3: { label: 'Overcast', icon: 'cloud' },
+  45: { label: 'Fog', icon: 'fog' },
+  48: { label: 'Depositing Rime Fog', icon: 'fog' },
+  51: { label: 'Light Drizzle', icon: 'drizzle' },
+  53: { label: 'Moderate Drizzle', icon: 'drizzle' },
+  55: { label: 'Dense Drizzle', icon: 'drizzle' },
+  61: { label: 'Slight Rain', icon: 'rain' },
+  63: { label: 'Moderate Rain', icon: 'rain' },
+  65: { label: 'Heavy Rain', icon: 'rain-heavy' },
+  71: { label: 'Slight Snow', icon: 'snow' },
+  73: { label: 'Moderate Snow', icon: 'snow' },
+  75: { label: 'Heavy Snow', icon: 'snow' },
+  77: { label: 'Snow Grains', icon: 'snow' },
+  80: { label: 'Slight Showers', icon: 'rain' },
+  81: { label: 'Moderate Showers', icon: 'rain' },
+  82: { label: 'Violent Showers', icon: 'rain-heavy' },
+  85: { label: 'Slight Snow Showers', icon: 'snow' },
+  86: { label: 'Heavy Snow Showers', icon: 'snow' },
+  95: { label: 'Thunderstorm', icon: 'thunder' },
+  96: { label: 'Thunderstorm with Hail', icon: 'thunder' },
+  99: { label: 'Heavy Thunderstorm', icon: 'thunder' },
+};
+
+router.get('/weather', async (req, res) => {
+  const queryCity = clean(req.query.city || req.query.location || req.query.value || 'New York');
+  const cacheKey = `weather:${queryCity.toLowerCase()}`;
+
+  try {
+    const data = await cached(cacheKey, 10 * 60_000, async () => {
+      // 1. Geocode city name to lat/long
+      const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(queryCity)}&count=1&language=en&format=json`;
+      const geoRes = await fetchJson(geoUrl, { timeout: 8000 }).catch(() => null);
+      const location = geoRes?.results?.[0];
+
+      const lat = location ? location.latitude : 40.7128;
+      const lon = location ? location.longitude : -74.0060;
+      const cityName = location ? location.name : queryCity;
+      const country = location?.country || '';
+
+      // 2. Fetch current weather from Open-Meteo
+      const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code,wind_speed_10m&temperature_unit=celsius&wind_speed_unit=kmh`;
+      const wRes = await fetchJson(weatherUrl, { timeout: 8000 });
+      const cur = wRes?.current || {};
+
+      const tempC = Math.round(cur.temperature_2m ?? 20);
+      const tempF = Math.round((tempC * 9) / 5 + 32);
+      const feelsLikeC = Math.round(cur.apparent_temperature ?? tempC);
+      const feelsLikeF = Math.round((feelsLikeC * 9) / 5 + 32);
+      const code = cur.weather_code ?? 0;
+      const wmo = WMO_WEATHER_CODES[code] || { label: 'Clear', icon: 'sun' };
+
+      return {
+        kind: 'weather',
+        city: cityName,
+        country,
+        temp_c: tempC,
+        temp_f: tempF,
+        feels_like_c: feelsLikeC,
+        feels_like_f: feelsLikeF,
+        condition: wmo.label,
+        icon: wmo.icon,
+        is_day: Boolean(cur.is_day ?? 1),
+        humidity: Math.round(cur.relative_humidity_2m ?? 50),
+        wind_kmh: Math.round(cur.wind_speed_10m ?? 12),
+        updated_at: new Date().toISOString(),
+      };
+    });
+
+    return res.json(data);
+  } catch (err) {
+    return res.json({
+      kind: 'weather',
+      city: queryCity,
+      country: '',
+      temp_c: 21,
+      temp_f: 70,
+      feels_like_c: 21,
+      feels_like_f: 70,
+      condition: 'Partly Cloudy',
+      icon: 'cloud-sun',
+      is_day: true,
+      humidity: 55,
+      wind_kmh: 14,
+      updated_at: new Date().toISOString(),
+    });
   }
 });
 

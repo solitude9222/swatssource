@@ -9,6 +9,7 @@ import {
   AlertTriangle, ArrowRight, Building2, Calendar, Check, Clock, Code2,
   ExternalLink, Globe, Info, MapPin, Pause, Play, RefreshCw, Sparkles, Star,
   Users, Volume2, X, Gamepad2, FolderGit2, Palette,
+  CloudSun, Sun, Cloud, CloudRain, CloudSnow, CloudLightning, Wind, Droplets, Thermometer,
 } from "lucide-react";
 import {
   FaDiscord, FaGithub, FaSoundcloud, FaSpotify, FaSteam, FaTiktok, FaYoutube,
@@ -34,6 +35,8 @@ const BRAND_ICON = {
   soundcloud: FaSoundcloud,
   valorant: SiValorant,
   timezone: Clock,
+  clock: Clock,
+  weather: CloudSun,
   countdown: Calendar,
   "account-date": Calendar,
   custom: Code2,
@@ -41,7 +44,7 @@ const BRAND_ICON = {
   projects: FolderGit2,
 };
 
-const LIVE_TYPES = new Set(["discord", "roblox:game"]);
+const LIVE_TYPES = new Set(["discord", "roblox:game", "weather"]);
 
 // Helper to format relative years ("Joined 9 years ago", "Joined 17 years ago")
 function formatYearsAgo(dateValue) {
@@ -322,6 +325,62 @@ function WidgetShell({
   };
   const overlayClass = filterStyles[w?.bg_filter || "dark"] ?? "bg-black/60";
 
+  const cardStyle = w?.card_style || w?.style || "";
+  let customStyleProps = {};
+  if (bgEnabled && cardStyle) {
+    const col = w?.color || accent || "#b4bffa";
+    if (cardStyle === "solid") {
+      customStyleProps = {
+        background: `linear-gradient(180deg, ${col}24, #0e1017 80%)`,
+        borderColor: `${col}88`,
+        backdropFilter: "blur(12px)",
+        WebkitBackdropFilter: "blur(12px)",
+      };
+    } else if (cardStyle === "gradient") {
+      customStyleProps = {
+        background: `linear-gradient(135deg, ${col}30 0%, rgba(15,16,22,0.92) 65%)`,
+        borderColor: `${col}55`,
+        backdropFilter: "blur(16px)",
+        WebkitBackdropFilter: "blur(16px)",
+      };
+    } else if (cardStyle === "frosted") {
+      customStyleProps = {
+        background: "rgba(255,255,255,0.08)",
+        backdropFilter: "blur(28px) saturate(160%)",
+        WebkitBackdropFilter: "blur(28px) saturate(160%)",
+        borderColor: "rgba(255,255,255,0.2)",
+      };
+    } else if (cardStyle === "outline") {
+      customStyleProps = {
+        background: "rgba(10,11,16,0.25)",
+        borderColor: col,
+        borderWidth: "1.5px",
+        backdropFilter: "blur(8px)",
+        WebkitBackdropFilter: "blur(8px)",
+      };
+    } else if (cardStyle === "glass") {
+      customStyleProps = {
+        background: "linear-gradient(145deg, rgba(255,255,255,0.09) 0%, rgba(255,255,255,0.02) 100%)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        borderColor: `${col}45`,
+        boxShadow: `inset 0 1px 0 rgba(255,255,255,0.15)`,
+      };
+    } else if (cardStyle === "aurora") {
+      customStyleProps = {
+        background: `linear-gradient(135deg, ${col}30 0%, #1e1b4b66 50%, #0c0d14 100%)`,
+        backdropFilter: "blur(16px)",
+        WebkitBackdropFilter: "blur(16px)",
+        borderColor: `${col}66`,
+      };
+    } else if (cardStyle === "minimal") {
+      customStyleProps = {
+        background: "#0c0d12",
+        borderColor: "rgba(255,255,255,0.08)",
+      };
+    }
+  }
+
   const surface = {
     borderWidth: `${borderWidthVal}px`,
     borderStyle: borderWidthVal > 0 ? "solid" : "none",
@@ -335,6 +394,7 @@ function WidgetShell({
         }
       : { background: "transparent" }),
     ...cardSurface(w, accent),
+    ...customStyleProps,
   };
 
   const isClickableCard = openStyle === "click" && (popoutUrl || popupToggle);
@@ -1255,7 +1315,7 @@ function DiscordServer({ w, accent, data, status, error, refresh }) {
   // Banner style: If hasCardBg is true, WidgetShell already handles card background.
   // Otherwise if show_banner is enabled and artwork_bg is not none, render the top header banner.
   if (style === "banner") {
-    const showHeaderBanner = (w.show_banner !== false) && (w.artwork_bg !== "none") && (w.artwork_bg !== "splash") && (w.artwork_bg !== "avatar") && !hasCardBg;
+    const showHeaderBanner = (w.show_banner !== false) && (w.artwork_bg !== "none") && (w.artwork_bg !== "splash") && (w.artwork_bg !== "avatar");
     return (
       <>
         {showHeaderBanner && (
@@ -1595,30 +1655,193 @@ function ValorantCard({ w, accent, data, status, error, refresh }) {
 function TimezoneClock({ w, accent }) {
   const tz = w.value || w.timezone || "UTC";
   const [now, setNow] = useState(() => new Date());
+
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  let time = "";
-  let date = "";
+  let hours = 0;
+  let minutes = 0;
+  let seconds = 0;
+  let timeStr = "";
+  let dateStr = "";
+  let ampm = "";
+
   try {
-    time = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit", timeZone: tz });
-    date = now.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric", timeZone: tz });
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone: tz,
+      hour: "numeric",
+      minute: "numeric",
+      second: "numeric",
+      hour12: false,
+    }).formatToParts(now);
+
+    for (const p of parts) {
+      if (p.type === "hour") hours = parseInt(p.value, 10);
+      if (p.type === "minute") minutes = parseInt(p.value, 10);
+      if (p.type === "second") seconds = parseInt(p.value, 10);
+    }
+
+    const twelveHour = hours % 12 || 12;
+    ampm = hours >= 12 ? "PM" : "AM";
+    timeStr = `${String(twelveHour).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    dateStr = now.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: tz });
   } catch {
-    time = now.toLocaleTimeString();
+    hours = now.getHours();
+    minutes = now.getMinutes();
+    seconds = now.getSeconds();
+    const twelveHour = hours % 12 || 12;
+    ampm = hours >= 12 ? "PM" : "AM";
+    timeStr = `${String(twelveHour).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    dateStr = now.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" });
   }
 
+  // Realistic watch angles
+  const secondDeg = seconds * 6;
+  const minuteDeg = minutes * 6 + seconds * 0.1;
+  const hourDeg = (hours % 12) * 30 + minutes * 0.5;
+
   return (
-    <div className="space-y-1.5">
-      <div className="flex items-center gap-2.5 text-xs font-bold text-zinc-100">
-        <span className="w-8 h-8 rounded-xl flex items-center justify-center bg-white/[0.06] border border-white/10 shrink-0">
-          <Clock className="w-4 h-4 text-white" />
-        </span>
-        <span className="font-mono text-base tracking-widest text-white font-bold">{time}</span>
+    <div className="flex items-center gap-4 py-1.5">
+      {/* Realistic Analog Clock Dial */}
+      <div className="relative w-16 h-16 shrink-0 rounded-full border-2 border-white/20 bg-gradient-to-br from-[#181920] to-[#090a0f] shadow-[0_4px_16px_rgba(0,0,0,0.6),inset_0_1px_3px_rgba(255,255,255,0.2)] flex items-center justify-center">
+        {/* Dial Hour Markers */}
+        <div className="absolute inset-1 rounded-full pointer-events-none">
+          <span className="absolute top-1 left-1/2 -translate-x-1/2 w-0.5 h-1.5 bg-white/80 rounded-full" />
+          <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-0.5 h-1.5 bg-white/80 rounded-full" />
+          <span className="absolute left-1 top-1/2 -translate-y-1/2 w-1.5 h-0.5 bg-white/80 rounded-full" />
+          <span className="absolute right-1 top-1/2 -translate-y-1/2 w-1.5 h-0.5 bg-white/80 rounded-full" />
+        </div>
+
+        {/* Hour Hand */}
+        <div
+          className="absolute w-1 h-4 bg-white rounded-full origin-bottom shadow-sm"
+          style={{
+            bottom: "50%",
+            left: "calc(50% - 2px)",
+            transform: `rotate(${hourDeg}deg)`,
+          }}
+        />
+
+        {/* Minute Hand */}
+        <div
+          className="absolute w-0.5 h-6 bg-zinc-300 rounded-full origin-bottom shadow-sm"
+          style={{
+            bottom: "50%",
+            left: "calc(50% - 1px)",
+            transform: `rotate(${minuteDeg}deg)`,
+          }}
+        />
+
+        {/* Second Hand */}
+        <div
+          className="absolute w-0.5 h-7 rounded-full origin-bottom shadow-sm"
+          style={{
+            bottom: "50%",
+            left: "calc(50% - 1px)",
+            backgroundColor: accent || "#ef4444",
+            transform: `rotate(${secondDeg}deg)`,
+            boxShadow: `0 0 6px ${accent || "#ef4444"}`,
+          }}
+        />
+
+        {/* Center Pivot Jewel */}
+        <div
+          className="absolute w-2 h-2 rounded-full border border-white/40 shadow-sm z-10"
+          style={{ backgroundColor: accent || "#ef4444" }}
+        />
       </div>
-      <div className="text-xs text-zinc-400 font-medium pl-1 truncate">
-        {tz} · {date}
+
+      {/* Digital Time & Location Readout */}
+      <div className="min-w-0 flex-1 flex flex-col justify-center text-left">
+        <div className="flex items-baseline gap-1.5">
+          <span className="font-mono text-xl sm:text-2xl font-black text-white tracking-wider drop-shadow-sm">
+            {timeStr}
+          </span>
+          <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{ampm}</span>
+        </div>
+        <div className="text-xs text-zinc-300 font-medium truncate mt-0.5">
+          {tz.replace(/_/g, " ")} · <span className="text-zinc-400">{dateStr}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function WeatherCard({ w, accent, data, status, error, refresh }) {
+  if (status === "loading") return <Skeleton />;
+  if (status !== "success" || !data) {
+    return (
+      <WidgetError
+        w={w}
+        accent={accent}
+        Icon={CloudSun}
+        message={error || "Select a city in widget settings."}
+        onRetry={refresh}
+      />
+    );
+  }
+
+  const isDay = data.is_day ?? true;
+  const temp = `${data.temp_c ?? 20}°C`;
+  const tempF = `${data.temp_f ?? 68}°F`;
+  const feelsLike = `${data.feels_like_c ?? data.temp_c ?? 20}°C`;
+
+  const WeatherIcon = () => {
+    const iconType = data.icon || "cloud-sun";
+    if (iconType === "sun") return isDay ? <Sun className="w-8 h-8 text-amber-400 drop-shadow-[0_0_12px_rgba(251,191,36,0.6)]" /> : <Sun className="w-8 h-8 text-indigo-300 drop-shadow-[0_0_10px_rgba(165,180,252,0.5)]" />;
+    if (iconType === "cloud-sun") return <CloudSun className="w-8 h-8 text-amber-300 drop-shadow-[0_0_10px_rgba(252,211,77,0.5)]" />;
+    if (iconType === "cloud") return <Cloud className="w-8 h-8 text-zinc-300 drop-shadow-[0_0_8px_rgba(212,212,216,0.4)]" />;
+    if (iconType === "rain" || iconType === "rain-heavy" || iconType === "drizzle") return <CloudRain className="w-8 h-8 text-sky-400 drop-shadow-[0_0_12px_rgba(56,189,248,0.6)]" />;
+    if (iconType === "snow") return <CloudSnow className="w-8 h-8 text-cyan-200 drop-shadow-[0_0_12px_rgba(165,243,252,0.6)]" />;
+    if (iconType === "thunder") return <CloudLightning className="w-8 h-8 text-purple-400 drop-shadow-[0_0_14px_rgba(192,132,252,0.7)]" />;
+    return <CloudSun className="w-8 h-8 text-sky-300" />;
+  };
+
+  return (
+    <div className="relative flex flex-col gap-2.5 py-1">
+      {/* City & Condition Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <MapPin className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+          <span className="text-xs font-bold text-white tracking-wide truncate">
+            {data.city}{data.country ? `, ${data.country}` : ""}
+          </span>
+        </div>
+        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-sky-500/15 text-sky-300 border border-sky-500/25">
+          {data.condition || "Live"}
+        </span>
+      </div>
+
+      {/* Main Temperature Display */}
+      <div className="flex items-center justify-between gap-3 pt-1">
+        <div className="flex items-center gap-3">
+          <div className="w-14 h-14 rounded-2xl bg-white/[0.05] border border-white/10 flex items-center justify-center shrink-0 shadow-inner">
+            <WeatherIcon />
+          </div>
+          <div>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-2xl sm:text-3xl font-black text-white tracking-tight">{temp}</span>
+              <span className="text-xs font-semibold text-zinc-400">/ {tempF}</span>
+            </div>
+            <div className="text-[11px] text-zinc-400 font-medium">
+              Feels like <span className="text-zinc-200 font-semibold">{feelsLike}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Humidity & Wind details */}
+        <div className="flex flex-col gap-1 items-end text-[11px] text-zinc-400 font-medium shrink-0">
+          <div className="flex items-center gap-1.5">
+            <Droplets className="w-3 h-3 text-sky-400" />
+            <span>{data.humidity ?? 50}%</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Wind className="w-3 h-3 text-teal-400" />
+            <span>{data.wind_kmh ?? 12} km/h</span>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -1690,9 +1913,7 @@ function CustomCard({ w, accent }) {
   );
 }
 
-// TikTok / SoundCloud and any other oEmbed link. These used to fall through to
-// the generic "Configured" placeholder, which is why a TikTok card looked like
-// it did nothing at all.
+// TikTok / SoundCloud and any other oEmbed link.
 function MediaCard({ w, accent, data, status, error, refresh, provider, HeaderIcon }) {
   if (status === "loading") return <Skeleton />;
   if (status !== "success" || !data) {
@@ -1701,13 +1922,42 @@ function MediaCard({ w, accent, data, status, error, refresh, provider, HeaderIc
         w={w}
         accent={accent}
         Icon={HeaderIcon || FaTiktok}
-        message={error || "Paste a link to a video or post."}
+        message={error || (provider === "tiktok" ? "Enter your TikTok username (@handle) or video link." : "Paste a link to a video or post.")}
         onRetry={refresh}
       />
     );
   }
 
   const label = provider === "tiktok" ? "TikTok" : provider === "soundcloud" ? "SoundCloud" : "Media";
+  const isProfile = Boolean(data.is_profile);
+
+  if (isProfile) {
+    return (
+      <div className="relative flex items-center justify-between gap-3 py-1">
+        <div className="flex items-center gap-3.5 min-w-0 flex-1">
+          <div className="relative w-12 h-12 rounded-full p-0.5 bg-gradient-to-tr from-[#25f4ee] to-[#fe2c55] flex items-center justify-center shrink-0 shadow-md">
+            <div className="w-full h-full rounded-full bg-black flex items-center justify-center">
+              <FaTiktok className="w-5 h-5 text-white" />
+            </div>
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="text-sm font-bold text-white truncate">
+              {data.title || `@${data.author}`}
+            </div>
+            <div className="text-xs text-zinc-400 mt-0.5 flex items-center gap-1.5">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#fe2c55]" />
+              TikTok Creator
+            </div>
+          </div>
+        </div>
+        <WidgetInternalButton
+          href={data.url || data.page_url || "#"}
+          className="px-3.5 py-1.5 rounded-full bg-[#fe2c55] hover:bg-[#e02447] text-white text-xs font-bold transition shadow-sm shrink-0 cursor-pointer"
+          label="View Profile"
+        />
+      </div>
+    );
+  }
 
   return (
     <a
@@ -2073,6 +2323,14 @@ export function WidgetCard({ w, accent = "#b4bffa", ownerCreated, owner = "", pr
     return (
       <WidgetShell w={w} accent={accent} data={data} headerTitle={w.title || "Valorant Stats Preview"} HeaderIcon={SiValorant}>
         <ValorantCard {...props} />
+      </WidgetShell>
+    );
+  }
+
+  if (type === "weather") {
+    return (
+      <WidgetShell w={w} accent={accent} data={data} headerTitle={w.title || "Live Weather"} HeaderIcon={CloudSun}>
+        <WeatherCard {...props} />
       </WidgetShell>
     );
   }
@@ -2446,7 +2704,10 @@ export function WidgetPill({ w, accent = "#b4bffa", ownerCreated, owner = "", p 
     title = data?.name ? `${data.name}#${data.tag}` : w?.riot_id || "Valorant Stats";
     subtitle = data?.current_tier_patched ? `${data.current_tier_patched} (${data.ranking_in_tier || 0} RR)` : (data?.rank || "Competitive");
     avatarUrl = data?.card_small || "";
-  } else if (type === "timezone") {
+  } else if (type === "weather") {
+    title = data?.city ? `${data.city} Weather` : (w?.title || "Weather");
+    subtitle = data?.temp_c != null ? `${data.temp_c}°C / ${data.temp_f}°F · ${data.condition || "Live"}` : (w?.value || "Live Weather");
+  } else if (type === "timezone" || type === "clock") {
     const tz = w?.value || w?.timezone || data?.timezone || "UTC";
     title = w?.title || "Timezone";
     let curTime = "";

@@ -52,7 +52,7 @@ export default function DiscordCallback() {
     }
 
     if (pairError === "missing") {
-      toast.error("That Discord isn't connected to a tourn.lol account yet. Create the account with it first.");
+      toast.error("That Discord isn't connected to a swats.bio account yet. Create the account with it first.");
       navigate("/!/dashboard");
       return;
     }

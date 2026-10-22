@@ -58,7 +58,7 @@
   border-radius: 50%;
   pointer-events: none;
   background: currentColor;
-  box-shadow: 0 0 3px currentColor, 0 0 6px currentColor;
+  box-shadow: 0 0 2px currentColor;
   opacity: 0;
   will-change: transform, opacity;
   animation-name: twk;
@@ -787,5 +787,22 @@
    which is exactly what the effects.css contract forbids. */
 @media (prefers-reduced-motion: reduce) {
   .fx-reveal-blur { animation-duration: 1ms; }
+}
+
+.sw-bg-canvas {
+  mix-blend-mode: screen;
+}
+
+.sw-bg-canvas[data-effect="rain"],
+.sw-bg-canvas[data-effect="shooting-stars"],
+.sw-bg-canvas[data-effect="thunder"],
+.sw-bg-canvas[data-effect="constellation"],
+.sw-bg-canvas[data-effect="galaxy"],
+.sw-bg-canvas[data-effect="rain-fall"],
+.sw-bg-canvas[data-effect="bleeding"],
+.sw-bg-canvas[data-effect="tv"],
+.sw-bg-canvas[data-effect="snow-flake"],
+.sw-bg-canvas[data-effect="frosted"] {
+  mix-blend-mode: normal;
 }
 

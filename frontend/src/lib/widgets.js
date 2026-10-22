@@ -192,6 +192,15 @@ function baseWidgetRequest(w) {
     };
   }
 
+  if (type === "weather") {
+    const city = String(w.value || w.city || w.location || "New York").trim();
+    return {
+      path: "/widgets/weather",
+      params: { city },
+      ttl: STATIC_TTL,
+    };
+  }
+
   // timezone, account-date, countdown and custom code need no network at all:
   // their values are real (the clock, your join date, your own code).
   return null;

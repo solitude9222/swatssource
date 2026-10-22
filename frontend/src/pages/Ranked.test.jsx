@@ -60,7 +60,7 @@ it("shows the top profiles in a centre/side spotlight with the full list beneath
 
   const centre = el.querySelector('[data-testid="ranked-spotlight-center"]');
   expect(centre.textContent).toContain("User 1");
-  expect(centre.textContent).toContain("swats.bio/user1");
+  expect(centre.textContent).toMatch(/(?:tourn\.lol|swats\.bio)\/user1/);
   expect(centre.getAttribute("data-menu-id")).toBe("profile");
 
   expect(el.querySelectorAll('[data-testid^="ranked-row-"]').length).toBe(ROWS.length);

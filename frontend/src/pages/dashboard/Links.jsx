@@ -65,6 +65,37 @@ const URL_PLACEHOLDER = {
   website: "https://yourdomain.com",
   product: "https://yourstore.com/product",
 };
+export function detectPlatformFromUrl(rawUrl) {
+  if (!rawUrl || typeof rawUrl !== "string") return null;
+  const url = rawUrl.trim().toLowerCase();
+  if (/(?:tiktok\.com)/.test(url)) return "tiktok";
+  if (/(?:discord(?:\.gg|app\.com|\.com))/i.test(url)) return "discord";
+  if (/(?:youtube\.com|youtu\.be)/.test(url)) return "youtube";
+  if (/(?:spotify\.com)/.test(url)) return "spotify";
+  if (/(?:twitch\.tv)/.test(url)) return "twitch";
+  if (/(?:instagram\.com)/.test(url)) return "instagram";
+  if (/(?:twitter\.com|x\.com)/.test(url)) return "x";
+  if (/(?:github\.com)/.test(url)) return "github";
+  if (/(?:steamcommunity\.com|steampowered\.com)/.test(url)) return "steam";
+  if (/(?:roblox\.com)/.test(url)) return "roblox";
+  if (/(?:reddit\.com)/.test(url)) return "reddit";
+  if (/(?:t\.me|telegram\.me)/.test(url)) return "telegram";
+  if (/(?:soundcloud\.com)/.test(url)) return "soundcloud";
+  if (/(?:snapchat\.com)/.test(url)) return "snapchat";
+  if (/(?:pinterest\.com)/.test(url)) return "pinterest";
+  if (/(?:kick\.com)/.test(url)) return "kick";
+  if (/(?:linkedin\.com)/.test(url)) return "linkedin";
+  if (/(?:patreon\.com)/.test(url)) return "patreon";
+  if (/(?:paypal\.me|paypal\.com)/.test(url)) return "paypal";
+  if (/(?:cash\.app)/.test(url)) return "cashapp";
+  if (/(?:music\.apple\.com|itunes\.apple\.com)/.test(url)) return "applemusic";
+  if (/(?:apple\.com)/.test(url)) return "apple";
+  if (/(?:netflix\.com)/.test(url)) return "netflix";
+  if (/(?:crunchyroll\.com)/.test(url)) return "crunchyroll";
+  if (/(?:osu\.ppy\.sh)/.test(url)) return "osu";
+  return null;
+}
+
 const placeholderFor = (id) => URL_PLACEHOLDER[id] || "https://...";
 
 const readGlobals = (p = {}) => ({
@@ -296,7 +327,7 @@ export default function Links() {
           </span>
         </div>
 
-        <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3">
+        <div data-testid="link-presets" className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3">
           {PLATFORM_PRESETS.map((p) => (
             <button
               key={p.id}
@@ -644,12 +675,36 @@ export default function Links() {
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-zinc-200">URL or Handle</label>
+                  <div className="mb-1 flex items-center justify-between">
+                    <label className="block text-xs font-semibold text-zinc-200">URL or Handle</label>
+                    {detectPlatformFromUrl(activeModal.link.url) && (
+                      <span className="text-[10px] font-semibold text-emerald-400 flex items-center gap-1">
+                        <Check className="w-2.5 h-2.5" />
+                        Detected {ALL_MAP[detectPlatformFromUrl(activeModal.link.url)]?.name || "Platform"}
+                      </span>
+                    )}
+                  </div>
                   <input
                     data-testid="link-url-input"
                     type="text"
                     value={activeModal.link.url || ""}
-                    onChange={(e) => patchLink({ url: e.target.value })}
+                    onChange={(e) => {
+                      const newUrl = e.target.value;
+                      const detected = detectPlatformFromUrl(newUrl);
+                      if (detected && detected !== activeModal.link.platform && ALL_MAP[detected]) {
+                        const p = ALL_MAP[detected];
+                        const prevMeta = ALL_MAP[activeModal.link.platform];
+                        const isDefaultLabel = !activeModal.link.label || activeModal.link.label === prevMeta?.name || activeModal.link.label === "Website";
+                        patchLink({
+                          url: newUrl,
+                          platform: detected,
+                          label: isDefaultLabel ? p.name : activeModal.link.label,
+                          color: p.color || activeModal.link.color,
+                        });
+                      } else {
+                        patchLink({ url: newUrl });
+                      }
+                    }}
                     placeholder={placeholderFor(activeModal.link.platform)}
                     className="w-full rounded-xl border border-white/10 bg-[#09090c] px-3.5 py-2 text-xs font-medium text-white placeholder-zinc-500 outline-none transition focus:border-[#b4bffa]"
                   />

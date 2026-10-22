@@ -26,7 +26,7 @@ import { fileUrl } from "@/lib/api";
    means: your card with no effect of this kind on it.
    --------------------------------------------------------------------------- */
 
-export const TILE_SAMPLE = "tourn";
+export const TILE_SAMPLE = "swats";
 
 // The cursor demo's markers. The CSS in effects.css animates each one from the
 // tile's centre, so the box reads as a small stage the pointer is moving across.
@@ -41,7 +41,7 @@ function useOnScreen(ref) {
     const el = ref.current;
     if (!el || typeof IntersectionObserver !== "function") return undefined;
     const io = new IntersectionObserver(([entry]) => setOnScreen(!!entry?.isIntersecting), {
-      rootMargin: "160px",
+      rootMargin: "20px",
     });
     io.observe(el);
     return () => io.disconnect();

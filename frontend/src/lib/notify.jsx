@@ -162,7 +162,7 @@ function NotificationCard({ item }) {
     <li
       data-testid={`notification-${item.type}`}
       style={{ backgroundImage: `radial-gradient(ellipse at top left, ${variant.glow}, transparent 70%)` }}
-      className={`pointer-events-auto relative flex w-full items-start gap-3.5 overflow-hidden rounded-2xl border border-white/10 bg-[#0d0d10] p-4 text-left shadow-[0_16px_40px_rgba(0,0,0,0.8)] ring-1 backdrop-blur-2xl transition-all duration-300 hover:border-white/20 ${variant.ring} ${variant.edge} ${
+      className={`pointer-events-auto relative flex w-full items-start gap-3.5 overflow-hidden rounded-2xl border border-white/10 bg-[#0b0b10] p-4 text-left shadow-[0_16px_40px_rgba(0,0,0,0.8)] ring-1 backdrop-blur-2xl transition-all duration-300 hover:border-white/20 ${variant.ring} ${variant.edge} ${
         item.closing
           ? "animate-out fade-out slide-out-to-top-3 duration-200"
           : "animate-in fade-in slide-in-from-top-3 duration-200"
@@ -217,9 +217,9 @@ export function Toaster() {
       data-testid="notification-region"
       role="status"
       aria-live="polite"
-      className="pointer-events-none fixed top-4 right-4 sm:top-5 sm:right-5 z-[9999] flex flex-col items-end"
+      className="pointer-events-none fixed bottom-0 right-0 p-4 sm:p-5 z-[9999] flex flex-col items-end"
     >
-      <ol className="flex w-full max-w-sm flex-col gap-2.5">
+      <ol className="flex w-full max-w-sm flex-col-reverse gap-2.5">
         {list.map((item) => (
           <NotificationCard key={item.id} item={item} />
         ))}

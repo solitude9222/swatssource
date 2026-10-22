@@ -233,21 +233,22 @@ const vhs = (W, H, o, l) => {
       c.fillStyle = 'rgba(10, 12, 17, 0.08)';
       c.fillRect(0, 0, W, H);
     }
-    const a = o ? 0.5 : 1;
+    const a = o ? 0.7 : 1;
     const y = (t * 0.12) % (H + 240) - 120;
-    c.fillStyle = `rgba(255,255,255,${0.05 * a})`;
+    c.fillStyle = `rgba(255,255,255,${0.06 * a})`;
     c.fillRect(0, y, W, 34);
     for (let i = 0; i < 4; i++) {
-      c.fillStyle = R() < 0.5 ? `rgba(255,0,70,${0.12 * a})` : `rgba(0,220,255,${0.12 * a})`;
+      c.fillStyle = R() < 0.5 ? `rgba(255,0,70,${0.18 * a})` : `rgba(0,220,255,${0.18 * a})`;
       c.fillRect(R() * 20 - 10, y + R() * 34, W, 2 + R() * 3);
     }
-    // One faint tracking flutter, so the band quivers like a real head.
+    // Subtle tracking flutter
     if (R() < 0.5) {
-      c.fillStyle = `rgba(255,255,255,${0.03 * a})`;
+      c.fillStyle = `rgba(255,255,255,${0.06 * a})`;
       c.fillRect(0, y + R() * 34, W, 1);
     }
-    c.fillStyle = `rgba(0,0,0,${0.22 * a})`;
-    for (let yy = 0; yy < H; yy += 3) c.fillRect(0, yy, W, 1);
+    // High-performance scanlines (spaced every 4px for higher FPS and cleaner CRT look)
+    c.fillStyle = `rgba(0,0,0,${0.12 * a})`;
+    for (let yy = 0; yy < H; yy += 4) c.fillRect(0, yy, W, 1.5);
   };
 };
 
@@ -297,10 +298,10 @@ const thunder = (W, H) => {
 };
 
 const streak = (W, H, n, sl, ln) => {
-  const a = [...Array(n)].map(() => ({ x: R() * W, y: R() * H, l: (10 + R() * 18) * ln, v: 16 + R() * 10 }));
+  const a = [...Array(n)].map(() => ({ x: R() * W, y: R() * H, l: (12 + R() * 22) * ln, v: 16 + R() * 10 }));
   return (c) => {
-    c.strokeStyle = 'rgba(190,210,235,.28)';
-    c.lineWidth = 1;
+    c.strokeStyle = 'rgba(215,235,255,.55)';
+    c.lineWidth = 1.2;
     c.beginPath();
     for (const o of a) {
       o.y += o.v;

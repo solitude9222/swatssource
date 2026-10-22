@@ -1862,7 +1862,7 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
       {p.background_effect && <BackgroundEffect effect={p.background_effect} />}
       {/* Overlays sit above cards with pointer-events-none so all interactive elements remain clickable.
           The editor saves the choice as `overlay_effect`; `p.overlay` is a legacy alias kept for old profiles. */}
-      {(p.overlay_effect || p.overlay) && <OverlayEffect effect={p.overlay_effect || p.overlay} color={accent} opacity={p.overlay_opacity ?? 100} zIndex="z-[25]" />}
+      {(p.overlay_effect || p.overlay) && <OverlayEffect effect={p.overlay_effect || p.overlay} color={accent} opacity={p.overlay_opacity ?? 100} zIndex="z-[70]" />}
       {p.overlay_enabled && <div className="absolute inset-0 pointer-events-none z-[25]" style={{ background: withA(p.overlay_color || accent, p.overlay_opacity ?? 18) }} />}
       {/* The lifted player: fixed to page coordinates, above the
           card. Every layout includes BgLayers, so the pin works on Minimal,

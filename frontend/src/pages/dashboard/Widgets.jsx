@@ -26,6 +26,27 @@ import { ColorPicker } from "@/components/ColorPicker";
 import { SmartSelect } from "@/components/ui-shared/SmartSelect";
 import { PremiumGate } from "@/components/ui-shared/PremiumGate";
 
+export const PRESET_CITIES = [
+  "New York", "London", "Tokyo", "Paris", "Los Angeles", "Toronto",
+  "Sydney", "Berlin", "Dubai", "Singapore", "Seoul", "Rome",
+  "Amsterdam", "Chicago", "Miami", "San Francisco", "Hong Kong", "Barcelona",
+];
+
+export const PRESET_TIMEZONES = [
+  { id: "UTC", label: "UTC (Coordinated Universal Time)" },
+  { id: "America/New_York", label: "New York / Eastern (ET)" },
+  { id: "America/Chicago", label: "Chicago / Central (CT)" },
+  { id: "America/Denver", label: "Denver / Mountain (MT)" },
+  { id: "America/Los_Angeles", label: "Los Angeles / Pacific (PT)" },
+  { id: "Europe/London", label: "London / GMT / BST" },
+  { id: "Europe/Paris", label: "Paris / CET" },
+  { id: "Europe/Berlin", label: "Berlin / CET" },
+  { id: "Asia/Tokyo", label: "Tokyo / JST" },
+  { id: "Asia/Dubai", label: "Dubai / GST" },
+  { id: "Asia/Singapore", label: "Singapore / SGT" },
+  { id: "Australia/Sydney", label: "Sydney / AEST" },
+];
+
 // Helper for hex -> rgba
 export const hexOrRgba = (color, alphaPct) => {
   if (!color) return `rgba(255,255,255,${alphaPct / 100})`;
@@ -1215,6 +1236,73 @@ export default function Widgets() {
                     );
                   })}
                 </div>
+              </div>
+            </div>
+          ) : editingWidget.widget.type === "weather" ? (
+            <div className="space-y-4">
+              {/* City Dropdown Selector */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-zinc-200">Select City from Dropdown</label>
+                <div className="relative">
+                  <select
+                    value={PRESET_CITIES.includes(editingWidget.widget.value || editingWidget.widget.city) ? (editingWidget.widget.value || editingWidget.widget.city) : ""}
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        patchEditingWidget({ value: e.target.value, city: e.target.value });
+                      }
+                    }}
+                    className="w-full px-4 py-2.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-medium text-white outline-none focus:border-[#b4bffa] cursor-pointer"
+                  >
+                    <option value="" disabled>Choose a popular city...</option>
+                    {PRESET_CITIES.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Custom City or Location text input */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-zinc-200">Or Type Any City / Location</label>
+                <input
+                  type="text"
+                  value={editingWidget.widget.value || editingWidget.widget.city || ""}
+                  onChange={(e) => patchEditingWidget({ value: e.target.value, city: e.target.value })}
+                  placeholder="e.g. New York, London, Tokyo, Paris"
+                  className="w-full px-4 py-2.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-[#b4bffa]"
+                />
+                <p className="text-[11px] text-zinc-500">Live forecast, temperature and conditions updated every 10 minutes.</p>
+              </div>
+            </div>
+          ) : (editingWidget.widget.type === "timezone" || editingWidget.widget.type === "clock") ? (
+            <div className="space-y-4">
+              {/* Timezone Dropdown Selector */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-zinc-200">Select Timezone from Dropdown</label>
+                <div className="relative">
+                  <select
+                    value={PRESET_TIMEZONES.some((t) => t.id === (editingWidget.widget.value || editingWidget.widget.timezone)) ? (editingWidget.widget.value || editingWidget.widget.timezone) : "UTC"}
+                    onChange={(e) => patchEditingWidget({ value: e.target.value, timezone: e.target.value })}
+                    className="w-full px-4 py-2.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-medium text-white outline-none focus:border-[#b4bffa] cursor-pointer"
+                  >
+                    {PRESET_TIMEZONES.map((t) => (
+                      <option key={t.id} value={t.id}>{t.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Custom IANA Timezone text input */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-zinc-200">Or Type Custom IANA Timezone</label>
+                <input
+                  type="text"
+                  value={editingWidget.widget.value || editingWidget.widget.timezone || ""}
+                  onChange={(e) => patchEditingWidget({ value: e.target.value, timezone: e.target.value })}
+                  placeholder="e.g. America/New_York, Europe/London, Asia/Tokyo"
+                  className="w-full px-4 py-2.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-[#b4bffa]"
+                />
+                <p className="text-[11px] text-zinc-500">Renders a realistic analog clock and digital time live.</p>
               </div>
             </div>
           ) : (

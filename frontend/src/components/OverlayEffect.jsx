@@ -57,12 +57,24 @@ export function OverlayEffect({ effect, color, opacity, zIndex, className = "" }
       ctx.clearRect(0, 0, w, h);
     };
 
+    let active = true;
     const frame = (now) => {
+      if (!active) return;
       ctx.globalAlpha = 1;
       ctx.clearRect(0, 0, w, h);
       if (painter) painter(ctx, now);
       raf = requestAnimationFrame(frame);
     };
+
+    const onVisibilityChange = () => {
+      if (document.hidden) {
+        cancelAnimationFrame(raf);
+      } else if (active) {
+        cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(frame);
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
 
     if (id === "spotlight" && typeof window !== "undefined") {
       window.addEventListener("pointermove", onMove, { passive: true });
@@ -77,7 +89,9 @@ export function OverlayEffect({ effect, color, opacity, zIndex, className = "" }
     raf = requestAnimationFrame(frame);
 
     return () => {
+      active = false;
       cancelAnimationFrame(raf);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
       window.removeEventListener("resize", resize);
       if (id === "spotlight" && typeof window !== "undefined") {
         window.removeEventListener("pointermove", onMove);

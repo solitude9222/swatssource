@@ -55,11 +55,23 @@ export function BackgroundEffect({ effect }) {
       ctx.clearRect(0, 0, w, h);
     };
 
+    let active = true;
     const frame = (now) => {
+      if (!active) return;
       ctx.clearRect(0, 0, w, h);
       if (painter) painter(ctx, now);
       raf = requestAnimationFrame(frame);
     };
+
+    const onVisibilityChange = () => {
+      if (document.hidden) {
+        cancelAnimationFrame(raf);
+      } else if (active) {
+        cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(frame);
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
 
     window.addEventListener("resize", resize);
     const observer =
@@ -71,7 +83,9 @@ export function BackgroundEffect({ effect }) {
     raf = requestAnimationFrame(frame);
 
     return () => {
+      active = false;
       cancelAnimationFrame(raf);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
       window.removeEventListener("resize", resize);
       observer?.disconnect();
     };
