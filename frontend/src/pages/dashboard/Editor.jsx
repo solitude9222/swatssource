@@ -827,6 +827,12 @@ export default function Editor() {
   const [showOverlayEffectsModal, setShowOverlayEffectsModal] = useState(false);
   const [showBgEffectsModal, setShowBgEffectsModal] = useState(false);
   const [showCursorEffectsModal, setShowCursorEffectsModal] = useState(false);
+
+  // Media modals state
+  const [showAvatarModal, setShowAvatarModal] = useState(false);
+  const [showBackgroundModal, setShowBackgroundModal] = useState(false);
+  const [showAudioModal, setShowAudioModal] = useState(false);
+  const [showCursorModal, setShowCursorModal] = useState(false);
   const [activeTextSlot, setActiveTextSlot] = useState("name"); // "name" | "alias" | "bio"
 
   const [p, setP] = useState({ ...user.profile });
@@ -1160,6 +1166,77 @@ export default function Editor() {
             className="space-y-6"
           >
           {sub === "about" && (
+            <>
+            {/* Media Upload Tiles */}
+            <div className="rounded-[20px] border border-white/[0.07] bg-[#111113] p-5 sm:p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-500/15">
+                  <ImageIcon className="h-4 w-4 text-brand-400" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-bold text-white">Media</h2>
+                  <p className="text-[11px] text-zinc-500">Avatar, background, audio and cursor</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {/* Avatar Tile */}
+                <button
+                  type="button"
+                  onClick={() => setShowAvatarModal(true)}
+                  className="group flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-white/[0.08] bg-[#0c0c0e] p-5 text-center transition hover:border-[#b4bffa]/50 hover:bg-[#141416] cursor-pointer min-h-[120px]"
+                >
+                  <div className="text-xs font-semibold text-white mb-1">Avatar</div>
+                  {p.avatar_url ? (
+                    <img src={fileUrl(p.avatar_url)} alt="" className="h-12 w-12 rounded-full object-cover ring-2 ring-white/10" />
+                  ) : (
+                    <ImageIcon className="h-8 w-8 text-zinc-600" />
+                  )}
+                  <span className="text-[10px] text-zinc-600">{p.avatar_url ? "Click to edit" : "Upload an avatar"}</span>
+                </button>
+
+                {/* Background Tile */}
+                <button
+                  type="button"
+                  onClick={() => setShowBackgroundModal(true)}
+                  className="group flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-white/[0.08] bg-[#0c0c0e] p-5 text-center transition hover:border-[#b4bffa]/50 hover:bg-[#141416] cursor-pointer min-h-[120px]"
+                >
+                  <div className="text-xs font-semibold text-white mb-1">Background</div>
+                  {p.background_url ? (
+                    <img src={fileUrl(p.background_url)} alt="" className="h-12 w-20 rounded-lg object-cover ring-1 ring-white/10" />
+                  ) : (
+                    <ImageIcon className="h-8 w-8 text-zinc-600" />
+                  )}
+                  <span className="text-[10px] text-zinc-600">{p.background_url ? "Click to edit" : "Upload a background"}</span>
+                </button>
+
+                {/* Audio Tile */}
+                <button
+                  type="button"
+                  onClick={() => setShowAudioModal(true)}
+                  className="group flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-white/[0.08] bg-[#0c0c0e] p-5 text-center transition hover:border-[#b4bffa]/50 hover:bg-[#141416] cursor-pointer min-h-[120px]"
+                >
+                  <div className="text-xs font-semibold text-white mb-1">Audio</div>
+                  <Music className="h-8 w-8 text-zinc-600" />
+                  <span className="text-[10px] text-zinc-600">{p.tracks?.length ? `${p.tracks.length} tracks` : "Add audio"}</span>
+                </button>
+
+                {/* Cursor Tile */}
+                <button
+                  type="button"
+                  onClick={() => setShowCursorModal(true)}
+                  className="group flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-white/[0.08] bg-[#0c0c0e] p-5 text-center transition hover:border-[#b4bffa]/50 hover:bg-[#141416] cursor-pointer min-h-[120px]"
+                >
+                  <div className="text-xs font-semibold text-white mb-1">Cursor</div>
+                  {p.custom_cursor ? (
+                    <img src={fileUrl(p.custom_cursor)} alt="" className="h-8 w-8 object-contain" />
+                  ) : (
+                    <MousePointer2 className="h-8 w-8 text-zinc-600" />
+                  )}
+                  <span className="text-[10px] text-zinc-600">{p.custom_cursor || p.cursor_effect ? "Click to edit" : "Manage cursors"}</span>
+                </button>
+              </div>
+            </div>
+
             <Section title="About Me" hint="Your picture, decorations, banner, and bio">
               <ProfileRow label="Avatar">
                 <div className="flex items-center gap-5">
@@ -1403,6 +1480,7 @@ export default function Editor() {
                 </div>
               </ProfileRow>
             </Section>
+            </>
           )}
 
           {/* ========================================================
@@ -3046,6 +3124,438 @@ export default function Editor() {
         onGoPremium={askPremium("Avatar decorations")}
         discordId={user?.discord?.id || null}
       />
+
+      {/* Avatar Media Modal */}
+      <FxModal
+        open={showAvatarModal}
+        onOpenChange={setShowAvatarModal}
+        id="avatar-media-modal"
+        eyebrow="Media"
+        title="Avatar"
+        description="Upload, adjust, and decorate your profile picture."
+        testid="avatar-media-modal"
+        footer={
+          <div className="flex justify-end">
+            <button type="button" onClick={() => setShowAvatarModal(false)} className="px-4 py-2 text-xs bg-[#b4bffa] text-black font-bold rounded-xl hover:brightness-110 transition shadow-sm cursor-pointer">
+              Done
+            </button>
+          </div>
+        }
+      >
+        <div className="space-y-6">
+          {/* Avatar Upload Section */}
+          <div className="space-y-3">
+            <label className="block text-xs font-semibold text-zinc-300">Upload Avatar</label>
+            <div className="flex items-center gap-4">
+              <div className="relative h-20 w-20 shrink-0">
+                <div className="h-full w-full overflow-hidden rounded-full ring-1 ring-white/10 bg-[#111111]">
+                  {p.avatar_url ? (
+                    <img src={fileUrl(p.avatar_url)} alt="" className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center font-bold text-zinc-400">
+                      {(displayName || user.username || "?")[0]?.toUpperCase()}
+                    </div>
+                  )}
+                </div>
+                {p.avatar_decoration && (
+                  <img
+                    src={p.avatar_decoration}
+                    alt=""
+                    className="pointer-events-none absolute inset-0 h-full w-full scale-[1.28] object-contain"
+                    style={Number(p.avatar_decoration_hue) ? { filter: `hue-rotate(${Number(p.avatar_decoration_hue)}deg)` } : undefined}
+                  />
+                )}
+              </div>
+              <QuickUpload
+                testid="modal-avatar-upload"
+                label=""
+                buttonLabel={p.avatar_url ? "Change" : "Upload"}
+                value={p.avatar_url}
+                accept="image/*"
+                onUploaded={(u) => set("avatar_url", u)}
+                onRemove={() => set("avatar_url", "")}
+              />
+            </div>
+          </div>
+
+          {/* Avatar Adjustments */}
+          {p.avatar_url && (
+            <div className="space-y-4 pt-4 border-t border-white/[0.06]">
+              <label className="block text-xs font-semibold text-zinc-300">Adjustments</label>
+              <SliderRow
+                testid="modal-avatar-zoom"
+                label="Zoom"
+                value={Number(p.avatar_zoom ?? 100)}
+                min={100}
+                max={250}
+                step={5}
+                suffix="%"
+                onChange={(v) => set("avatar_zoom", v)}
+              />
+              <SliderRow
+                testid="modal-avatar-crop-x"
+                label="Position X"
+                value={Number(p.avatar_pos_x ?? 50)}
+                min={0}
+                max={100}
+                step={1}
+                suffix="%"
+                onChange={(v) => set("avatar_pos_x", v)}
+              />
+              <SliderRow
+                testid="modal-avatar-crop-y"
+                label="Position Y"
+                value={Number(p.avatar_pos_y ?? 50)}
+                min={0}
+                max={100}
+                step={1}
+                suffix="%"
+                onChange={(v) => set("avatar_pos_y", v)}
+              />
+            </div>
+          )}
+
+          {/* Decoration Section */}
+          <div className="space-y-3 pt-4 border-t border-white/[0.06]">
+            <label className="block text-xs font-semibold text-zinc-300">Decoration</label>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => { setShowAvatarModal(false); setShowDecoModal(true); }}
+                className="rounded-xl bg-[#b4bffa] px-4 py-2.5 text-xs font-bold text-black transition hover:brightness-110 cursor-pointer"
+              >
+                {p.avatar_decoration ? "Change Decoration" : "Add Decoration"}
+              </button>
+              {p.avatar_decoration && (
+                <button
+                  type="button"
+                  onClick={() => { set("avatar_decoration", ""); set("avatar_decoration_hue", 0); }}
+                  className="rounded-xl border border-[#2a2a2e] bg-[#09090b] px-4 py-2.5 text-xs font-semibold text-zinc-300 transition hover:bg-white/[0.08]"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </FxModal>
+
+      {/* Background Media Modal */}
+      <FxModal
+        open={showBackgroundModal}
+        onOpenChange={setShowBackgroundModal}
+        id="background-media-modal"
+        eyebrow="Media"
+        title="Background"
+        description="Set a color or upload an image/video as your profile background."
+        testid="background-media-modal"
+        footer={
+          <div className="flex justify-end">
+            <button type="button" onClick={() => setShowBackgroundModal(false)} className="px-4 py-2 text-xs bg-[#b4bffa] text-black font-bold rounded-xl hover:brightness-110 transition shadow-sm cursor-pointer">
+              Done
+            </button>
+          </div>
+        }
+      >
+        <div className="space-y-6">
+          {/* Mode Toggle */}
+          <div className="inline-flex rounded-xl border border-[#2a2a2e] bg-[#09090b] p-1">
+            {[
+              { id: "color", label: "Color" },
+              { id: "media", label: "Media" },
+            ].map((mode) => (
+              <button
+                key={mode.id}
+                type="button"
+                onClick={() => {
+                  if (mode.id === "color" && p.background_url) set("background_url", "");
+                  setBgMode(mode.id);
+                }}
+                className={`rounded-lg px-4 py-1.5 text-xs font-semibold transition ${
+                  bgMode === mode.id ? "bg-[#b4bffa] text-black font-bold" : "text-zinc-400 hover:text-white"
+                }`}
+              >
+                {mode.label}
+              </button>
+            ))}
+          </div>
+
+          {bgMode === "color" ? (
+            <div className="space-y-3">
+              <label className="block text-xs font-semibold text-zinc-300">Background Color</label>
+              <ColorPicker value={p.background_color || ""} onChange={(v) => set("background_color", v)} testid="modal-bg-color" />
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <QuickUpload
+                testid="modal-bg-upload"
+                label=""
+                buttonLabel={p.background_url ? "Change Media" : "Upload Media"}
+                value={p.background_url}
+                accept="image/*,video/*"
+                onUploaded={(u) => set("background_url", u)}
+                onRemove={() => set("background_url", "")}
+              />
+
+              {p.background_url && (
+                <>
+                  <SliderRow
+                    testid="modal-bg-opacity"
+                    label="Opacity"
+                    value={Number(p.background_opacity ?? 98)}
+                    min={0}
+                    max={100}
+                    step={1}
+                    suffix="%"
+                    onChange={(v) => set("background_opacity", v)}
+                  />
+                  <SliderRow
+                    testid="modal-bg-dim"
+                    label="Dim"
+                    value={Number(p.background_dim ?? 0)}
+                    min={0}
+                    max={100}
+                    step={1}
+                    suffix="%"
+                    onChange={(v) => set("background_dim", v)}
+                  />
+                  <SliderRow
+                    testid="modal-bg-blur"
+                    label="Blur"
+                    value={Number(p.background_blur ?? 0)}
+                    min={0}
+                    max={20}
+                    step={1}
+                    suffix="px"
+                    onChange={(v) => set("background_blur", v)}
+                  />
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Background Effects */}
+          <div className="space-y-3 pt-4 border-t border-white/[0.06]">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-semibold text-zinc-300">Background Effects</label>
+              <button
+                type="button"
+                onClick={() => { setShowBackgroundModal(false); setShowBgEffectsModal(true); }}
+                className="text-[11px] text-[#b4bffa] hover:underline cursor-pointer"
+              >
+                {p.background_effect ? "Change Effect" : "Add Effect"}
+              </button>
+            </div>
+            {p.background_effect && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-zinc-400">Active: {BACKGROUND_EFFECTS.find(e => e.id === p.background_effect)?.label || p.background_effect}</span>
+                <button
+                  type="button"
+                  onClick={() => set("background_effect", "")}
+                  className="text-[11px] text-zinc-500 hover:text-white"
+                >
+                  Remove
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </FxModal>
+
+      {/* Audio Media Modal */}
+      <FxModal
+        open={showAudioModal}
+        onOpenChange={setShowAudioModal}
+        id="audio-media-modal"
+        eyebrow="Media"
+        title="Audio"
+        description="Manage up to 3 audio tracks for your profile."
+        testid="audio-media-modal"
+        footer={
+          <div className="flex justify-end">
+            <button type="button" onClick={() => setShowAudioModal(false)} className="px-4 py-2 text-xs bg-[#b4bffa] text-black font-bold rounded-xl hover:brightness-110 transition shadow-sm cursor-pointer">
+              Done
+            </button>
+          </div>
+        }
+      >
+        <div className="space-y-4">
+          <div className="text-xs text-zinc-400 mb-2">
+            {p.tracks?.length || 0} of 3 tracks used
+          </div>
+
+          {(p.tracks || []).map((track, idx) => (
+            <div key={idx} className="flex items-center gap-3 p-3 rounded-xl border border-[#2a2a2e] bg-[#09090b]">
+              <Disc className="w-8 h-8 text-zinc-500 shrink-0" />
+              <div className="flex-1 min-w-0">
+                <div className="text-xs font-medium text-white truncate">{track.title || `Track ${idx + 1}`}</div>
+                <div className="text-[11px] text-zinc-500">{track.audio_url?.split('/').pop() || 'Audio file'}</div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  const newTracks = [...(p.tracks || [])];
+                  newTracks.splice(idx, 1);
+                  set("tracks", newTracks);
+                }}
+                className="p-1.5 rounded-lg hover:bg-white/[0.08] text-zinc-500 hover:text-white transition"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
+
+          {(!p.tracks || p.tracks.length < 3) && (
+            <label className="flex items-center justify-center gap-2 p-4 rounded-xl border border-dashed border-white/[0.08] hover:border-white/[0.15] cursor-pointer transition">
+              <Plus className="w-4 h-4 text-zinc-500" />
+              <span className="text-xs text-zinc-400">Add Track</span>
+              <input
+                type="file"
+                accept="audio/*"
+                className="hidden"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  try {
+                    const fd = new FormData();
+                    fd.append("file", file);
+                    fd.append("kind", "audio");
+                    const { data } = await api.post("/upload", fd, { headers: { "Content-Type": "multipart/form-data" } });
+                    const newTrack = { audio_url: data.url, title: file.name.replace(/\.[^/.]+$/, "") };
+                    set("tracks", [...(p.tracks || []), newTrack]);
+                    toast.success("Audio uploaded!");
+                  } catch (err) {
+                    toast.error(err.response?.data?.detail || "Upload failed");
+                  }
+                  e.target.value = "";
+                }}
+              />
+            </label>
+          )}
+
+          <div className="pt-4 border-t border-white/[0.06] space-y-3">
+            <label className="block text-xs font-semibold text-zinc-300">Playback</label>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-zinc-400">Autoplay</span>
+              <Switch
+                checked={p.audio_autoplay !== false}
+                onCheckedChange={(v) => set("audio_autoplay", v)}
+                className={SWITCH_CLASS}
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-zinc-400">Shuffle</span>
+              <Switch
+                checked={p.audio_shuffle === true}
+                onCheckedChange={(v) => set("audio_shuffle", v)}
+                className={SWITCH_CLASS}
+              />
+            </div>
+          </div>
+        </div>
+      </FxModal>
+
+      {/* Cursor Media Modal */}
+      <FxModal
+        open={showCursorModal}
+        onOpenChange={setShowCursorModal}
+        id="cursor-media-modal"
+        eyebrow="Media"
+        title="Cursor"
+        description="Upload custom cursors and add particle effects."
+        testid="cursor-media-modal"
+        footer={
+          <div className="flex justify-end">
+            <button type="button" onClick={() => setShowCursorModal(false)} className="px-4 py-2 text-xs bg-[#b4bffa] text-black font-bold rounded-xl hover:brightness-110 transition shadow-sm cursor-pointer">
+              Done
+            </button>
+          </div>
+        }
+      >
+        <div className="space-y-6">
+          {/* Cursor Upload */}
+          <div className="space-y-3">
+            <label className="block text-xs font-semibold text-zinc-300">Custom Cursor</label>
+            <div className="flex items-center gap-4">
+              {p.custom_cursor && (
+                <img src={fileUrl(p.custom_cursor)} alt="cursor" className="w-8 h-8 object-contain" />
+              )}
+              <label className="rounded-xl border border-[#2a2a2e] bg-[#09090b] px-4 py-2.5 text-xs font-semibold text-zinc-300 transition hover:border-[#b4bffa] cursor-pointer">
+                {p.custom_cursor ? "Change" : "Upload Cursor"}
+                <input
+                  type="file"
+                  accept="image/*,.cur,.ani"
+                  className="hidden"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    try {
+                      const fd = new FormData();
+                      fd.append("file", file);
+                      fd.append("kind", "cursor");
+                      const { data } = await api.post("/upload", fd, { headers: { "Content-Type": "multipart/form-data" } });
+                      set("custom_cursor", data.url);
+                      toast.success("Cursor uploaded!");
+                    } catch (err) {
+                      toast.error(err.response?.data?.detail || "Upload failed");
+                    }
+                    e.target.value = "";
+                  }}
+                />
+              </label>
+              {p.custom_cursor && (
+                <button
+                  type="button"
+                  onClick={() => set("custom_cursor", "")}
+                  className="rounded-xl border border-[#2a2a2e] bg-[#09090b] px-4 py-2.5 text-xs font-semibold text-zinc-300 transition hover:bg-white/[0.08]"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Cursor Size */}
+          {p.custom_cursor && (
+            <SliderRow
+              testid="modal-cursor-size"
+              label="Cursor Size"
+              value={Number(p.cursor_size ?? 100)}
+              min={50}
+              max={200}
+              step={5}
+              suffix="%"
+              onChange={(v) => set("cursor_size", v)}
+            />
+          )}
+
+          {/* Cursor Effects */}
+          <div className="space-y-3 pt-4 border-t border-white/[0.06]">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-semibold text-zinc-300">Cursor Effects</label>
+              <button
+                type="button"
+                onClick={() => { setShowCursorModal(false); setShowCursorEffectsModal(true); }}
+                className="text-[11px] text-[#b4bffa] hover:underline cursor-pointer"
+              >
+                {p.cursor_effect ? "Change Effect" : "Add Effect"}
+              </button>
+            </div>
+            {p.cursor_effect && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-zinc-400">Active: {CURSOR_EFFECTS.find(e => e.id === p.cursor_effect)?.label || p.cursor_effect}</span>
+                <button
+                  type="button"
+                  onClick={() => set("cursor_effect", "")}
+                  className="text-[11px] text-zinc-500 hover:text-white"
+                >
+                  Remove
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </FxModal>
 
       <PremiumGate
         open={!!premiumFeature}
