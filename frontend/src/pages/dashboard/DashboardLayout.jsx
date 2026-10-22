@@ -102,9 +102,19 @@ const NAV_GROUPS = [
     expandable: true,
     tabs: [
       { to: "/!/dashboard/editor?tab=appearance", label: "Appearance", icon: Paintbrush, testid: "tab-appearance", desc: "Card surface, decorations, glow, borders and fonts" },
-      { to: "/!/dashboard/editor?tab=layout", label: "Layout", icon: LayoutTemplate, testid: "tab-layout", desc: "Page structure, audio player and section placement" },
-      { to: "/!/dashboard/editor?tab=extra", label: "Extra", icon: Sparkles, testid: "tab-extra", desc: "View counter, stats, card title and advanced toggles" },
-      { to: "/!/dashboard/editor?tab=entry", label: "Entry screen", icon: Eye, testid: "tab-entry", desc: "What visitors see before entering your profile" },
+      { to: "/!/dashboard/editor?tab=appearance", label: "Layout", icon: Layout, testid: "tab-layout", desc: "Layout style and positioning settings" },
+      { to: "/!/dashboard/editor?tab=other", label: "Other", icon: Sparkles, testid: "tab-other", desc: "View counter, stats, card title and advanced toggles" },
+    ],
+  },
+  {
+    id: "shop",
+    label: "Shop",
+    icon: Store,
+    expandable: true,
+    tabs: [
+      { to: "/!/dashboard/shop", label: "My Products", icon: ShoppingBag, testid: "tab-my-products", desc: "Upload and manage your store products", ownHeader: true },
+      { to: "/!/dashboard/editor?tab=store", label: "Store Settings", icon: Store, testid: "tab-store-settings", desc: "Configure your storefront settings" },
+      { to: "/!/dashboard/marketplace", label: "Marketplace", icon: ShoppingBag, testid: "tab-marketplace", desc: "Community exchange for handles, accounts, and boosts" },
     ],
   },
   {

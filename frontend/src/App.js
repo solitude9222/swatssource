@@ -38,6 +38,7 @@ const Settings = lazy(() => import("@/pages/dashboard/Settings"));
 const Stats = lazy(() => import("@/pages/dashboard/Stats"));
 const Rewards = lazy(() => import("@/pages/dashboard/Rewards"));
 const Shop = lazy(() => import("@/pages/dashboard/Shop"));
+const ShopManager = lazy(() => import("@/pages/dashboard/ShopManager"));
 const UserManager = lazy(() => import("@/pages/dashboard/UserManager"));
 const InviteCodes = lazy(() => import("@/pages/dashboard/InviteCodes"));
 const SiteSettings = lazy(() => import("@/pages/dashboard/SiteSettings"));
@@ -182,7 +183,7 @@ function App() {
                 <Route path="effects" element={<EffectsMedia />} />
                 <Route path="settings" element={<Settings />} />
                 <Route path="templates" element={<Templates />} />
-                <Route path="shop" element={<Shop />} />
+                <Route path="shop" element={<ShopManager />} />
                 <Route path="marketplace" element={<Shop />} />
                 <Route path="leaderboard" element={<Leaderboard />} />
                 {/* The build log â€” the dashboard's own devlog feed, separate
