@@ -909,4 +909,97 @@ router.get('/discord/callback', async (req, res) => {
   }
 });
 
+// POST /api/auth/discord/sync - Manually sync Discord data for linked account
+router.post('/discord/sync', requireAuth, async (req, res) => {
+  try {
+    if (!req.user.discord?.linked || !req.user.discord?.id) {
+      return res.status(400).json({ detail: 'Discord account is not linked' });
+    }
+
+    const botToken = process.env.DISCORD_BOT_TOKEN;
+    const clientId = process.env.DISCORD_CLIENT_ID;
+    const clientSecret = process.env.DISCORD_CLIENT_SECRET;
+
+    if (!botToken || !clientId || !clientSecret) {
+      return res.status(500).json({ detail: 'Discord integration is not configured' });
+    }
+
+    // Fetch fresh Discord user data using bot token
+    const userRes = await axios.get(`https://discord.com/api/users/${req.user.discord.id}`, {
+      headers: { Authorization: `Bot ${botToken}` },
+    });
+    const dUser = userRes.data;
+
+    // Check guild membership and booster status
+    let isBooster = false;
+    let isMember = false;
+    let guildRoles = [];
+    const guildId = process.env.DISCORD_GUILD_ID;
+
+    if (guildId) {
+      try {
+        const guildRes = await axios.get(`https://discord.com/api/guilds/${guildId}/members/${dUser.id}`, {
+          headers: { Authorization: `Bot ${botToken}` },
+        });
+        if (guildRes.data) {
+          isMember = true;
+          isBooster = !!guildRes.data.premium_since;
+          guildRoles = guildRes.data.roles || [];
+        }
+      } catch (err) {
+        console.log('Discord Guild member check status:', err.response?.status);
+      }
+    }
+
+    const discordPayload = {
+      linked: true,
+      id: dUser.id,
+      username: dUser.username,
+      avatar: dUser.avatar ? `https://cdn.discordapp.com/avatars/${dUser.id}/${dUser.avatar}.png` : null,
+      booster: isBooster,
+      member: isMember,
+      guild_roles: guildRoles,
+    };
+
+    // Update user with fresh Discord data
+    const badges = await computeAutoBadges({ ...req.user, discord: discordPayload });
+    const upd = await query(
+      'UPDATE users SET discord = $1, badges = $2 WHERE id = $3 RETURNING *',
+      [JSON.stringify(discordPayload), badges, req.user.id]
+    );
+    let user = upd.rows[0];
+
+    // Apply role-based badges
+    try {
+      const roles = await applyAuthRoles(discordPayload.id, discordPayload);
+      if (roles.applied.length > 0) {
+        console.log(`[discord/sync] assigned Discord roles to ${user.username}: ${roles.applied.join(', ')}`);
+      }
+      const syncedBadges = await syncRoleBadges(user, roles.applied);
+      user = { ...user, badges: syncedBadges };
+      await query('UPDATE users SET badges = $1 WHERE id = $2', [syncedBadges, user.id]);
+    } catch (err) {
+      console.error('[discord/sync] Discord role assignment failed:', err.message);
+    }
+
+    await logAudit({
+      req,
+      actor: { id: user.id, username: user.username, role: user.role },
+      action: 'discord.sync',
+      targetType: 'user',
+      targetId: user.id,
+      detail: { discord_id: discordPayload.id, username: discordPayload.username },
+    });
+
+    const uid_number = await memberNumber(user.id, user.created_at);
+    return res.json({ 
+      user: { ...formatUser(user), uid_number },
+      discord: discordPayload 
+    });
+  } catch (err) {
+    console.error('Discord sync error:', err);
+    return res.status(500).json({ detail: `Discord sync failed: ${err.message || 'Internal server error'}` });
+  }
+});
+
 export default router;
