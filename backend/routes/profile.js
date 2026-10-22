@@ -354,7 +354,7 @@ router.put('/username', requireAuth, requireDiscordToEdit, async (req, res) => {
 });
 
 // PUT /api/me/secondary-alias (Premium Perk: Claim up to 2 aliases)
-router.put('/secondary-alias', requireAuth, requireDiscordToEdit, async (req, res) => {
+router.put(['/secondary-alias', '/secondary_alias', '/alias', '/me/secondary-alias', '/me/secondary_alias'], requireAuth, requireDiscordToEdit, async (req, res) => {
   try {
     const isPremium = req.user.tier === 'premium' || req.user.tier === 'admin' || req.user.role === 'admin' || !!req.user.is_owner;
     if (!isPremium) {
@@ -821,6 +821,51 @@ router.get('/rank', requireAuth, async (req, res) => {
     events: upcomingEvents(),
     allStages: summary.allStages,
   });
+});
+
+// POST /api/store/inquiry (or /api/me/store/inquiry)
+// Allows a buyer to initiate an inquiry or order message for a product
+router.post(['/store/inquiry', '/me/store/inquiry'], async (req, res) => {
+  try {
+    const { creator_username, creator_id, product_id, product_title, buyer_name, buyer_contact, message } = req.body;
+    if (!message || !buyer_name) {
+      return res.status(400).json({ detail: 'Name and message are required' });
+    }
+
+    let targetId = creator_id;
+    if (!targetId && creator_username) {
+      const { rows } = await query('SELECT id FROM users WHERE LOWER(username) = $1', [String(creator_username).toLowerCase()]);
+      if (rows.length > 0) targetId = rows[0].id;
+    }
+
+    if (!targetId) return res.status(404).json({ detail: 'Store owner not found' });
+
+    const buyerId = req.user?.id || null;
+    const { rows } = await query(`
+      INSERT INTO store_inquiries (creator_id, buyer_id, buyer_name, buyer_contact, product_id, product_title, message)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      RETURNING *
+    `, [targetId, buyerId, buyer_name.slice(0, 100), (buyer_contact || '').slice(0, 150), product_id || null, product_title || null, message.slice(0, 2000)]);
+
+    return res.json({ ok: true, inquiry: rows[0] });
+  } catch (err) {
+    console.error('Store inquiry error:', err);
+    return res.status(500).json({ detail: 'Failed to send inquiry' });
+  }
+});
+
+// GET /api/me/store/inquiries
+// Allows a creator to view messages and orders for their storefront
+router.get(['/store/inquiries', '/me/store/inquiries'], requireAuth, async (req, res) => {
+  try {
+    const { rows } = await query(
+      'SELECT * FROM store_inquiries WHERE creator_id = $1 ORDER BY created_at DESC LIMIT 100',
+      [req.user.id]
+    );
+    return res.json(rows);
+  } catch (err) {
+    return res.status(500).json({ detail: 'Failed to fetch store inquiries' });
+  }
 });
 
 export default router;

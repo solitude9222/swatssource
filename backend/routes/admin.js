@@ -1904,4 +1904,158 @@ router.post('/ranked/override', requireOwner, async (req, res) => {
   }
 });
 
+// ==========================================
+// ADMIN PROFILE EDITOR
+// Allows site admins to directly review & edit any member's profile
+// ==========================================
+router.put('/users/:id/profile', async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const { display_name, bio, accent_color, secondary_alias, custom_badges, profile = {}, ...rest } = req.body;
+
+    const { rows } = await query('SELECT * FROM users WHERE id = $1', [userId]);
+    if (rows.length === 0) return res.status(404).json({ detail: 'User not found' });
+    const current = rows[0];
+
+    const currentProfile = current.profile || {};
+    const mergedProfile = { ...currentProfile, ...profile, ...rest };
+    if (bio !== undefined) mergedProfile.bio = bio;
+    if (accent_color !== undefined) mergedProfile.accent_color = accent_color;
+
+    const newDisplayName = display_name !== undefined ? String(display_name).slice(0, 50) : current.display_name;
+    const newAlias = secondary_alias !== undefined
+      ? (secondary_alias ? String(secondary_alias).trim().toLowerCase() : null)
+      : current.secondary_alias;
+
+    let newCustomBadges = current.custom_badges;
+    if (Array.isArray(custom_badges)) {
+      newCustomBadges = custom_badges;
+    }
+
+    const result = await query(
+      'UPDATE users SET display_name = $1, secondary_alias = $2, profile = $3, custom_badges = $4 WHERE id = $5 RETURNING *',
+      [newDisplayName, newAlias, JSON.stringify(mergedProfile), JSON.stringify(newCustomBadges), userId]
+    );
+
+    await logAudit({
+      req,
+      action: 'user.profile_edit',
+      targetType: 'user',
+      targetId: userId,
+      detail: { username: current.username, display_name: newDisplayName, secondary_alias: newAlias },
+    });
+
+    return res.json(formatUser(result.rows[0]));
+  } catch (err) {
+    console.error('Admin profile update error:', err);
+    return res.status(500).json({ detail: 'Failed to update user profile' });
+  }
+});
+
+// ==========================================
+// ADMIN STORE & PRODUCT MANAGEMENT
+// Allows admins to toggle, review, and delete all creator products
+// ==========================================
+router.get('/stores', async (req, res) => {
+  try {
+    const { rows } = await query(
+      "SELECT id, username, display_name, tier, role, is_owner, profile FROM users WHERE tier = 'premium' OR tier = 'admin' OR is_owner = true OR (profile->'shop_items') IS NOT NULL ORDER BY created_at DESC"
+    );
+    const stores = rows.map((u) => ({
+      user_id: u.id,
+      username: u.username,
+      display_name: u.display_name || u.username,
+      tier: u.tier,
+      is_owner: u.is_owner,
+      store_enabled: u.profile?.store_enabled !== false,
+      items: Array.isArray(u.profile?.shop_items) ? u.profile.shop_items : [],
+    }));
+    return res.json(stores);
+  } catch (err) {
+    console.error('Admin stores error:', err);
+    return res.status(500).json({ detail: 'Failed to fetch stores' });
+  }
+});
+
+router.put('/stores/:userId/toggle', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { enabled } = req.body;
+    const { rows } = await query('SELECT profile FROM users WHERE id = $1', [userId]);
+    if (rows.length === 0) return res.status(404).json({ detail: 'User not found' });
+    const prof = rows[0].profile || {};
+    prof.store_enabled = !!enabled;
+    await query('UPDATE users SET profile = $1 WHERE id = $2', [JSON.stringify(prof), userId]);
+
+    await logAudit({
+      req,
+      action: 'store.toggle',
+      targetType: 'user',
+      targetId: userId,
+      detail: { store_enabled: !!enabled },
+    });
+
+    return res.json({ success: true, store_enabled: !!enabled });
+  } catch (err) {
+    return res.status(500).json({ detail: 'Failed to toggle store' });
+  }
+});
+
+router.delete('/stores/:userId/products/:productId', async (req, res) => {
+  try {
+    const { userId, productId } = req.params;
+    const { rows } = await query('SELECT profile FROM users WHERE id = $1', [userId]);
+    if (rows.length === 0) return res.status(404).json({ detail: 'User not found' });
+    const prof = rows[0].profile || {};
+    const items = Array.isArray(prof.shop_items) ? prof.shop_items : [];
+    prof.shop_items = items.filter((it) => it.id !== productId);
+    await query('UPDATE users SET profile = $1 WHERE id = $2', [JSON.stringify(prof), userId]);
+
+    await logAudit({
+      req,
+      action: 'store.product_delete',
+      targetType: 'user',
+      targetId: userId,
+      detail: { deleted_product_id: productId },
+    });
+
+    return res.json({ success: true, remaining: prof.shop_items });
+  } catch (err) {
+    return res.status(500).json({ detail: 'Failed to delete product' });
+  }
+});
+
+// ==========================================
+// ADMIN STORE CHAT OVERCHECK
+// Allows admins to monitor all buyer inquiries and order chats
+// ==========================================
+router.get('/store-chats', async (req, res) => {
+  try {
+    const { rows } = await query(`
+      SELECT 
+        si.*, 
+        u.username AS creator_username,
+        u.display_name AS creator_display_name
+      FROM store_inquiries si
+      LEFT JOIN users u ON u.id = si.creator_id
+      ORDER BY si.created_at DESC
+      LIMIT 150
+    `);
+    return res.json(rows);
+  } catch (err) {
+    console.error('Admin store chats error:', err);
+    return res.status(500).json({ detail: 'Failed to fetch store chats' });
+  }
+});
+
+router.put('/store-chats/:id/status', async (req, res) => {
+  try {
+    const { status } = req.body;
+    await query('UPDATE store_inquiries SET status = $1 WHERE id = $2', [status || 'closed', req.params.id]);
+    return res.json({ ok: true });
+  } catch (err) {
+    return res.status(500).json({ detail: 'Failed to update chat status' });
+  }
+});
+
 export default router;

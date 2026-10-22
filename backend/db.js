@@ -426,6 +426,21 @@ export async function initDb() {
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
 
+      CREATE TABLE IF NOT EXISTS store_inquiries (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        creator_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        buyer_id UUID REFERENCES users(id) ON DELETE SET NULL,
+        buyer_name TEXT NOT NULL,
+        buyer_contact TEXT,
+        product_id TEXT,
+        product_title TEXT,
+        message TEXT NOT NULL,
+        status TEXT DEFAULT 'open',
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_store_inquiries_creator ON store_inquiries (creator_id, created_at DESC);
+
       -- The end-to-end era's ciphertext columns and the key tables are retired
       -- for good: the idempotent migrations below strip them so a database that
       -- lived through that era comes out the same shape as a fresh one.

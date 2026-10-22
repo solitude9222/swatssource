@@ -1,10 +1,12 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { api } from "@/lib/api";
 import { toast } from "@/lib/notify";
 import {
   Users, Search, Crown, ShieldCheck, UserRound, Trash2, Edit, Check, X, Loader2,
   ChevronDown, Eye, RotateCcw, Plus, Equal, ArrowUpDown, RefreshCw, Link2Off,
+  ShoppingBag, Store, MessageSquare, ExternalLink, Sparkles, MessageCircle, Mail,
 } from "lucide-react";
 
 import { FaDiscord as FaDiscordIcon } from "react-icons/fa6";
@@ -143,7 +145,9 @@ const DiscordCell = ({ u }) => (
 
 export default function UserManager() {
   const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const isOwner = user?.is_owner || user?.role === "owner";
+  const [activeTab, setActiveTab] = useState(() => searchParams.get("tab") || "users");
   const [users, setUsers] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -158,9 +162,18 @@ export default function UserManager() {
   const [selected, setSelected] = useState(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
   const [syncing, setSyncing] = useState(false);
-  // { done, total } while a sync is running, so the button can show how far
-  // through the roster it is instead of spinning blindly.
   const [syncProgress, setSyncProgress] = useState(null);
+
+  // Store Management State
+  const [stores, setStores] = useState([]);
+  const [storesLoading, setStoresLoading] = useState(false);
+  const [storeSearch, setStoreSearch] = useState("");
+  const [expandedStoreId, setExpandedStoreId] = useState(null);
+
+  // Chat / Inquiries Monitoring State
+  const [chats, setChats] = useState([]);
+  const [chatsLoading, setChatsLoading] = useState(false);
+  const [chatFilter, setChatFilter] = useState("all");
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -174,13 +187,100 @@ export default function UserManager() {
     setLoading(false);
   }, [search]);
 
+  const fetchStores = useCallback(async () => {
+    setStoresLoading(true);
+    try {
+      const { data } = await api.get("/admin/stores");
+      setStores(Array.isArray(data) ? data : []);
+    } catch {
+      toast.error("Failed to load creator stores");
+    }
+    setStoresLoading(false);
+  }, []);
+
+  const fetchChats = useCallback(async () => {
+    setChatsLoading(true);
+    try {
+      const { data } = await api.get("/admin/store-chats");
+      setChats(Array.isArray(data) ? data : []);
+    } catch {
+      toast.error("Failed to load buyer inquiries");
+    }
+    setChatsLoading(false);
+  }, []);
+
   useEffect(() => {
-    const timer = setTimeout(fetchUsers, 250);
-    return () => clearTimeout(timer);
-  }, [fetchUsers]);
+    if (activeTab === "users") {
+      const timer = setTimeout(fetchUsers, 250);
+      return () => clearTimeout(timer);
+    } else if (activeTab === "stores") {
+      fetchStores();
+    } else if (activeTab === "chats") {
+      fetchChats();
+    }
+  }, [activeTab, fetchUsers, fetchStores, fetchChats]);
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (tab === "users") next.delete("tab");
+      else next.set("tab", tab);
+      return next;
+    });
+  };
+
+  const toggleStore = async (userId, currentEnabled) => {
+    try {
+      await api.put(`/admin/stores/${userId}/toggle`, { enabled: !currentEnabled });
+      setStores((prev) =>
+        prev.map((s) => (s.user_id === userId ? { ...s, store_enabled: !currentEnabled } : s))
+      );
+      toast.success(!currentEnabled ? "Store enabled" : "Store disabled");
+    } catch {
+      toast.error("Failed to toggle store");
+    }
+  };
+
+  const deleteProduct = async (userId, productId, productTitle) => {
+    if (!window.confirm(`Delete product "${productTitle || productId}"? This will remove it from the user's store.`)) return;
+    try {
+      await api.delete(`/admin/stores/${userId}/products/${productId}`);
+      setStores((prev) =>
+        prev.map((s) =>
+          s.user_id === userId
+            ? { ...s, items: (s.items || []).filter((it) => it.id !== productId) }
+            : s
+        )
+      );
+      toast.success("Product deleted from store");
+    } catch {
+      toast.error("Failed to delete product");
+    }
+  };
+
+  const updateChatStatus = async (chatId, newStatus) => {
+    try {
+      await api.put(`/admin/store-chats/${chatId}/status`, { status: newStatus });
+      setChats((prev) =>
+        prev.map((c) => (c.id === chatId ? { ...c, status: newStatus } : c))
+      );
+      toast.success(`Inquiry marked as ${newStatus}`);
+    } catch {
+      toast.error("Failed to update inquiry status");
+    }
+  };
 
   const openEditor = (u) => {
-    setEditingUser({ ...u, _orig_username: u.username });
+    setEditingUser({
+      ...u,
+      _orig_username: u.username,
+      display_name: u.display_name || "",
+      bio: u.bio || u.profile?.bio || "",
+      accent_color: u.accent_color || u.profile?.accent_color || "#7c3aed",
+      secondary_alias: u.secondary_alias || u.profile?.secondary_alias || "",
+      store_enabled: u.store_enabled ?? (u.profile?.store_enabled !== false),
+    });
     setViewsDraft(String(u.views || 0));
   };
 
@@ -201,7 +301,21 @@ export default function UserManager() {
             badges: u.badges,
           };
       const { data } = await api.put(`/admin/users/${u.id}`, payload);
-      setUsers(users.map((x) => (x.id === data.id ? { ...x, ...data } : x)));
+
+      // Save admin profile details & store permissions
+      try {
+        await api.put(`/admin/users/${u.id}/profile`, {
+          display_name: u.display_name,
+          bio: u.bio,
+          accent_color: u.accent_color,
+          secondary_alias: u.secondary_alias,
+          store_enabled: u.store_enabled,
+        });
+      } catch (err) {
+        console.warn("Could not save extra profile details:", err);
+      }
+
+      setUsers(users.map((x) => (x.id === data.id ? { ...x, ...data, display_name: u.display_name, secondary_alias: u.secondary_alias } : x)));
       setEditingUser(null);
       toast.success("User updated successfully");
     } catch (e) {
@@ -517,7 +631,64 @@ export default function UserManager() {
         }
       />
 
-      {/* Bot Manager — visible to Owner only */}
+      {/* Admin Module Tabs: Accounts Roster, Creator Stores & Products, Store Buyer Chats */}
+      <div className="flex flex-wrap items-center gap-2 border-b border-white/10 pb-3">
+        <button
+          type="button"
+          onClick={() => handleTabChange("users")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer ${
+            activeTab === "users"
+              ? "bg-brand-500/20 text-brand-200 border border-brand-500/40"
+              : "bg-white/[0.03] text-zinc-400 hover:text-white border border-white/5"
+          }`}
+        >
+          <Users className="w-3.5 h-3.5" />
+          <span>Accounts Roster</span>
+          <span className="font-mono2 text-[10px] px-1.5 py-0.5 rounded-full bg-white/10 text-zinc-300">
+            {stats?.total || users.length}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => handleTabChange("stores")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer ${
+            activeTab === "stores"
+              ? "bg-brand-500/20 text-brand-200 border border-brand-500/40"
+              : "bg-white/[0.03] text-zinc-400 hover:text-white border border-white/5"
+          }`}
+        >
+          <ShoppingBag className="w-3.5 h-3.5" />
+          <span>Creator Stores &amp; Products</span>
+          {stores.length > 0 && (
+            <span className="font-mono2 text-[10px] px-1.5 py-0.5 rounded-full bg-white/10 text-zinc-300">
+              {stores.length}
+            </span>
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => handleTabChange("chats")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer ${
+            activeTab === "chats"
+              ? "bg-brand-500/20 text-brand-200 border border-brand-500/40"
+              : "bg-white/[0.03] text-zinc-400 hover:text-white border border-white/5"
+          }`}
+        >
+          <MessageSquare className="w-3.5 h-3.5" />
+          <span>Store Buyer Chats</span>
+          {chats.length > 0 && (
+            <span className="font-mono2 text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+              {chats.length}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {activeTab === "users" && (
+        <>
+          {/* Bot Manager — visible to Owner only */}
       {isOwner && <BotManager />}
 
       {/* Bulk bar — appears once anything is selected, Owner only */}
@@ -766,6 +937,311 @@ export default function UserManager() {
           </table>
         </div>
       </div>
+        </>
+      )}
+
+      {activeTab === "stores" && (
+        <div className="space-y-4" data-testid="stores-manager">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="relative w-full sm:w-80">
+                <Search className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Search store owner or product..."
+                  value={storeSearch}
+                  onChange={(e) => setStoreSearch(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:border-brand-500/50 transition"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={fetchStores}
+                disabled={storesLoading}
+                className="p-2 rounded-xl border border-white/10 bg-white/[0.04] text-zinc-300 hover:text-white transition cursor-pointer"
+                title="Refresh stores"
+              >
+                <RefreshCw className={`w-4 h-4 ${storesLoading ? "animate-spin" : ""}`} />
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2 font-mono2 text-xs text-zinc-400">
+              <span className="px-2.5 py-1 rounded-lg bg-white/[0.04] border border-white/5">
+                {stores.length} Stores Total
+              </span>
+              <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+                {stores.filter((s) => s.store_enabled !== false).length} Enabled
+              </span>
+              <span className="px-2.5 py-1 rounded-lg bg-brand-500/10 text-brand-300 border border-brand-500/20">
+                {stores.reduce((acc, s) => acc + (s.items?.length || 0), 0)} Products
+              </span>
+            </div>
+          </div>
+
+          {storesLoading ? (
+            <div className="p-12 text-center rounded-2xl glass">
+              <Loader2 className="w-6 h-6 animate-spin mx-auto text-brand-400 mb-2" />
+              <p className="text-xs text-zinc-400">Loading creator stores &amp; products...</p>
+            </div>
+          ) : stores.length === 0 ? (
+            <div className="p-12 text-center rounded-2xl glass text-zinc-500 space-y-2">
+              <Store className="w-8 h-8 mx-auto text-zinc-600" />
+              <div className="text-sm font-semibold text-zinc-300">No stores found</div>
+              <p className="text-xs text-zinc-500">No member accounts currently have active storefront items.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {stores
+                .filter((s) => {
+                  if (!storeSearch) return true;
+                  const q = storeSearch.toLowerCase();
+                  return (
+                    s.username?.toLowerCase().includes(q) ||
+                    s.display_name?.toLowerCase().includes(q) ||
+                    (s.items || []).some((it) => it.title?.toLowerCase().includes(q) || it.description?.toLowerCase().includes(q))
+                  );
+                })
+                .map((s) => {
+                  const isExpanded = expandedStoreId === s.user_id;
+                  const itemCount = s.items?.length || 0;
+                  return (
+                    <div key={s.user_id} className="glass rounded-2xl p-4 sm:p-5 transition hover:border-white/20">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                          <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-zinc-800 text-sm font-bold text-zinc-300 ring-1 ring-white/10">
+                            {(s.display_name || s.username || "?")[0]?.toUpperCase()}
+                          </span>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-white text-sm">
+                                {s.display_name}
+                              </span>
+                              <span className="font-mono2 text-xs text-zinc-500">
+                                @{s.username}
+                              </span>
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono2 font-bold uppercase bg-brand-500/10 text-brand-300 border border-brand-500/20">
+                                {s.tier || "user"}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-3 text-xs text-zinc-400 mt-1">
+                              <span className="font-mono2 text-[11px]">
+                                {itemCount} product{itemCount !== 1 ? "s" : ""}
+                              </span>
+                              <span>•</span>
+                              <a
+                                href={`/tourn.lol/${s.username}/shop`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-brand-300 hover:underline flex items-center gap-1 font-mono2 text-[11px]"
+                              >
+                                <ExternalLink className="w-3 h-3" /> View Public Storefront
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2.5 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => toggleStore(s.user_id, s.store_enabled)}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition cursor-pointer flex items-center gap-1.5 ${
+                              s.store_enabled
+                                ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20"
+                                : "border-rose-500/40 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20"
+                            }`}
+                          >
+                            <span className={`w-2 h-2 rounded-full ${s.store_enabled ? "bg-emerald-400" : "bg-rose-400"}`} />
+                            {s.store_enabled ? "Store Enabled" : "Store Disabled"}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setExpandedStoreId(isExpanded ? null : s.user_id)}
+                            className="px-3 py-1.5 rounded-xl border border-white/10 bg-white/[0.04] text-xs font-semibold text-zinc-300 hover:bg-white/[0.08] transition flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <span>Products ({itemCount})</span>
+                            <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Expanded Products list */}
+                      {isExpanded && (
+                        <div className="mt-4 pt-4 border-t border-white/10 space-y-3">
+                          {itemCount === 0 ? (
+                            <p className="text-xs text-zinc-500 italic">No products listed by this user yet.</p>
+                          ) : (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                              {s.items.map((prod) => (
+                                <div key={prod.id} className="rounded-xl border border-white/10 bg-black/40 p-3.5 flex flex-col justify-between space-y-3">
+                                  <div className="space-y-1.5">
+                                    <div className="flex items-start justify-between gap-2">
+                                      <span className="font-bold text-xs text-white line-clamp-1">{prod.title}</span>
+                                      <span className="font-mono2 font-extrabold text-xs text-brand-300 shrink-0">
+                                        {prod.price || "Free"}
+                                      </span>
+                                    </div>
+                                    <p className="text-[11px] text-zinc-400 line-clamp-2 leading-relaxed">
+                                      {prod.description || "No description provided."}
+                                    </p>
+                                    <div className="flex items-center gap-1.5 text-[10px] font-mono2 text-zinc-500">
+                                      <span className="px-1.5 py-0.5 rounded bg-white/5 border border-white/5">
+                                        {prod.category || "General"}
+                                      </span>
+                                      {prod.tag && (
+                                        <span className="px-1.5 py-0.5 rounded bg-brand-500/10 text-brand-300">
+                                          {prod.tag}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  <div className="pt-2 border-t border-white/5 flex items-center justify-end">
+                                    <button
+                                      type="button"
+                                      onClick={() => deleteProduct(s.user_id, prod.id, prod.title)}
+                                      className="px-2.5 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/20 text-[11px] font-semibold transition flex items-center gap-1 cursor-pointer"
+                                    >
+                                      <Trash2 className="w-3 h-3" /> Remove Product
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {activeTab === "chats" && (
+        <div className="space-y-4" data-testid="chats-overcheck">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              {["all", "open", "replied", "closed", "spam"].map((filter) => (
+                <button
+                  key={filter}
+                  type="button"
+                  onClick={() => setChatFilter(filter)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold capitalize transition cursor-pointer ${
+                    chatFilter === filter
+                      ? "bg-brand-500/25 text-brand-200 border border-brand-500/40"
+                      : "bg-white/[0.04] text-zinc-400 hover:text-white border border-white/5"
+                  }`}
+                >
+                  {filter}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-3">
+              <span className="font-mono2 text-xs text-zinc-400">
+                {chats.length} Inquir{chats.length !== 1 ? "ies" : "y"} Logged
+              </span>
+              <button
+                type="button"
+                onClick={fetchChats}
+                disabled={chatsLoading}
+                className="p-2 rounded-xl border border-white/10 bg-white/[0.04] text-zinc-300 hover:text-white transition cursor-pointer"
+                title="Refresh chats"
+              >
+                <RefreshCw className={`w-4 h-4 ${chatsLoading ? "animate-spin" : ""}`} />
+              </button>
+            </div>
+          </div>
+
+          {chatsLoading ? (
+            <div className="p-12 text-center rounded-2xl glass">
+              <Loader2 className="w-6 h-6 animate-spin mx-auto text-brand-400 mb-2" />
+              <p className="text-xs text-zinc-400">Loading buyer inquiries &amp; order chats...</p>
+            </div>
+          ) : chats.length === 0 ? (
+            <div className="p-12 text-center rounded-2xl glass text-zinc-500 space-y-2">
+              <MessageSquare className="w-8 h-8 mx-auto text-zinc-600" />
+              <div className="text-sm font-semibold text-zinc-300">No buyer messages found</div>
+              <p className="text-xs text-zinc-500">When visitors send inquiries on creator storefronts, they will show up here for moderation.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {chats
+                .filter((c) => chatFilter === "all" || c.status === chatFilter)
+                .map((chat) => (
+                  <div key={chat.id} className="glass rounded-2xl p-4 sm:p-5 space-y-3 transition hover:border-white/20">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/5 pb-3">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-xl bg-brand-500/10 border border-brand-500/20 text-brand-300">
+                          <MessageCircle className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-white text-xs sm:text-sm">
+                              {chat.buyer_name}
+                            </span>
+                            {chat.buyer_contact && (
+                              <span className="font-mono2 text-[11px] text-zinc-400 bg-white/[0.04] px-2 py-0.5 rounded border border-white/5">
+                                {chat.buyer_contact}
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-[11px] text-zinc-500 mt-0.5">
+                            Inquired to store: <strong className="text-zinc-300">@{chat.creator_username || "creator"}</strong>
+                            {chat.product_title && (
+                              <span> • Product: <strong className="text-brand-300">{chat.product_title}</strong></span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono2 uppercase font-bold border ${
+                          chat.status === "open"
+                            ? "bg-amber-500/10 text-amber-300 border-amber-500/20"
+                            : chat.status === "replied"
+                            ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/20"
+                            : chat.status === "spam"
+                            ? "bg-rose-500/10 text-rose-300 border-rose-500/20"
+                            : "bg-zinc-700/30 text-zinc-400 border-zinc-700/50"
+                        }`}>
+                          {chat.status || "open"}
+                        </span>
+                        <span className="font-mono2 text-[10px] text-zinc-500">
+                          {new Date(chat.created_at).toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="p-3.5 rounded-xl bg-black/40 border border-white/5 text-xs text-zinc-300 leading-relaxed font-sans">
+                      {chat.message}
+                    </div>
+
+                    <div className="flex items-center justify-end gap-2 pt-1 text-xs">
+                      <span className="text-[10px] text-zinc-500 font-mono2 mr-auto">Change status:</span>
+                      {["open", "replied", "closed", "spam"].map((st) => (
+                        <button
+                          key={st}
+                          type="button"
+                          onClick={() => updateChatStatus(chat.id, st)}
+                          className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold capitalize transition cursor-pointer ${
+                            chat.status === st
+                              ? "bg-white/20 text-white font-bold"
+                              : "bg-white/[0.04] text-zinc-400 hover:text-white hover:bg-white/[0.08]"
+                          }`}
+                        >
+                          {st}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Edit Modal */}
       {editingUser && (
@@ -955,6 +1431,108 @@ export default function UserManager() {
                 </div>
               </div>
             )}
+
+            {/* Profile & Store Management (Admin Direct Edit) */}
+            <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
+                  <UserRound className="w-3.5 h-3.5 text-brand-400" /> Profile &amp; Store Management
+                </div>
+                <span className="font-mono2 text-[10px] text-zinc-500">direct admin edit</span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div>
+                  <label className="text-zinc-400 block mb-1">Display Name</label>
+                  <input
+                    type="text"
+                    value={editingUser.display_name || ""}
+                    onChange={(e) => setEditingUser({ ...editingUser, display_name: e.target.value })}
+                    placeholder="User's display name"
+                    className="w-full rounded-xl bg-white/[0.04] border border-white/10 px-3 py-2 text-zinc-100 outline-none focus:border-brand-500/50"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-zinc-400 block mb-1">Secondary Alias</label>
+                  <input
+                    type="text"
+                    value={editingUser.secondary_alias || ""}
+                    onChange={(e) => setEditingUser({ ...editingUser, secondary_alias: e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, "") })}
+                    placeholder="e.g. alias2 (tourn.lol/alias2)"
+                    className="w-full rounded-xl bg-white/[0.04] border border-white/10 px-3 py-2 text-zinc-100 font-mono2 outline-none focus:border-brand-500/50"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div>
+                  <label className="text-zinc-400 block mb-1">Accent Color</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={editingUser.accent_color || "#7c3aed"}
+                      onChange={(e) => setEditingUser({ ...editingUser, accent_color: e.target.value })}
+                      className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0"
+                    />
+                    <input
+                      type="text"
+                      value={editingUser.accent_color || "#7c3aed"}
+                      onChange={(e) => setEditingUser({ ...editingUser, accent_color: e.target.value })}
+                      className="w-full rounded-xl bg-white/[0.04] border border-white/10 px-3 py-2 text-zinc-100 font-mono2 outline-none focus:border-brand-500/50"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-zinc-400 block mb-1">Creator Storefront Access</label>
+                  <button
+                    type="button"
+                    onClick={() => setEditingUser({ ...editingUser, store_enabled: !editingUser.store_enabled })}
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl border text-xs font-semibold transition ${
+                      editingUser.store_enabled
+                        ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
+                        : "border-zinc-700 bg-white/[0.02] text-zinc-400"
+                    }`}
+                  >
+                    <span>{editingUser.store_enabled ? "Store Enabled" : "Store Disabled"}</span>
+                    <span className="text-[10px] font-mono2 uppercase px-1.5 py-0.5 rounded bg-black/40">
+                      {editingUser.store_enabled ? "Active" : "Locked"}
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-zinc-400 block mb-1 text-xs">Bio / About Me</label>
+                <textarea
+                  rows={2}
+                  value={editingUser.bio || ""}
+                  onChange={(e) => setEditingUser({ ...editingUser, bio: e.target.value })}
+                  placeholder="User bio..."
+                  className="w-full rounded-xl bg-white/[0.04] border border-white/10 px-3 py-2 text-xs text-zinc-100 outline-none focus:border-brand-500/50 resize-none"
+                />
+              </div>
+
+              <div className="pt-1 flex flex-wrap items-center gap-3 text-xs">
+                <a
+                  href={`/tourn.lol/${editingUser.username}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-brand-300 hover:underline flex items-center gap-1 font-mono2 text-[11px]"
+                >
+                  <ExternalLink className="w-3 h-3" /> View Public Profile
+                </a>
+                <a
+                  href={`/tourn.lol/${editingUser.username}/shop`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-brand-300 hover:underline flex items-center gap-1 font-mono2 text-[11px]"
+                >
+                  <ExternalLink className="w-3 h-3" /> View Creator Store
+                </a>
+              </div>
+            </div>
 
             <div className="space-y-4">
               <div>
