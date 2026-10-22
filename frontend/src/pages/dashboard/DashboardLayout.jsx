@@ -14,7 +14,7 @@ import {
   Trophy, BarChart3, Users, Ticket, SlidersHorizontal, LineChart, LogOut,
   ExternalLink, Crown, ChevronDown, Sparkles, BellRing, Newspaper, ShieldCheck, Plus,
   ScrollText, Loader2, Gift, ShoppingBag, Store, Search, User, Home, ChevronRight, Eye,
-  Layers, Star, PanelLeftClose, PanelLeftOpen, Globe, UserCheck,
+  Layers, Star, PanelLeftClose, PanelLeftOpen, Globe, UserCheck, Layout,
 } from "lucide-react";
 import PremiumPlansModal from "@/components/PremiumPlansModal";
 import DevlogFeedModal from "@/components/DevlogFeedModal";
