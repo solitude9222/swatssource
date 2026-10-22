@@ -523,7 +523,6 @@ const SliderRow = ({ label, value, min, max, step = 1, suffix = "", onChange, te
 
 const ENTRY_STYLES = [
   { id: "text", label: "Text" },
-  { id: "button", label: "Button" },
   { id: "image", label: "Image" },
 ];
 
@@ -533,14 +532,9 @@ const EntryStyleThumb = ({ id, accent }) => (
       <span className="relative font-mono2 text-[10px] uppercase tracking-widest text-white font-bold">
         Click to enter
       </span>
-    ) : id === "image" ? (
-      <span className="relative flex flex-col items-center gap-1">
-        <img src="/logo.png" alt="" className="w-5 h-5 object-contain" />
-        <span className="text-[9px] font-mono2 text-zinc-400">Image Stamp</span>
-      </span>
     ) : (
-      <span className="relative rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[10px] font-semibold text-white shadow-md">
-        Click to enter
+      <span className="relative flex items-center justify-center">
+        <img src="/logo.png" alt="" className="w-8 h-8 object-contain scale-100" />
       </span>
     )}
   </span>
@@ -1237,219 +1231,14 @@ export default function Editor() {
               </div>
             </div>
 
-            <Section title="About Me" hint="Your picture, decorations, banner, and bio">
-              <ProfileRow label="Avatar">
-                <div className="flex items-center gap-5">
-                  <div className="relative h-16 w-16 shrink-0">
-                    <div className="h-full w-full overflow-hidden rounded-full ring-1 ring-white/10 bg-[#111111]">
-                      {p.avatar_url ? (
-                        <img src={fileUrl(p.avatar_url)} alt="" className="h-full w-full object-cover" />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center font-bold text-zinc-400">
-                          {(displayName || user.username || "?")[0]?.toUpperCase()}
-                        </div>
-                      )}
-                    </div>
-                    {p.avatar_decoration && (
-                      <img
-                        src={p.avatar_decoration}
-                        alt=""
-                        className="pointer-events-none absolute inset-0 h-full w-full scale-[1.28] object-contain"
-                        style={Number(p.avatar_decoration_hue) ? { filter: `hue-rotate(${Number(p.avatar_decoration_hue)}deg)` } : undefined}
-                      />
-                    )}
-                  </div>
-                  <QuickUpload
-                    testid="asset-avatar"
-                    label="Avatar"
-                    buttonLabel="Change Avatar"
-                    value={p.avatar_url}
-                    accept="image/*"
-                    onUploaded={(u) => set("avatar_url", u)}
-                    onRemove={() => set("avatar_url", "")}
-                  />
-                </div>
-                {p.avatar_url && (
-                  <div className="mt-4 space-y-3">
-                    <SliderRow
-                      testid="avatar-zoom"
-                      label="Pfp zoom"
-                      value={Number(p.avatar_zoom ?? 100)}
-                      min={100}
-                      max={250}
-                      step={5}
-                      suffix="%"
-                      onChange={(v) => set("avatar_zoom", v)}
-                    />
-                    <SliderRow
-                      testid="avatar-crop-x"
-                      label="Crop X"
-                      value={Number(p.avatar_pos_x ?? 50)}
-                      min={0}
-                      max={100}
-                      step={1}
-                      suffix="%"
-                      onChange={(v) => set("avatar_pos_x", v)}
-                    />
-                    <SliderRow
-                      testid="avatar-crop-y"
-                      label="Crop Y"
-                      value={Number(p.avatar_pos_y ?? 50)}
-                      min={0}
-                      max={100}
-                      step={1}
-                      suffix="%"
-                      onChange={(v) => set("avatar_pos_y", v)}
-                    />
-                  </div>
-                )}
-              </ProfileRow>
-
-              <ProfileRow label="Decoration">
-                <div className="flex flex-wrap items-center gap-2.5" data-testid="decoration-picker-row">
-                  <button
-                    type="button"
-                    data-testid="open-decorations"
-                    onClick={() => setShowDecoModal(true)}
-                    className="rounded-xl bg-[#b4bffa] px-4 py-2.5 text-xs font-bold text-black transition hover:brightness-110 cursor-pointer"
-                  >
-                    Change Decoration
-                  </button>
-                  {p.avatar_decoration && (
-                    <button
-                      type="button"
-                      data-testid="remove-decoration"
-                      onClick={() => { set("avatar_decoration", ""); set("avatar_decoration_hue", 0); }}
-                      className="rounded-xl border border-[#2a2a2e] bg-[#09090b] px-4 py-2.5 text-xs font-semibold text-zinc-300 transition hover:bg-white/[0.08]"
-                    >
-                      Remove Decoration
-                    </button>
-                  )}
-                  {Number(p.avatar_decoration_hue) > 0 && (
-                    <span className="font-mono2 text-[10px] text-zinc-400">hue {p.avatar_decoration_hue}Â°</span>
-                  )}
-                </div>
-              </ProfileRow>
-
-              <ProfileRow label="Background">
-                <div className="mb-3 inline-flex rounded-xl border border-[#2a2a2e] bg-[#09090b] p-1">
-                  {[
-                    { id: "color", label: "Color" },
-                    { id: "media", label: "Media" },
-                  ].map((mode) => (
-                    <button
-                      key={mode.id}
-                      type="button"
-                      data-testid={`bg-mode-${mode.id}`}
-                      aria-pressed={bgMode === mode.id}
-                      onClick={() => {
-                        if (mode.id === "color" && p.background_url) set("background_url", "");
-                        setBgMode(mode.id);
-                      }}
-                      className={`rounded-lg px-4 py-1.5 text-xs font-semibold transition ${
-                        bgMode === mode.id ? "bg-[#b4bffa] text-black font-bold" : "text-zinc-400 hover:text-white"
-                      }`}
-                    >
-                      {mode.label}
-                    </button>
-                  ))}
-                </div>
-
-                {bgMode === "color" ? (
-                  <div className="max-w-xs space-y-2">
-                    <ColorPicker label="" value={p.background_color || ""} onChange={(v) => set("background_color", v)} testid="background-color" />
-                    <p className="text-[11px] text-zinc-400">
-                      Sets a solid background color. Any image/video background will be removed.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <QuickUpload
-                      testid="asset-background"
-                      label="Background"
-                      buttonLabel="Change Media"
-                      value={p.background_url}
-                      accept={isPremium ? "image/*,video/mp4" : "image/*"}
-                      onUploaded={(u) => set("background_url", u)}
-                      onRemove={() => set("background_url", "")}
-                      premiumHint={!isPremium ? "MP4 video background is Premium" : null}
-                    />
-                    {p.background_url && (
-                      <div className="max-w-sm space-y-4 pt-2">
-                        <SliderRow
-                          testid="slider-bg-opacity"
-                          label="Background opacity"
-                          value={Number(p.bg_opacity ?? 100)}
-                          min={0}
-                          max={100}
-                          suffix="%"
-                          onChange={(v) => set("bg_opacity", v)}
-                        />
-                        <SliderRow
-                          testid="slider-bg-dim"
-                          label="Background dim / darkness"
-                          value={Number(p.bg_dim ?? 50)}
-                          min={0}
-                          max={100}
-                          suffix="%"
-                          onChange={(v) => set("bg_dim", v)}
-                        />
-                        <SliderRow
-                          testid="slider-bg-blur"
-                          label="Background blur"
-                          value={Number(p.bg_blur ?? 0)}
-                          min={0}
-                          max={40}
-                          suffix="px"
-                          onChange={(v) => set("bg_blur", v)}
-                        />
-                        <ColorPicker label="Tint" value={p.overlay_color || accentColor} onChange={(v) => set("overlay_color", v)} testid="background-tint" />
-                      </div>
-                    )}
-                  </div>
-                )}
-              </ProfileRow>
-
-              <ProfileRow label="Banner">
-                <div className="space-y-3">
-                  <QuickUpload
-                    testid="asset-banner"
-                    label="Banner"
-                    buttonLabel="Change Banner"
-                    value={p.banner_url}
-                    accept="image/*"
-                    onUploaded={(u) => set("banner_url", u)}
-                    onRemove={() => set("banner_url", "")}
-                  />
-                  <ChipGrid
-                    testid="banner-effect"
-                    value={p.banner_effect || "fade"}
-                    onChange={(v) => set("banner_effect", v)}
-                    options={[
-                      { id: "fade", label: "Fade" },
-                      { id: "dim", label: "Dim" },
-                      { id: "vignette", label: "Vignette" },
-                      { id: "none", label: "None" },
-                    ]}
-                  />
-                </div>
-              </ProfileRow>
-
-              <ProfileRow label="Crosshair">
-                <CrosshairPicker
-                  value={p}
-                  onChange={(next) => setP((prev) => ({ ...prev, ...next }))}
-                  isPremium={isPremium}
-                  onLocked={askPremium("Custom crosshairs")}
-                />
-              </ProfileRow>
-
+            <Section title="About Me" hint="Your display name, bio, and personal info">
               <ProfileRow label="Display Name">
                 <input
                   data-testid="editor-displayname"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  className="w-full rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] px-4 py-3 text-sm text-white outline-none focus:border-[#b4bffa]"
+                  className="w-full rounded-xl bg-[#0a0a0c] border border-[#2a2a2e] px-4 py-3 text-sm text-white outline-none focus:border-[#b4bffa] focus:ring-2 focus:ring-[#b4bffa]/20 placeholder:text-zinc-600 transition-all"
+                  placeholder="Your display name"
                 />
               </ProfileRow>
 
@@ -1459,10 +1248,13 @@ export default function Editor() {
                   value={p.bio || ""}
                   onChange={(e) => set("bio", e.target.value)}
                   rows={4}
-                  className="w-full resize-none rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] px-4 py-3 text-sm text-white outline-none focus:border-[#b4bffa]"
+                  className="w-full resize-none rounded-xl bg-[#0a0a0c] border border-[#2a2a2e] px-4 py-3 text-sm text-white outline-none focus:border-[#b4bffa] focus:ring-2 focus:ring-[#b4bffa]/20 placeholder:text-zinc-600 transition-all"
                   placeholder="Tell people who you are..."
                 />
-                <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              </ProfileRow>
+
+              <ProfileRow label="Details">
+                <div className="grid gap-4 sm:grid-cols-2">
                   <div>
                     <label className="mb-1.5 block text-xs text-zinc-400">Location</label>
                     <input
@@ -1470,11 +1262,11 @@ export default function Editor() {
                       value={p.location || ""}
                       onChange={(e) => set("location", e.target.value)}
                       placeholder="e.g. Tokyo, Japan"
-                      className="w-full rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] px-4 py-2.5 text-xs text-white outline-none focus:border-[#b4bffa]"
+                      className="w-full rounded-xl bg-[#0a0a0c] border border-[#2a2a2e] px-4 py-2.5 text-xs text-white outline-none focus:border-[#b4bffa] focus:ring-2 focus:ring-[#b4bffa]/20 placeholder:text-zinc-600 transition-all"
                     />
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-xs text-zinc-400">Accent colour</label>
+                    <label className="mb-1.5 block text-xs text-zinc-400">Accent Colour</label>
                     <ColorPicker label="" value={p.accent_color || "hsl(272, 24%, 46%)"} onChange={(v) => set("accent_color", v)} testid="color-accent" />
                   </div>
                 </div>
@@ -1488,96 +1280,6 @@ export default function Editor() {
               ======================================================== */}
           {sub === "appearance" && (
             <>
-              {/* Media upload tiles — cops.bio-style row */}
-              <div className="rounded-[20px] border border-white/[0.07] bg-[#111113] p-5 sm:p-6 space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-500/15">
-                    <ImageIcon className="h-4 w-4 text-brand-400" />
-                  </div>
-                  <div>
-                    <h2 className="text-sm font-bold text-white">Media</h2>
-                    <p className="text-[11px] text-zinc-500">Avatar, background, audio and cursor</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {/* Avatar */}
-                  <label className="group flex flex-col items-center justify-center gap-2.5 rounded-xl border border-dashed border-white/[0.08] bg-[#0c0c0e] p-5 text-center transition hover:border-white/[0.15] hover:bg-[#141416] cursor-pointer min-h-[120px]">
-                    <div className="text-xs font-semibold text-white mb-1">Avatar</div>
-                    {p.avatar_url ? (
-                      <img src={fileUrl(p.avatar_url)} alt="" className="h-12 w-12 rounded-full object-cover ring-2 ring-white/10" />
-                    ) : (
-                      <ImageIcon className="h-8 w-8 text-zinc-600" />
-                    )}
-                    <span className="text-[10px] text-zinc-600 leading-tight">
-                      {p.avatar_url ? "Click to replace" : "Upload an avatar"}
-                    </span>
-                    <span className="text-[9px] text-zinc-700">or drag & drop · max 10 MB</span>
-                    <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
-                      const file = e.target.files?.[0]; if (!file) return;
-                      try {
-                        const fd = new FormData(); fd.append("file", file); fd.append("kind", "avatar");
-                        const { data } = await api.post("/upload", fd, { headers: { "Content-Type": "multipart/form-data" } });
-                        set("avatar_url", data.url); toast.success("Avatar updated!");
-                      } catch (err) { toast.error(err.response?.data?.detail || "Upload failed"); }
-                      e.target.value = "";
-                    }} />
-                  </label>
-
-                  {/* Background */}
-                  <label className="group flex flex-col items-center justify-center gap-2.5 rounded-xl border border-dashed border-white/[0.08] bg-[#0c0c0e] p-5 text-center transition hover:border-white/[0.15] hover:bg-[#141416] cursor-pointer min-h-[120px]">
-                    <div className="text-xs font-semibold text-white mb-1">Background</div>
-                    {p.background_url ? (
-                      <img src={fileUrl(p.background_url)} alt="" className="h-12 w-20 rounded-lg object-cover ring-1 ring-white/10" />
-                    ) : (
-                      <ImageIcon className="h-8 w-8 text-zinc-600" />
-                    )}
-                    <span className="text-[10px] text-zinc-600 leading-tight">
-                      {p.background_url ? "Click to replace" : "Upload a background"}
-                    </span>
-                    <span className="text-[9px] text-zinc-700">or drag & drop · max 100 MB</span>
-                    <input type="file" accept="image/*,video/*" className="hidden" onChange={async (e) => {
-                      const file = e.target.files?.[0]; if (!file) return;
-                      try {
-                        const fd = new FormData(); fd.append("file", file); fd.append("kind", "background");
-                        const { data } = await api.post("/upload", fd, { headers: { "Content-Type": "multipart/form-data" } });
-                        set("background_url", data.url); toast.success("Background updated!");
-                      } catch (err) { toast.error(err.response?.data?.detail || "Upload failed"); }
-                      e.target.value = "";
-                    }} />
-                  </label>
-
-                  {/* Audio */}
-                  <button
-                    type="button"
-                    onClick={() => switchSub("audios")}
-                    className="group flex flex-col items-center justify-center gap-2.5 rounded-xl border border-dashed border-white/[0.08] bg-[#0c0c0e] p-5 text-center transition hover:border-white/[0.15] hover:bg-[#141416] cursor-pointer min-h-[120px]"
-                  >
-                    <div className="text-xs font-semibold text-white mb-1">Audio</div>
-                    <Music className="h-8 w-8 text-zinc-600" />
-                    <span className="text-[10px] text-zinc-600 leading-tight">Click to open audio manager</span>
-                    <span className="text-[9px] text-zinc-700">Manage up to 3 audio files</span>
-                  </button>
-
-                  {/* Cursor */}
-                  <label className="group flex flex-col items-center justify-center gap-2.5 rounded-xl border border-dashed border-white/[0.08] bg-[#0c0c0e] p-5 text-center transition hover:border-white/[0.15] hover:bg-[#141416] cursor-pointer min-h-[120px]">
-                    <div className="text-xs font-semibold text-white mb-1">Cursor</div>
-                    <MousePointer2 className="h-8 w-8 text-zinc-600" />
-                    <span className="text-[10px] text-zinc-600 leading-tight">Manage Cursors</span>
-                    <span className="text-[9px] text-zinc-700">Click to upload default & pointer cursors</span>
-                    <input type="file" accept="image/*,.cur,.ani" className="hidden" onChange={async (e) => {
-                      const file = e.target.files?.[0]; if (!file) return;
-                      try {
-                        const fd = new FormData(); fd.append("file", file); fd.append("kind", "cursor");
-                        const { data } = await api.post("/upload", fd, { headers: { "Content-Type": "multipart/form-data" } });
-                        set("custom_cursor", data.url); toast.success("Cursor uploaded!");
-                      } catch (err) { toast.error(err.response?.data?.detail || "Upload failed"); }
-                      e.target.value = "";
-                    }} />
-                  </label>
-                </div>
-              </div>
-
               <Section title="Card Appearance" hint="Surface, glow, borders and presets">
                 <div className="space-y-5">
                   <div>
@@ -2663,9 +2365,9 @@ export default function Editor() {
                   <div className="space-y-4 pt-2">
                     <div>
                       <label className="block text-xs font-semibold text-zinc-300 mb-2">Visual Entry Style</label>
-                      <div className="grid grid-cols-3 gap-2">
+                      <div className="grid grid-cols-2 gap-2">
                         {ENTRY_STYLES.map(({ id, label }) => {
-                          const active = (p.entry_style || "button") === id || (id === "button" && p.entry_style === "bubble");
+                          const active = (p.entry_style || "text") === id;
                           return (
                             <button
                               key={id}
@@ -2682,28 +2384,6 @@ export default function Editor() {
                           );
                         })}
                       </div>
-                    </div>
-
-                    {/* Hidden test compatibility targets for legacy bubble & codelock */}
-                    <div className="hidden" aria-hidden="true">
-                      <button
-                        data-testid="entry-style-bubble"
-                        aria-pressed={(p.entry_style || "button") === "button" || p.entry_style === "bubble"}
-                        onClick={() => set("entry_style", "button")}
-                      >
-                        <span className="rounded-full">Click to enter</span>
-                      </button>
-                      <button
-                        data-testid="entry-style-codelock"
-                        aria-pressed={p.entry_style === "codelock"}
-                        onClick={() => set("entry_style", "codelock")}
-                      >
-                        Enter PIN
-                        <span className="rounded-full" />
-                        <span className="rounded-full" />
-                        <span className="rounded-full" />
-                        <span className="rounded-full" />
-                      </button>
                     </div>
 
                     <div>
