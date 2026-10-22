@@ -435,9 +435,9 @@ function LayoutPicker({ value, onChange, isPremium, navigate }) {
 // 300 ms movement on every section each time a subtab mounted, so switching tab
 // read as a twitch; the panel's single entrance lives in the dashboard shell.
 const Section = ({ title, hint, children }) => (
-  <section className="w-full space-y-6 rounded-2xl border border-[#1f1f1f] bg-[#111111] p-5 sm:p-7">
+  <section className="w-full space-y-6 rounded-2xl border border-[#161616] bg-black p-5 sm:p-7">
     <div className="flex items-center gap-3">
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#b4bffa]/15 text-[#c084fc]">
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#b4bffa]/15 text-[#b4bffa]">
         <Sliders className="h-4 w-4" />
       </span>
       <div className="min-w-0">
@@ -788,6 +788,7 @@ export default function Editor() {
   // Media modals state
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [showBackgroundModal, setShowBackgroundModal] = useState(false);
+  const [showBannerModal, setShowBannerModal] = useState(false);
   const [showAudioModal, setShowAudioModal] = useState(false);
   const [showCursorModal, setShowCursorModal] = useState(false);
   const [activeTextSlot, setActiveTextSlot] = useState("name"); // "name" | "alias" | "bio"
@@ -1110,7 +1111,7 @@ export default function Editor() {
       </div>
 
       <div className="w-full">
-      <div className="mx-auto w-full min-w-0 max-w-3xl space-y-6">
+      <div className="w-full min-w-0 space-y-6">
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={sub}
@@ -1122,63 +1123,21 @@ export default function Editor() {
           >
           {sub === "about" && (
             <>
-            <Section title="About Me" hint="Your display name, bio, and personal info">
-              <ProfileRow label="Display Name">
-                <input
-                  data-testid="editor-displayname"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  className="w-full rounded-xl bg-[#0a0a0c] border border-[#2a2a2e] px-4 py-3 text-sm text-white outline-none focus:border-[#b4bffa] focus:ring-2 focus:ring-[#b4bffa]/20 placeholder:text-zinc-600 transition-all"
-                  placeholder="Your display name"
-                />
-              </ProfileRow>
-
-              <ProfileRow label="Bio">
-                <textarea
-                  data-testid="editor-bio"
-                  value={p.bio || ""}
-                  onChange={(e) => set("bio", e.target.value)}
-                  rows={4}
-                  className="w-full resize-none rounded-xl bg-[#0a0a0c] border border-[#2a2a2e] px-4 py-3 text-sm text-white outline-none focus:border-[#b4bffa] focus:ring-2 focus:ring-[#b4bffa]/20 placeholder:text-zinc-600 transition-all"
-                  placeholder="Tell people who you are..."
-                />
-              </ProfileRow>
-
-              <ProfileRow label="Details">
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <label className="mb-1.5 block text-xs text-zinc-400">Location</label>
-                    <input
-                      data-testid="editor-location"
-                      value={p.location || ""}
-                      onChange={(e) => set("location", e.target.value)}
-                      placeholder="e.g. Tokyo, Japan"
-                      className="w-full rounded-xl bg-[#0a0a0c] border border-[#2a2a2e] px-4 py-2.5 text-xs text-white outline-none focus:border-[#b4bffa] focus:ring-2 focus:ring-[#b4bffa]/20 placeholder:text-zinc-600 transition-all"
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1.5 block text-xs text-zinc-400">Accent Colour</label>
-                    <ColorPicker label="" value={p.accent_color || "hsl(272, 24%, 46%)"} onChange={(v) => set("accent_color", v)} testid="color-accent" />
-                  </div>
-                </div>
-              </ProfileRow>
-            </Section>
-
             {/* ============================================================
-                MEDIA — avatar, background, audio and cursor live here. Each
-                tile opens its dedicated modal. This is always visible so the
-                profile picture and media uploads are never hidden.
+                MEDIA — sits at the TOP of About Me. Avatar, background, banner
+                and cursor each open their own modal. Audio is NOT here: it has
+                its own Audio tab.
                 ============================================================ */}
-            <Section title="Media" hint="Profile picture, background, audio and cursor">
+            <Section title="Media" hint="Profile picture, background, banner and cursor">
               <div className="grid gap-3 sm:grid-cols-2">
                 {/* Avatar */}
                 <button
                   type="button"
                   data-testid="media-open-avatar"
                   onClick={() => setShowAvatarModal(true)}
-                  className="group flex items-center gap-3.5 rounded-2xl border border-[#2a2a2e] bg-[#09090b] p-3.5 text-left transition-colors hover:border-[#b4bffa]/50 hover:bg-[#0d0d12]"
+                  className="group flex items-center gap-3.5 rounded-2xl border border-[#1a1a1a] bg-[#060606] p-3.5 text-left transition-colors hover:border-[#b4bffa]/50 hover:bg-[#0b0b10]"
                 >
-                  <span className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-[#111113]">
+                  <span className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-[#0d0d0f]">
                     {p.avatar_url ? (
                       <img src={fileUrl(p.avatar_url)} alt="" className="h-full w-full object-cover" />
                     ) : (
@@ -1207,9 +1166,9 @@ export default function Editor() {
                   type="button"
                   data-testid="media-open-background"
                   onClick={() => setShowBackgroundModal(true)}
-                  className="group flex items-center gap-3.5 rounded-2xl border border-[#2a2a2e] bg-[#09090b] p-3.5 text-left transition-colors hover:border-[#b4bffa]/50 hover:bg-[#0d0d12]"
+                  className="group flex items-center gap-3.5 rounded-2xl border border-[#1a1a1a] bg-[#060606] p-3.5 text-left transition-colors hover:border-[#b4bffa]/50 hover:bg-[#0b0b10]"
                 >
-                  <span className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-[#111113]">
+                  <span className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-[#0d0d0f]">
                     {p.background_url ? (
                       /\.(mp4|webm|mov)$/i.test(p.background_url) ? (
                         <Film className="h-5 w-5 text-[#b4bffa]" />
@@ -1229,20 +1188,24 @@ export default function Editor() {
                   <ChevronRight className="h-4 w-4 shrink-0 text-zinc-600 transition-colors group-hover:text-[#b4bffa]" />
                 </button>
 
-                {/* Audio */}
+                {/* Banner */}
                 <button
                   type="button"
-                  data-testid="media-open-audio"
-                  onClick={() => setShowAudioModal(true)}
-                  className="group flex items-center gap-3.5 rounded-2xl border border-[#2a2a2e] bg-[#09090b] p-3.5 text-left transition-colors hover:border-[#b4bffa]/50 hover:bg-[#0d0d12]"
+                  data-testid="media-open-banner"
+                  onClick={() => setShowBannerModal(true)}
+                  className="group flex items-center gap-3.5 rounded-2xl border border-[#1a1a1a] bg-[#060606] p-3.5 text-left transition-colors hover:border-[#b4bffa]/50 hover:bg-[#0b0b10]"
                 >
-                  <span className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[#b4bffa]/25 bg-[#b4bffa]/10">
-                    <Music className="h-5 w-5 text-[#b4bffa]" />
+                  <span className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-[#0d0d0f]">
+                    {p.banner_url ? (
+                      <img src={fileUrl(p.banner_url)} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <Layout className="h-5 w-5 text-zinc-500" />
+                    )}
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block text-sm font-semibold text-white">Audio</span>
+                    <span className="block text-sm font-semibold text-white">Banner</span>
                     <span className="mt-0.5 block truncate text-[11px] text-zinc-500">
-                      {p.tracks?.length ? `${p.tracks.length} track${p.tracks.length > 1 ? "s" : ""} in your playlist` : "Add up to 3 songs to your profile"}
+                      {p.banner_url ? "Banner set — tap to change" : "Wide header image for the Banner layout"}
                     </span>
                   </span>
                   <ChevronRight className="h-4 w-4 shrink-0 text-zinc-600 transition-colors group-hover:text-[#b4bffa]" />
@@ -1253,9 +1216,9 @@ export default function Editor() {
                   type="button"
                   data-testid="media-open-cursor"
                   onClick={() => setShowCursorModal(true)}
-                  className="group flex items-center gap-3.5 rounded-2xl border border-[#2a2a2e] bg-[#09090b] p-3.5 text-left transition-colors hover:border-[#b4bffa]/50 hover:bg-[#0d0d12]"
+                  className="group flex items-center gap-3.5 rounded-2xl border border-[#1a1a1a] bg-[#060606] p-3.5 text-left transition-colors hover:border-[#b4bffa]/50 hover:bg-[#0b0b10]"
                 >
-                  <span className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-[#111113]">
+                  <span className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-[#0d0d0f]">
                     <MousePointer2 className="h-5 w-5 text-zinc-400" />
                   </span>
                   <span className="min-w-0 flex-1">
@@ -1267,6 +1230,132 @@ export default function Editor() {
                   <ChevronRight className="h-4 w-4 shrink-0 text-zinc-600 transition-colors group-hover:text-[#b4bffa]" />
                 </button>
               </div>
+            </Section>
+
+            {/* ============================================================
+                EFFECTS — text, background, overlay and decorations. Each tile
+                opens its own picker modal.
+                ============================================================ */}
+            <Section title="Effects" hint="Text, background, overlay and decorations">
+              <div className="grid gap-3 sm:grid-cols-2">
+                {/* Text effects */}
+                <button
+                  type="button"
+                  data-testid="effects-open-text"
+                  onClick={() => setShowTextEffectsModal(true)}
+                  className="group flex items-center gap-3.5 rounded-2xl border border-[#1a1a1a] bg-[#060606] p-3.5 text-left transition-colors hover:border-[#b4bffa]/50 hover:bg-[#0b0b10]"
+                >
+                  <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-[#0d0d0f]">
+                    <FileText className="h-5 w-5 text-[#b4bffa]" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-semibold text-white">Text</span>
+                    <span className="mt-0.5 block truncate text-[11px] text-zinc-500">
+                      {TEXT_EFFECTS.find((e) => e.id === p.name_effect)?.label || "Animated name, alias and bio styles"}
+                    </span>
+                  </span>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-zinc-600 transition-colors group-hover:text-[#b4bffa]" />
+                </button>
+
+                {/* Background effects */}
+                <button
+                  type="button"
+                  data-testid="effects-open-background"
+                  onClick={() => setShowBgEffectsModal(true)}
+                  className="group flex items-center gap-3.5 rounded-2xl border border-[#1a1a1a] bg-[#060606] p-3.5 text-left transition-colors hover:border-[#b4bffa]/50 hover:bg-[#0b0b10]"
+                >
+                  <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-[#0d0d0f]">
+                    <Sparkles className="h-5 w-5 text-[#b4bffa]" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-semibold text-white">Background</span>
+                    <span className="mt-0.5 block truncate text-[11px] text-zinc-500">
+                      {BACKGROUND_EFFECTS.find((e) => e.id === p.background_effect)?.label || "Particles, stars, rain and more"}
+                    </span>
+                  </span>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-zinc-600 transition-colors group-hover:text-[#b4bffa]" />
+                </button>
+
+                {/* Overlay effects */}
+                <button
+                  type="button"
+                  data-testid="effects-open-overlay"
+                  onClick={() => setShowOverlayEffectsModal(true)}
+                  className="group flex items-center gap-3.5 rounded-2xl border border-[#1a1a1a] bg-[#060606] p-3.5 text-left transition-colors hover:border-[#b4bffa]/50 hover:bg-[#0b0b10]"
+                >
+                  <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-[#0d0d0f]">
+                    <Film className="h-5 w-5 text-[#b4bffa]" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-semibold text-white">Overlay</span>
+                    <span className="mt-0.5 block truncate text-[11px] text-zinc-500">
+                      {OVERLAYS.find((e) => e.id === p.overlay_effect)?.label || "Weather, film grain and scanlines"}
+                    </span>
+                  </span>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-zinc-600 transition-colors group-hover:text-[#b4bffa]" />
+                </button>
+
+                {/* Decorations */}
+                <button
+                  type="button"
+                  data-testid="effects-open-decorations"
+                  onClick={() => setShowDecoModal(true)}
+                  className="group flex items-center gap-3.5 rounded-2xl border border-[#1a1a1a] bg-[#060606] p-3.5 text-left transition-colors hover:border-[#b4bffa]/50 hover:bg-[#0b0b10]"
+                >
+                  <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-[#0d0d0f]">
+                    <Paintbrush className="h-5 w-5 text-[#b4bffa]" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-semibold text-white">Decorations</span>
+                    <span className="mt-0.5 block truncate text-[11px] text-zinc-500">
+                      {p.avatar_decoration ? "Avatar decoration set — tap to change" : "Frames and avatar decorations"}
+                    </span>
+                  </span>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-zinc-600 transition-colors group-hover:text-[#b4bffa]" />
+                </button>
+              </div>
+            </Section>
+
+            <Section title="About Me" hint="Your display name, bio, and personal info">
+              <ProfileRow label="Display Name">
+                <input
+                  data-testid="editor-displayname"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  className="w-full rounded-xl bg-[#060606] border border-[#1f1f1f] px-4 py-3 text-sm text-white outline-none focus:border-[#b4bffa] focus:ring-2 focus:ring-[#b4bffa]/20 placeholder:text-zinc-600 transition-all"
+                  placeholder="Your display name"
+                />
+              </ProfileRow>
+
+              <ProfileRow label="Bio">
+                <textarea
+                  data-testid="editor-bio"
+                  value={p.bio || ""}
+                  onChange={(e) => set("bio", e.target.value)}
+                  rows={4}
+                  className="w-full resize-none rounded-xl bg-[#060606] border border-[#1f1f1f] px-4 py-3 text-sm text-white outline-none focus:border-[#b4bffa] focus:ring-2 focus:ring-[#b4bffa]/20 placeholder:text-zinc-600 transition-all"
+                  placeholder="Tell people who you are..."
+                />
+              </ProfileRow>
+
+              <ProfileRow label="Details">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-1.5 block text-xs text-zinc-400">Location</label>
+                    <input
+                      data-testid="editor-location"
+                      value={p.location || ""}
+                      onChange={(e) => set("location", e.target.value)}
+                      placeholder="e.g. Tokyo, Japan"
+                      className="w-full rounded-xl bg-[#060606] border border-[#1f1f1f] px-4 py-2.5 text-xs text-white outline-none focus:border-[#b4bffa] focus:ring-2 focus:ring-[#b4bffa]/20 placeholder:text-zinc-600 transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-xs text-zinc-400">Accent Colour</label>
+                    <ColorPicker label="" value={p.accent_color || "hsl(272, 24%, 46%)"} onChange={(v) => set("accent_color", v)} testid="color-accent" />
+                  </div>
+                </div>
+              </ProfileRow>
             </Section>
             </>
           )}
@@ -2416,7 +2505,15 @@ export default function Editor() {
               </Section>
                 </>
               )}
+            </>
+          )}
 
+          {/* ============================================================
+              EFFECT PICKER MODALS — mounted on every tab so the About Me
+              Effects tiles (and any other trigger) can open them regardless of
+              which subtab is active.
+              ============================================================ */}
+          <>
               {/* Text Effects Modal with separate toggles for name, alias, bio */}
               <FxModal
                 open={showTextEffectsModal}
@@ -2686,8 +2783,7 @@ export default function Editor() {
                   })}
                 </div>
               </FxModal>
-            </>
-          )}
+          </>
 
           </motion.div>
           </AnimatePresence>
@@ -2932,6 +3028,68 @@ export default function Editor() {
             </div>
           )}
 
+        </div>
+      </FxModal>
+
+      {/* Banner Media Modal */}
+      <FxModal
+        open={showBannerModal}
+        onOpenChange={setShowBannerModal}
+        id="banner-media-modal"
+        eyebrow="Media"
+        title="Banner"
+        description="Upload a wide header image. It shows on the Banner layout."
+        testid="banner-media-modal"
+        footer={
+          <div className="flex justify-end">
+            <button type="button" onClick={() => setShowBannerModal(false)} className="px-4 py-2 text-xs bg-[#b4bffa] text-black font-bold rounded-xl hover:brightness-110 transition shadow-sm cursor-pointer">
+              Done
+            </button>
+          </div>
+        }
+      >
+        <div className="space-y-5">
+          {p.banner_url && (
+            <div className="overflow-hidden rounded-xl border border-white/10 bg-[#0d0d0f]">
+              <img src={fileUrl(p.banner_url)} alt="" className="h-32 w-full object-cover" />
+            </div>
+          )}
+
+          <QuickUpload
+            testid="modal-banner-upload"
+            label=""
+            buttonLabel={p.banner_url ? "Change Banner" : "Upload Banner"}
+            value={p.banner_url}
+            accept="image/*"
+            onUploaded={(u) => set("banner_url", u)}
+            onRemove={() => set("banner_url", "")}
+          />
+
+          <div>
+            <label className="mb-2 block text-xs font-semibold text-zinc-300">Banner Overlay</label>
+            <div className="grid grid-cols-4 gap-1.5">
+              {[
+                { id: "fade", label: "Fade" },
+                { id: "dim", label: "Dim" },
+                { id: "vignette", label: "Vignette" },
+                { id: "none", label: "None" },
+              ].map((opt) => (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => set("banner_effect", opt.id)}
+                  className={`px-2 py-1.5 rounded-lg text-xs font-semibold border transition cursor-pointer ${
+                    (p.banner_effect || "fade") === opt.id
+                      ? "border-[#b4bffa] bg-[#b4bffa] text-black font-bold"
+                      : "border-[#1f1f1f] bg-[#060606] text-zinc-300 hover:border-white/30"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            <p className="mt-2 text-[11px] text-zinc-500">The banner appears when your layout is set to Banner (change it in Appearance).</p>
+          </div>
         </div>
       </FxModal>
 
