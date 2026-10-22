@@ -222,33 +222,37 @@ const hearts = (W, H, n, sz) => {
   };
 };
 
-/* E.vhs(o, l): o=0 paints the full tape plate (bg "vhs tape"), o=1 paints just
-   the tape artifacts (ov "vhs"). It is the tape look and nothing else: scan
-   lines, the drifting tracking band and its chroma smear. The old write ran a
-   sparkle-noise pass and burned "PLAY ▶" plus a timecode over the page —
-   both gone; a profile wants the effect, not a caption burned into it. */
+/* E.vhs(o, l): STATIC VHS overlay - solid scanlines only (no animation).
+   For overlay use, this creates a permanent CRT scanline effect.
+   Much more performant than the animated version. */
 const vhs = (W, H, o, l) => {
-  return (c, t) => {
-    if (!o) {
-      c.fillStyle = 'rgba(10, 12, 17, 0.08)';
-      c.fillRect(0, 0, W, H);
-    }
-    const a = o ? 0.7 : 1;
-    const y = (t * 0.12) % (H + 240) - 120;
-    c.fillStyle = `rgba(255,255,255,${0.06 * a})`;
-    c.fillRect(0, y, W, 34);
-    for (let i = 0; i < 4; i++) {
-      c.fillStyle = R() < 0.5 ? `rgba(255,0,70,${0.18 * a})` : `rgba(0,220,255,${0.18 * a})`;
-      c.fillRect(R() * 20 - 10, y + R() * 34, W, 2 + R() * 3);
-    }
-    // Subtle tracking flutter
-    if (R() < 0.5) {
-      c.fillStyle = `rgba(255,255,255,${0.06 * a})`;
-      c.fillRect(0, y + R() * 34, W, 1);
-    }
-    // High-performance scanlines (spaced every 4px for higher FPS and cleaner CRT look)
-    c.fillStyle = `rgba(0,0,0,${0.12 * a})`;
-    for (let yy = 0; yy < H; yy += 4) c.fillRect(0, yy, W, 1.5);
+  // Pre-render the static scanlines to an offscreen canvas for maximum performance
+  const cv = document.createElement('canvas');
+  cv.width = W;
+  cv.height = H;
+  const c = cv.getContext('2d');
+  
+  // Dark plate for background VHS
+  if (!o) {
+    c.fillStyle = 'rgba(10, 12, 17, 0.08)';
+    c.fillRect(0, 0, W, H);
+  }
+  
+  // Static scanlines (no animation - just draw once)
+  c.fillStyle = 'rgba(0,0,0,0.15)';
+  for (let yy = 0; yy < H; yy += 3) {
+    c.fillRect(0, yy, W, 1);
+  }
+  
+  // Subtle chromatic aberration lines (static)
+  c.fillStyle = 'rgba(255,0,70,0.05)';
+  c.fillRect(0, H * 0.3, W, 2);
+  c.fillStyle = 'rgba(0,220,255,0.05)';
+  c.fillRect(0, H * 0.7, W, 2);
+  
+  // Return a function that just draws the pre-rendered canvas
+  return (ctx) => {
+    ctx.drawImage(cv, 0, 0);
   };
 };
 

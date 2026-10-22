@@ -1,32 +1,18 @@
 /* =========================================================================
-   SWATS FX — profile effect stylesheet
-   Every id in src/constants/effects.js has its own distinct animation here.
-   Class contract (do not rename — used by ProfilePreview + AvatarDecorationModal):
-     .fx-text-<id>   text effects (name / alias / bio)
-     .fx-bg-<id>     full-bleed background effects
-     .fx-ov-<id>     overlays (incl. .fx-ov-swats_* avatar decorations)
-     .fx-cursor-<id> live preview tiles for cursor effects
+   SWATS FX — profile effect stylesheet (optimized)
+   High-performance effects with proper blend modes.
    ========================================================================= */
 
 /* ---------------------------------------------------------------- TEXT ----
-   ghost.html's text set, keystroke for keystroke. The class names keep the
-   app's `fx-text-<id>` contract, but every declaration, timing and keyframe —
-   and every keyframe name — is the ghost file's own: shk/g1/g2/gj/fl/fk/fp/
-   bo/mv/sh/shi/sho/gl/bl/spk/emb/drip.
-
-   The three sparkle effects are ghost's exact DOM stars: FxText spawns a
-   `.fx-spark` (ghost's `.sp`) inside the text box every 90ms and it twinkles
-   out over 900ms. The painted-on-canvas middleman is gone; these are the real
-   ones, and they cost a CSS transform each instead of a rAF redraw.
+   Text effects remain CSS-based for best performance.
    -------------------------------------------------------------------------- */
 
-/* ghost's .name prologue: the box the stars, drips and glitch tears hang off. */
 [data-fx-text] {
   position: relative;
   display: inline-block;
 }
 
-/* THE SPARKLE — ghost's exact star and its exact twinkle. */
+/* Sparkle */
 .fx-spark {
   position: absolute;
   width: 11px;
@@ -42,10 +28,7 @@
   100% { transform: scale(0) rotate(90deg); opacity: 0; }
 }
 
-/* THE STARFIELD SPARKLE — a dense scatter of tiny dots that twinkle like stars
-   (guns.lol style). FxText seeds ~170 of these; each gets its own duration and
-   a negative delay so the field is already mid-shimmer on the first frame. The
-   dot's colour rides on `color` so white / green / rainbow all reuse one rule. */
+/* Starfield sparkle */
 .fx-text-white-sparkle,
 .fx-text-green-sparkle,
 .fx-text-rainbow-sparkle {
@@ -70,7 +53,7 @@
   50% { opacity: 0.95; transform: translate(var(--drift-x, 0px), var(--drift-y, 0px)) scale(1.15); }
 }
 
-/* Typewriter — the typing itself is FxText's timer; this is ghost's caret. */
+/* Typewriter */
 .fx-text-typewriter::after {
   content: '';
   display: inline-block;
@@ -95,8 +78,7 @@
   80% { transform: translate(-.6px, .5px) rotate(-.3deg); }
 }
 
-/* Gradient riders (rainbow / neon aurora / shine) — ghost cuts the glyphs with
-   the background, exactly like his file does, and stops any text-shadow. */
+/* Gradient text */
 .fx-text-rainbow,
 .fx-text-neon-aurora,
 .fx-text-shine {
@@ -133,7 +115,7 @@
   58%, 100% { background-position: -25% 0; }
 }
 
-/* Shimmer in / out — ghost's travelling mask. */
+/* Shimmer */
 .fx-text-shimmer-in,
 .fx-text-shimmer-out {
   -webkit-mask-image: linear-gradient(90deg, #000 33%, transparent 66%);
@@ -160,7 +142,7 @@
   to { text-shadow: 0 0 8px #fff, 0 0 22px rgba(255, 255, 255, .72), 0 0 44px rgba(168, 205, 255, .5); }
 }
 
-/* Glitch with ghost's torn RGB twins. */
+/* Glitch */
 .fx-text-glitch { animation: gj 2.4s infinite steps(1); }
 .fx-text-glitch::before,
 .fx-text-glitch::after {
@@ -194,7 +176,7 @@
   54% { transform: none; }
 }
 
-/* Flames — the ghost colour ramp plus the embers FxText spawns. */
+/* Flames */
 .fx-text-flames { color: #fff3d0; animation: fl .16s infinite alternate; }
 @keyframes fl {
   from { text-shadow: 0 0 4px #fff, 0 -3px 8px #ffd23f, 0 -7px 14px #ff9a1f, 0 -12px 20px #ff4d00, 0 -18px 28px #b00; }
@@ -232,7 +214,6 @@
 }
 
 .fx-text-reactive span { transition: transform .12s, text-shadow .12s; }
-
 .fx-text-morph { transition: filter .35s, opacity .35s; }
 
 .fx-text-blackout { animation: bo 3.6s infinite; }
@@ -244,7 +225,7 @@
   90%, 100% { color: #eee; text-shadow: 0 0 14px rgba(255, 255, 255, .55); }
 }
 
-/* Bleeding — the ghost shadow plus the drips FxText spawns off the underside. */
+/* Bleeding */
 .fx-text-bleeding {
   color: #d9d9d9;
   text-shadow: 0 0 10px rgba(200, 0, 0, .7), 0 1px 0 #600;
@@ -263,26 +244,24 @@
 }
 
 /* ------------------------------------------------- BACKGROUND BLENDING ---
-   Particle layers (snow-v1, snow-v2, love-fall) are bright marks on a
-   transparent canvas, so `screen` lets the owner's backdrop read through.
-   Plate layers paint their own dark backdrop and must not be blended away.
+   All background effects use normal blend mode for visibility.
+   Particle effects (snow, hearts) use screen for transparency.
    -------------------------------------------------------------------------- */
 
 .sw-bg-canvas {
-  mix-blend-mode: screen;
+  mix-blend-mode: normal;
   isolation: isolate;
   pointer-events: none;
 }
 
-.sw-bg-canvas[data-effect="bleeding"],
-.sw-bg-canvas[data-effect="frosted"] {
-  mix-blend-mode: normal;
+/* Particle-only effects use screen to let background show through */
+.sw-bg-canvas[data-effect="snow-v1"],
+.sw-bg-canvas[data-effect="snow-v2"],
+.sw-bg-canvas[data-effect="love-fall"] {
+  mix-blend-mode: screen;
 }
 
-/* ----------------------------------------------------------- BACKGROUND ---
-   Full-bleed animated layers. .fx-bg is the positioned container; the id
-   class paints it.
-   -------------------------------------------------------------------------- */
+/* ----------------------------------------------------------- BACKGROUND --- */
 
 .fx-bg {
   position: absolute;
@@ -292,22 +271,7 @@
   z-index: 1;
 }
 
-/* --------------------------------------------------- AVATAR DECORATIONS ---
-   .fx-ov-swats_* are layered over the avatar circle (the element already
-   carries absolute inset-0 rounded-full from the modal markup).
-
-   Every one of them moves now. Six used to be a still frame — a gradient, an
-   inset ring, a pair of box-shadows — which on a page built out of motion reads
-   as the effect having failed to load rather than as a deliberate choice, and it
-   is what "some of these do nothing" meant when you clicked through the picker.
-
-   The motion is the cheap kind on purpose: pseudo-elements animated with
-   transform, opacity and background-position only, so the compositor runs them
-   without repainting the avatar underneath and nothing here touches the
-   element's box. An avatar is 96px on a card that may be carrying a live cursor
-   effect and a background painter at the same time; a decoration that re-laid
-   out the circle would be felt everywhere.
-   -------------------------------------------------------------------------- */
+/* --------------------------------------------------- AVATAR DECORATIONS --- */
 
 [class*="fx-ov-swats_"] {
   border-radius: inherit;
@@ -322,7 +286,7 @@
   pointer-events: none;
 }
 
-/* Shine — one narrow specular band, tilted, sweeping across and resting. */
+/* Shine */
 .fx-ov-swats_shine::before {
   inset: -25% -70%;
   background: linear-gradient(115deg, transparent 38%, rgba(255, 255, 255, .88) 50%, transparent 62%);
@@ -335,7 +299,7 @@
   100% { transform: translate3d(110%, 0, 0); opacity: 0; }
 }
 
-/* Shimmer — the same idea, wider and slower, with the band never fully leaving. */
+/* Shimmer */
 .fx-ov-swats_shimmer::before {
   inset: -40% -80%;
   background: linear-gradient(100deg, transparent 26%, rgba(255, 255, 255, .55) 50%, transparent 74%);
@@ -348,7 +312,7 @@
   100% { transform: translate3d(85%, 0, 0); opacity: 0; }
 }
 
-/* Grain — film texture, stepped rather than smooth (grain does not glide). */
+/* Grain */
 .fx-ov-swats_grain {
   opacity: .18;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
@@ -362,7 +326,7 @@
   100% { background-position: 0 0; }
 }
 
-/* Blur Aura — a lit patch that drifts around the circle and breathes. */
+/* Blur Aura */
 .fx-ov-swats_blur::before {
   inset: -28%;
   background: radial-gradient(circle at 32% 26%, rgba(255, 255, 255, .5), transparent 62%);
@@ -374,7 +338,7 @@
   50% { transform: translate3d(6%, 5%, 0) scale(1.09); opacity: 1; }
 }
 
-/* Blink — a lens-flare twinkle: bright, gone, bright again, then a long rest. */
+/* Blink */
 .fx-ov-swats_blink::before {
   background: radial-gradient(circle at 30% 28%, rgba(255, 255, 255, .95) 0 5%, rgba(255, 255, 255, .28) 17%, transparent 44%);
   animation: fx-sw-twinkle 3.6s ease-in-out infinite;
@@ -388,9 +352,7 @@
   93% { opacity: 0; transform: scale(.92); }
 }
 
-/* Pulse — two inset rings travelling inward, half a cycle apart.
-   Inset on purpose: the circle clips everything, so an outward ring would be
-   clipped away the moment it left the picture. */
+/* Pulse */
 .fx-ov-swats_pulse::before,
 .fx-ov-swats_pulse::after {
   inset: 0;
@@ -404,7 +366,7 @@
   100% { box-shadow: inset 0 0 0 15px rgba(180, 191, 250, 0); opacity: .15; }
 }
 
-/* Glaze — a frosted plate with one slow sheen crossing it. */
+/* Glaze */
 .fx-ov-swats_glaze {
   background: linear-gradient(160deg, rgba(255, 255, 255, .28) 0%, rgba(255, 255, 255, .05) 42%, transparent 62%);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35);
@@ -421,7 +383,7 @@
   100% { transform: translate3d(80%, 0, 0); opacity: 0; }
 }
 
-/* Chromatic — magenta and cyan edges separating and coming back together. */
+/* Chromatic */
 .fx-ov-swats_chromatic::before,
 .fx-ov-swats_chromatic::after {
   inset: 0;
@@ -445,7 +407,7 @@
   50% { transform: translate3d(-2px, -1px, 0); }
 }
 
-/* Radiance — a breathing halo with a slow aurora turning inside it. */
+/* Radiance */
 .fx-ov-swats_radiance {
   background: radial-gradient(circle, rgba(180, 191, 250, .32) 42%, transparent 72%);
   animation: fx-sw-radiance 5.2s ease-in-out infinite;
@@ -471,7 +433,7 @@
   to { transform: rotate(360deg); }
 }
 
-/* Twilight — dusk bands drifting across each other. */
+/* Twilight */
 .fx-ov-swats_twilight {
   background: linear-gradient(180deg, rgba(140, 113, 232, .42) 0%, rgba(30, 27, 75, .5) 58%, rgba(8, 8, 12, .6) 100%);
   animation: fx-sw-dusk 8.5s ease-in-out infinite;
@@ -491,7 +453,7 @@
   50% { transform: translate3d(10%, -4%, 0); }
 }
 
-/* Frosted Edge — crisp glass border over a slowly crawling frost. */
+/* Frosted Edge */
 .fx-ov-swats_frosted {
   box-shadow:
     inset 0 0 0 1.5px rgba(255, 255, 255, .24),
@@ -510,7 +472,7 @@
   100% { background-position: 0 0; }
 }
 
-/* Starlight — two starfields at different depths, each crawling its own way. */
+/* Starlight */
 .fx-ov-swats_starlight {
   background-image:
     radial-gradient(1.5px 1.5px at 22% 24%, #fff, transparent),
@@ -530,8 +492,6 @@
 @keyframes fx-sw-stars-far {
   to { background-position: 60px 60px; }
 }
-/* Opacity only: the stars crawl on their own keyframe, and a scale here would
-   swing the whole layer (and every star in it) rather than twinkle it. */
 @keyframes fx-sw-stars-breathe {
   0%, 100% { opacity: .66; }
   50% { opacity: 1; }
@@ -540,7 +500,7 @@
   to { background-position: -46px -92px; }
 }
 
-/* Eclipse — a dark ring with a shadow turning behind it. */
+/* Eclipse */
 .fx-ov-swats_eclipse {
   box-shadow:
     inset 0 0 0 3px rgba(0, 0, 0, .82),
@@ -561,7 +521,7 @@
   to { transform: rotate(360deg); }
 }
 
-/* Mirage — heat off the edges: two veils moving against each other. */
+/* Mirage */
 .fx-ov-swats_mirage::before,
 .fx-ov-swats_mirage::after {
   inset: -12% 0;
@@ -584,11 +544,7 @@
   50% { transform: translate3d(-2%, 3%, 0) scaleY(.97); }
 }
 
-/* ---------------------------------------------------- 8-BIT CURSOR PETS ---
-   PetSprite paints one pixel per <i>. The bob is whole pixels and stepped, so a
-   pet reads as a sprite walking rather than a sticker sliding about. The
-   reduced-motion case is handled by the class the caller adds, not here.
-   -------------------------------------------------------------------------- */
+/* ---------------------------------------------------- CURSOR PETS --- */
 
 .fx-pet {
   position: relative;
@@ -609,9 +565,7 @@
   to { transform: translateY(-3px); }
 }
 
-/* -------------------------------------------------- CURSOR FX TILE DEMO ---
-   Live preview tiles in the editor: .fx-cursor-demo holds four <i> markers.
-   -------------------------------------------------------------------------- */
+/* -------------------------------------------------- CURSOR FX TILE DEMO --- */
 
 .fx-cursor-demo {
   position: relative;
@@ -630,9 +584,6 @@
   will-change: transform, opacity;
 }
 
-/* ghost.html's seven pointer effects, shown as the mark each one leaves:
-   the sparkle's white star, star-dust's pale specks, the six-spoke flake, the
-   blood drip, the spark streak and the two trail beads. */
 .fx-cursor-sparkle i {
   width: 11px;
   height: 11px;
@@ -722,7 +673,6 @@
   100% { transform: translate3d(30px, 0, 0); }
 }
 
-/* black-trail: white halo, black bead — the ghost file draws both every knot. */
 .fx-cursor-black-trail i {
   background: transparent;
   border-radius: 9999px;
@@ -734,25 +684,9 @@
 .fx-cursor-black-trail i:nth-child(4) { opacity: .3; animation-delay: .3s; }
 
 
-/* ------------------------------------------------ ACCESSIBILITY / MOTION ---
-   Effects are the product here: the owner chooses one deliberately, previews it
-   and puts it on their card. They are therefore never switched off.
-
-   A blanket `animation: none !important` used to live in this block, and because
-   browsers commonly report `prefers-reduced-motion: reduce` (Windows: Settings →
-   Accessibility → Visual effects → Animation effects, which ships OFF for many
-   people) every effect on every profile and in the editor rendered as plain,
-   motionless text — indistinguishable from the feature being broken.
-
-   Only the layers that flash the whole viewport are calmed, because those are
-   the ones that can genuinely trouble a photosensitive visitor. They stay
-   clearly visible, just far less rapid.
-   -------------------------------------------------------------------------- */
+/* ------------------------------------------------ ACCESSIBILITY / MOTION --- */
 
 @media (prefers-reduced-motion: reduce) {
-  /* Calm the strobers, keep them animating. The canvas layers (ghost's bg,
-     overlay and pointer engines) keep their own pace — version 1's cadence is
-     already slow per-strike — so only the DOM text/care/tile loops slow down. */
   .fx-text-flicker,
   .fx-text-glitch,
   .fx-text-shake,
@@ -761,16 +695,11 @@
     animation-duration: 14s !important;
   }
 
-  /* Held-still layers would otherwise be invisible; keep them present. */
   .fx-cursor-demo i { opacity: 1; }
 }
 
-/* --------------------------------------------------------------------------
+/* -------------------------------------------------------------------------- 
    Reveal animations
-
-   The Animation setting in the Editor's Card Layout tab picks one of these.
-   Kept here rather than inline so the keyframes can be shared by every layout
-   and silenced by prefers-reduced-motion below.
    -------------------------------------------------------------------------- */
 
 @keyframes fxRevealBlur {
@@ -782,27 +711,6 @@
   animation: fxRevealBlur 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-/* Reduced motion keeps the reveal, it just arrives instantly. Switching the
-   animation off outright would strand the block at its "from" state — invisible —
-   which is exactly what the effects.css contract forbids. */
 @media (prefers-reduced-motion: reduce) {
   .fx-reveal-blur { animation-duration: 1ms; }
 }
-
-.sw-bg-canvas {
-  mix-blend-mode: screen;
-}
-
-.sw-bg-canvas[data-effect="rain"],
-.sw-bg-canvas[data-effect="shooting-stars"],
-.sw-bg-canvas[data-effect="thunder"],
-.sw-bg-canvas[data-effect="constellation"],
-.sw-bg-canvas[data-effect="galaxy"],
-.sw-bg-canvas[data-effect="rain-fall"],
-.sw-bg-canvas[data-effect="bleeding"],
-.sw-bg-canvas[data-effect="tv"],
-.sw-bg-canvas[data-effect="snow-flake"],
-.sw-bg-canvas[data-effect="frosted"] {
-  mix-blend-mode: normal;
-}
-
