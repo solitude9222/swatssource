@@ -1161,76 +1161,6 @@ export default function Editor() {
           >
           {sub === "about" && (
             <>
-            {/* Media Upload Tiles */}
-            <div className="rounded-[20px] border border-white/[0.07] bg-[#111113] p-5 sm:p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-500/15">
-                  <ImageIcon className="h-4 w-4 text-brand-400" />
-                </div>
-                <div>
-                  <h2 className="text-sm font-bold text-white">Media</h2>
-                  <p className="text-[11px] text-zinc-500">Avatar, background, audio and cursor</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {/* Avatar Tile */}
-                <button
-                  type="button"
-                  onClick={() => setShowAvatarModal(true)}
-                  className="group flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-white/[0.08] bg-[#0c0c0e] p-5 text-center transition hover:border-[#b4bffa]/50 hover:bg-[#141416] cursor-pointer min-h-[120px]"
-                >
-                  <div className="text-xs font-semibold text-white mb-1">Avatar</div>
-                  {p.avatar_url ? (
-                    <img src={fileUrl(p.avatar_url)} alt="" className="h-12 w-12 rounded-full object-cover ring-2 ring-white/10" />
-                  ) : (
-                    <ImageIcon className="h-8 w-8 text-zinc-600" />
-                  )}
-                  <span className="text-[10px] text-zinc-600">{p.avatar_url ? "Click to edit" : "Upload an avatar"}</span>
-                </button>
-
-                {/* Background Tile */}
-                <button
-                  type="button"
-                  onClick={() => setShowBackgroundModal(true)}
-                  className="group flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-white/[0.08] bg-[#0c0c0e] p-5 text-center transition hover:border-[#b4bffa]/50 hover:bg-[#141416] cursor-pointer min-h-[120px]"
-                >
-                  <div className="text-xs font-semibold text-white mb-1">Background</div>
-                  {p.background_url ? (
-                    <img src={fileUrl(p.background_url)} alt="" className="h-12 w-20 rounded-lg object-cover ring-1 ring-white/10" />
-                  ) : (
-                    <ImageIcon className="h-8 w-8 text-zinc-600" />
-                  )}
-                  <span className="text-[10px] text-zinc-600">{p.background_url ? "Click to edit" : "Upload a background"}</span>
-                </button>
-
-                {/* Audio Tile */}
-                <button
-                  type="button"
-                  onClick={() => setShowAudioModal(true)}
-                  className="group flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-white/[0.08] bg-[#0c0c0e] p-5 text-center transition hover:border-[#b4bffa]/50 hover:bg-[#141416] cursor-pointer min-h-[120px]"
-                >
-                  <div className="text-xs font-semibold text-white mb-1">Audio</div>
-                  <Music className="h-8 w-8 text-zinc-600" />
-                  <span className="text-[10px] text-zinc-600">{p.tracks?.length ? `${p.tracks.length} tracks` : "Add audio"}</span>
-                </button>
-
-                {/* Cursor Tile */}
-                <button
-                  type="button"
-                  onClick={() => setShowCursorModal(true)}
-                  className="group flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-white/[0.08] bg-[#0c0c0e] p-5 text-center transition hover:border-[#b4bffa]/50 hover:bg-[#141416] cursor-pointer min-h-[120px]"
-                >
-                  <div className="text-xs font-semibold text-white mb-1">Cursor</div>
-                  {p.custom_cursor ? (
-                    <img src={fileUrl(p.custom_cursor)} alt="" className="h-8 w-8 object-contain" />
-                  ) : (
-                    <MousePointer2 className="h-8 w-8 text-zinc-600" />
-                  )}
-                  <span className="text-[10px] text-zinc-600">{p.custom_cursor || p.cursor_effect ? "Click to edit" : "Manage cursors"}</span>
-                </button>
-              </div>
-            </div>
-
             <Section title="About Me" hint="Your display name, bio, and personal info">
               <ProfileRow label="Display Name">
                 <input
@@ -3014,31 +2944,6 @@ export default function Editor() {
             </div>
           )}
 
-          {/* Background Effects */}
-          <div className="space-y-3 pt-4 border-t border-white/[0.06]">
-            <div className="flex items-center justify-between">
-              <label className="block text-xs font-semibold text-zinc-300">Background Effects</label>
-              <button
-                type="button"
-                onClick={() => { setShowBackgroundModal(false); setShowBgEffectsModal(true); }}
-                className="text-[11px] text-[#b4bffa] hover:underline cursor-pointer"
-              >
-                {p.background_effect ? "Change Effect" : "Add Effect"}
-              </button>
-            </div>
-            {p.background_effect && (
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-zinc-400">Active: {BACKGROUND_EFFECTS.find(e => e.id === p.background_effect)?.label || p.background_effect}</span>
-                <button
-                  type="button"
-                  onClick={() => set("background_effect", "")}
-                  className="text-[11px] text-zinc-500 hover:text-white"
-                >
-                  Remove
-                </button>
-              </div>
-            )}
-          </div>
         </div>
       </FxModal>
 
@@ -3195,45 +3100,6 @@ export default function Editor() {
             </div>
           </div>
 
-          {/* Cursor Size */}
-          {p.custom_cursor && (
-            <SliderRow
-              testid="modal-cursor-size"
-              label="Cursor Size"
-              value={Number(p.cursor_size ?? 100)}
-              min={50}
-              max={200}
-              step={5}
-              suffix="%"
-              onChange={(v) => set("cursor_size", v)}
-            />
-          )}
-
-          {/* Cursor Effects */}
-          <div className="space-y-3 pt-4 border-t border-white/[0.06]">
-            <div className="flex items-center justify-between">
-              <label className="block text-xs font-semibold text-zinc-300">Cursor Effects</label>
-              <button
-                type="button"
-                onClick={() => { setShowCursorModal(false); setShowCursorEffectsModal(true); }}
-                className="text-[11px] text-[#b4bffa] hover:underline cursor-pointer"
-              >
-                {p.cursor_effect ? "Change Effect" : "Add Effect"}
-              </button>
-            </div>
-            {p.cursor_effect && (
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-zinc-400">Active: {CURSOR_EFFECTS.find(e => e.id === p.cursor_effect)?.label || p.cursor_effect}</span>
-                <button
-                  type="button"
-                  onClick={() => set("cursor_effect", "")}
-                  className="text-[11px] text-zinc-500 hover:text-white"
-                >
-                  Remove
-                </button>
-              </div>
-            )}
-          </div>
         </div>
       </FxModal>
 
