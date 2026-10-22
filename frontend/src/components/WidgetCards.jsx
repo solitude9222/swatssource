@@ -5,6 +5,7 @@ import {
 } from "@/lib/widgets";
 import { WIDGET_SURFACE_DEFAULTS, POPULAR_GAMES_PRESETS } from "@/constants/widgets";
 import { useTooltip, resolveTooltipStyle } from "@/components/FxTooltip";
+import { resolveLayout } from "@/constants/layouts";
 import {
   AlertTriangle, ArrowRight, Building2, Calendar, Check, Clock, Code2,
   ExternalLink, Globe, Info, MapPin, Pause, Play, RefreshCw, Sparkles, Star,
@@ -45,6 +46,139 @@ const BRAND_ICON = {
 };
 
 const LIVE_TYPES = new Set(["discord", "roblox:game", "weather"]);
+
+// Tech tag icons mapping - maps technology names to their icons
+const TECH_TAG_ICONS = {
+  // JavaScript ecosystem
+  "javascript": "JS",
+  "typescript": "TS",
+  "react": "⚛",
+  "react.js": "⚛",
+  "next.js": "▲",
+  "nextjs": "▲",
+  "vue": "💚",
+  "vue.js": "💚",
+  "vuejs": "💚",
+  "angular": "🅰",
+  "svelte": "🔥",
+  "node": "⬢",
+  "node.js": "⬢",
+  "nodejs": "⬢",
+  "express": "⚡",
+  "express.js": "⚡",
+  // Styling
+  "css": "🎨",
+  "scss": "🎨",
+  "sass": "🎨",
+  "tailwind": "🌊",
+  "tailwindcss": "🌊",
+  "tailwind css": "🌊",
+  "styled-components": "💅",
+  // Languages
+  "python": "🐍",
+  "rust": "🦀",
+  "go": "🐹",
+  "golang": "🐹",
+  "java": "☕",
+  "kotlin": "🎯",
+  "swift": "🍎",
+  "c++": "⚡",
+  "c#": "🎯",
+  "csharp": "🎯",
+  "php": "🐘",
+  "ruby": "💎",
+  "ruby on rails": "💎",
+  "rails": "💎",
+  // Databases
+  "mongodb": "🍃",
+  "mongo": "🍃",
+  "postgres": "🐘",
+  "postgresql": "🐘",
+  "mysql": "🐬",
+  "redis": "🔴",
+  "sqlite": "📦",
+  "firebase": "🔥",
+  "supabase": "⚡",
+  "prisma": "🔺",
+  // Frameworks & Tools
+  "docker": "🐳",
+  "kubernetes": "☸",
+  "k8s": "☸",
+  "aws": "☁",
+  "azure": "☁",
+  "gcp": "☁",
+  "vercel": "▲",
+  "netlify": "◆",
+  "graphql": "◈",
+  "rest": "🔗",
+  "api": "🔌",
+  // Game Dev
+  "unity": "🎮",
+  "unreal": "🎮",
+  "unreal engine": "🎮",
+  "godot": "🎮",
+  "blender": "🔶",
+  "three.js": "🎲",
+  "threejs": "🎲",
+  "webgl": "🎲",
+  // Mobile
+  "flutter": "💙",
+  "react native": "📱",
+  "ionic": "⚡",
+  // Other
+  "git": "📝",
+  "github": "🐙",
+  "gitlab": "🦊",
+  "vscode": "💠",
+  "linux": "🐧",
+  "macos": "🍎",
+  "windows": "🪟",
+  "webpack": "📦",
+  "vite": "⚡",
+  "npm": "📦",
+  "yarn": "🐱",
+  "pnpm": "📦",
+};
+
+// Get icon for a tech tag
+const getTechTagIcon = (tag) => {
+  const normalized = tag.toLowerCase().trim();
+  return TECH_TAG_ICONS[normalized] || "◆";
+};
+
+// Get color for a tech tag based on category
+const getTechTagColor = (tag) => {
+  const normalized = tag.toLowerCase().trim();
+  if (["react", "react.js", "next.js", "nextjs", "vue", "vue.js", "vuejs", "angular", "svelte"].includes(normalized)) {
+    return { bg: "bg-cyan-500/15", border: "border-cyan-500/30", text: "text-cyan-300", icon: "text-cyan-400" };
+  }
+  if (["javascript", "typescript", "node", "node.js", "nodejs", "express", "express.js"].includes(normalized)) {
+    return { bg: "bg-yellow-500/15", border: "border-yellow-500/30", text: "text-yellow-200", icon: "text-yellow-400" };
+  }
+  if (["python", "django", "flask"].includes(normalized)) {
+    return { bg: "bg-blue-500/15", border: "border-blue-500/30", text: "text-blue-200", icon: "text-blue-400" };
+  }
+  if (["rust", "go", "golang"].includes(normalized)) {
+    return { bg: "bg-orange-500/15", border: "border-orange-500/30", text: "text-orange-200", icon: "text-orange-400" };
+  }
+  if (["tailwind", "tailwindcss", "tailwind css", "css", "scss", "sass"].includes(normalized)) {
+    return { bg: "bg-teal-500/15", border: "border-teal-500/30", text: "text-teal-200", icon: "text-teal-400" };
+  }
+  if (["mongodb", "mongo", "postgres", "postgresql", "mysql", "redis", "sqlite", "firebase", "supabase", "prisma"].includes(normalized)) {
+    return { bg: "bg-emerald-500/15", border: "border-emerald-500/30", text: "text-emerald-200", icon: "text-emerald-400" };
+  }
+  if (["docker", "kubernetes", "k8s", "aws", "azure", "gcp", "vercel", "netlify"].includes(normalized)) {
+    return { bg: "bg-violet-500/15", border: "border-violet-500/30", text: "text-violet-200", icon: "text-violet-400" };
+  }
+  if (["unity", "unreal", "unreal engine", "godot", "blender", "three.js", "threejs", "webgl"].includes(normalized)) {
+    return { bg: "bg-pink-500/15", border: "border-pink-500/30", text: "text-pink-200", icon: "text-pink-400" };
+  }
+  if (["git", "github", "gitlab", "webpack", "vite", "npm", "yarn", "pnpm"].includes(normalized)) {
+    return { bg: "bg-rose-500/15", border: "border-rose-500/30", text: "text-rose-200", icon: "text-rose-400" };
+  }
+  // Default styling
+  return { bg: "bg-indigo-500/15", border: "border-indigo-500/30", text: "text-indigo-200", icon: "text-indigo-400" };
+};
 
 // Helper to format relative years ("Joined 9 years ago", "Joined 17 years ago")
 function formatYearsAgo(dateValue) {
@@ -2104,8 +2238,14 @@ function GamesCard({ w, accent }) {
   );
 }
 
-function ProjectsCard({ w, accent }) {
+function ProjectsCard({ w, accent, profile }) {
   const [selectedType, setSelectedType] = useState(w?.subtype || w?.project_type || "code");
+
+  // Check if we're on slideshow layout - type selector only works on slideshow
+  const layout = profile?.layout ? resolveLayout(profile.layout) : null;
+  const isSlideshow = layout === "slideshow";
+  // If not slideshow, lock to the saved subtype or default to code
+  const effectiveType = isSlideshow ? selectedType : (w?.subtype || w?.project_type || "code");
 
   const types = [
     { id: "code", label: "Code", Icon: Code2 },
@@ -2114,12 +2254,12 @@ function ProjectsCard({ w, accent }) {
     { id: "design", label: "Design", Icon: Palette },
   ];
 
-  const currentType = types.find((t) => t.id === selectedType) || types[0];
+  const currentType = types.find((t) => t.id === effectiveType) || types[0];
   const CurrentIcon = currentType.Icon;
 
-  const title = w?.title || (selectedType === "code" ? "tourn.lol engine" : selectedType === "game" ? "Aether Quest" : selectedType === "web" ? "NextGen Web" : "Design System");
-  const desc = w?.description || (selectedType === "code" ? "High performance biolink profile engine with real-time analytics and widgets." : "Creative interactive experience crafted with modern tools.");
-  const tagsRaw = w?.tags || (selectedType === "code" ? "React, TypeScript, Rust, Tailwind" : "Unreal, C++, Blender");
+  const title = w?.title || (effectiveType === "code" ? "tourn.lol engine" : effectiveType === "game" ? "Aether Quest" : effectiveType === "web" ? "NextGen Web" : "Design System");
+  const desc = w?.description || (effectiveType === "code" ? "High performance biolink profile engine with real-time analytics and widgets." : "Creative interactive experience crafted with modern tools.");
+  const tagsRaw = w?.tags || (effectiveType === "code" ? "React, TypeScript, Rust, Tailwind" : "Unreal, C++, Blender");
   const tags = useMemo(() => {
     return tagsRaw.split(",").map((t) => t.trim()).filter(Boolean);
   }, [tagsRaw]);
@@ -2140,18 +2280,19 @@ function ProjectsCard({ w, accent }) {
           </span>
         </div>
 
-        {/* Project Type Picker Menu */}
-        <div className="flex items-center gap-1 bg-black/40 border border-white/10 p-0.5 rounded-lg shrink-0">
+        {/* Project Type Picker Menu - only interactive on slideshow layout */}
+        <div className={`flex items-center gap-1 bg-black/40 border border-white/10 p-0.5 rounded-lg shrink-0 ${!isSlideshow ? "opacity-60 cursor-not-allowed" : ""}`}>
           {types.map((t) => {
-            const active = selectedType === t.id;
+            const active = effectiveType === t.id;
             const Icon = t.Icon;
             return (
               <button
                 key={t.id}
                 type="button"
-                onClick={() => setSelectedType(t.id)}
-                title={t.label}
-                className={`px-2 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase transition flex items-center gap-1 cursor-pointer ${
+                onClick={() => isSlideshow && setSelectedType(t.id)}
+                disabled={!isSlideshow}
+                title={isSlideshow ? t.label : `${t.label} (only available on Slideshow layout)`}
+                className={`px-2 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase transition flex items-center gap-1 ${isSlideshow ? "cursor-pointer" : "cursor-default"} ${
                   active
                     ? "bg-indigo-500 text-white shadow-sm"
                     : "text-zinc-400 hover:text-white hover:bg-white/5"
@@ -2172,7 +2313,7 @@ function ProjectsCard({ w, accent }) {
             <span>{title}</span>
             {w?.platform_badge !== false && (
               <span className="px-1.5 py-0.5 rounded text-[9px] font-mono2 font-bold uppercase bg-white/10 border border-white/15 text-zinc-300">
-                {selectedType}
+                {effectiveType}
               </span>
             )}
           </h4>
@@ -2197,19 +2338,22 @@ function ProjectsCard({ w, accent }) {
         )}
       </div>
 
-      {/* Code / Tech Tags */}
+      {/* Code / Tech Tags as styled bubbles with icons */}
       {tags.length > 0 && w?.show_tags !== false && (
-        <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-white/10">
-          {tags.map((tag, idx) => (
-            <span
-              key={idx}
-              className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg font-mono2 text-[10px] font-semibold bg-white/[0.04] border border-white/10 text-zinc-300 transition-all hover:border-indigo-400 hover:text-white"
-            >
-              <span className="text-indigo-400 font-bold">&lt;</span>
-              <span>{tag}</span>
-              <span className="text-indigo-400 font-bold">/&gt;</span>
-            </span>
-          ))}
+        <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-white/10">
+          {tags.map((tag, idx) => {
+            const tagIcon = getTechTagIcon(tag);
+            const tagColors = getTechTagColor(tag);
+            return (
+              <span
+                key={idx}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold ${tagColors.bg} ${tagColors.border} ${tagColors.text} border transition-all hover:scale-105 hover:brightness-110 cursor-default`}
+              >
+                <span className={`${tagColors.icon} text-xs`}>{tagIcon}</span>
+                <span>{tag}</span>
+              </span>
+            );
+          })}
         </div>
       )}
     </div>

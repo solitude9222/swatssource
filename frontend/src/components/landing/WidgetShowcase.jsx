@@ -88,11 +88,11 @@ const Tilt = ({ children, index, accent = "#b4bffa" }) => {
             style={{ mixBlendMode: "overlay" }}
           />
 
-          {/* Dynamic colorful aura glow */}
+          {/* Dynamic colorful aura glow - subtle, not blurry */}
           <span
             aria-hidden
-            className="pointer-events-none absolute -inset-3 rounded-3xl opacity-0 blur-2xl transition-opacity duration-300 group-hover:opacity-75"
-            style={{ background: `radial-gradient(circle at 50% 30%, ${accent}45, transparent 70%)` }}
+            className="pointer-events-none absolute -inset-2 rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-50"
+            style={{ background: `radial-gradient(circle at 50% 30%, ${accent}30, transparent 60%)` }}
           />
 
           <div style={{ transform: "translateZ(34px)" }} className="relative z-10">
