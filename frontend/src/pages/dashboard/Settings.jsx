@@ -32,6 +32,7 @@ export default function Settings() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
+  const isPremium = user?.tier === "premium" || user?.tier === "admin" || user?.role === "admin" || !!user?.is_owner;
   const activeTab = searchParams.get("tab") === "billing" ? "billing" : "account";
   const setTab = (tab) => {
     if (tab === "billing") setSearchParams({ tab: "billing" });
@@ -40,6 +41,8 @@ export default function Settings() {
 
   const [username, setUsername] = useState(user?.username || "");
   const [savingUser, setSavingUser] = useState(false);
+  const [secondaryAlias, setSecondaryAlias] = useState(user?.secondary_alias || "");
+  const [savingSecondary, setSavingSecondary] = useState(false);
   const [emailRevealed, setEmailRevealed] = useState(false);
 
   // Password State
@@ -90,6 +93,18 @@ export default function Settings() {
       toast.error(e.response?.data?.detail || "Could not update username");
     }
     setSavingUser(false);
+  };
+
+  const saveSecondaryAlias = async () => {
+    setSavingSecondary(true);
+    try {
+      const { data } = await api.put("/me/secondary-alias", { secondary_alias: secondaryAlias.trim() });
+      setUser(data);
+      toast.success(secondaryAlias.trim() ? "Secondary alias claimed successfully!" : "Secondary alias cleared");
+    } catch (e) {
+      toast.error(e.response?.data?.detail || "Could not update secondary alias");
+    }
+    setSavingSecondary(false);
   };
 
   const handlePasswordChange = async (e) => {
@@ -277,7 +292,10 @@ export default function Settings() {
 
               <div className="space-y-3">
                 <div>
-                  <label className="block text-[11px] font-semibold text-zinc-400 mb-1.5">Profile Alias / Handle</label>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-[11px] font-semibold text-zinc-400">Primary Handle</label>
+                    <span className="text-[10px] text-zinc-500 font-mono2">tourn.lol/@{user?.username}</span>
+                  </div>
                   <div className="flex gap-2">
                     <div className="relative flex-1">
                       <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-mono2 text-zinc-500">@</span>
@@ -298,6 +316,50 @@ export default function Settings() {
                       {savingUser ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Save"}
                     </button>
                   </div>
+                </div>
+
+                {/* Secondary Alias (Premium Perk: Claim up to 2 aliases) */}
+                <div className="pt-2 border-t border-white/[0.06]">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <div className="flex items-center gap-1.5">
+                      <label className="text-[11px] font-semibold text-zinc-400">Secondary Handle</label>
+                      <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                        2nd Alias (Premium)
+                      </span>
+                    </div>
+                    {user?.secondary_alias && (
+                      <span className="text-[10px] text-emerald-400 font-mono2">tourn.lol/@{user.secondary_alias}</span>
+                    )}
+                  </div>
+                  {isPremium ? (
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-mono2 text-zinc-500">@</span>
+                        <input
+                          type="text"
+                          value={secondaryAlias}
+                          placeholder="Claim a 2nd handle (e.g. alt tag)"
+                          onChange={(e) => setSecondaryAlias(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""))}
+                          className="w-full pl-8 pr-3 py-2 rounded-xl bg-black/50 border border-white/[0.08] text-xs text-white outline-none focus:border-[#b4bffa] placeholder:text-zinc-600"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={saveSecondaryAlias}
+                        disabled={savingSecondary}
+                        className="px-4 py-2 rounded-xl bg-[#b4bffa] text-black font-bold text-xs hover:brightness-110 transition disabled:opacity-50 cursor-pointer"
+                      >
+                        {savingSecondary ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Claim"}
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="p-2.5 rounded-xl bg-amber-500/5 border border-amber-500/20 flex items-center justify-between text-xs">
+                      <span className="text-zinc-400 text-[11px]">Premium members can claim 2 aliases</span>
+                      <a href="/!/pricing" className="text-[11px] font-bold text-amber-300 hover:underline">
+                        Unlock 2nd Alias →
+                      </a>
+                    </div>
+                  )}
                 </div>
 
                 {/* Email with Hover Blur Effect */}

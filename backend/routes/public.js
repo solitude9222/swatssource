@@ -29,7 +29,10 @@ router.get('/.well-known/discord', (req, res) => {
 router.get('/u/:alias', async (req, res) => {
   try {
     const alias = req.params.alias.trim().toLowerCase();
-    const { rows } = await query('SELECT * FROM users WHERE LOWER(username) = $1', [alias]);
+    const { rows } = await query(
+      'SELECT * FROM users WHERE LOWER(username) = $1 OR LOWER(COALESCE(secondary_alias, \'\')) = $1',
+      [alias]
+    );
 
     if (rows.length === 0) {
       return res.status(404).json({ detail: 'User not found' });

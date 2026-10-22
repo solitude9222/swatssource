@@ -353,6 +353,52 @@ router.put('/username', requireAuth, requireDiscordToEdit, async (req, res) => {
   }
 });
 
+// PUT /api/me/secondary-alias (Premium Perk: Claim up to 2 aliases)
+router.put('/secondary-alias', requireAuth, requireDiscordToEdit, async (req, res) => {
+  try {
+    const isPremium = req.user.tier === 'premium' || req.user.tier === 'admin' || req.user.role === 'admin' || !!req.user.is_owner;
+    if (!isPremium) {
+      return res.status(403).json({ detail: 'Claiming a second alias is a Premium perk. Upgrade to claim up to 2 aliases.' });
+    }
+
+    const { secondary_alias } = req.body;
+    if (!secondary_alias || !secondary_alias.trim()) {
+      const { rows } = await query('UPDATE users SET secondary_alias = NULL WHERE id = $1 RETURNING *', [req.user.id]);
+      return res.json(formatUser(rows[0]));
+    }
+
+    const clean = secondary_alias.trim().toLowerCase();
+    if (!/^[a-z0-9_.]{2,20}$/.test(clean)) {
+      return res.status(400).json({ detail: 'Alias must be 2-20 characters: letters, numbers, _, .' });
+    }
+
+    if (RESERVED.has(clean)) {
+      return res.status(400).json({ detail: 'This alias is reserved' });
+    }
+
+    if (clean === req.user.username?.toLowerCase()) {
+      return res.status(400).json({ detail: 'This is already your primary username' });
+    }
+
+    const existing = await query(
+      'SELECT id FROM users WHERE (LOWER(username) = $1 OR LOWER(COALESCE(secondary_alias, \'\')) = $1) AND id != $2',
+      [clean, req.user.id]
+    );
+    if (existing.rows.length > 0) {
+      return res.status(400).json({ detail: 'Alias already taken' });
+    }
+
+    const { rows } = await query(
+      'UPDATE users SET secondary_alias = $1 WHERE id = $2 RETURNING *',
+      [clean, req.user.id]
+    );
+    return res.json(formatUser(rows[0]));
+  } catch (err) {
+    console.error('Secondary alias update error:', err);
+    return res.status(500).json({ detail: 'Failed to update secondary alias' });
+  }
+});
+
 // PUT /api/me/password
 router.put('/password', requireAuth, async (req, res) => {
   try {

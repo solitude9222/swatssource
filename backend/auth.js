@@ -125,6 +125,7 @@ export function formatUser(row) {
   return {
     id: row.id,
     username: row.username,
+    secondary_alias: row.secondary_alias || null,
     display_name: row.display_name || row.username,
     email: row.email,
     role: row.role || 'user',

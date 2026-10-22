@@ -6,7 +6,7 @@ import { useProfileViewTracker } from "@/lib/viewTracker";
 import { ProfilePreview, viewsInCorner, compactCount } from "@/components/ProfilePreview";
 import { CursorEffect } from "@/components/CursorEffect";
 import { CustomCursor } from "@/components/CustomCursor";
-import { Eye } from "lucide-react";
+import { Eye, ShoppingBag } from "lucide-react";
 import { fontStackOf, ensureFontsLoaded } from "@/constants/fonts";
 
 // Where a moved view counter sits. The four corners are the page's, not the
@@ -358,6 +358,18 @@ export default function PublicProfile() {
           <Eye className="h-3.5 w-3.5" />
           {compactCount(views)}
         </div>
+      )}
+
+      {/* Premium Creator Storefront Link */}
+      {(data?.tier === "premium" || data?.tier === "admin" || !!data?.is_owner || data?.is_premium) && (
+        <a
+          href={`/${data?.username || alias}/shop`}
+          className="fixed top-4 right-4 z-40 inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-black/70 hover:bg-black px-3.5 py-1.5 text-[11px] font-semibold text-zinc-200 shadow-xl backdrop-blur-md transition-all hover:border-[#b4bffa]/50 hover:text-white cursor-pointer"
+          title={`${data?.display_name || data?.username || "Creator"}'s Shop`}
+        >
+          <ShoppingBag className="h-3.5 w-3.5 text-[#b4bffa]" />
+          <span>Shop</span>
+        </a>
       )}
 
       {p.hide_footer !== true && (

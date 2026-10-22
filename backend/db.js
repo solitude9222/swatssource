@@ -112,6 +112,7 @@ export async function initDb() {
       );
 
       ALTER TABLE users ADD COLUMN IF NOT EXISTS last_username_change TIMESTAMPTZ;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS secondary_alias TEXT UNIQUE;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS custom_badges JSONB DEFAULT '[]';
       ALTER TABLE users ADD COLUMN IF NOT EXISTS equipped_badges TEXT[] DEFAULT '{}';
       -- Per-user third-party API keys (Riot / YouTube / GitHub) used only by the

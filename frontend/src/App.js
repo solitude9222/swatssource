@@ -20,6 +20,7 @@ const Explore = lazy(() => import("@/pages/Explore"));
 const Docs = lazy(() => import("@/pages/Docs"));
 const Ranked = lazy(() => import("@/pages/Ranked"));
 const Marketplace = lazy(() => import("@/pages/Marketplace"));
+const UserShop = lazy(() => import("@/pages/UserShop"));
 
 // Route-level code splitting. The dashboard (and its two variants) is the bulk
 // of the bundle and is never needed before login, so each page is fetched on
@@ -226,7 +227,9 @@ function App() {
               <Route path="/!/dashboard-new" element={<Navigate to="/!/dashboard" replace />} />
               <Route path="/!/dashboard-new/*" element={<Navigate to="/!/dashboard" replace />} />
 
-              {/* Dynamic User Profile Alias (tourn.lol/:alias) */}
+              {/* Dynamic User Profile Alias (tourn.lol/:alias) & Storefront */}
+              <Route path="/:alias/shop" element={<UserShop />} />
+              <Route path="/@:alias/shop" element={<UserShop />} />
               <Route path="/:alias" element={<PublicProfile />} />
             </Routes>
             </Suspense>
