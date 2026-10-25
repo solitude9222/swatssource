@@ -9,23 +9,48 @@ import { Sparkles } from "lucide-react";
 const WIDGETS = [
   {
     accent: "#1DB954",
-    w: { type: "spotify", title: "Spotify", url: "https://open.spotify.com/track/3P61wVXNlCuTa7zSnTN3Zv" },
+    w: {
+      type: "spotify",
+      title: "Spotify Player",
+      track: "FE!N (feat. Playboi Carti)",
+      artist: "Travis Scott",
+      url: "https://open.spotify.com/track/3P61wVXNlCuTa7zSnTN3Zv",
+    },
   },
   {
     accent: "#ff5500",
-    w: { type: "soundcloud", title: "SoundCloud", url: "https://soundcloud.com/bondages" },
+    w: {
+      type: "soundcloud",
+      title: "SoundCloud",
+      url: "https://soundcloud.com/bondages",
+    },
   },
   {
-    accent: "#ff0050",
-    w: { type: "tiktok", title: "TikTok", url: "https://www.tiktok.com/@koniwtfs" },
+    accent: "#fe2c55",
+    w: {
+      type: "tiktok",
+      title: "TikTok",
+      username: "koniwtfs",
+      url: "https://www.tiktok.com/@koniwtfs",
+    },
   },
   {
     accent: "#5865F2",
-    w: { type: "discord", subtype: "profile", title: "Discord", user_id: "1546745348020772915" },
+    w: {
+      type: "discord",
+      subtype: "profile",
+      title: "Discord",
+      user_id: "1546745348020772915",
+    },
   },
   {
     accent: "#5865F2",
-    w: { type: "discord", subtype: "server", title: "tourn.lol", invite_url: "https://discord.gg/a9uwptuepD" },
+    w: {
+      type: "discord",
+      subtype: "server",
+      title: "tourn.lol",
+      invite_url: "https://discord.gg/a9uwptuepD",
+    },
   },
 ];
 

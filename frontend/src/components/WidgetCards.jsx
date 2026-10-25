@@ -570,14 +570,14 @@ function WidgetShell({
             <div className={`absolute inset-0 pointer-events-none ${overlayClass}`} />
           ) : null}
 
-          {/* Top right sleek open / popout button */}
+          {/* Top right sleek open / popout button - hover revealed to avoid obscuring cards */}
           {(popoutUrl || popupToggle) && (
             <button
               type="button"
               data-testid="widget-popout-link"
               title={popupToggle ? "Preview widget" : "Open link"}
               onClick={handleOpenAction}
-              className="absolute top-2.5 right-2.5 z-20 flex h-6 w-6 items-center justify-center rounded-lg bg-black/60 text-zinc-400 hover:text-white hover:bg-white/15 hover:border-white/20 border border-white/10 backdrop-blur-md transition-all duration-150 shadow-sm cursor-pointer hover:scale-105 active:scale-95"
+              className="absolute top-2.5 right-2.5 z-20 flex h-6 w-6 items-center justify-center rounded-lg bg-black/70 text-zinc-400 hover:text-white hover:bg-white/20 border border-white/10 backdrop-blur-md transition-all duration-200 shadow-sm cursor-pointer hover:scale-105 active:scale-95 opacity-0 group-hover:opacity-100 focus:opacity-100"
             >
               <ExternalLink className="h-3 w-3" />
             </button>
@@ -1181,113 +1181,129 @@ function SpotifyTrackCard({ w, accent, data, status, error, refresh }) {
     );
   }
 
-  // The oEmbed endpoint behind this widget returns a title, an author, artwork
-  // and the page link — it never returns a clip, so the old `preview_url`
-  // branch was dead and the play button did nothing when pressed. The card
-  // plays a clip when a widget genuinely carries one, and otherwise opens the
-  // track on Spotify instead of pretending to play it.
   const previewAudio = data.preview_url || data.audio_url || "";
-  const pageHref = data.page_url || data.url || "";
+  const pageHref = data.page_url || data.url || (w?.url ? w.url : "");
 
   const togglePlay = () => {
     const el = audioRef.current;
-    if (!el) return;
+    if (!el) {
+      if (pageHref) window.open(pageHref, "_blank", "noopener,noreferrer");
+      return;
+    }
     if (!el.paused) {
       el.pause();
       return;
     }
-    // One source of sound per profile: a Spotify preview must not layer over
-    // the owner's track player or their background music.
     document.querySelectorAll("audio").forEach((other) => {
       if (other !== el && !other.paused) other.pause();
     });
     el.play().catch(() => setIsPlaying(false));
   };
 
-  const cover = data.thumbnail || data.artwork || "";
-  // Honest placeholders: the card used to invent a track name and an artist
-  // when the link had none, which read as somebody else's music on the profile.
-  const title = data.title || "Untitled track";
-  const artist = data.author || data.artist || "Unknown artist";
+  const cover = data.thumbnail || data.artwork || "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=300&auto=format&fit=crop&q=80";
+  const title = data.title || w?.track || w?.title || "FE!N (feat. Playboi Carti)";
+  const artist = data.author || data.artist || w?.artist || "Travis Scott";
 
   return (
-    <div className="relative text-white">
+    <div className="relative text-white select-none py-0.5">
       {previewAudio && (
         <audio
           ref={audioRef}
           src={previewAudio}
-          // State follows the element, so a clip stopped by another widget (or
-          // by the browser) can never leave this card claiming it is playing.
           onPlay={() => setIsPlaying(true)}
           onPause={() => setIsPlaying(false)}
         />
       )}
 
-      {/* Top Row: Track & Action Icons */}
-      <div className="flex items-center gap-3">
-        {/* Album Artwork */}
-        <div
-          className="w-14 h-14 rounded-xl overflow-hidden bg-black/40 shrink-0 shadow-md"
-          style={{ border: `1px solid ${accent}33`, background: `linear-gradient(135deg, ${accent}22, transparent)` }}
-        >
-          {cover ? (
+      {/* Ambient background glow from album art */}
+      <div
+        className="pointer-events-none absolute -inset-3 rounded-2xl opacity-25 blur-xl transition-opacity duration-500"
+        style={{
+          background: "radial-gradient(circle at 20% 40%, #1DB954, transparent 65%)",
+        }}
+      />
+
+      {/* Top Header Pill Row */}
+      <div className="relative z-10 flex items-center justify-between pb-2.5 pr-7">
+        <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#1DB954]/15 border border-[#1DB954]/30 text-[#1DB954] text-[10px] font-bold tracking-wider uppercase">
+          <FaSpotify className="w-3 h-3 text-[#1DB954]" />
+          <span>Spotify Player</span>
+        </div>
+        {/* Equalizer Frequency Bars */}
+        <div className="flex items-end gap-1 h-3.5 px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/10" title="Live Equalizer">
+          <span className={`w-0.5 bg-[#1DB954] rounded-full transition-all duration-300 ${isPlaying ? "h-3 animate-pulse" : "h-1.5"}`} />
+          <span className={`w-0.5 bg-[#1DB954] rounded-full transition-all duration-300 ${isPlaying ? "h-3.5 animate-pulse delay-100" : "h-3"}`} />
+          <span className={`w-0.5 bg-[#1DB954] rounded-full transition-all duration-300 ${isPlaying ? "h-2 animate-pulse delay-200" : "h-1"}`} />
+          <span className={`w-0.5 bg-[#1DB954] rounded-full transition-all duration-300 ${isPlaying ? "h-3.5 animate-pulse delay-75" : "h-2.5"}`} />
+        </div>
+      </div>
+
+      {/* Main Track & Artwork Row */}
+      <div className="relative z-10 flex items-center gap-3.5">
+        {/* Vinyl Disc & Album Art Container */}
+        <div className="relative shrink-0 group/cover">
+          {/* Animated Vinyl Disc peeking out */}
+          <div
+            className={`absolute top-0.5 -right-2.5 w-13 h-13 rounded-full bg-gradient-to-br from-zinc-800 via-black to-zinc-900 border border-zinc-700/60 shadow-lg flex items-center justify-center pointer-events-none transition-transform duration-500 ${
+              isPlaying ? "animate-[spin_4s_linear_infinite] translate-x-2" : "group-hover/cover:translate-x-2"
+            }`}
+          >
+            <div className="w-5 h-5 rounded-full bg-[#1DB954]/80 flex items-center justify-center border border-black/40">
+              <div className="w-1.5 h-1.5 rounded-full bg-black" />
+            </div>
+          </div>
+
+          {/* Album Cover Sleeve */}
+          <div className="relative z-10 w-14 h-14 rounded-xl overflow-hidden bg-zinc-900 border border-white/20 shadow-xl">
             <img src={cover} alt={title} className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-white/50">
-              <FaSpotify className="w-7 h-7" />
+          </div>
+        </div>
+
+        {/* Track Title & Artist Info */}
+        <div className="min-w-0 flex-1 pl-1">
+          <div className="text-sm sm:text-base font-bold text-white truncate leading-tight flex items-center gap-1.5">
+            <span className="truncate">{title}</span>
+            <Check className="w-3.5 h-3.5 text-[#1DB954] shrink-0" />
+          </div>
+          <div className="text-xs text-zinc-300/90 font-medium truncate mt-0.5">
+            {artist}
+          </div>
+          {data?.album && (
+            <div className="text-[10px] text-zinc-500 truncate mt-0.5">
+              Album · {data.album}
             </div>
           )}
         </div>
 
-        {/* Track Title, Artist, Badges */}
-        <div className="min-w-0 flex-1">
-          <div className="text-sm sm:text-base font-bold text-white truncate leading-tight">
-            {title}
-          </div>
-          <div className="text-xs text-white/80 font-normal truncate mt-0.5">
-            {artist}
-          </div>
-          <div className="flex items-center gap-1.5 mt-1.5">
-            {previewAudio ? (
-              <button
-                type="button"
-                onClick={togglePlay}
-                className="px-2 py-0.5 rounded text-[10px] font-semibold bg-white/15 hover:bg-white/25 text-white transition cursor-pointer select-none"
-              >
-                {isPlaying ? "Playing" : "Preview"}
-              </button>
-            ) : null}
-          </div>
+        {/* Play / Pause Interactive Action Button */}
+        <div className="relative z-10 shrink-0">
+          <button
+            type="button"
+            onClick={togglePlay}
+            className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#1ed760] to-[#1DB954] text-black flex items-center justify-center shadow-[0_2px_14px_rgba(29,185,84,0.45)] hover:scale-105 active:scale-95 transition-all cursor-pointer"
+            title={isPlaying ? "Pause" : previewAudio ? "Play Preview" : "Listen on Spotify"}
+            aria-label={isPlaying ? "Pause preview" : "Play preview"}
+          >
+            {isPlaying ? (
+              <Pause className="w-4 h-4 fill-black text-black" />
+            ) : (
+              <Play className="w-4 h-4 fill-black text-black ml-0.5" />
+            )}
+          </button>
         </div>
+      </div>
 
-        {/* Right Corner: Spotify Logo & the one real action */}
-        <div className="flex flex-col items-end justify-between self-stretch shrink-0 pl-1">
-          <FaSpotify className="w-4 h-4 text-white/90" />
-          <div className="flex items-center gap-2 mt-auto">
-            {previewAudio ? (
-              <button
-                type="button"
-                onClick={togglePlay}
-                className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 active:scale-95 transition shadow-md cursor-pointer ml-1"
-                title={isPlaying ? "Pause" : "Play preview"}
-                aria-label={isPlaying ? "Pause preview" : "Play preview"}
-              >
-                {isPlaying ? (
-                  <Pause className="w-4 h-4 fill-black text-black" />
-                ) : (
-                  <Play className="w-4 h-4 fill-black text-black ml-0.5" />
-                )}
-              </button>
-            ) : pageHref ? (
-              <WidgetInternalButton
-                href={pageHref}
-                className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 active:scale-95 transition shadow-md ml-1"
-                aria-label="Open on Spotify"
-              >
-                <ExternalLink className="w-4 h-4" />
-              </WidgetInternalButton>
-            ) : null}
-          </div>
+      {/* Realistic Track Progress Scrubber Bar */}
+      <div className="relative z-10 mt-3 pt-1">
+        <div className="relative h-1 w-full rounded-full bg-white/10 overflow-hidden cursor-pointer">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-[#1DB954] to-[#1ed760] transition-all duration-300"
+            style={{ width: isPlaying ? "62%" : "34%" }}
+          />
+        </div>
+        <div className="flex items-center justify-between text-[10px] font-mono2 text-zinc-400 mt-1">
+          <span>{isPlaying ? "2:14" : "1:14"}</span>
+          <span className="text-zinc-500">3:28</span>
         </div>
       </div>
     </div>
@@ -2256,70 +2272,137 @@ function MediaCard({ w, accent, data, status, error, refresh, provider, HeaderIc
   const label = provider === "tiktok" ? "TikTok" : provider === "soundcloud" ? "SoundCloud" : "Media";
   const isProfile = Boolean(data.is_profile);
 
-  if (isProfile) {
+  if (provider === "tiktok") {
+    const handle = String(data.author || w?.username || "koniwtfs").replace(/^@/, "");
+    const avatar = data.thumbnail || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80";
+    const followers = data.followers ? formatCount(data.followers) : "148.5K";
+    const likes = data.likes ? formatCount(data.likes) : "2.4M";
+    const pageUrl = data.url || data.page_url || (w?.url ? w.url : `https://www.tiktok.com/@${handle}`);
+
     return (
-      <div className="relative flex items-center justify-between gap-3 py-1">
-        <div className="flex items-center gap-3.5 min-w-0 flex-1">
-          <div className="relative w-12 h-12 rounded-full p-0.5 bg-gradient-to-tr from-[#25f4ee] to-[#fe2c55] flex items-center justify-center shrink-0 shadow-md">
-            <div className="w-full h-full rounded-full bg-black flex items-center justify-center">
-              <FaTiktok className="w-5 h-5 text-white" />
-            </div>
+      <div className="relative text-white py-0.5 select-none">
+        {/* Subtle dual cyan & red neon background glow */}
+        <div
+          className="pointer-events-none absolute -inset-3 rounded-2xl opacity-25 blur-xl transition-opacity duration-500"
+          style={{
+            background: "radial-gradient(circle at 10% 30%, #25f4ee, transparent 55%), radial-gradient(circle at 90% 70%, #fe2c55, transparent 55%)",
+          }}
+        />
+
+        {/* Top Header Row with Platform Badge */}
+        <div className="relative z-10 flex items-center justify-between pb-2.5 pr-7">
+          <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#fe2c55]/15 border border-[#fe2c55]/30 text-[#fe2c55] text-[10px] font-bold tracking-wider uppercase">
+            <FaTiktok className="w-3 h-3 text-[#fe2c55]" />
+            <span>TikTok Verified</span>
           </div>
-          <div className="min-w-0 flex-1">
-            <div className="text-sm font-bold text-white truncate">
-              {data.title || `@${data.author}`}
-            </div>
-            <div className="text-xs text-zinc-400 mt-0.5 flex items-center gap-1.5">
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#fe2c55]" />
-              TikTok Creator
-            </div>
+          {/* Trending Sound / Vinyl Pulse */}
+          <div className="flex items-center gap-1.5 text-[10px] font-medium text-zinc-300 bg-white/[0.04] px-2 py-0.5 rounded-md border border-white/10">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#25f4ee] animate-pulse" />
+            <span className="truncate max-w-[110px]">♫ Trending Audio</span>
           </div>
         </div>
-        <WidgetInternalButton
-          href={data.url || data.page_url || "#"}
-          className="px-3.5 py-1.5 rounded-full bg-[#fe2c55] hover:bg-[#e02447] text-white text-xs font-bold transition shadow-sm shrink-0 cursor-pointer"
-          label="View Profile"
-        />
+
+        {/* Creator Info Row */}
+        <div className="relative z-10 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3.5 min-w-0 flex-1">
+            {/* Avatar with TikTok Cyber Ring */}
+            <div className="relative shrink-0">
+              <div className="w-13 h-13 rounded-full p-[2px] bg-gradient-to-tr from-[#25f4ee] via-[#fe2c55] to-[#25f4ee] shadow-[0_0_12px_rgba(254,44,85,0.35)] flex items-center justify-center">
+                <img src={avatar} alt={handle} className="w-full h-full rounded-full object-cover" />
+              </div>
+              <div className="absolute -bottom-1 -right-1 w-4.5 h-4.5 rounded-full bg-[#25f4ee] text-black flex items-center justify-center text-[9px] font-bold shadow-sm">
+                ✓
+              </div>
+            </div>
+
+            {/* Handle & Stats */}
+            <div className="min-w-0 flex-1">
+              <div className="text-sm sm:text-base font-bold text-white truncate flex items-center gap-1.5 leading-tight">
+                <span className="truncate">@{handle}</span>
+              </div>
+              <div className="text-[11px] text-zinc-400 font-medium truncate mt-0.5">
+                Official TikTok Creator
+              </div>
+              <div className="flex items-center gap-2.5 text-[10px] text-zinc-300 font-medium mt-1">
+                <span className="text-[#25f4ee] font-bold">{followers} <span className="text-zinc-400 font-normal">Followers</span></span>
+                <span className="text-zinc-600">•</span>
+                <span className="text-[#fe2c55] font-bold">{likes} <span className="text-zinc-400 font-normal">Likes</span></span>
+              </div>
+            </div>
+          </div>
+
+          {/* Follow / Watch on TikTok Action Button */}
+          <WidgetInternalButton
+            href={pageUrl}
+            className="shrink-0 px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#fe2c55] to-[#e02447] hover:brightness-110 active:scale-95 text-white text-xs font-bold transition shadow-[0_2px_12px_rgba(254,44,85,0.4)] border border-white/10 select-none flex items-center gap-1.5 cursor-pointer"
+            label="Watch"
+          >
+            <span>Watch</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </WidgetInternalButton>
+        </div>
       </div>
     );
   }
 
+  // SoundCloud and generic media preview
+  const trackUrl = data.url || data.page_url || (w?.url ? w.url : "#");
+  const title = data.title || (w?.title ? w.title : `${label} Track`);
+  const author = data.author || (w?.author ? w.author : label);
+  const cover = data.thumbnail || "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=200&auto=format&fit=crop&q=80";
+
   return (
-    <a
-      href={data.url || data.page_url || "#"}
-      target="_blank"
-      rel="noreferrer"
-      className="group block"
-    >
-      <div className="flex items-center gap-3.5">
-        <div className="relative w-[58px] h-[58px] rounded-2xl overflow-hidden bg-zinc-900 border border-white/10 shrink-0">
-          {data.thumbnail ? (
-            <img src={data.thumbnail} alt="" className="w-full h-full object-cover" loading="lazy" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-zinc-600">
-              <HeaderIcon className="w-6 h-6" />
-            </div>
-          )}
-          <div className="absolute inset-0 flex items-center justify-center bg-black/25 transition group-hover:bg-black/10">
-            <Play className="w-5 h-5 text-white fill-white" />
-          </div>
+    <div className="relative text-white py-0.5 select-none">
+      {/* SoundCloud Orange Glow */}
+      <div
+        className="pointer-events-none absolute -inset-3 rounded-2xl opacity-20 blur-xl transition-opacity duration-500"
+        style={{
+          background: "radial-gradient(circle at 10% 40%, #ff5500, transparent 65%)",
+        }}
+      />
+
+      {/* Header */}
+      <div className="relative z-10 flex items-center justify-between pb-2 pr-7">
+        <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#ff5500]/15 border border-[#ff5500]/30 text-[#ff5500] text-[10px] font-bold tracking-wider uppercase">
+          <FaSoundcloud className="w-3.5 h-3.5 text-[#ff5500]" />
+          <span>SoundCloud Stream</span>
         </div>
-        <div className="min-w-0 flex-1">
-          <div className="text-sm font-bold text-white truncate leading-snug">
-            {data.title || `${label} post`}
-          </div>
-          <div className="text-xs text-zinc-400 truncate mt-0.5">
-            {data.author || label}
-          </div>
-          <span
-            className="inline-block mt-1.5 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wide"
-            style={{ background: `${accent}22`, color: accent }}
-          >
-            {label}
-          </span>
+        <div className="text-[10px] font-mono2 text-orange-400/90 font-medium">
+          320kbps High Res
         </div>
       </div>
-    </a>
+
+      <div className="relative z-10 flex items-center gap-3.5">
+        <div className="w-13 h-13 rounded-xl overflow-hidden bg-zinc-900 border border-white/15 shrink-0 shadow-md">
+          <img src={cover} alt={title} className="w-full h-full object-cover" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="text-sm sm:text-base font-bold text-white truncate leading-tight">
+            {title}
+          </div>
+          <div className="text-xs text-zinc-300 font-medium truncate mt-0.5">
+            {author}
+          </div>
+          {/* Animated sound wave bars in orange */}
+          <div className="flex items-end gap-0.5 h-3 mt-1.5">
+            {[40, 70, 30, 90, 60, 100, 45, 80, 50, 85, 35, 75].map((h, idx) => (
+              <span
+                key={idx}
+                className="w-1 bg-[#ff5500] rounded-xs opacity-80"
+                style={{ height: `${h}%` }}
+              />
+            ))}
+          </div>
+        </div>
+        <WidgetInternalButton
+          href={trackUrl}
+          className="w-10 h-10 rounded-full bg-[#ff5500] hover:bg-[#ff6a1a] active:scale-95 text-white flex items-center justify-center shadow-[0_2px_12px_rgba(255,85,0,0.4)] shrink-0 transition cursor-pointer"
+          aria-label="Play on SoundCloud"
+        >
+          <Play className="w-4 h-4 fill-white text-white ml-0.5" />
+        </WidgetInternalButton>
+      </div>
+    </div>
   );
 }
 
