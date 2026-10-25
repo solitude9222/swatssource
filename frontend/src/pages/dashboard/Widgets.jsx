@@ -201,9 +201,13 @@ export const getWidgetArtworkOptions = (widget) => {
 
 export const getWidgetDisplayOptions = (widget) => {
   const type = widget?.type || "discord";
+  const common = [
+    { key: "popups", label: "Pop up", desc: "Allow modal popups and interactive preview dialogs for this widget." },
+  ];
+  let specific = [];
   switch (type) {
     case "youtube":
-      return [
+      specific = [
         { key: "show_online", label: "Subscribers count", desc: "Display total channel subscribers on the card." },
         { key: "show_members", label: "Videos count", desc: "Display total published videos count." },
         { key: "show_boost", label: "Total views", desc: "Display lifetime channel video views." },
@@ -213,8 +217,9 @@ export const getWidgetDisplayOptions = (widget) => {
         { key: "show_subtitle", label: "Channel description", desc: "Show channel bio or description snippet." },
         { key: "stats_row", label: "Stats row", desc: "Display compact channel statistics bar." },
       ];
+      break;
     case "spotify":
-      return [
+      specific = [
         { key: "show_online", label: "Artist name", desc: "Show performing artist and album credit." },
         { key: "show_members", label: "Track duration", desc: "Display track playtime length." },
         { key: "show_boost", label: "Audio quality", desc: "Show streaming quality or bitrate badge." },
@@ -224,8 +229,9 @@ export const getWidgetDisplayOptions = (widget) => {
         { key: "show_subtitle", label: "Album title", desc: "Show album or playlist name below track." },
         { key: "stats_row", label: "Playback stats", desc: "Display audio progress or listener metrics." },
       ];
+      break;
     case "steam":
-      return [
+      specific = [
         { key: "show_online", label: "Online status", desc: "Display online / in-game presence status." },
         { key: "show_members", label: "Current game", desc: "Show the game currently being played." },
         { key: "show_boost", label: "Steam level", desc: "Display Steam account badge level." },
@@ -235,8 +241,9 @@ export const getWidgetDisplayOptions = (widget) => {
         { key: "show_subtitle", label: "Status summary", desc: "Show player custom status or summary text." },
         { key: "stats_row", label: "Activity row", desc: "Show game activity and playtime stats." },
       ];
+      break;
     case "twitch":
-      return [
+      specific = [
         { key: "show_online", label: "Live status", desc: "Show glowing LIVE indicator or offline state." },
         { key: "show_members", label: "Followers", desc: "Display total Twitch follower count." },
         { key: "show_boost", label: "Viewer count", desc: "Display real-time live stream viewers." },
@@ -246,8 +253,9 @@ export const getWidgetDisplayOptions = (widget) => {
         { key: "show_subtitle", label: "Stream category", desc: "Show currently streaming game or topic." },
         { key: "stats_row", label: "Stream stats", desc: "Show live viewer count and uptime row." },
       ];
+      break;
     case "roblox":
-      return [
+      specific = [
         { key: "show_online", label: "Online presence", desc: "Show Roblox online / studio presence." },
         { key: "show_members", label: "Friends & Members", desc: "Display friends or group member count." },
         { key: "show_boost", label: "Visits / Players", desc: "Show active player or visit count." },
@@ -257,8 +265,9 @@ export const getWidgetDisplayOptions = (widget) => {
         { key: "show_subtitle", label: "About snippet", desc: "Show Roblox user or place description." },
         { key: "stats_row", label: "Stats line", desc: "Show compact Roblox metrics." },
       ];
+      break;
     case "valorant":
-      return [
+      specific = [
         { key: "show_online", label: "Competitive rank", desc: "Display Valorant competitive rank." },
         { key: "show_members", label: "Account level", desc: "Show Valorant account progression level." },
         { key: "show_boost", label: "Rank rating (RR)", desc: "Show ranked rating points." },
@@ -268,8 +277,9 @@ export const getWidgetDisplayOptions = (widget) => {
         { key: "show_subtitle", label: "Tagline", desc: "Show Riot ID and tag identifier." },
         { key: "stats_row", label: "Competitive stats", desc: "Show rank, level and rating bar." },
       ];
+      break;
     case "minecraft":
-      return [
+      specific = [
         { key: "show_online", label: "Server status", desc: "Show online / offline ping status." },
         { key: "show_members", label: "Player count", desc: "Show online players vs max slots." },
         { key: "show_boost", label: "Server latency (Ping)", desc: "Display connection ping in ms." },
@@ -279,9 +289,10 @@ export const getWidgetDisplayOptions = (widget) => {
         { key: "show_subtitle", label: "Server MOTD", desc: "Display message of the day line." },
         { key: "stats_row", label: "Server stats", desc: "Show players and latency row." },
       ];
+      break;
     case "lastfm":
     case "statsfm":
-      return [
+      specific = [
         { key: "show_online", label: "Scrobbles count", desc: "Display total track plays count." },
         { key: "show_members", label: "Top artist", desc: "Show most listened music artist." },
         { key: "show_boost", label: "Recent track", desc: "Show last scrobbled music track." },
@@ -291,10 +302,11 @@ export const getWidgetDisplayOptions = (widget) => {
         { key: "show_subtitle", label: "Now playing", desc: "Show live scrobble or artist bio." },
         { key: "stats_row", label: "Music metrics", desc: "Show listening stats row." },
       ];
+      break;
     case "clash-of-clans":
     case "clash-royale":
     case "brawl-stars":
-      return [
+      specific = [
         { key: "show_online", label: "Trophy count", desc: "Display current trophies achieved." },
         { key: "show_members", label: "Clan / Club", desc: "Show clan name and membership status." },
         { key: "show_boost", label: "Town Hall / Arena", desc: "Display level, arena, or highest tier." },
@@ -304,8 +316,9 @@ export const getWidgetDisplayOptions = (widget) => {
         { key: "show_subtitle", label: "Player title", desc: "Show player tag and role." },
         { key: "stats_row", label: "Trophy & Clan bar", desc: "Display compact trophies and club row." },
       ];
+      break;
     case "weather":
-      return [
+      specific = [
         { key: "show_online", label: "Temperature", desc: "Display current degrees in Celsius/Fahrenheit." },
         { key: "show_members", label: "Condition", desc: "Show weather state (Sunny, Rain, Clear)." },
         { key: "show_boost", label: "Humidity & Wind", desc: "Display humidity percentage and wind speed." },
@@ -315,9 +328,10 @@ export const getWidgetDisplayOptions = (widget) => {
         { key: "show_subtitle", label: "Location name", desc: "Show city, state, or country name." },
         { key: "stats_row", label: "Weather metrics", desc: "Show temperature and conditions row." },
       ];
+      break;
     case "timezone":
     case "countdown":
-      return [
+      specific = [
         { key: "show_online", label: "Live time / Timer", desc: "Display real-time ticking time or countdown." },
         { key: "show_members", label: "Date / Target", desc: "Show calendar date or countdown destination." },
         { key: "show_boost", label: "UTC offset / Days left", desc: "Display GMT difference or days remaining." },
@@ -327,9 +341,10 @@ export const getWidgetDisplayOptions = (widget) => {
         { key: "show_subtitle", label: "Timezone title", desc: "Show selected city or event title." },
         { key: "stats_row", label: "Time row", desc: "Display time and date status line." },
       ];
+      break;
     case "tiktok":
     case "soundcloud":
-      return [
+      specific = [
         { key: "show_online", label: "Creator name", desc: "Show author or video producer." },
         { key: "show_members", label: "Plays / Likes", desc: "Display play or view engagement count." },
         { key: "show_boost", label: "Audio track", desc: "Show background sound or track name." },
@@ -339,8 +354,9 @@ export const getWidgetDisplayOptions = (widget) => {
         { key: "show_subtitle", label: "Caption", desc: "Show video caption or track info." },
         { key: "stats_row", label: "Engagement row", desc: "Display likes and views summary." },
       ];
+      break;
     case "github":
-      return [
+      specific = [
         { key: "show_online", label: "Show followers", desc: "Display your GitHub follower count on the card." },
         { key: "show_members", label: "Show repositories", desc: "Display total public repositories count." },
         { key: "show_boost", label: "Show stars", desc: "Display total star count across your repositories." },
@@ -350,22 +366,25 @@ export const getWidgetDisplayOptions = (widget) => {
         { key: "show_subtitle", label: "Subtitle", desc: "Show the secondary bio text below the title." },
         { key: "stats_row", label: "Stats row", desc: "Show the compact stats line on the card." },
       ];
+      break;
     case "projects":
-      return [
+      specific = [
         { key: "show_tags", label: "Code language pills", desc: "Display language badges and tags." },
         { key: "show_subtitle", label: "Project description", desc: "Show project summary and details." },
         { key: "view_button", label: "Link button", desc: "Show direct link button (GitHub / Demo)." },
         { key: "platform_badge", label: "Project badge", desc: "Show project type badge in corner." },
       ];
+      break;
     case "games":
-      return [
+      specific = [
         { key: "show_now_playing", label: "Playing now beacon", desc: "Show live status beacon with current game." },
         { key: "platform_badge", label: "Platform badge", desc: "Show gaming platform (e.g. PC / Steam)." },
         { key: "show_subtitle", label: "Game genres / info", desc: "Display genre or title under card." },
       ];
+      break;
     case "discord":
     default:
-      return [
+      specific = [
         { key: "show_banner", label: "Show banner", desc: "Display the server or profile header banner image." },
         { key: "show_online", label: "Show online", desc: "Display current online member count for servers." },
         { key: "show_members", label: "Show members", desc: "Display total member count for servers." },
@@ -376,7 +395,9 @@ export const getWidgetDisplayOptions = (widget) => {
         { key: "show_subtitle", label: "Subtitle", desc: "Show the secondary text below the widget title." },
         { key: "stats_row", label: "Stats row", desc: "Show the compact stats line on the card." },
       ];
+      break;
   }
+  return [...common, ...specific];
 };
 
 const getInitialArtworkBg = (kindId) => {
@@ -1414,10 +1435,18 @@ export default function Widgets() {
               <div key={item.key} className="flex items-center justify-between p-3.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e]">
                 <div className="text-xs font-semibold text-zinc-200">{item.label}</div>
                 <Switch
-                  checked={item.key === "popup_toggle" ? Boolean(editingWidget.widget.popup_toggle || editingWidget.widget.info_modal) : editingWidget.widget[item.key] !== false}
+                  checked={
+                    item.key === "popups"
+                      ? editingWidget.widget.popups !== false && editingWidget.widget.popup !== false
+                      : item.key === "popup_toggle"
+                      ? Boolean(editingWidget.widget.popup_toggle || editingWidget.widget.info_modal)
+                      : editingWidget.widget[item.key] !== false
+                  }
                   onCheckedChange={(checked) => {
-                    if (item.key === "popup_toggle") {
-                      patchEditingWidget({ popup_toggle: checked, info_modal: checked });
+                    if (item.key === "popups") {
+                      patchEditingWidget({ popups: checked, popup: checked, popup_toggle: checked, info_modal: checked });
+                    } else if (item.key === "popup_toggle") {
+                      patchEditingWidget({ popup_toggle: checked, info_modal: checked, popups: checked });
                     } else {
                       patchEditingWidget({ [item.key]: checked });
                     }
