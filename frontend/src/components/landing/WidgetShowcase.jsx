@@ -8,7 +8,7 @@ import { Sparkles } from "lucide-react";
 // numbers.
 const WIDGETS = [
   {
-    accent: "#1DB954",
+    accent: "#ffffff",
     w: {
       type: "spotify",
       title: "Spotify Player",
@@ -18,7 +18,7 @@ const WIDGETS = [
     },
   },
   {
-    accent: "#ff5500",
+    accent: "#ffffff",
     w: {
       type: "soundcloud",
       title: "SoundCloud",
@@ -26,7 +26,7 @@ const WIDGETS = [
     },
   },
   {
-    accent: "#fe2c55",
+    accent: "#ffffff",
     w: {
       type: "tiktok",
       title: "TikTok",
@@ -35,7 +35,7 @@ const WIDGETS = [
     },
   },
   {
-    accent: "#5865F2",
+    accent: "#ffffff",
     w: {
       type: "discord",
       subtype: "profile",
@@ -44,7 +44,7 @@ const WIDGETS = [
     },
   },
   {
-    accent: "#5865F2",
+    accent: "#ffffff",
     w: {
       type: "discord",
       subtype: "server",
@@ -58,7 +58,7 @@ const WIDGETS = [
 // on machines with reduced motion, where the pointer response is skipped).
 const BASE_TILT = { x: 12, y: 8 };
 
-const Tilt = ({ children, index, accent = "#b4bffa" }) => {
+const Tilt = ({ children, index, accent = "#ffffff" }) => {
   const tiltRef = useRef(null);
   const glareRef = useRef(null);
   const reduce = useReducedMotion();
@@ -94,7 +94,7 @@ const Tilt = ({ children, index, accent = "#b4bffa" }) => {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-60px" }}
       transition={{ duration: 0.55, delay: index * 0.07, ease: [0.22, 1, 0.36, 1] }}
-      className="w-full sm:w-[340px]"
+      className="w-full sm:w-[320px]"
     >
       <motion.div whileHover={reduce ? undefined : { y: -8 }} className="group relative">
         <div
@@ -119,11 +119,11 @@ const Tilt = ({ children, index, accent = "#b4bffa" }) => {
             className="pointer-events-none absolute inset-0 z-30 rounded-2xl opacity-0 transition-opacity duration-300"
           />
 
-          {/* Dynamic colorful aura glow */}
+          {/* Clean subtle monochrome aura glow */}
           <span
             aria-hidden
-            className="pointer-events-none absolute -inset-2 rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-40"
-            style={{ background: `radial-gradient(circle at 50% 30%, ${accent}25, transparent 65%)` }}
+            className="pointer-events-none absolute -inset-2 rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-30"
+            style={{ background: "radial-gradient(circle at 50% 30%, rgba(255,255,255,0.08), transparent 65%)" }}
           />
 
           <div

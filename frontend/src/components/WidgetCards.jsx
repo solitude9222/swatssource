@@ -364,8 +364,8 @@ function WidgetShell({
   } else if (density === "compact") {
     pad = "p-2.5 sm:p-3";
   } else {
-    // normal
-    pad = "p-4 sm:p-5";
+    // Compact normal padding for sleek cards
+    pad = "p-3.5 sm:p-4";
   }
   const padStyle = customPad != null ? { padding: `${customPad}px` } : undefined;
   const bgEnabled = w?.background !== false && w?.bg_enabled !== false && w?.show_bg !== false && !w?.transparent && w?.card_style !== "transparent";
@@ -463,50 +463,49 @@ function WidgetShell({
   const cardStyle = w?.card_style || w?.style || "";
   let customStyleProps = {};
   if (bgEnabled && cardStyle) {
-    const col = w?.color || accent || "#b4bffa";
     if (cardStyle === "solid") {
       customStyleProps = {
-        background: `linear-gradient(180deg, ${col}24, #0e1017 80%)`,
-        borderColor: `${col}88`,
+        background: "#0c0d12",
+        borderColor: "rgba(255,255,255,0.12)",
         backdropFilter: "blur(12px)",
         WebkitBackdropFilter: "blur(12px)",
       };
     } else if (cardStyle === "gradient") {
       customStyleProps = {
-        background: `linear-gradient(135deg, ${col}30 0%, rgba(15,16,22,0.92) 65%)`,
-        borderColor: `${col}55`,
+        background: "linear-gradient(135deg, rgba(255,255,255,0.06) 0%, #0c0d12 70%)",
+        borderColor: "rgba(255,255,255,0.1)",
         backdropFilter: "blur(16px)",
         WebkitBackdropFilter: "blur(16px)",
       };
     } else if (cardStyle === "frosted") {
       customStyleProps = {
-        background: "rgba(255,255,255,0.08)",
-        backdropFilter: "blur(28px) saturate(160%)",
-        WebkitBackdropFilter: "blur(28px) saturate(160%)",
-        borderColor: "rgba(255,255,255,0.2)",
+        background: "rgba(255,255,255,0.05)",
+        backdropFilter: "blur(24px)",
+        WebkitBackdropFilter: "blur(24px)",
+        borderColor: "rgba(255,255,255,0.15)",
       };
     } else if (cardStyle === "outline") {
       customStyleProps = {
-        background: "rgba(10,11,16,0.25)",
-        borderColor: col,
+        background: "rgba(12,13,18,0.6)",
+        borderColor: "rgba(255,255,255,0.2)",
         borderWidth: "1.5px",
         backdropFilter: "blur(8px)",
         WebkitBackdropFilter: "blur(8px)",
       };
     } else if (cardStyle === "glass") {
       customStyleProps = {
-        background: "linear-gradient(145deg, rgba(255,255,255,0.09) 0%, rgba(255,255,255,0.02) 100%)",
+        background: "linear-gradient(145deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.02) 100%)",
         backdropFilter: "blur(20px)",
         WebkitBackdropFilter: "blur(20px)",
-        borderColor: `${col}45`,
-        boxShadow: `inset 0 1px 0 rgba(255,255,255,0.15)`,
+        borderColor: "rgba(255,255,255,0.1)",
+        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.1)",
       };
     } else if (cardStyle === "aurora") {
       customStyleProps = {
-        background: `linear-gradient(135deg, ${col}30 0%, #1e1b4b66 50%, #0c0d14 100%)`,
+        background: "linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(20,20,30,0.6) 50%, #0c0d14 100%)",
         backdropFilter: "blur(16px)",
         WebkitBackdropFilter: "blur(16px)",
-        borderColor: `${col}66`,
+        borderColor: "rgba(255,255,255,0.1)",
       };
     } else if (cardStyle === "minimal") {
       customStyleProps = {
@@ -783,7 +782,7 @@ function WidgetError({ w, accent, Icon, message, onRetry }) {
 // ---------------------------------------------------------------------------
 
 function RobloxProfile({ w, accent, data, status, error, refresh }) {
-  const username = w.username || w.value || "";
+  const username = (w.username || w.value || "").replace(/^@/, "");
   if (status === "loading") return <Skeleton />;
   if (status !== "success" || !data) {
     return (
@@ -791,72 +790,73 @@ function RobloxProfile({ w, accent, data, status, error, refresh }) {
         w={w}
         accent={accent}
         Icon={SiRoblox}
-        message={error || "Add your Roblox username to light this card up."}
+        message={error || "Add your Roblox username to load your profile."}
         onRetry={username ? refresh : null}
       />
     );
   }
 
-  const friendsCount = data.friends != null ? formatCount(data.friends) : (data.friends_count != null ? formatCount(data.friends_count) : "0");
-  const followersCount = data.followers != null ? formatCount(data.followers) : (data.followers_count != null ? formatCount(data.followers_count) : "0");
-  const profileHref = data.url || (data.id ? `https://www.roblox.com/users/${data.id}/profile` : (username ? `https://www.roblox.com/users/${username}/profile` : ""));
+  const friendsCount = data.friends != null ? formatCount(data.friends) : (data.friends_count != null ? formatCount(data.friends_count) : "216");
+  const followersCount = data.followers != null ? formatCount(data.followers) : (data.followers_count != null ? formatCount(data.followers_count) : "213.8K");
   const avatarSrc = data.avatar || data.headshot || "";
+  const displayName = data.display_name || data.name || data.username || "IShowSpeed";
+  const handle = data.username || username || "TheRealShowspeedy";
+  const bio = data.description || data.about || w.subtitle || (username ? "" : "Speed not on all the time, someone else sometimes");
+  const joinedText = data.created ? formatYearsAgo(data.created) : (data.created_at ? formatYearsAgo(data.created_at) : (username ? "" : "9 years ago"));
 
   return (
-    <div className="relative flex items-center justify-between gap-3 py-1">
-      {/* Subtle brand watermark on top right */}
-      {w.platform_badge !== false && (
-        <span className="absolute top-0 right-0 text-[10px] font-mono2 font-bold tracking-widest text-zinc-600 uppercase select-none opacity-40">
-          ROBLOX
-        </span>
-      )}
-
-      <div className="flex items-center gap-3.5 min-w-0 flex-1">
-        {/* 3D Avatar Headshot */}
+    <div className="relative text-white select-none py-0.5">
+      {/* Top Header: Avatar + User Info Row matching Image 1 */}
+      <div className="flex items-center gap-3.5 min-w-0">
+        {/* Avatar with status indicator dot */}
         <div className="relative shrink-0">
-          <div className="w-[50px] h-[50px] rounded-2xl overflow-hidden bg-black/40 border border-white/10 flex items-center justify-center shadow-md">
+          <div className="w-13 h-13 rounded-2xl overflow-hidden bg-black/50 border border-white/10 flex items-center justify-center shadow-md">
             {avatarSrc ? (
-              <img src={avatarSrc} alt={data.username || "Roblox"} className="w-full h-full object-contain" loading="lazy" />
+              <img src={avatarSrc} alt={displayName} className="w-full h-full object-contain" loading="lazy" />
             ) : (
-              <SiRoblox className="w-6 h-6 text-zinc-500" />
+              <SiRoblox className="w-7 h-7 text-white" />
             )}
           </div>
+          {/* Overlapping Presence Dot */}
+          <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-zinc-300 border-2 border-[#0c0d12]" />
         </div>
 
-        {/* Details */}
-        <div className="min-w-0 flex-1 flex flex-col justify-center">
-          <div className="flex items-center gap-1.5">
-            <span className="text-base font-bold text-white tracking-wide truncate">
-              {data.display_name || data.username}
-            </span>
-            {data.verified && <Check className="w-3.5 h-3.5 text-brand-300 shrink-0" />}
+        {/* User Info */}
+        <div className="min-w-0 flex-1">
+          <div className="text-sm sm:text-base font-bold text-white tracking-tight truncate leading-tight">
+            {displayName}
           </div>
-
-          {/* Stats line with Star and Users icons (Directly matching Image 2) */}
+          <div className="flex items-center gap-1.5 text-xs text-zinc-400 font-mono2 truncate mt-0.5">
+            <SiRoblox className="w-3 h-3 text-zinc-300 shrink-0" />
+            <span className="truncate">@{handle}</span>
+          </div>
           {w.stats_row !== false && (
-            <div className="flex items-center gap-3 text-xs text-zinc-300 font-medium mt-0.5 truncate">
-              {w.show_online !== false && (
-                <span className="flex items-center gap-1">
-                  <Star className="w-3 h-3 text-zinc-400 fill-zinc-400" /> {friendsCount} Friends
-                </span>
-              )}
-              {w.show_members !== false && (
-                <span className="flex items-center gap-1">
-                  <Users className="w-3 h-3 text-zinc-400" /> {followersCount} Followers
-                </span>
-              )}
+            <div className="text-xs font-semibold text-white truncate mt-1">
+              {friendsCount} Friends · {followersCount} Followers
             </div>
           )}
         </div>
       </div>
 
-      {/* Green pill button View Profile (Directly matching Image 2) */}
-      {w.view_button !== false && profileHref && (
-        <WidgetInternalButton
-          href={profileHref}
-          className="shrink-0 px-3.5 py-1.5 rounded-full bg-[#22c55e] hover:bg-[#16a34a] text-white text-[11px] font-semibold transition active:scale-95 shadow-[0_2px_10px_rgba(34,197,94,0.3)] select-none"
-          label="View Profile"
-        />
+      {/* About Section matching Image 1 */}
+      {(bio || joinedText) && (
+        <div className="mt-3 pt-2.5 border-t border-white/[0.08] space-y-1.5 text-xs">
+          <div className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider">
+            About
+          </div>
+          {bio && (
+            <div className="flex items-start gap-2 text-zinc-300 leading-snug">
+              <Info className="w-3.5 h-3.5 text-zinc-400 shrink-0 mt-0.5" />
+              <span className="line-clamp-2">{bio}</span>
+            </div>
+          )}
+          {joinedText && (
+            <div className="flex items-center gap-2 text-zinc-400">
+              <Clock className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
+              <span>Joined {joinedText}</span>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
@@ -996,23 +996,39 @@ function GithubHeatmap({ username = "", seed = 42 }) {
     return cols;
   }, [username, seed]);
 
+  const months = ["Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct"];
+
   return (
     <div className="overflow-x-auto select-none py-1">
-      <div className="flex gap-[3px] items-center justify-between min-w-full">
-        {matrix.map((col, ci) => (
-          <div key={ci} className="flex flex-col gap-[3px]">
-            {col.map((color, ri) => (
-              <span
-                key={ri}
-                className="w-[7px] h-[7px] rounded-[1.5px] transition-transform hover:scale-125"
-                style={{
-                  backgroundColor: color,
-                  boxShadow: color === "#ffffff" ? "0 0 5px rgba(255,255,255,0.7)" : undefined,
-                }}
-              />
-            ))}
-          </div>
+      {/* Month Labels matching Image 3 */}
+      <div className="flex justify-between text-[9px] text-zinc-500 font-mono2 px-6 mb-1">
+        {months.map((m) => (
+          <span key={m}>{m}</span>
         ))}
+      </div>
+      <div className="flex items-center gap-1.5 min-w-full">
+        {/* Day Labels Mon, Wed, Fri */}
+        <div className="flex flex-col justify-between text-[8px] text-zinc-500 font-mono2 h-[68px] shrink-0 pr-1">
+          <span>Mon</span>
+          <span>Wed</span>
+          <span>Fri</span>
+        </div>
+        <div className="flex gap-[3px] items-center justify-between flex-1">
+          {matrix.map((col, ci) => (
+            <div key={ci} className="flex flex-col gap-[3px]">
+              {col.map((color, ri) => (
+                <span
+                  key={ri}
+                  className="w-[7px] h-[7px] rounded-[1.5px] transition-transform hover:scale-125"
+                  style={{
+                    backgroundColor: color,
+                    boxShadow: color === "#ffffff" ? "0 0 5px rgba(255,255,255,0.7)" : undefined,
+                  }}
+                />
+              ))}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -1033,56 +1049,74 @@ function GitHubUser({ w, accent, data, status, error, refresh }) {
     );
   }
 
-  const followers = data.followers != null ? formatCount(data.followers) : "1.2K";
-  const repos = data.repos != null ? formatCount(data.repos) : "46";
-  const displayName = data.name || data.username || "Your name";
-  const handle = data.username || "yourname";
-  const contributions = data.contributions || (data.repos ? Number(data.repos) * 24 + 312 : 1190);
+  const followers = data.followers != null ? formatCount(data.followers) : "17.2K";
+  const following = data.following != null ? formatCount(data.following) : "0";
+  const repos = data.repos != null ? formatCount(data.repos) : (data.public_repos != null ? formatCount(data.public_repos) : "228");
+  const displayName = data.name || data.username || "shadcn";
+  const handle = data.username || username || "shadcn";
+  const bio = data.bio || (username ? "" : "I own a computer.");
+  const company = data.company ? (data.company.startsWith("@") ? data.company : `@${data.company}`) : (username ? "" : "@vercel");
+  const joinedText = data.created_at ? formatYearsAgo(data.created_at) : (data.created ? formatYearsAgo(data.created) : (username ? "" : "17 years ago"));
 
   return (
     <div className="relative text-white select-none py-0.5">
-      {/* Top Header Row - Themed directly after reference image */}
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3 min-w-0">
-          {/* Circular avatar with sleek border */}
-          <div className="w-10 h-10 rounded-full overflow-hidden bg-[#161b22] border border-white/15 flex items-center justify-center shrink-0 shadow-sm">
-            {data.avatar ? (
-              <img src={data.avatar} alt={handle} className="w-full h-full object-cover" />
-            ) : (
-              <FaGithub className="w-5 h-5 text-white" />
-            )}
-          </div>
-
-          {/* User information block */}
-          <div className="min-w-0 flex-1">
-            <div className="text-sm sm:text-base font-bold text-white truncate leading-tight">
-              {displayName}
-            </div>
-            <div className="text-xs text-zinc-400 font-mono2 truncate mt-0.5">
-              @{handle}
-            </div>
-            <div className="text-[11px] text-zinc-500 truncate mt-0.5">
-              {followers} followers · {repos} repositories
-            </div>
-          </div>
+      {/* Top Header Row - Themed directly after Image 3 */}
+      <div className="flex items-center gap-3.5 min-w-0">
+        {/* Avatar */}
+        <div className="w-13 h-13 rounded-2xl overflow-hidden bg-[#161b22] border border-white/15 flex items-center justify-center shrink-0 shadow-sm">
+          {data.avatar ? (
+            <img src={data.avatar} alt={handle} className="w-full h-full object-cover" />
+          ) : (
+            <FaGithub className="w-6 h-6 text-white" />
+          )}
         </div>
 
-        {/* Right Corner: Sleek GitHub Logo Badge */}
-        <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-300 shrink-0 pr-7">
-          <FaGithub className="w-4 h-4 text-white" />
-          <span>GitHub</span>
+        {/* User Information */}
+        <div className="min-w-0 flex-1">
+          <div className="text-sm sm:text-base font-bold text-white truncate leading-tight">
+            {displayName}
+          </div>
+          <div className="flex items-center gap-1.5 text-xs text-zinc-400 font-mono2 truncate mt-0.5">
+            <FaGithub className="w-3.5 h-3.5 text-zinc-300 shrink-0" />
+            <span>@{handle}</span>
+          </div>
+          {w.stats_row !== false && (
+            <div className="text-xs font-semibold text-white truncate mt-1">
+              {followers} Followers · {following} Following · {repos} Repos
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Subtle Divider Line */}
-      <div className="my-3 border-t border-white/[0.08]" />
+      {/* About Section matching Image 3 */}
+      {(bio || company || joinedText) && (
+        <div className="mt-3 pt-2 border-t border-white/[0.08] space-y-1 text-xs">
+          <div className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider">
+            About
+          </div>
+          {bio && (
+            <div className="text-zinc-200 leading-snug">
+              {bio}
+            </div>
+          )}
+          {company && (
+            <div className="flex items-center gap-2 text-zinc-400">
+              <Building2 className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
+              <span>{company}</span>
+            </div>
+          )}
+          {joinedText && (
+            <div className="flex items-center gap-2 text-zinc-400">
+              <Clock className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
+              <span>Joined {joinedText}</span>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Contribution Heatmap with Monochrome Tiles */}
-      <GithubHeatmap username={handle} seed={data.repos || 228} />
-
-      {/* Total Contributions Footer matching reference image */}
-      <div className="text-xs text-zinc-400 font-medium mt-2.5">
-        {formatCount(contributions)} contributions in the last year
+      <div className="mt-3 pt-2 border-t border-white/[0.08]">
+        <GithubHeatmap username={handle} seed={data.repos || 228} />
       </div>
     </div>
   );
@@ -1160,7 +1194,8 @@ function SpotifyTrackCard({ w, accent, data, status, error, refresh }) {
   const previewAudio = data.preview_url || data.audio_url || "";
   const pageHref = data.page_url || data.url || (w?.url ? w.url : "");
 
-  const togglePlay = () => {
+  const togglePlay = (e) => {
+    if (e && e.stopPropagation) e.stopPropagation();
     const el = audioRef.current;
     if (!el) {
       if (pageHref) window.open(pageHref, "_blank", "noopener,noreferrer");
@@ -1177,8 +1212,8 @@ function SpotifyTrackCard({ w, accent, data, status, error, refresh }) {
   };
 
   const cover = data.thumbnail || data.artwork || "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=300&auto=format&fit=crop&q=80";
-  const title = data.title || w?.track || w?.title || "FE!N (feat. Playboi Carti)";
-  const artist = data.author || data.artist || w?.artist || "Travis Scott";
+  const title = data.title || w?.track || w?.title || "WHAT TO DO? (feat. Don Toliver)";
+  const artist = data.author || data.artist || w?.artist || "JACKBOYS, Travis Scott";
 
   return (
     <div className="relative text-white select-none py-0.5">
@@ -1191,95 +1226,55 @@ function SpotifyTrackCard({ w, accent, data, status, error, refresh }) {
         />
       )}
 
-      {/* Ambient background glow from album art */}
-      <div
-        className="pointer-events-none absolute -inset-3 rounded-2xl opacity-25 blur-xl transition-opacity duration-500"
-        style={{
-          background: "radial-gradient(circle at 20% 40%, #1DB954, transparent 65%)",
-        }}
-      />
-
-      {/* Top Header Pill Row */}
-      <div className="relative z-10 flex items-center justify-between pb-2.5 pr-7">
-        <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#1DB954]/15 border border-[#1DB954]/30 text-[#1DB954] text-[10px] font-bold tracking-wider uppercase">
-          <FaSpotify className="w-3 h-3 text-[#1DB954]" />
-          <span>Spotify Player</span>
-        </div>
-        {/* Equalizer Frequency Bars */}
-        <div className="flex items-end gap-1 h-3.5 px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/10" title="Live Equalizer">
-          <span className={`w-0.5 bg-[#1DB954] rounded-full transition-all duration-300 ${isPlaying ? "h-3 animate-pulse" : "h-1.5"}`} />
-          <span className={`w-0.5 bg-[#1DB954] rounded-full transition-all duration-300 ${isPlaying ? "h-3.5 animate-pulse delay-100" : "h-3"}`} />
-          <span className={`w-0.5 bg-[#1DB954] rounded-full transition-all duration-300 ${isPlaying ? "h-2 animate-pulse delay-200" : "h-1"}`} />
-          <span className={`w-0.5 bg-[#1DB954] rounded-full transition-all duration-300 ${isPlaying ? "h-3.5 animate-pulse delay-75" : "h-2.5"}`} />
-        </div>
-      </div>
-
-      {/* Main Track & Artwork Row */}
-      <div className="relative z-10 flex items-center gap-3.5">
-        {/* Vinyl Disc & Album Art Container */}
-        <div className="relative shrink-0 group/cover">
-          {/* Animated Vinyl Disc peeking out */}
-          <div
-            className={`absolute top-0.5 -right-2.5 w-13 h-13 rounded-full bg-gradient-to-br from-zinc-800 via-black to-zinc-900 border border-zinc-700/60 shadow-lg flex items-center justify-center pointer-events-none transition-transform duration-500 ${
-              isPlaying ? "animate-[spin_4s_linear_infinite] translate-x-2" : "group-hover/cover:translate-x-2"
-            }`}
-          >
-            <div className="w-5 h-5 rounded-full bg-[#1DB954]/80 flex items-center justify-center border border-black/40">
-              <div className="w-1.5 h-1.5 rounded-full bg-black" />
-            </div>
-          </div>
-
-          {/* Album Cover Sleeve */}
-          <div className="relative z-10 w-14 h-14 rounded-xl overflow-hidden bg-zinc-900 border border-white/20 shadow-xl">
-            <img src={cover} alt={title} className="w-full h-full object-cover" />
-          </div>
-        </div>
-
-        {/* Track Title & Artist Info */}
-        <div className="min-w-0 flex-1 pl-1">
-          <div className="text-sm sm:text-base font-bold text-white truncate leading-tight flex items-center gap-1.5">
-            <span className="truncate">{title}</span>
-            <Check className="w-3.5 h-3.5 text-[#1DB954] shrink-0" />
-          </div>
-          <div className="text-xs text-zinc-300/90 font-medium truncate mt-0.5">
-            {artist}
-          </div>
-          {data?.album && (
-            <div className="text-[10px] text-zinc-500 truncate mt-0.5">
-              Album · {data.album}
-            </div>
-          )}
-        </div>
-
-        {/* Play / Pause Interactive Action Button */}
-        <div className="relative z-10 shrink-0">
+      {/* Main Track Row matching Image 2 */}
+      <div className="flex items-center gap-3">
+        {/* Album Artwork */}
+        <div className="w-12 h-12 rounded-xl overflow-hidden bg-zinc-900 border border-white/10 shrink-0 shadow-sm relative group">
+          <img src={cover} alt={title} className="w-full h-full object-cover" />
           <button
             type="button"
             onClick={togglePlay}
-            className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#1ed760] to-[#1DB954] text-black flex items-center justify-center shadow-[0_2px_14px_rgba(29,185,84,0.45)] hover:scale-105 active:scale-95 transition-all cursor-pointer"
-            title={isPlaying ? "Pause" : previewAudio ? "Play Preview" : "Listen on Spotify"}
-            aria-label={isPlaying ? "Pause preview" : "Play preview"}
+            className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+            aria-label={isPlaying ? "Pause" : "Play"}
           >
-            {isPlaying ? (
-              <Pause className="w-4 h-4 fill-black text-black" />
-            ) : (
-              <Play className="w-4 h-4 fill-black text-black ml-0.5" />
-            )}
+            {isPlaying ? <Pause className="w-4 h-4 fill-white text-white" /> : <Play className="w-4 h-4 fill-white text-white ml-0.5" />}
           </button>
         </div>
-      </div>
 
-      {/* Realistic Track Progress Scrubber Bar */}
-      <div className="relative z-10 mt-3 pt-1">
-        <div className="relative h-1 w-full rounded-full bg-white/10 overflow-hidden cursor-pointer">
-          <div
-            className="h-full rounded-full bg-gradient-to-r from-[#1DB954] to-[#1ed760] transition-all duration-300"
-            style={{ width: isPlaying ? "62%" : "34%" }}
-          />
-        </div>
-        <div className="flex items-center justify-between text-[10px] font-mono2 text-zinc-400 mt-1">
-          <span>{isPlaying ? "2:14" : "1:14"}</span>
-          <span className="text-zinc-500">3:28</span>
+        {/* Info & Progress */}
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs sm:text-sm font-bold text-white tracking-tight truncate leading-tight">
+              {title}
+            </span>
+            {/* Equalizer Icon on right */}
+            <div className="flex items-end gap-0.5 h-3 shrink-0 pr-6" title="Playing">
+              <span className={`w-0.5 bg-zinc-300 rounded-full transition-all duration-300 ${isPlaying ? "h-3 animate-pulse" : "h-1.5"}`} />
+              <span className={`w-0.5 bg-zinc-300 rounded-full transition-all duration-300 ${isPlaying ? "h-3.5 animate-pulse delay-100" : "h-2.5"}`} />
+              <span className={`w-0.5 bg-zinc-300 rounded-full transition-all duration-300 ${isPlaying ? "h-2 animate-pulse delay-200" : "h-1"}`} />
+            </div>
+          </div>
+
+          <div className="text-[11px] text-zinc-400 font-medium truncate mt-0.5">
+            {artist}
+          </div>
+
+          {/* Scrubber row with timestamps and mini controls matching Image 2 */}
+          <div className="flex items-center gap-2 mt-1.5 text-[10px] font-mono2 text-zinc-400">
+            <span className="shrink-0">{isPlaying ? "0:14" : "0:00"}</span>
+            <div className="relative flex-1 h-1 rounded-full bg-white/10 overflow-hidden cursor-pointer">
+              <div
+                className="h-full rounded-full bg-white transition-all duration-300"
+                style={{ width: isPlaying ? "45%" : "24%" }}
+              />
+            </div>
+            <span className="shrink-0 text-zinc-500">0:29</span>
+            <div className="flex items-center gap-1.5 text-zinc-400 shrink-0 ml-1">
+              <button type="button" onClick={togglePlay} className="hover:text-white transition cursor-pointer" aria-label="Toggle playback">
+                {isPlaying ? <Pause className="w-3 h-3 fill-current" /> : <Play className="w-3 h-3 fill-current" />}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1808,53 +1803,44 @@ function YouTubeChannel({ w, accent, data, status, error, refresh }) {
     );
   }
 
-  const subs = data.stats?.subscribers != null ? formatCount(data.stats.subscribers) : (data.subscribers_text || "Subscribers");
+  const subs = data.stats?.subscribers != null ? `${formatCount(data.stats.subscribers)} Subscribers` : (data.subscribers_text || "16,600,000 Subscribers");
+  const videos = data.stats?.videos != null ? `${formatCount(data.stats.videos)} Videos` : (data.videos_text || "3,679 Videos");
   const channelUrl = data.url || (data.handle ? `https://www.youtube.com/${data.handle}` : "https://www.youtube.com");
+  const handle = (data.handle || (data.url ? String(data.url).split("/").pop() : "") || "KaiCenatLive").replace(/^@/, "");
+  const title = data.title || "Kai Cenat Live";
 
   return (
-    <div className="relative flex items-center justify-between gap-3 py-1">
-      {/* Top right subtle watermark */}
-      {w.platform_badge !== false && (
-        <span className="absolute top-0 right-0 flex items-center gap-1 text-[10px] font-mono2 font-bold tracking-wider text-zinc-600 uppercase select-none opacity-40">
-          <FaYoutube className="w-3 h-3 text-red-500" /> YOUTUBE
-        </span>
-      )}
-
-      <div className="flex items-center gap-3.5 min-w-0 flex-1">
-        {/* Avatar with red ring */}
+    <div className="relative text-white select-none py-0.5">
+      <div className="flex items-center gap-3.5 min-w-0">
+        {/* Circular Avatar matching Image 4 */}
         <div className="relative shrink-0">
-          <div className="w-[50px] h-[50px] rounded-full p-0.5 ring-2 ring-red-500/80 overflow-hidden bg-black/40 flex items-center justify-center shadow-md">
+          <div className="w-12 h-12 rounded-full overflow-hidden border border-white/15 bg-zinc-900 shadow-sm flex items-center justify-center">
             {data.avatar ? (
-              <img src={data.avatar} alt={data.title || "YouTube"} className="w-full h-full rounded-full object-cover" />
+              <img src={data.avatar} alt={title} className="w-full h-full object-cover" />
             ) : (
-              <FaYoutube className="w-6 h-6 text-red-500" />
+              <FaYoutube className="w-6 h-6 text-white" />
             )}
           </div>
+          {/* Active indicator dot */}
+          <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-[#0c0d12]" />
         </div>
 
-        {/* Channel info */}
+        {/* Channel Details */}
         <div className="min-w-0 flex-1">
-          <div className="text-sm sm:text-base font-bold text-white truncate flex items-center gap-1.5">
-            <span className="truncate">{data.title || "YouTube Channel"}</span>
-            <Check className="w-3.5 h-3.5 text-red-500 shrink-0" />
+          <div className="text-sm sm:text-base font-bold text-white tracking-tight truncate leading-tight">
+            {title}
           </div>
-          {w.stats_row !== false && w.show_online !== false && (
-            <div className="flex items-center gap-1.5 text-xs text-zinc-300 font-medium mt-0.5 truncate">
-              <Users className="w-3 h-3 text-zinc-400" />
-              <span>{subs} Subscribers</span>
+          <div className="flex items-center gap-1.5 text-xs text-zinc-400 font-mono2 truncate mt-0.5">
+            <FaYoutube className="w-3.5 h-3.5 text-red-500 shrink-0" />
+            <span className="truncate">@{handle}</span>
+          </div>
+          {w.stats_row !== false && (
+            <div className="text-xs font-semibold text-white truncate mt-1">
+              {subs} · {videos}
             </div>
           )}
         </div>
       </div>
-
-      {/* Red View Channel button */}
-      {w.view_button !== false && channelUrl && (
-        <WidgetInternalButton
-          href={channelUrl}
-          className="shrink-0 px-3.5 py-1.5 rounded-full bg-[#ff0000] hover:bg-red-600 active:scale-95 text-white text-[11px] font-semibold transition shadow-[0_2px_12px_rgba(255,0,0,0.35)] select-none"
-          label="View Channel"
-        />
-      )}
     </div>
   );
 }
@@ -1878,75 +1864,48 @@ function SteamProfile({ w, accent, data, status, error, refresh }) {
   }
 
   const inGame = !!data.current_game;
-  const statusColor = inGame ? "#a4d007" : data.online ? "#57cbde" : "#898989";
   const profileUrl = data.url || resolveWidgetUrl(w, data);
   const persona = data.persona || "Steam User";
   const level = data.level || (data.steam_id ? (Number(data.steam_id.slice(-2)) % 80) + 15 : 75);
 
   return (
     <div className="relative text-white select-none py-0.5">
-      {/* Ambient background glow */}
-      <div
-        className="pointer-events-none absolute -inset-3 rounded-2xl opacity-20 blur-xl transition-opacity duration-500"
-        style={{
-          background: inGame
-            ? "radial-gradient(circle at 10% 40%, #a4d007, transparent 65%)"
-            : "radial-gradient(circle at 10% 40%, #66c0f4, transparent 65%)",
-        }}
-      />
-
-      {/* Top Header Row with Platform & Level Badges */}
-      <div className="relative z-10 flex items-center justify-between pb-2.5 pr-7">
-        <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#1b2838] border border-[#66c0f4]/30 text-[#66c0f4] text-[10px] font-bold tracking-wider uppercase">
-          <FaSteam className="w-3.5 h-3.5 text-[#66c0f4]" />
+      {/* Top Header Row with Platform & Level Badges - Monochrome Obsidian */}
+      <div className="relative z-10 flex items-center justify-between pb-2 pr-7">
+        <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/5 border border-white/10 text-zinc-300 text-[10px] font-bold tracking-wider uppercase">
+          <FaSteam className="w-3.5 h-3.5 text-white" />
           <span>Steam Profile</span>
         </div>
-        <div className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-blue-500/15 to-indigo-500/15 border border-blue-400/30 text-[10px] font-mono2 font-bold text-blue-300 shadow-sm">
-          <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
+        <div className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-mono2 font-bold text-zinc-200">
+          <Star className="w-3 h-3 text-white fill-white" />
           <span>Level {level}</span>
         </div>
       </div>
 
       {/* Main Avatar & Status Row */}
       <div className="relative z-10 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3.5 min-w-0 flex-1">
-          {/* Avatar with dynamic in-game / online glowing border ring */}
-          <div
-            className={`w-13 h-13 rounded-2xl overflow-hidden bg-zinc-900 shrink-0 border-2 transition-all duration-300 shadow-lg ${
-              inGame
-                ? "border-[#a4d007] shadow-[0_0_12px_rgba(164,208,7,0.45)]"
-                : data.online
-                ? "border-[#66c0f4] shadow-[0_0_12px_rgba(102,192,244,0.35)]"
-                : "border-white/10"
-            }`}
-          >
-            {data.avatar ? (
-              <img src={data.avatar} alt={persona} className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-zinc-600">
-                <FaSteam className="w-6 h-6" />
-              </div>
-            )}
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          {/* Avatar with subtle presence border */}
+          <div className="relative shrink-0">
+            <div className="w-12 h-12 rounded-2xl overflow-hidden bg-zinc-900 border border-white/15 shadow-sm">
+              {data.avatar ? (
+                <img src={data.avatar} alt={persona} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-zinc-500">
+                  <FaSteam className="w-6 h-6" />
+                </div>
+              )}
+            </div>
+            {/* Status dot */}
+            <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0c0d12] ${inGame || data.online ? "bg-white" : "bg-zinc-600"}`} />
           </div>
 
           <div className="min-w-0 flex-1">
-            <div className="text-sm sm:text-base font-bold text-white tracking-wide truncate leading-tight">
+            <div className="text-sm sm:text-base font-bold text-white tracking-tight truncate leading-tight">
               {persona}
             </div>
-            {/* Status Beacon & Game Text */}
-            <div className="flex items-center gap-1.5 text-xs font-semibold mt-0.5 truncate" style={{ color: statusColor }}>
-              <span
-                className={`w-2 h-2 rounded-full shrink-0 ${
-                  inGame
-                    ? "bg-[#a4d007] animate-pulse shadow-[0_0_8px_#a4d007]"
-                    : data.online
-                    ? "bg-[#57cbde] shadow-[0_0_6px_#57cbde]"
-                    : "bg-zinc-500"
-                }`}
-              />
-              <span className="truncate">
-                {inGame ? `Playing ${data.current_game.name}` : data.state_message || (data.online ? "Online" : "Offline")}
-              </span>
+            <div className="text-xs font-medium text-zinc-400 mt-0.5 truncate">
+              {inGame ? `Playing ${data.current_game.name}` : data.state_message || (data.online ? "Online" : "Offline")}
             </div>
           </div>
         </div>
@@ -1955,7 +1914,7 @@ function SteamProfile({ w, accent, data, status, error, refresh }) {
         {w.view_button !== false && profileUrl && (
           <WidgetInternalButton
             href={profileUrl}
-            className="shrink-0 px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#1b2838] to-[#2a475e] hover:brightness-125 active:scale-95 text-[#66c0f4] hover:text-white text-xs font-bold transition border border-[#66c0f4]/25 shadow-sm cursor-pointer select-none"
+            className="shrink-0 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 active:scale-95 text-white text-xs font-semibold transition border border-white/10 cursor-pointer select-none"
             label="View Profile"
           />
         )}
@@ -1963,10 +1922,10 @@ function SteamProfile({ w, accent, data, status, error, refresh }) {
 
       {/* Bottom Steam Stats Bar */}
       {w.stats_row !== false && (
-        <div className="relative z-10 mt-3 pt-2.5 border-t border-white/[0.08] flex items-center justify-between text-xs text-zinc-300">
+        <div className="relative z-10 mt-2.5 pt-2 border-t border-white/[0.08] flex items-center justify-between text-xs text-zinc-400">
           <span>Games: <strong className="text-white">{data.games_count || 148}</strong></span>
           <span className="text-zinc-600">•</span>
-          <span>Badges: <strong className="text-blue-300">{data.badges_count || 42}</strong></span>
+          <span>Badges: <strong className="text-white">{data.badges_count || 42}</strong></span>
           <span className="text-zinc-600">•</span>
           <span className="text-zinc-400">Community Verified</span>
         </div>
@@ -1997,14 +1956,14 @@ function ValorantCard({ w, accent, data, status, error, refresh }) {
   return (
     <>
       <div className="flex items-center gap-3.5 mb-2.5">
-        <div className="w-12 h-12 rounded-2xl overflow-hidden bg-red-950/40 border border-red-500/30 flex items-center justify-center shrink-0">
-          <SiValorant className="w-6 h-6 text-red-500" />
+        <div className="w-12 h-12 rounded-2xl overflow-hidden bg-zinc-900 border border-white/15 flex items-center justify-center shrink-0">
+          <SiValorant className="w-6 h-6 text-white" />
         </div>
         <div className="min-w-0 flex-1">
           <div className="text-base font-bold text-white truncate">
             {data.game_name}#{data.tag_line}
           </div>
-          <div className="text-xs text-red-400 font-semibold uppercase mt-0.5">
+          <div className="text-xs text-zinc-300 font-semibold uppercase mt-0.5">
             {data.rank || "Unrated"}
             {data.rr != null && ` · ${data.rr} RR`}
           </div>
@@ -2012,7 +1971,7 @@ function ValorantCard({ w, accent, data, status, error, refresh }) {
       </div>
       <div className="mt-2 pt-2 border-t border-white/[0.06] flex items-center justify-between text-xs text-zinc-300">
         <span>Wins: <strong className="text-white">{data.wins != null ? formatCount(data.wins) : "—"}</strong></span>
-        <span>Peak: <strong className="text-amber-400">{data.peak || "—"}</strong></span>
+        <span>Peak: <strong className="text-white">{data.peak || "—"}</strong></span>
         {data.account_level != null && <span>Level: <strong className="text-white">{data.account_level}</strong></span>}
       </div>
     </>
@@ -2284,156 +2243,174 @@ function CustomCard({ w, accent }) {
   );
 }
 
-// TikTok / SoundCloud and any other oEmbed link.
-function MediaCard({ w, accent, data, status, error, refresh, provider, HeaderIcon }) {
+// ---------------------------------------------------------------------------
+// TikTok Creator Profile Showcase (With custom banners & pure monochrome aesthetic)
+// ---------------------------------------------------------------------------
+
+function TikTokCard({ w, accent, data, status, error, refresh }) {
   if (status === "loading") return <Skeleton />;
   if (status !== "success" || !data) {
     return (
       <WidgetError
         w={w}
         accent={accent}
-        Icon={HeaderIcon || FaTiktok}
-        message={error || (provider === "tiktok" ? "Enter your TikTok username (@handle) or video link." : "Paste a link to a video or post.")}
+        Icon={FaTiktok}
+        message={error || "Enter your TikTok username (@handle) or video link."}
         onRetry={refresh}
       />
     );
   }
 
-  const label = provider === "tiktok" ? "TikTok" : provider === "soundcloud" ? "SoundCloud" : "Media";
-  const isProfile = Boolean(data.is_profile);
+  const handle = String(data.author || w?.username || "koniwtfs").replace(/^@/, "");
+  const displayName = data.author_name || data.name || `@${handle}`;
+  const avatar = data.thumbnail || data.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80";
+  const followers = data.followers ? formatCount(data.followers) : "148.5K";
+  const likes = data.likes ? formatCount(data.likes) : "2.4M";
+  const pageUrl = data.url || data.page_url || (w?.url ? w.url : `https://www.tiktok.com/@${handle}`);
+  const banner = fileUrl(w?.banner_url) || data.banner || "";
+  const bio = data.bio || data.title || (w?.username ? "" : "Official TikTok Creator");
 
-  if (provider === "tiktok") {
-    const handle = String(data.author || w?.username || "koniwtfs").replace(/^@/, "");
-    const avatar = data.thumbnail || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80";
-    const followers = data.followers ? formatCount(data.followers) : "148.5K";
-    const likes = data.likes ? formatCount(data.likes) : "2.4M";
-    const pageUrl = data.url || data.page_url || (w?.url ? w.url : `https://www.tiktok.com/@${handle}`);
+  return (
+    <div className="relative text-white select-none py-0.5">
+      {/* Optional Creator Header Banner */}
+      {banner && (
+        <div className="relative -mx-3.5 -mt-3.5 mb-2.5 h-16 overflow-hidden rounded-t-xl border-b border-white/10">
+          <img src={banner} alt="" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0c0d12] to-transparent" />
+        </div>
+      )}
 
-    return (
-      <div className="relative text-white py-0.5 select-none">
-        {/* Subtle dual cyan & red neon background glow */}
-        <div
-          className="pointer-events-none absolute -inset-3 rounded-2xl opacity-25 blur-xl transition-opacity duration-500"
-          style={{
-            background: "radial-gradient(circle at 10% 30%, #25f4ee, transparent 55%), radial-gradient(circle at 90% 70%, #fe2c55, transparent 55%)",
-          }}
-        />
-
-        {/* Top Header Row with Platform Badge */}
-        <div className="relative z-10 flex items-center justify-between pb-2.5 pr-7">
-          <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#fe2c55]/15 border border-[#fe2c55]/30 text-[#fe2c55] text-[10px] font-bold tracking-wider uppercase">
-            <FaTiktok className="w-3 h-3 text-[#fe2c55]" />
-            <span>TikTok Verified</span>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          {/* Circular avatar with verified checkmark */}
+          <div className="relative shrink-0">
+            <div className="w-12 h-12 rounded-full overflow-hidden border border-white/20 bg-zinc-900 shadow-md">
+              <img src={avatar} alt={handle} className="w-full h-full object-cover" />
+            </div>
+            <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-white text-black flex items-center justify-center text-[9px] font-bold shadow-sm">
+              ✓
+            </div>
           </div>
-          {/* Trending Sound / Vinyl Pulse */}
-          <div className="flex items-center gap-1.5 text-[10px] font-medium text-zinc-300 bg-white/[0.04] px-2 py-0.5 rounded-md border border-white/10">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#25f4ee] animate-pulse" />
-            <span className="truncate max-w-[110px]">♫ Trending Audio</span>
+
+          {/* Creator Information */}
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5 leading-tight">
+              <span className="text-sm font-bold text-white truncate">{displayName}</span>
+              <FaTiktok className="w-3 h-3 text-zinc-400 shrink-0" />
+            </div>
+            <div className="text-[11px] text-zinc-400 font-mono2 truncate mt-0.5">
+              @{handle}
+            </div>
+            <div className="text-xs font-semibold text-white truncate mt-1">
+              {followers} Followers · {likes} Likes
+            </div>
           </div>
         </div>
 
-        {/* Creator Info Row */}
-        <div className="relative z-10 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3.5 min-w-0 flex-1">
-            {/* Avatar with TikTok Cyber Ring */}
-            <div className="relative shrink-0">
-              <div className="w-13 h-13 rounded-full p-[2px] bg-gradient-to-tr from-[#25f4ee] via-[#fe2c55] to-[#25f4ee] shadow-[0_0_12px_rgba(254,44,85,0.35)] flex items-center justify-center">
-                <img src={avatar} alt={handle} className="w-full h-full rounded-full object-cover" />
-              </div>
-              <div className="absolute -bottom-1 -right-1 w-4.5 h-4.5 rounded-full bg-[#25f4ee] text-black flex items-center justify-center text-[9px] font-bold shadow-sm">
-                ✓
-              </div>
-            </div>
-
-            {/* Handle & Stats */}
-            <div className="min-w-0 flex-1">
-              <div className="text-sm sm:text-base font-bold text-white truncate flex items-center gap-1.5 leading-tight">
-                <span className="truncate">@{handle}</span>
-              </div>
-              <div className="text-[11px] text-zinc-400 font-medium truncate mt-0.5">
-                Official TikTok Creator
-              </div>
-              <div className="flex items-center gap-2.5 text-[10px] text-zinc-300 font-medium mt-1">
-                <span className="text-[#25f4ee] font-bold">{followers} <span className="text-zinc-400 font-normal">Followers</span></span>
-                <span className="text-zinc-600">•</span>
-                <span className="text-[#fe2c55] font-bold">{likes} <span className="text-zinc-400 font-normal">Likes</span></span>
-              </div>
-            </div>
-          </div>
-
-          {/* Follow / Watch on TikTok Action Button */}
+        {/* Watch / Open Button */}
+        {pageUrl && (
           <WidgetInternalButton
             href={pageUrl}
-            className="shrink-0 px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#fe2c55] to-[#e02447] hover:brightness-110 active:scale-95 text-white text-xs font-bold transition shadow-[0_2px_12px_rgba(254,44,85,0.4)] border border-white/10 select-none flex items-center gap-1.5 cursor-pointer"
+            className="shrink-0 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-semibold border border-white/10 transition active:scale-95 cursor-pointer"
             label="Watch"
           >
             <span>Watch</span>
-            <ArrowRight className="w-3.5 h-3.5" />
           </WidgetInternalButton>
-        </div>
+        )}
       </div>
+
+      {/* Bio / Description line */}
+      {bio && bio !== displayName && (
+        <div className="mt-2.5 pt-2 border-t border-white/[0.08] text-xs text-zinc-400 line-clamp-2 leading-relaxed">
+          {bio}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// SoundCloud Audio Player (Compact horizontal monochrome card matching Spotify)
+// ---------------------------------------------------------------------------
+
+function SoundCloudCard({ w, accent, data, status, error, refresh }) {
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  if (status === "loading") return <Skeleton />;
+  if (status !== "success" || !data) {
+    return (
+      <WidgetError
+        w={w}
+        accent={accent}
+        Icon={FaSoundcloud}
+        message={error || "Paste a link to a SoundCloud track or playlist."}
+        onRetry={refresh}
+      />
     );
   }
 
-  // SoundCloud and generic media preview
   const trackUrl = data.url || data.page_url || (w?.url ? w.url : "#");
-  const title = data.title || (w?.title ? w.title : `${label} Track`);
-  const author = data.author || (w?.author ? w.author : label);
+  const title = data.title || (w?.title ? w.title : "SoundCloud Track");
+  const author = data.author || (w?.author ? w.author : "SoundCloud Artist");
   const cover = data.thumbnail || "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=200&auto=format&fit=crop&q=80";
 
   return (
-    <div className="relative text-white py-0.5 select-none">
-      {/* SoundCloud Orange Glow */}
-      <div
-        className="pointer-events-none absolute -inset-3 rounded-2xl opacity-20 blur-xl transition-opacity duration-500"
-        style={{
-          background: "radial-gradient(circle at 10% 40%, #ff5500, transparent 65%)",
-        }}
-      />
-
-      {/* Header */}
-      <div className="relative z-10 flex items-center justify-between pb-2 pr-7">
-        <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#ff5500]/15 border border-[#ff5500]/30 text-[#ff5500] text-[10px] font-bold tracking-wider uppercase">
-          <FaSoundcloud className="w-3.5 h-3.5 text-[#ff5500]" />
-          <span>SoundCloud Stream</span>
-        </div>
-        <div className="text-[10px] font-mono2 text-orange-400/90 font-medium">
-          320kbps High Res
-        </div>
-      </div>
-
-      <div className="relative z-10 flex items-center gap-3.5">
-        <div className="w-13 h-13 rounded-xl overflow-hidden bg-zinc-900 border border-white/15 shrink-0 shadow-md">
+    <div className="relative text-white select-none py-0.5">
+      <div className="flex items-center gap-3">
+        {/* Cover Artwork */}
+        <div className="w-12 h-12 rounded-xl overflow-hidden bg-zinc-900 border border-white/10 shrink-0 shadow-sm relative group">
           <img src={cover} alt={title} className="w-full h-full object-cover" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="text-sm sm:text-base font-bold text-white truncate leading-tight">
-            {title}
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+            <FaSoundcloud className="w-5 h-5 text-white" />
           </div>
-          <div className="text-xs text-zinc-300 font-medium truncate mt-0.5">
+        </div>
+
+        {/* Info & Waveform/Scrubber */}
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs sm:text-sm font-bold text-white tracking-tight truncate leading-tight">
+              {title}
+            </span>
+            <FaSoundcloud className="w-4 h-4 text-zinc-400 shrink-0 pr-6" />
+          </div>
+
+          <div className="text-[11px] text-zinc-400 font-medium truncate mt-0.5">
             {author}
           </div>
-          {/* Animated sound wave bars in orange */}
-          <div className="flex items-end gap-0.5 h-3 mt-1.5">
-            {[40, 70, 30, 90, 60, 100, 45, 80, 50, 85, 35, 75].map((h, idx) => (
-              <span
-                key={idx}
-                className="w-1 bg-[#ff5500] rounded-xs opacity-80"
-                style={{ height: `${h}%` }}
+
+          {/* Clean monochrome scrubber row */}
+          <div className="flex items-center gap-2 mt-1.5 text-[10px] font-mono2 text-zinc-400">
+            <span className="shrink-0">{isPlaying ? "1:12" : "0:00"}</span>
+            <div className="relative flex-1 h-1 rounded-full bg-white/10 overflow-hidden cursor-pointer">
+              <div
+                className="h-full rounded-full bg-white transition-all duration-300"
+                style={{ width: isPlaying ? "58%" : "30%" }}
               />
-            ))}
+            </div>
+            <span className="shrink-0 text-zinc-500">3:18</span>
+            <div className="flex items-center gap-1.5 text-zinc-400 shrink-0 ml-1">
+              <button
+                type="button"
+                onClick={() => setIsPlaying(!isPlaying)}
+                className="hover:text-white transition cursor-pointer"
+                aria-label="Toggle playback"
+              >
+                {isPlaying ? <Pause className="w-3 h-3 fill-current" /> : <Play className="w-3 h-3 fill-current" />}
+              </button>
+            </div>
           </div>
         </div>
-        <WidgetInternalButton
-          href={trackUrl}
-          className="w-10 h-10 rounded-full bg-[#ff5500] hover:bg-[#ff6a1a] active:scale-95 text-white flex items-center justify-center shadow-[0_2px_12px_rgba(255,85,0,0.4)] shrink-0 transition cursor-pointer"
-          aria-label="Play on SoundCloud"
-        >
-          <Play className="w-4 h-4 fill-white text-white ml-0.5" />
-        </WidgetInternalButton>
       </div>
     </div>
   );
+}
+
+// MediaCard wrapper for backward compatibility
+function MediaCard(props) {
+  if (props.provider === "tiktok" || props.w?.type === "tiktok") {
+    return <TikTokCard {...props} />;
+  }
+  return <SoundCloudCard {...props} />;
 }
 
 function GamesCard({ w, accent }) {
@@ -2740,12 +2717,18 @@ export function WidgetCard({ w, accent = "#b4bffa", ownerCreated, owner = "", pr
     );
   }
 
-  if (type === "tiktok" || type === "soundcloud") {
-    const HeaderIcon = type === "tiktok" ? FaTiktok : FaSoundcloud;
-    const title = type === "tiktok" ? "TikTok Preview" : "SoundCloud Preview";
+  if (type === "tiktok") {
     return (
-      <WidgetShell w={w} accent={accent} data={data} headerTitle={w.title || title} HeaderIcon={HeaderIcon}>
-        <MediaCard {...props} provider={type} HeaderIcon={HeaderIcon} />
+      <WidgetShell w={w} accent={accent} data={data} headerTitle={w.title || "TikTok Creator"} HeaderIcon={FaTiktok}>
+        <TikTokCard {...props} />
+      </WidgetShell>
+    );
+  }
+
+  if (type === "soundcloud") {
+    return (
+      <WidgetShell w={w} accent={accent} data={data} headerTitle={w.title || "SoundCloud Track"} HeaderIcon={FaSoundcloud}>
+        <SoundCloudCard {...props} />
       </WidgetShell>
     );
   }
