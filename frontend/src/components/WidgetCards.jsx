@@ -609,44 +609,122 @@ function WidgetShell({
       )}
       {tipNode}
 
-      {/* Mini popup preview modal if popup_toggle is pressed */}
+      {/* Authentic full-screen website-style preview modal if popup_toggle is pressed */}
       {isPopupOpen && (
         <div
-          className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl animate-fade-in"
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-black/85 backdrop-blur-2xl animate-fade-in"
           onClick={() => setIsPopupOpen(false)}
         >
           <div
-            className="relative w-full max-w-sm rounded-2xl border border-white/15 bg-zinc-950/95 p-5 shadow-2xl space-y-4 text-left"
+            className="relative w-full max-w-lg sm:max-w-xl rounded-3xl border border-white/15 bg-gradient-to-b from-zinc-900/95 via-zinc-950/98 to-black p-6 sm:p-8 shadow-[0_32px_100px_rgba(0,0,0,0.9)] space-y-6 text-left overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
-              <div className="flex items-center gap-2">
-                {HeaderIcon && <HeaderIcon className="w-4 h-4 text-brand-400" />}
-                <span className="text-sm font-bold text-white truncate">{headerTitle || w?.title || "Widget Preview"}</span>
+            {/* Ambient top colored glow */}
+            <div
+              className="absolute -top-24 left-1/2 -translate-x-1/2 w-80 h-80 rounded-full blur-[90px] opacity-25 pointer-events-none"
+              style={{
+                backgroundColor:
+                  w?.type === "discord"
+                    ? "#5865F2"
+                    : w?.type === "spotify"
+                    ? "#1DB954"
+                    : w?.type === "youtube"
+                    ? "#ff0000"
+                    : w?.type === "roblox"
+                    ? "#00a2ff"
+                    : w?.type === "steam"
+                    ? "#171a21"
+                    : accent || "#b4bffa",
+              }}
+            />
+
+            {/* Header bar with authentic platform pill */}
+            <div className="relative z-10 flex items-center justify-between border-b border-white/10 pb-4">
+              <div className="flex items-center gap-3">
+                {HeaderIcon ? (
+                  <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-white/10 border border-white/15 shadow-sm text-brand-400">
+                    <HeaderIcon className="w-4 h-4" />
+                  </span>
+                ) : null}
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-base font-extrabold text-white tracking-wide">
+                      {headerTitle || w?.title || "Widget Preview"}
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/10 text-zinc-300 border border-white/10">
+                      {w?.type || "LIVE"}
+                    </span>
+                  </div>
+                  <div className="text-xs text-zinc-400 mt-0.5">
+                    {w?.type === "discord"
+                      ? "Official Discord Integration"
+                      : w?.type === "spotify"
+                      ? "Spotify Web Player"
+                      : w?.type === "roblox"
+                      ? "Roblox Live Presence"
+                      : w?.type === "github"
+                      ? "GitHub Developer Profile"
+                      : "Interactive Widget Preview"}
+                  </div>
+                </div>
               </div>
               <button
                 type="button"
                 onClick={() => setIsPopupOpen(false)}
-                className="rounded-lg p-1 text-zinc-400 hover:text-white hover:bg-white/10 transition cursor-pointer"
+                className="rounded-xl p-2 text-zinc-400 hover:text-white hover:bg-white/10 border border-transparent hover:border-white/10 transition cursor-pointer"
+                aria-label="Close modal"
               >
-                <X className="w-4 h-4" />
+                <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="py-2">
-              <WidgetActionContext.Provider value={{ openStyle: "button", onOpen: null, popoutUrl, popupToggle: false }}>
-                {children}
-              </WidgetActionContext.Provider>
+
+            {/* Modal Body with authentic full layout */}
+            <div className="relative z-10 py-1">
+              <div className="rounded-2xl border border-white/10 bg-black/40 p-5 shadow-inner">
+                <WidgetActionContext.Provider value={{ openStyle: "button", onOpen: null, popoutUrl, popupToggle: false }}>
+                  {children}
+                </WidgetActionContext.Provider>
+              </div>
             </div>
+
+            {/* Modal Action CTA */}
             {popoutUrl && (
-              <a
-                href={popoutUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full py-2 px-4 rounded-xl font-semibold text-xs text-white bg-brand-500/20 hover:bg-brand-500/30 border border-brand-500/40 transition shadow-sm"
-              >
-                <span>Open externally</span>
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
+              <div className="relative z-10 pt-1">
+                <a
+                  href={popoutUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`flex items-center justify-center gap-2.5 w-full py-3.5 px-6 rounded-2xl font-bold text-sm text-white transition-all duration-200 shadow-lg cursor-pointer ${
+                    w?.type === "discord"
+                      ? "bg-[#5865F2] hover:bg-[#4752c4] shadow-[#5865F2]/25"
+                      : w?.type === "spotify"
+                      ? "bg-[#1DB954] hover:bg-[#1ed760] !text-black shadow-[#1DB954]/25"
+                      : "bg-white/10 hover:bg-white/20 border border-white/15 hover:border-white/25"
+                  }`}
+                >
+                  {w?.type === "discord" ? (
+                    <>
+                      <FaDiscord className="w-5 h-5" />
+                      <span>{w?.subtype === "profile" ? "View Discord Profile" : "Join Discord Server"}</span>
+                    </>
+                  ) : w?.type === "spotify" ? (
+                    <>
+                      <FaSpotify className="w-5 h-5" />
+                      <span>Listen on Spotify</span>
+                    </>
+                  ) : w?.type === "roblox" ? (
+                    <>
+                      <SiRoblox className="w-5 h-5" />
+                      <span>Open on Roblox</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Open on {headerTitle || "Website"}</span>
+                      <ExternalLink className="w-4 h-4" />
+                    </>
+                  )}
+                </a>
+              </div>
             )}
           </div>
         </div>
@@ -1255,17 +1333,78 @@ function DiscordProfile({ w, accent, data, status, error, refresh }) {
   const style = w.discord_style || "classic";
   const display = data.global_name || data.username;
   const handle = data.username;
+  const guildTag = data.guild_tag || data.clan?.tag || null;
+  const badges = Array.isArray(data.badges) ? data.badges : [];
+  const decorationUrl = data.decoration?.url || data.avatar_decoration?.url || null;
+
+  const realStatusLabel =
+    data.status === "online"
+      ? "Online"
+      : data.status === "idle"
+      ? "Idle"
+      : data.status === "dnd"
+      ? "Do Not Disturb"
+      : "Offline";
+
+  const statusSubtitle =
+    data.custom_status ||
+    (data.activity?.name
+      ? `Playing ${data.activity.name}`
+      : data.spotify?.song
+      ? `Listening to ${data.spotify.song}`
+      : (data.last_seen ? `Last seen ${data.last_seen}` : realStatusLabel));
+
+  const ClanTagBadge = () =>
+    guildTag ? (
+      <span
+        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-white/10 hover:bg-white/15 border border-white/10 text-[10px] font-bold text-zinc-200 tracking-wider uppercase shrink-0 shadow-xs"
+        title={data.clan?.tag ? `Discord Clan: ${data.clan.tag}` : `Guild: ${guildTag}`}
+      >
+        {data.clan?.badge && <img src={data.clan.badge} alt="" className="w-2.5 h-2.5 object-contain" />}
+        <span>{guildTag}</span>
+      </span>
+    ) : null;
+
+  const BadgesRack = ({ max = 8 }) =>
+    badges.length > 0 ? (
+      <div className="flex items-center gap-1 flex-wrap shrink-0">
+        {badges.slice(0, max).map((b) => (
+          <img
+            key={b.id}
+            src={`${process.env.PUBLIC_URL || ""}/badges/discord/${b.icon}`}
+            alt={b.name}
+            title={b.name}
+            className="w-4 h-4 object-contain filter drop-shadow hover:scale-110 transition-transform duration-150 cursor-help"
+            onError={(e) => {
+              e.currentTarget.style.display = "none";
+            }}
+          />
+        ))}
+      </div>
+    ) : null;
 
   // Minimal style for tests & compact profiles
   if (style === "minimal") {
     return (
       <div className="flex items-center gap-3">
         <span className="relative shrink-0">
-          <img src={data.avatar} alt={handle} className="w-11 h-11 rounded-full object-cover bg-zinc-900 border border-white/10" />
+          <div className="relative w-11 h-11 rounded-full overflow-hidden bg-zinc-900 border border-white/10">
+            <img src={data.avatar} alt={handle} className="w-full h-full object-cover" />
+            {decorationUrl && (
+              <img
+                src={decorationUrl}
+                alt=""
+                className="absolute -top-[12%] -left-[12%] w-[124%] h-[124%] pointer-events-none select-none z-10"
+              />
+            )}
+          </div>
           <span className={`absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-[#0c0d12] ${dot}`} />
         </span>
         <div className="min-w-0 flex-1">
-          <div className="truncate text-xs font-bold text-zinc-100">{display}</div>
+          <div className="flex items-center gap-1.5 truncate">
+            <span className="truncate text-xs font-bold text-zinc-100">{display}</span>
+            <ClanTagBadge />
+          </div>
           <div className="truncate text-[10px] text-zinc-400">@{handle} · {data.status || "offline"}</div>
         </div>
       </div>
@@ -1277,9 +1416,12 @@ function DiscordProfile({ w, accent, data, status, error, refresh }) {
     return (
       <div className="flex items-center gap-2.5">
         <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${dot}`} />
-        <span className="min-w-0 flex-1 truncate text-xs font-bold text-zinc-100">
-          {display} <span className="font-normal text-zinc-500">@{handle}</span>
+        <span className="min-w-0 flex-1 truncate text-xs font-bold text-zinc-100 flex items-center gap-1.5">
+          <span>{display}</span>
+          <ClanTagBadge />
+          <span className="font-normal text-zinc-500">@{handle}</span>
         </span>
+        <BadgesRack max={3} />
         {data.spotify?.song && (
           <span className="shrink-0 truncate text-[11px] text-emerald-400 font-medium">
             {data.spotify.song}
@@ -1306,15 +1448,30 @@ function DiscordProfile({ w, accent, data, status, error, refresh }) {
           />
         )}
         <div className={`px-3 pb-3 ${showPopoutBanner ? "" : "pt-3"}`}>
-          <span className={`relative ${showPopoutBanner ? "-mt-7" : ""} mb-1 inline-block`}>
-            <span className="block rounded-full border-4" style={{ borderColor: DC.panel }}>
-              <img src={data.avatar} alt={handle} className="w-14 h-14 rounded-full object-cover" />
+          <div className="flex items-end justify-between">
+            <span className={`relative ${showPopoutBanner ? "-mt-7" : ""} mb-1 inline-block`}>
+              <span className="relative block rounded-full border-4" style={{ borderColor: DC.panel }}>
+                <img src={data.avatar} alt={handle} className="w-14 h-14 rounded-full object-cover" />
+                {decorationUrl && (
+                  <img
+                    src={decorationUrl}
+                    alt=""
+                    className="absolute -top-[12%] -left-[12%] w-[124%] h-[124%] pointer-events-none select-none z-10"
+                  />
+                )}
+              </span>
+              {w.show_online !== false && (
+                <span className={`absolute -bottom-0.5 right-0.5 h-4 w-4 rounded-full border-4 ${dot}`} style={{ borderColor: DC.panel }} />
+              )}
             </span>
-            {w.show_online !== false && (
-              <span className={`absolute -bottom-0.5 right-0.5 h-4 w-4 rounded-full border-4 ${dot}`} style={{ borderColor: DC.panel }} />
-            )}
-          </span>
-          <div className="text-sm font-bold" style={{ color: DC.text }}>{display}</div>
+            <div className="mb-2">
+              <BadgesRack max={6} />
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-sm font-bold" style={{ color: DC.text }}>{display}</span>
+            <ClanTagBadge />
+          </div>
           <div className="text-[11px]" style={{ color: DC.muted }}>@{handle}</div>
 
           {w.stats_row !== false && (
@@ -1337,7 +1494,7 @@ function DiscordProfile({ w, accent, data, status, error, refresh }) {
                 </div>
               )}
               {!data.custom_status && !data.activity && !data.spotify && (
-                <div className="text-[10px]" style={{ color: DC.muted }}>No status set right now</div>
+                <div className="text-[10px]" style={{ color: DC.muted }}>{realStatusLabel}</div>
               )}
             </div>
           )}
@@ -1347,28 +1504,39 @@ function DiscordProfile({ w, accent, data, status, error, refresh }) {
   }
 
   // Classic: Authentic Discord Presence Preview (Directly matches Image 1)
-  const statusSubtitle = data.custom_status || (data.activity?.name ? `Playing ${data.activity.name}` : (data.last_seen ? `last seen ${data.last_seen}` : (data.status === "offline" ? "last seen 4 months ago" : (data.status || "offline"))));
-
   return (
-    <div className="relative flex items-center gap-3.5 py-0.5">
-      <div className="relative shrink-0">
-        <div className="w-[48px] h-[48px] rounded-full overflow-hidden bg-zinc-900 border border-white/10 shadow-md">
-          <img src={data.avatar} alt={handle} className="w-full h-full object-cover" />
-        </div>
-        {w.show_online !== false && (
-          <span className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-[#0c0d12] ${dot}`} />
-        )}
-      </div>
-      <div className="min-w-0 flex-1">
-        <div className="text-sm sm:text-base font-bold text-white tracking-wide truncate">
-          {display || handle}
-        </div>
-        {w.show_subtitle !== false && (
-          <div className="text-xs text-zinc-400 italic font-normal truncate mt-0.5">
-            {statusSubtitle}
+    <div className="relative flex items-center justify-between gap-3.5 py-0.5">
+      <div className="flex items-center gap-3.5 min-w-0 flex-1">
+        <div className="relative shrink-0">
+          <div className="relative w-[48px] h-[48px] rounded-full overflow-hidden bg-zinc-900 border border-white/10 shadow-md">
+            <img src={data.avatar} alt={handle} className="w-full h-full object-cover" />
+            {decorationUrl && (
+              <img
+                src={decorationUrl}
+                alt=""
+                className="absolute -top-[12%] -left-[12%] w-[124%] h-[124%] pointer-events-none select-none z-10"
+              />
+            )}
           </div>
-        )}
+          {w.show_online !== false && (
+            <span className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-[#0c0d12] ${dot}`} />
+          )}
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-sm sm:text-base font-bold text-white tracking-wide truncate">
+              {display || handle}
+            </span>
+            <ClanTagBadge />
+          </div>
+          {w.show_subtitle !== false && (
+            <div className="text-xs text-zinc-400 font-normal truncate mt-0.5">
+              {statusSubtitle}
+            </div>
+          )}
+        </div>
       </div>
+      <BadgesRack max={4} />
     </div>
   );
 }

@@ -10,10 +10,11 @@ import { ColorPicker } from "@/components/ColorPicker";
 import { CrosshairPicker } from "@/components/CrosshairPicker";
 import { BackgroundEffect } from "@/components/BackgroundEffect";
 import { OverlayEffect } from "@/components/OverlayEffect";
+import { CardEffect } from "@/components/CardEffect";
 import { FxText } from "@/components/FxText";
 import { TOOLTIP_STYLES, TOOLTIP_ANIMATIONS, TOOLTIP_SIZES } from "@/components/FxTooltip";
 import {
-  TEXT_EFFECTS, OVERLAYS, CURSOR_EFFECTS, BACKGROUND_EFFECTS,
+  TEXT_EFFECTS, OVERLAYS, CURSOR_EFFECTS, BACKGROUND_EFFECTS, CARD_EFFECTS,
 } from "@/constants/effects";
 import {
   LAYOUTS, LAYOUT_MAP, DEFAULT_LAYOUT, SECTION_ANIMATIONS, resolveLayout,
@@ -123,13 +124,15 @@ const PREVIEW_WORD = "tourn";
 // are not separate panels any more â€” the layout picker lives in Appearance and
 // the effect pickers in Extra â€” so an old bookmark lands on the page that owns
 // those controls instead of a bare panel.
-const EDITOR_TABS = ["about", "appearance", "audios", "extra", "store"];
+const EDITOR_TABS = ["about", "appearance", "audios", "other", "extra", "store"];
 const TAB_ALIASES = {
   profile: "about",
   card: "appearance",
   layout: "appearance",
-  effects: "extra",
-  entry: "extra",
+  effects: "other",
+  extra: "other",
+  entry: "other",
+  other: "other",
   shop: "store",
 };
 const resolveEditorTab = (raw) => {
@@ -580,9 +583,10 @@ function EffectStage({ variant, id, accent, label, size = "lg" }) {
       {caption}
       <div className="absolute inset-0" style={{ background: `radial-gradient(circle at 50% 125%, ${accent}55, transparent 72%)` }} />
       <div className="relative z-10 flex h-full items-center justify-center px-6 pointer-events-none">
-        <div className={`rounded-2xl border border-[#2a2a2e] bg-black/50 text-center backdrop-blur-sm ${compact ? "px-4 py-3" : "px-6 py-5"}`}>
-          <div className={`font-bold text-white ${compact ? "text-xs" : "text-base"}`}>swats</div>
-          <div className="mt-1 font-mono2 text-[10px] text-zinc-400">@yourname</div>
+        <div className={`rounded-2xl border border-[#2a2a2e] bg-black/50 text-center backdrop-blur-sm relative overflow-hidden ${compact ? "px-4 py-3" : "px-6 py-5"}`}>
+          <div className={`font-bold text-white ${compact ? "text-xs" : "text-base"}`}>tourn</div>
+          <div className="mt-1 font-mono2 text-[10px] text-zinc-400">@user</div>
+          {id && variant === "card" && <CardEffect effect={id} color={accent} borderRadius="1rem" />}
         </div>
       </div>
       {id && variant === "bg" && <BackgroundEffect effect={id} />}
@@ -604,6 +608,7 @@ function EffectPicker({
     variant === "text" ? "Text effects"
       : variant === "bg" ? "Background effects"
       : variant === "overlay" ? "Overlay effects"
+      : variant === "card" ? "Card effects"
       : "Cursor effects";
 
   return (
@@ -844,7 +849,7 @@ export default function Editor() {
     setTrackStyle(next);
     setP((prev) => ({ ...prev, track_style: next, audio_style: next }));
   };
-  const accentColor = p.accent_color || "hsl(272, 24%, 46%)";
+  const accentColor = p.accent_color || "#b4bffa";
   // The layout decides the player's placement (see TRACK_POSITION_BY_LAYOUT),
   // so the audio panel reports it instead of offering a second switch that the
   // renderer could disagree with.
@@ -1038,7 +1043,7 @@ export default function Editor() {
     { id: "about", label: "Profile", icon: User },
     { id: "appearance", label: "Appearance", icon: Paintbrush },
     { id: "audios", label: "Audio", icon: Music },
-    { id: "extra", label: "Extra", icon: Sparkles },
+    { id: "other", label: "Other", icon: Sparkles },
     { id: "store", label: "Store", icon: Store },
   ];
 
@@ -1102,9 +1107,11 @@ export default function Editor() {
           <div className="sr-only" aria-hidden="true">
             <button data-testid="editor-subtab-profile" onClick={() => switchSub("about")}>Profile</button>
             <button data-testid="editor-subtab-card" onClick={() => switchSub("appearance")}>Card</button>
-            <button data-testid="editor-subtab-effects" onClick={() => switchSub("extra")}>Effects</button>
-            <button data-testid="editor-subtab-entry" onClick={() => switchSub("extra")}>Entry</button>
-            <button data-testid="editor-subtab-layout" onClick={() => switchSub("audios")}>Layout</button>
+            <button data-testid="editor-subtab-effects" onClick={() => switchSub("other")}>Effects</button>
+            <button data-testid="editor-subtab-entry" onClick={() => switchSub("other")}>Entry</button>
+            <button data-testid="editor-subtab-extra" onClick={() => switchSub("other")}>Extra</button>
+            <button data-testid="editor-subtab-other" onClick={() => switchSub("other")}>Other</button>
+            <button data-testid="editor-subtab-layout" onClick={() => switchSub("appearance")}>Layout</button>
           </div>
         </nav>
 
@@ -1364,7 +1371,7 @@ export default function Editor() {
                   </div>
                   <div>
                     <label className="mb-1.5 block text-xs text-zinc-400">Accent Colour</label>
-                    <ColorPicker label="" value={p.accent_color || "hsl(272, 24%, 46%)"} onChange={(v) => set("accent_color", v)} testid="color-accent" />
+                    <ColorPicker label="" value={p.accent_color || "#b4bffa"} onChange={(v) => set("accent_color", v)} testid="color-accent" />
                   </div>
                 </div>
               </ProfileRow>
@@ -1747,11 +1754,66 @@ export default function Editor() {
                           min={0}
                           max={360}
                           step={5}
-                          suffix="Â°"
+                          suffix="°"
                           onChange={(v) => set("card_gradient_angle", v)}
                         />
                       </div>
                     )}
+
+                    {/* Card Effects Section */}
+                    <div className="border-t border-[#1f1f1f] pt-4 space-y-3">
+                      <div>
+                        <div className="text-xs font-semibold text-white">Card Effects</div>
+                        <div className="text-[11px] text-zinc-400">Shine, shimmer, spotlight, ambient glow and border beams</div>
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        {CARD_EFFECTS.map((eff) => {
+                          const active = (p.card_effect || "") === eff.id;
+                          return (
+                            <button
+                              key={eff.id || "none"}
+                              type="button"
+                              onClick={() => {
+                                if (eff.premium && !isPremium) {
+                                  askPremium("Card effect")();
+                                  return;
+                                }
+                                set("card_effect", eff.id);
+                              }}
+                              className={`flex flex-col items-center justify-center p-2.5 rounded-xl border text-xs font-semibold transition cursor-pointer ${
+                                active
+                                  ? "border-[#b4bffa] bg-[#b4bffa]/15 text-white ring-1 ring-[#b4bffa]"
+                                  : "border-[#1f1f1f] bg-[#060606] text-zinc-400 hover:border-white/20 hover:text-zinc-200"
+                              }`}
+                            >
+                              <span className="truncate">{eff.label}</span>
+                              {eff.premium && !isPremium && <Lock className="w-3 h-3 text-amber-400 mt-1" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {p.card_effect && (
+                        <div className="grid gap-4 sm:grid-cols-2 border-t border-[#1f1f1f] pt-3">
+                          <div>
+                            <label className="mb-1.5 block text-xs text-zinc-400">Card Effect Color</label>
+                            <ColorPicker
+                              value={p.card_effect_color || (p.card_gradient_enabled ? p.card_gradient_color : p.accent_color) || accentColor}
+                              onChange={(v) => set("card_effect_color", v)}
+                            />
+                          </div>
+                          <div className="flex flex-col justify-end">
+                            <button
+                              type="button"
+                              onClick={() => set("card_effect_color", p.card_gradient_enabled ? p.card_gradient_color : p.accent_color)}
+                              className="px-3 py-2 rounded-xl text-xs font-semibold border border-white/10 hover:border-white/20 text-zinc-300 hover:text-white transition"
+                            >
+                              Sync with Gradient & Accent
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </Section>
@@ -2369,9 +2431,9 @@ export default function Editor() {
           )}
 
           {/* ========================================================
-              SUBTAB 4: EXTRA (SYSTEM SETTINGS, ENTRY SCREEN, 3D TILT, EFFECTS POPUPS)
+              SUBTAB 4: OTHER (SYSTEM SETTINGS, ENTRY SCREEN, 3D TILT, EFFECTS POPUPS)
               ======================================================== */}
-          {sub === "extra" && (
+          {(sub === "extra" || sub === "other") && (
             <>
               {advanced && (
               <Section title="Card Extra & 3D Tilt" hint="Hover depth and dynamic tilt">
@@ -2448,6 +2510,16 @@ export default function Editor() {
                     tuning={fxTuning}
                     onTuningChange={setFxTuning}
                     onTuningReset={resetFxTuning}
+                  />
+                  <EffectPicker
+                    testid="fx-card"
+                    variant="card"
+                    options={CARD_EFFECTS}
+                    value={p.card_effect}
+                    onChange={(v) => set("card_effect", v)}
+                    isPremium={isPremium}
+                    navigate={askPremium("Card effects")}
+                    accent={accentColor}
                   />
                   <EffectPicker
                     testid="fx-overlay"

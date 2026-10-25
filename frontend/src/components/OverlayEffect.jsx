@@ -15,7 +15,7 @@ import { resolveOverlay } from "@/constants/effects";
    pointer-events-none keeps everything underneath clickable.
    --------------------------------------------------------------------------- */
 
-export function OverlayEffect({ effect, color, opacity, zIndex, className = "" }) {
+export function OverlayEffect({ effect, color, opacity, zIndex, className = "", thumbnail = false }) {
   const canvasRef = useRef(null);
   const id = resolveOverlay(effect);
   void color;
@@ -39,12 +39,11 @@ export function OverlayEffect({ effect, color, opacity, zIndex, className = "" }
       pointer.current.y = e.clientY - rect.top;
     };
 
+    const isSmall = Boolean(thumbnail);
+
     const resize = () => {
       const parent = canvas.parentElement;
-      // Device pixel ratio capped at 2 (and the box at 4096px, the same
-      // pathological-parent guard the background layer carries): ghost's
-      // backing-store budget, never bigger.
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const dpr = isSmall ? 1 : Math.min(window.devicePixelRatio || 1, 2);
       w = Math.min(4096, Math.max(1, parent ? parent.clientWidth : window.innerWidth));
       h = Math.min(4096, Math.max(1, parent ? parent.clientHeight : window.innerHeight));
       canvas.width = Math.max(1, Math.floor(w * dpr));
@@ -52,17 +51,22 @@ export function OverlayEffect({ effect, color, opacity, zIndex, className = "" }
       canvas.style.width = `${w}px`;
       canvas.style.height = `${h}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      // Rebuild the painter for the new box, exactly like ghost's setOv().
+      // Rebuild the painter for the new box
       painter = createGhostOverlayPainter(id, w, h, pointer);
       ctx.clearRect(0, 0, w, h);
     };
 
     let active = true;
+    let lastTime = 0;
+    const frameInterval = isSmall ? 35 : 0; // ~28fps throttle for small preview tiles
     const frame = (now) => {
       if (!active) return;
-      ctx.globalAlpha = 1;
-      ctx.clearRect(0, 0, w, h);
-      if (painter) painter(ctx, now);
+      if (!frameInterval || now - lastTime >= frameInterval) {
+        lastTime = now;
+        ctx.globalAlpha = 1;
+        ctx.clearRect(0, 0, w, h);
+        if (painter) painter(ctx, now);
+      }
       raf = requestAnimationFrame(frame);
     };
 

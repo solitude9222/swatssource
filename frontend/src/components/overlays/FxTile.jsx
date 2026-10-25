@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { FxText } from "@/components/FxText";
 import { BackgroundEffect } from "@/components/BackgroundEffect";
 import { OverlayEffect } from "@/components/OverlayEffect";
+import { CardEffect } from "@/components/CardEffect";
 import { fileUrl } from "@/lib/api";
 
 /* ---------------------------------------------------------------------------
@@ -11,29 +12,20 @@ import { fileUrl } from "@/lib/api";
    it to find out what Flicker was, one tile at a time, on the card behind the
    dialog. Every tile now draws its own effect instead, in a miniature of the
    thing that effect is FOR — the name for a text effect, the card for a
-   background or an overlay, the avatar circle for a decoration, the pointer for
-   a cursor effect.
+   background, card effect or an overlay, the avatar circle for a decoration,
+   the pointer for a cursor effect.
 
    Two rules keep a wall of these from becoming a wall of animations:
 
-     • an effect is mounted only while its tile is on screen. Two dozen effects
-       animating at once is what the labels-only store was introduced to avoid.
-       An off-screen tile draws the plain sample, which has the side benefit of
-       showing what the effect is doing to it.
-     • the sample is fixed-size, so a tile never reflows when its effect mounts.
-
-   `None` carries no id, and draws the plain sample — which is exactly what it
-   means: your card with no effect of this kind on it.
+     • an effect is mounted only while its tile is on screen.
+     • thumbnail mode throttles frame rates to prevent performance drops.
    --------------------------------------------------------------------------- */
 
-export const TILE_SAMPLE = "swats";
+export const TILE_SAMPLE = "tourn";
 
-// The cursor demo's markers. The CSS in effects.css animates each one from the
-// tile's centre, so the box reads as a small stage the pointer is moving across.
+// The cursor demo's markers.
 const CURSOR_MARKERS = [0, 1, 2, 3, 4, 5];
 
-/* True until something says otherwise: with no IntersectionObserver — jsdom, an
-   older browser — a tile counts as visible, so the effect still draws. */
 function useOnScreen(ref) {
   const [onScreen, setOnScreen] = useState(true);
 
@@ -53,13 +45,26 @@ function useOnScreen(ref) {
 export function FxTile({ variant = "text", id = "", accent = "#b4bffa", avatarUrl = "" }) {
   const ref = useRef(null);
   const onScreen = useOnScreen(ref);
-  // `None`, or a tile scrolled out of view, draws the sample with nothing on it.
   const live = !!id && onScreen;
   const pic = fileUrl(avatarUrl);
 
   return (
     <span ref={ref} className="ov-tile-preview" aria-hidden="true">
       {variant === "text" && <FxText id={live ? id : ""} text={TILE_SAMPLE} className="ov-tile-word" />}
+
+      {variant === "card" && (
+        <span className="ov-tile-stage">
+          <span
+            className="ov-tile-ambience"
+            style={{ background: `radial-gradient(circle at 50% 120%, ${accent}44, transparent 72%)` }}
+          />
+          <span className="ov-tile-card relative overflow-hidden" style={{ borderRadius: "8px" }}>
+            <span className="ov-tile-card-name">tourn</span>
+            <span className="ov-tile-card-handle">@user</span>
+            {live && <CardEffect effect={id} color={accent} borderRadius="8px" />}
+          </span>
+        </span>
+      )}
 
       {(variant === "bg" || variant === "overlay") && (
         <span className="ov-tile-stage">
@@ -68,19 +73,18 @@ export function FxTile({ variant = "text", id = "", accent = "#b4bffa", avatarUr
             style={{ background: `radial-gradient(circle at 50% 120%, ${accent}66, transparent 72%)` }}
           />
           <span className="ov-tile-card">
-            <span className="ov-tile-card-name">swats</span>
-            <span className="ov-tile-card-handle">@yourname</span>
+            <span className="ov-tile-card-name">tourn</span>
+            <span className="ov-tile-card-handle">@user</span>
           </span>
-          {live && variant === "bg" && <BackgroundEffect effect={id} />}
-          {live && variant === "overlay" && <OverlayEffect effect={id} color={accent} />}
+          {live && variant === "bg" && <BackgroundEffect effect={id} thumbnail={true} />}
+          {live && variant === "overlay" && <OverlayEffect effect={id} color={accent} thumbnail={true} />}
         </span>
       )}
 
       {variant === "cursor" && (
         <span className="ov-tile-pointer">
           <span className={`fx-cursor-demo ${live ? `fx-cursor-${id}` : ""}`}>
-            {live &&
-              CURSOR_MARKERS.map((n) => <i key={n} />)}
+            {live && CURSOR_MARKERS.map((n) => <i key={n} />)}
           </span>
         </span>
       )}

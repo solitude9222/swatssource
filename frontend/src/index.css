@@ -754,4 +754,27 @@ body.dash-theme .stagger-children > * {
     }
 }
 
+/* Card Effects Keyframe Animations */
+@keyframes card-shine {
+    0% { transform: translateX(-150%) skewX(-20deg); }
+    35%, 100% { transform: translateX(250%) skewX(-20deg); }
+}
+
+@keyframes card-shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+@keyframes card-pulse {
+    0%, 100% { opacity: 0.55; transform: scale(1); }
+    50% { opacity: 0.95; transform: scale(1.006); }
+}
+
+@keyframes card-aurora {
+    0% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(180deg) scale(1.12); }
+    100% { transform: rotate(360deg) scale(1); }
+}
+
+
 

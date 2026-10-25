@@ -61,6 +61,19 @@ export const CURSOR_EFFECTS = [
   { id: "black-trail", label: "Black Trail", premium: true },
 ];
 
+// Card surface effects: shine, shimmer, spotlight, border beam, and more.
+// Pure modern aesthetic design with color customization.
+export const CARD_EFFECTS = [
+  { id: "", label: "None", desc: "No card effect", premium: false },
+  { id: "shine", label: "Shine", desc: "Smooth luminous light beam sweeping across the surface", premium: false },
+  { id: "shimmer", label: "Shimmer", desc: "Radiant gradient sheen flowing smoothly across the card", premium: true },
+  { id: "spotlight", label: "Spotlight", desc: "Dynamic radiant light that illuminates card on hover or sweep", premium: true },
+  { id: "border_beam", label: "Border Beam", desc: "Luminescent beam tracing around the card perimeter", premium: true },
+  { id: "glow", label: "Ambient Aura", desc: "Soft rhythmic breathing colored glow around edges", premium: false },
+  { id: "reflection", label: "Glass Sheen", desc: "Crisp angled glassmorphic light reflection with subtle motion", premium: true },
+  { id: "aurora", label: "Aurora Wave", desc: "Gentle chromatic wave drifting through card body", premium: true },
+];
+
 // Animated decorations layered over the avatar picture. These live on their own
 // axis from the Discord PNG frames: a profile can wear one frame AND one effect
 // at the same time, so they must never share a single selection field.
@@ -140,6 +153,7 @@ const resolveWith = (id, legacyMap, catalog) => {
 export const resolveBackground = (id) => resolveWith(id, LEGACY_BG_IDS, BACKGROUND_EFFECTS);
 export const resolveOverlay = (id) => resolveWith(id, LEGACY_OVERLAY_IDS, OVERLAYS);
 export const resolveCursor = (id) => resolveWith(id, {}, CURSOR_EFFECTS);
+export const resolveCardEffect = (id) => resolveWith(id, {}, CARD_EFFECTS);
 
 export const TRACK_STYLES = [
   { id: "compact", label: "Compact", premium: false, desc: "Clean streamlined player pill with controls and artwork" },

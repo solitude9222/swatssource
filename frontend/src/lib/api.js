@@ -87,6 +87,12 @@ api.interceptors.response.use(
       return Promise.reject(err);
     }
 
+    // Widgets report their own honest errors inside the card UI; 404 on a widget probe
+    // while typing is normal user input state, not an unhandled error.
+    if (err.response?.status === 404 && String(err.config?.url || "").includes("/widgets/")) {
+      return Promise.reject(err);
+    }
+
     const status = err.response?.status;
     const url = err.config?.url;
     const fullUrl = err.config?.baseURL ? `${err.config.baseURL}${url}` : url;

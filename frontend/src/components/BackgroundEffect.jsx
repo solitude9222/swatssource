@@ -18,7 +18,7 @@ import { resolveBackground } from "@/constants/effects";
    parent (the URL-bar-resize case) plus the usual window listener.
    --------------------------------------------------------------------------- */
 
-export function BackgroundEffect({ effect }) {
+export function BackgroundEffect({ effect, thumbnail = false }) {
   const canvasRef = useRef(null);
   // Resolved once per value: legacy ids saved before the ghost swap map to the
   // closest ghost background (or to nothing, when nothing was close).
@@ -36,13 +36,11 @@ export function BackgroundEffect({ effect }) {
     let h = 0;
     let painter = null;
 
+    const isSmall = Boolean(thumbnail);
+
     const resize = () => {
       const parent = canvas.parentElement;
-      // Device pixel ratio capped at 2, exactly like ghost's resize(). The box
-      // itself is capped too: a pathological parent height (a rendering bug
-      // upstream) must not be able to ask for a 2^25-pixel backing store and
-      // wedge the tab. No real profile viewport comes near 4096px either way.
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const dpr = isSmall ? 1 : Math.min(window.devicePixelRatio || 1, 2);
       w = Math.min(4096, Math.max(1, parent ? parent.clientWidth : window.innerWidth));
       h = Math.min(4096, Math.max(1, parent ? parent.clientHeight : window.innerHeight));
       canvas.width = Math.max(1, Math.floor(w * dpr));
@@ -56,10 +54,15 @@ export function BackgroundEffect({ effect }) {
     };
 
     let active = true;
+    let lastTime = 0;
+    const frameInterval = isSmall ? 35 : 0; // ~28fps throttle for small preview tiles
     const frame = (now) => {
       if (!active) return;
-      ctx.clearRect(0, 0, w, h);
-      if (painter) painter(ctx, now);
+      if (!frameInterval || now - lastTime >= frameInterval) {
+        lastTime = now;
+        ctx.clearRect(0, 0, w, h);
+        if (painter) painter(ctx, now);
+      }
       raf = requestAnimationFrame(frame);
     };
 

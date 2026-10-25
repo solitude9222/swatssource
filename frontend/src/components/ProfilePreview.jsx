@@ -12,6 +12,7 @@ import { AutoMarqueeText } from "@/components/AutoMarqueeText";
 import { WidgetCard, LinkCard, WidgetPill } from "@/components/WidgetCards";
 import { BackgroundEffect } from "@/components/BackgroundEffect";
 import { OverlayEffect } from "@/components/OverlayEffect";
+import { CardEffect } from "@/components/CardEffect";
 import { FxText } from "@/components/FxText";
 import { HoverTip, useMouseTip, resolveTooltipStyle } from "@/components/FxTooltip";
 import { BadgeChip } from "@/components/BadgeChip";
@@ -59,30 +60,60 @@ export const viewsInCorner = (position) => VIEW_POSITIONS.includes(position);
 
 const EMPTY_PROFILE = {};
 
-// Alpha helper. Expands #rgb, drops the alpha of #rrggbbaa and returns an
-// 8-digit hex. Named colours / rgb() / garbage now fall back to a sane
-// translucent surface instead of emitting an invalid value like "#fff1a".
-const withA = (hex, a = 100) => {
+export const parseColor = (input) => {
+  if (!input || typeof input !== "string") return [180, 191, 250, 1];
+  const s = input.trim();
+  if (s.startsWith("#")) {
+    let h = s.slice(1);
+    if (h.length === 3) h = h.split("").map((c) => c + c).join("");
+    if (h.length === 4) h = h.split("").map((c) => c + c).join("");
+    const r = parseInt(h.slice(0, 2), 16) || 0;
+    const g = parseInt(h.slice(2, 4), 16) || 0;
+    const b = parseInt(h.slice(4, 6), 16) || 0;
+    const a = h.length >= 8 ? parseInt(h.slice(6, 8), 16) / 255 : 1;
+    return [r, g, b, a];
+  }
+  const rgbMatch = s.match(/rgba?\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*([\d.]+))?\s*\)/i);
+  if (rgbMatch) {
+    const a = rgbMatch[4] != null ? Number(rgbMatch[4]) : 1;
+    return [Number(rgbMatch[1]), Number(rgbMatch[2]), Number(rgbMatch[3]), a];
+  }
+  const hslMatch = s.match(/hsla?\s*\(\s*(\d+)\s*,\s*(\d+)%\s*,\s*(\d+)%(?:\s*,\s*([\d.]+))?\s*\)/i);
+  if (hslMatch) {
+    const h = Number(hslMatch[1]) / 360, sat = Number(hslMatch[2]) / 100, l = Number(hslMatch[3]) / 100;
+    let r, g, b;
+    if (sat === 0) {
+      r = g = b = l;
+    } else {
+      const hue2rgb = (p, q, t) => {
+        if (t < 0) t += 1;
+        if (t > 1) t -= 1;
+        if (t < 1 / 6) return p + (q - p) * 6 * t;
+        if (t < 1 / 2) return q;
+        if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+        return p;
+      };
+      const q = l < 0.5 ? l * (1 + sat) : l + sat - l * sat;
+      const p = 2 * l - q;
+      r = hue2rgb(p, q, h + 1 / 3);
+      g = hue2rgb(p, q, h);
+      b = hue2rgb(p, q, h - 1 / 3);
+    }
+    const a = hslMatch[4] != null ? Number(hslMatch[4]) : 1;
+    return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255), a];
+  }
+  return [180, 191, 250, 1];
+};
+
+export const withA = (hex, a = 100) => {
   if (!hex) return "transparent";
   const alpha = Number.isFinite(Number(a)) ? Math.max(0, Math.min(100, Number(a))) : 100;
-  const fallback = `rgba(15, 16, 21, ${alpha / 100})`;
-  if (typeof hex !== "string") return fallback;
-  let h = hex.trim();
-  if (/^#[0-9a-f]{3}$/i.test(h)) h = `#${h[1]}${h[1]}${h[2]}${h[2]}${h[3]}${h[3]}`;
-  else if (/^#[0-9a-f]{8}$/i.test(h)) h = h.slice(0, 7);
-  if (!/^#[0-9a-f]{6}$/i.test(h)) return fallback;
-  return `${h.toLowerCase()}${Math.round((alpha / 100) * 255).toString(16).padStart(2, "0")}`;
+  const [r, g, b, baseA] = parseColor(hex);
+  const finalA = Math.max(0, Math.min(1, (alpha / 100) * baseA));
+  return `rgba(${r}, ${g}, ${b}, ${Number(finalA.toFixed(3))})`;
 };
 
 // LOCATION: near cardStyles — helpers for preset-vs-advanced precedence.
-
-// Advanced mode is an EXPLICIT boolean the current editor toggle writes. Old
-// “Advanced Appearance” panels saved a numeric `advanced_mode: 1` that every
-// profile carried forever afterwards — switch(p.advanced_mode ? "classic" : …)
-// then forced Classic on all of them, which is why the Card Style presets
-// ("Frosted and stuff") read like they did nothing. A strict `=== true` check
-// means: the modern toggle still overrides the presets while it is on, and a
-// legacy numeric flag falls through to the preset the profile wears.
 function cardStyles(p) {
   const accent = p.accent_color || "#b4bffa";
   const base = { card: {}, pill: {}, view: {} };
@@ -144,6 +175,13 @@ function cardStyles(p) {
         border: borderRule,
       };
     }
+  }
+
+  // If gradient fill is enabled, apply it over the surface while keeping filters
+  if (p.card_gradient_enabled && style !== "transparent") {
+    const fill = withA(p.card_fill_color || "#131316", p.card_fill_alpha ?? 78);
+    const gradSec = withA(p.card_gradient_color || accent, p.card_fill_alpha ?? 78);
+    base.card.background = `linear-gradient(${p.card_gradient_angle || 135}deg, ${fill}, ${gradSec})`;
   }
 
   // Corner radius reads the saved value and shares one default
@@ -1412,9 +1450,18 @@ function SlideshowView({
           {/* The whole header sits on the owner's card surface, not on bare artwork. */}
           <div
             data-testid="slideshow-profile-card"
-            className="flex w-full flex-col items-center px-6 py-10 transition duration-300"
+            className="flex w-full flex-col items-center px-6 py-10 transition duration-300 relative overflow-hidden"
             style={{ ...slideCard, boxShadow: slideShadow }}
           >
+            {p.card_effect && (
+              <CardEffect
+                effect={p.card_effect}
+                color={p.card_effect_color || (p.card_gradient_enabled ? p.card_gradient_color : p.accent_color) || accent}
+                gradientColor={p.card_gradient_color || accent}
+                gradientEnabled={!!p.card_gradient_enabled}
+                borderRadius={st.card.borderRadius || "24px"}
+              />
+            )}
             {/* Avatar ALWAYS rendered in center without condition */}
             <div className="mb-4 flex justify-center">
               <div
@@ -2160,8 +2207,8 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
       const alpha = (0.10 + glowStrength * 0.0025).toFixed(3);
       const a2 = (0.05 + glowStrength * 0.0016).toFixed(3);
       return tight
-        ? `0 0 ${Math.round(halo * 0.7)}px ${glowColor}33, 0 8px 30px rgba(0,0,0,0.35)`
-        : `0 0 ${halo}px ${glowColor}${Math.round(Number(alpha) * 255).toString(16).padStart(2, "0")}, 0 0 ${Math.round(halo * 2.2)}px ${glowColor}${Math.round(Number(a2) * 255).toString(16).padStart(2, "0")}, 0 10px 40px rgba(0,0,0,0.45)`;
+        ? `0 0 ${Math.round(halo * 0.7)}px ${withA(glowColor, 20)}, 0 8px 30px rgba(0,0,0,0.35)`
+        : `0 0 ${halo}px ${withA(glowColor, Number(alpha) * 100)}, 0 0 ${Math.round(halo * 2.2)}px ${withA(glowColor, Number(a2) * 100)}, 0 10px 40px rgba(0,0,0,0.45)`;
     }
     return tight ? "0 8px 30px rgba(0,0,0,0.35)" : "0 10px 40px rgba(0,0,0,0.45)";
   };
@@ -2349,9 +2396,18 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
         >
           <div
             ref={cardInnerRef}
-            className="p-5 sm:p-6 text-left relative overflow-visible transition duration-300"
+            className="p-5 sm:p-6 text-left relative overflow-hidden transition duration-300"
             style={cardSurface({ boxShadow: cardShadow() })}
           >
+            {p.card_effect && (
+              <CardEffect
+                effect={p.card_effect}
+                color={p.card_effect_color || (p.card_gradient_enabled ? p.card_gradient_color : p.accent_color) || accent}
+                gradientColor={p.card_gradient_color || accent}
+                gradientEnabled={!!p.card_gradient_enabled}
+                borderRadius={st.card.borderRadius || "24px"}
+              />
+            )}
             {p.badge_placement === "card_top_right" && (
               <div data-block="badges" className="absolute top-4 right-4 z-20 inline-flex items-center leading-none">
                 <Badges />
@@ -2471,6 +2527,15 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
             className="overflow-hidden relative transition duration-300"
             style={cardSurface({ boxShadow: cardShadow() })}
           >
+            {p.card_effect && (
+              <CardEffect
+                effect={p.card_effect}
+                color={p.card_effect_color || (p.card_gradient_enabled ? p.card_gradient_color : p.accent_color) || accent}
+                gradientColor={p.card_gradient_color || accent}
+                gradientEnabled={!!p.card_gradient_enabled}
+                borderRadius={st.card.borderRadius || "24px"}
+              />
+            )}
             {/* The hero band. No overflow clip on this box: the avatar hangs
                 below it and a clip here used to chop its bottom half off. */}
             <div className="relative h-40 w-full">
@@ -2589,9 +2654,18 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
 
           <div
             ref={cardInnerRef}
-            className="pt-20 pb-6 px-5 sm:px-6 text-center relative overflow-visible transition duration-300 flex flex-col gap-4"
+            className="pt-20 pb-6 px-5 sm:px-6 text-center relative overflow-hidden transition duration-300 flex flex-col gap-4"
             style={cardSurface({ boxShadow: cardShadow() })}
           >
+            {p.card_effect && (
+              <CardEffect
+                effect={p.card_effect}
+                color={p.card_effect_color || (p.card_gradient_enabled ? p.card_gradient_color : p.accent_color) || accent}
+                gradientColor={p.card_gradient_color || accent}
+                gradientEnabled={!!p.card_gradient_enabled}
+                borderRadius={st.card.borderRadius || "24px"}
+              />
+            )}
             <div className="space-y-1">
               <NameRow size="text-2xl sm:text-3xl" center />
             </div>

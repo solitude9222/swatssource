@@ -45,7 +45,7 @@ async function runRequest(key, request, { force = false } = {}) {
   notify(key);
 
   const promise = api
-    .get(request.path, { params: request.params })
+    .get(request.path, { params: request.params, silent: true })
     .then(({ data }) => {
       // The dashboard test-double answers every GET with []; treat anything
       // that is not an object payload as "no data" rather than a success.
@@ -147,7 +147,7 @@ function baseWidgetRequest(w) {
     // and pass the ID along so the backend can pair them.
     const invite = discordServerId(w.invite_url || "");
     const id = discordServerId(w.invite_url || w.server_id || w.url || w.value);
-    if (!id) return null;
+    if (!id || id.length < 3) return null;
     const params = { id };
     if (invite && w.server_id && /^\d{15,25}$/.test(String(w.server_id))) params.guild = String(w.server_id).trim();
     return { path: "/widgets/discord/server", params, ttl: LIVE_TTL };

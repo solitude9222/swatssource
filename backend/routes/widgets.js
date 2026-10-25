@@ -538,6 +538,35 @@ router.get('/discord/server', async (req, res) => {
   }
 });
 
+export function parseDiscordBadges(u) {
+  const flags = Number(u?.public_flags || u?.flags || 0);
+  const badges = [];
+  if (flags & (1 << 0)) badges.push({ id: 'staff', name: 'Discord Staff', icon: 'core/staff.svg' });
+  if (flags & (1 << 1)) badges.push({ id: 'partnered_server_owner', name: 'Partnered Server Owner', icon: 'core/partnered_server_owner.svg' });
+  if (flags & (1 << 2)) badges.push({ id: 'hypesquad_events', name: 'HypeSquad Events', icon: 'core/hypesquad_events.svg' });
+  if (flags & (1 << 3)) badges.push({ id: 'bug_hunter_level_1', name: 'Discord Bug Hunter', icon: 'core/bug_hunter_level_1.svg' });
+  if (flags & (1 << 6)) badges.push({ id: 'hypesquad_bravery', name: 'HypeSquad Bravery', icon: 'core/hypesquad_bravery.svg' });
+  if (flags & (1 << 7)) badges.push({ id: 'hypesquad_brilliance', name: 'HypeSquad Brilliance', icon: 'core/hypesquad_brilliance.svg' });
+  if (flags & (1 << 8)) badges.push({ id: 'hypesquad_balance', name: 'HypeSquad Balance', icon: 'core/hypesquad_balance.svg' });
+  if (flags & (1 << 9)) badges.push({ id: 'early_supporter', name: 'Early Supporter', icon: 'core/early_supporter.svg' });
+  if (flags & (1 << 14)) badges.push({ id: 'bug_hunter_level_2', name: 'Bug Hunter Level 2', icon: 'core/bug_hunter_level_2.svg' });
+  if (flags & (1 << 17)) badges.push({ id: 'early_verified_developer', name: 'Early Verified Bot Developer', icon: 'core/early_verified_developer.svg' });
+  if (flags & (1 << 18)) badges.push({ id: 'certified_moderator', name: 'Moderator Programs Alumni', icon: 'core/certified_moderator.svg' });
+  if (flags & (1 << 22)) badges.push({ id: 'active_developer', name: 'Active Developer', icon: 'core/active_developer.svg' });
+
+  // Nitro detection: premium_type 1 or 2, or animated avatar/banner
+  if (
+    u?.premium_type === 1 ||
+    u?.premium_type === 2 ||
+    (typeof u?.avatar === 'string' && u.avatar.startsWith('a_')) ||
+    (typeof u?.banner === 'string' && u.banner.startsWith('a_'))
+  ) {
+    badges.push({ id: 'nitro', name: 'Discord Nitro', icon: 'core/nitro.svg' });
+  }
+
+  return badges;
+}
+
 // Discord profile / presence. Served by Lanyard, the standard presence bridge
 // used by bio sites: join https://discord.gg/lanyard and your ID goes live.
 router.get('/discord/profile', async (req, res) => {
@@ -545,18 +574,33 @@ router.get('/discord/profile', async (req, res) => {
   if (!id) return res.status(400).json({ detail: 'Add your Discord user ID (Developer Mode → Copy User ID)' });
   try {
     const presence = await cached(`dc:profile:${id}`, CACHE_TTL.discord, async () => {
-      // Lanyard answers 200 with success:false when the account is not
-      // monitored; treat any failure as "not live yet" rather than a 500.
+      // 1. Try Lanyard presence bridge
       const payload = await fetchJson(`https://api.lanyard.rest/v1/users/${id}`).catch(() => ({ success: false }));
-      if (!payload?.success || !payload?.data?.discord_user) {
+      let d = payload?.data || {};
+      let u = d.discord_user || null;
+      let status = d.discord_status || null;
+
+      // 2. Fallback to Discord REST API if not monitored by Lanyard
+      if (!u && process.env.DISCORD_BOT_TOKEN) {
+        try {
+          const directUser = await fetchJson(`https://discord.com/api/v10/users/${id}`, {
+            headers: { Authorization: `Bot ${process.env.DISCORD_BOT_TOKEN}` },
+          });
+          if (directUser?.id) {
+            u = directUser;
+            status = 'offline';
+          }
+        } catch {}
+      }
+
+      if (!u) {
         const err = new Error(
           'This Discord account is not live yet. Join the Lanyard server (discord.gg/lanyard) with this account and this card starts updating.'
         );
         err.status = 404;
         throw err;
       }
-      const d = payload.data;
-      const u = d.discord_user;
+
       const avatar = discordAvatar(u.id, u.avatar);
       const activity = (d.activities || []).find((a) => a.type !== 3) || null;
       let banner = null;
@@ -564,6 +608,13 @@ router.get('/discord/profile', async (req, res) => {
         const ext = u.banner.startsWith('a_') ? 'gif' : 'png';
         banner = `https://cdn.discordapp.com/banners/${u.id}/${u.banner}.${ext}?size=1024`;
       }
+
+      const clan = u.clan || d.clan || null;
+      const guildTag = clan?.tag || u.guild_tag || d.guild_tag || null;
+      const clanBadge = clan?.badge && (clan?.identity_guild_id || clan?.guild_id)
+        ? `https://cdn.discordapp.com/clan-badges/${clan.identity_guild_id || clan.guild_id}/${clan.badge}.png`
+        : null;
+
       return {
         kind: 'profile',
         id: u.id,
@@ -573,7 +624,7 @@ router.get('/discord/profile', async (req, res) => {
         banner,
         banner_color: u.banner_color || null,
         accent_color: u.accent_color != null ? `#${u.accent_color.toString(16).padStart(6, '0')}` : null,
-        status: d.discord_status || 'offline',
+        status: status || 'offline',
         custom_status: (d.activities || []).find((a) => a.type === 4)?.state || null,
         activity: activity
           ? { name: activity.name, details: activity.details || null, state: activity.state || null }
@@ -587,13 +638,17 @@ router.get('/discord/profile', async (req, res) => {
               track_url: d.spotify.track_id ? `https://open.spotify.com/track/${d.spotify.track_id}` : null,
             }
           : null,
+        badges: parseDiscordBadges(u),
+        guild_tag: guildTag,
+        clan: clan ? { tag: clan.tag, badge: clanBadge, guild_id: clan.identity_guild_id || clan.guild_id || null } : null,
+        decoration: discordDecoration(u.avatar_decoration_data || u.avatar_decoration),
         location: d.kv?.location || null,
         url: `https://discord.com/users/${u.id}`,
       };
     });
     return res.json(presence);
   } catch (err) {
-    return fail(res, err, 'Could not reach the Lanyard API');
+    return fail(res, err, 'Could not reach the Discord profile API');
   }
 });
 

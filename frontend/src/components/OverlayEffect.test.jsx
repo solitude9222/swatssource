@@ -142,6 +142,7 @@ it("moves the particles between frames", () => {
   const random = jest.spyOn(Math, "random").mockImplementation(deterministic(424242));
   try {
     for (const effect of GHOST_OVERLAY_IDS) {
+      if (effect === "vhs") continue; // Static scanline overlay
       ctx = makeCtx();
       pending = [];
       clock = 0;

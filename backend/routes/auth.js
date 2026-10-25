@@ -590,6 +590,7 @@ router.get('/discord/login', async (req, res) => {
 // GET /api/auth/discord/callback
 router.get('/discord/callback', async (req, res) => {
   const { code, state } = req.query;
+  const parsedState = parseOAuthState(state);
   // FRONTEND_URL is already repaired on import (see env.js); the request's own
   // origin is the fallback when it is not configured at all.
   const rawFrontendUrl = (process.env.FRONTEND_URL || publicBaseUrl(req)).split(',')[0];
