@@ -57,7 +57,7 @@ const COMMUNITY = {
   channels: ["general", "showcase", "support", "off-topic", "ignored"],
 };
 
-const ACHERON = {
+const IVERA = {
   kind: "server",
   id: "999999999999999999",
   name: null,
@@ -78,7 +78,7 @@ jest.mock("@/lib/api", () => ({
       const params = options?.params || {};
       if (url === "/widgets/discord/server") {
         if (params.id === "a9uwptuepD") return Promise.resolve({ data: COMMUNITY });
-        if (params.id === "achern") return Promise.resolve({ data: ACHERON });
+        if (params.id === "ivera" || params.id === "achern") return Promise.resolve({ data: IVERA });
         return Promise.reject(new Error(`unexpected widget request: ${url}`));
       }
       // Anything else is a request the band no longer makes — a team lookup, or
@@ -118,13 +118,13 @@ it("renders both Discord server widgets with real invites", async () => {
   expect(widgets).toHaveLength(DISCORD_SERVERS.length);
   expect([...widgets].map((w) => w.dataset.testid)).toEqual([
     "discord-widget-community",
-    "discord-widget-acheron",
+    "discord-widget-ivera",
   ]);
 
   const hrefs = [...el.querySelectorAll('a[data-testid$="-join"]')].map((a) => a.getAttribute("href"));
   expect(hrefs).toContain("https://discord.gg/a9uwptuepD");
-  // Acheron's own invite, not the community's.
-  expect(hrefs).toContain("https://discord.gg/achern");
+  // Ivera's own invite, not the community's.
+  expect(hrefs).toContain("https://discord.gg/ivera");
 
   cleanup();
 });
@@ -140,8 +140,8 @@ it("draws the server's own icon and banner, not a generic glyph", async () => {
   );
 
   // The server with no art still gets its name and the Discord glyph behind it.
-  expect(card(el, "acheron").querySelector('[data-testid="discord-widget-acheron-icon"]')).toBeNull();
-  expect(card(el, "acheron").querySelector("svg")).toBeTruthy();
+  expect(card(el, "ivera").querySelector('[data-testid="discord-widget-ivera-icon"]')).toBeNull();
+  expect(card(el, "ivera").querySelector("svg")).toBeTruthy();
 
   cleanup();
 });
@@ -170,15 +170,15 @@ it("shows the counts, avatars and channels Discord reports", async () => {
 it("invents nothing for a server that reports nothing", async () => {
   const { el, cleanup } = await mount(<FeaturesCustomizer />);
 
-  const text = card(el, "acheron").textContent;
+  const text = card(el, "ivera").textContent;
   // The name falls back to the one we know; the number never does.
-  expect(text).toContain("Acheron");
+  expect(text).toContain("Ivera");
   expect(text).toContain("Members online");
   expect(text).not.toMatch(/\d+ online/);
   expect(text).not.toContain("members");
   // No avatars and no channels: a member entry without one is dropped, not
   // drawn as an empty circle.
-  expect(card(el, "acheron").querySelector('[data-testid="discord-widget-acheron-members"]')).toBeNull();
+  expect(card(el, "ivera").querySelector('[data-testid="discord-widget-ivera-members"]')).toBeNull();
 
   cleanup();
 });
@@ -191,9 +191,9 @@ it("keeps the two server cards level, one per column", async () => {
   expect(grid.className).toContain("items-stretch");
   // The second card shares that grid instead of being moved down and aside.
   expect(grid.children).toHaveLength(2);
-  expect(grid.children[1].dataset.testid).toBe("discord-widget-acheron");
+  expect(grid.children[1].dataset.testid).toBe("discord-widget-ivera");
 
-  for (const key of ["community", "acheron"]) {
+  for (const key of ["community", "ivera"]) {
     const node = card(el, key);
     expect(node.className).toContain("h-full");
     expect(node.className).not.toContain("sm:mt-10");

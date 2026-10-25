@@ -26,11 +26,11 @@ export const DISCORD_SERVERS = [
     blurb: "The official tourn.lol community — support, updates and showcase.",
   },
   {
-    key: "acheron",
-    invite: "https://discord.gg/achern",
+    key: "ivera",
+    invite: "https://discord.gg/ivera",
     serverId: null,
-    fallbackName: "Acheron",
-    blurb: "Acheron — /achern — is a multi-game Roblox script, and this is its home.",
+    fallbackName: "Ivera",
+    blurb: "The official Ivera community — support, updates and showcase.",
   },
 ];
 

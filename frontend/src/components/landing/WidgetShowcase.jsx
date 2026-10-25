@@ -46,14 +46,14 @@ const Tilt = ({ children, index, accent = "#b4bffa" }) => {
     if (!box) return;
     const px = (e.clientX - box.left) / box.width - 0.5;
     const py = (e.clientY - box.top) / box.height - 0.5;
-    const rotX = BASE_TILT.x - py * 20;
-    const rotY = baseY + px * 20;
-    tiltRef.current.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg) scale3d(1.03, 1.03, 1.03)`;
+    const rotX = BASE_TILT.x - py * 14;
+    const rotY = baseY + px * 14;
+    tiltRef.current.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg)`;
 
     if (glareRef.current) {
       const gx = ((e.clientX - box.left) / box.width) * 100;
       const gy = ((e.clientY - box.top) / box.height) * 100;
-      glareRef.current.style.background = `radial-gradient(circle at ${gx}% ${gy}%, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.06) 35%, transparent 70%)`;
+      glareRef.current.style.background = `radial-gradient(circle at ${gx}% ${gy}%, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.04) 40%, transparent 70%)`;
       glareRef.current.style.opacity = "1";
     }
   };
@@ -77,25 +77,41 @@ const Tilt = ({ children, index, accent = "#b4bffa" }) => {
           data-testid={`tilt-${index}`}
           onPointerMove={onMove}
           onPointerLeave={reset}
-          style={{ transform: rest, transformStyle: "preserve-3d", transition: "transform .22s cubic-bezier(0.16, 1, 0.3, 1)" }}
+          style={{
+            transform: rest,
+            transformStyle: "preserve-3d",
+            transition: "transform .22s cubic-bezier(0.16, 1, 0.3, 1)",
+            backfaceVisibility: "hidden",
+            WebkitBackfaceVisibility: "hidden",
+            WebkitFontSmoothing: "subpixel-antialiased",
+          }}
           className="relative cursor-pointer"
         >
-          {/* Specular glare overlay that follows mouse pointer */}
+          {/* Specular glare overlay that follows mouse pointer — normal blend to avoid raster blur */}
           <span
             ref={glareRef}
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 z-30 rounded-2xl opacity-0 transition-opacity duration-300"
-            style={{ mixBlendMode: "overlay" }}
           />
 
-          {/* Dynamic colorful aura glow - subtle, not blurry */}
+          {/* Dynamic colorful aura glow */}
           <span
             aria-hidden
-            className="pointer-events-none absolute -inset-2 rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-50"
-            style={{ background: `radial-gradient(circle at 50% 30%, ${accent}30, transparent 60%)` }}
+            className="pointer-events-none absolute -inset-2 rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-40"
+            style={{ background: `radial-gradient(circle at 50% 30%, ${accent}25, transparent 65%)` }}
           />
 
-          <div style={{ transform: "translateZ(34px)" }} className="relative z-10">
+          <div
+            style={{
+              transform: "translateZ(34px)",
+              backfaceVisibility: "hidden",
+              WebkitBackfaceVisibility: "hidden",
+              WebkitFontSmoothing: "subpixel-antialiased",
+              textRendering: "geometricPrecision",
+              imageRendering: "-webkit-optimize-contrast",
+            }}
+            className="relative z-10"
+          >
             {children}
           </div>
         </div>
@@ -115,22 +131,44 @@ export const WidgetShowcase = () => (
       }}
     />
 
-    <div className="mx-auto mb-14 max-w-2xl px-4 text-center relative z-10">
-      <div className="inline-flex items-center gap-2 rounded-full border border-brand-400/30 bg-brand-500/10 px-3.5 py-1 text-xs font-semibold text-brand-200 mb-4 backdrop-blur">
+    {/* Header section with titled/tilted styling matching the 3D widget theme */}
+    <div
+      className="mx-auto mb-14 max-w-2xl px-4 text-center relative z-10 transition-transform duration-300"
+      style={{
+        transform: "perspective(800px) rotateX(10deg)",
+        transformOrigin: "center center",
+      }}
+    >
+      <div className="inline-flex items-center gap-2 rounded-full border border-brand-400/30 bg-brand-500/10 px-3.5 py-1 text-xs font-semibold text-brand-200 mb-4 backdrop-blur transform -rotate-2 hover:rotate-0 transition-transform cursor-default shadow-sm">
         <Sparkles className="h-3.5 w-3.5 text-brand-400" />
         <span>Live Interactive Widgets</span>
       </div>
-      <h2 className="font-display text-3xl font-black text-zinc-50 sm:text-4xl tracking-tight">
+      <h2
+        className="font-display text-3xl font-black text-zinc-50 sm:text-4xl tracking-tight transition-transform duration-300 inline-block"
+        style={{
+          transform: "rotateZ(-1.5deg)",
+          transformOrigin: "center center",
+        }}
+      >
         The widgets your page actually renders
       </h2>
-      <p className="mt-3 text-sm text-zinc-400 leading-relaxed max-w-lg mx-auto">
+      <p
+        className="mt-3 text-sm text-zinc-400 leading-relaxed max-w-lg mx-auto"
+        style={{
+          transform: "rotateZ(-0.5deg)",
+          transformOrigin: "center center",
+        }}
+      >
         Live data directly from Spotify, SoundCloud, TikTok, and Discord. Real-time media feeds that live right on your profile.
       </p>
     </div>
 
     <div
       className="mx-auto flex max-w-5xl flex-wrap justify-center gap-8 px-4 relative z-10"
-      style={{ perspective: "1100px" }}
+      style={{
+        perspective: "1100px",
+        WebkitFontSmoothing: "subpixel-antialiased",
+      }}
       data-testid="widget-showcase-grid"
     >
       {WIDGETS.map((item, i) => (
@@ -142,6 +180,13 @@ export const WidgetShowcase = () => (
           <div
             className="h-full rounded-2xl transition-shadow duration-300 group-hover:shadow-[0_15px_35px_rgba(0,0,0,0.6)]"
             data-testid={`live-widget-${item.w.type}${item.w.subtype ? `-${item.w.subtype}` : ""}`}
+            style={{
+              transform: "translate3d(0, 0, 0)",
+              backfaceVisibility: "hidden",
+              WebkitBackfaceVisibility: "hidden",
+              WebkitFontSmoothing: "subpixel-antialiased",
+              textRendering: "geometricPrecision",
+            }}
           >
             <WidgetCard w={item.w} accent={item.accent} />
           </div>
