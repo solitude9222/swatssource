@@ -609,10 +609,21 @@ router.get('/discord/profile', async (req, res) => {
         banner = `https://cdn.discordapp.com/banners/${u.id}/${u.banner}.${ext}?size=1024`;
       }
 
+      const primaryGuild = u.primary_guild || d.primary_guild || null;
       const clan = u.clan || d.clan || null;
-      const guildTag = clan?.tag || u.guild_tag || d.guild_tag || null;
-      const clanBadge = clan?.badge && (clan?.identity_guild_id || clan?.guild_id)
-        ? `https://cdn.discordapp.com/clan-badges/${clan.identity_guild_id || clan.guild_id}/${clan.badge}.png`
+
+      // Check whether primary_guild exists and whether identity_enabled is true before displaying
+      const hasPrimaryGuild = primaryGuild && primaryGuild.identity_enabled !== false;
+      const guildTag = (hasPrimaryGuild ? primaryGuild.tag : null)
+        || clan?.tag
+        || u.guild_tag
+        || d.guild_tag
+        || null;
+
+      const tagGuildId = primaryGuild?.identity_guild_id || clan?.identity_guild_id || clan?.guild_id || null;
+      const tagBadgeHash = primaryGuild?.badge || clan?.badge || null;
+      const clanBadge = tagBadgeHash && tagGuildId
+        ? `https://cdn.discordapp.com/clan-badges/${tagGuildId}/${tagBadgeHash}.png`
         : null;
 
       return {
@@ -639,8 +650,14 @@ router.get('/discord/profile', async (req, res) => {
             }
           : null,
         badges: parseDiscordBadges(u),
+        primary_guild: primaryGuild ? {
+          tag: primaryGuild.tag,
+          badge: clanBadge,
+          identity_enabled: primaryGuild.identity_enabled !== false,
+          identity_guild_id: primaryGuild.identity_guild_id || null,
+        } : null,
         guild_tag: guildTag,
-        clan: clan ? { tag: clan.tag, badge: clanBadge, guild_id: clan.identity_guild_id || clan.guild_id || null } : null,
+        clan: (clan || primaryGuild) ? { tag: guildTag, badge: clanBadge, guild_id: tagGuildId } : null,
         decoration: discordDecoration(u.avatar_decoration_data || u.avatar_decoration),
         location: d.kv?.location || null,
         url: `https://discord.com/users/${u.id}`,

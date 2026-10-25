@@ -1333,7 +1333,12 @@ function DiscordProfile({ w, accent, data, status, error, refresh }) {
   const style = w.discord_style || "classic";
   const display = data.global_name || data.username;
   const handle = data.username;
-  const guildTag = data.guild_tag || data.clan?.tag || null;
+  const guildTag =
+    (data.primary_guild?.identity_enabled !== false ? data.primary_guild?.tag : null) ||
+    data.guild_tag ||
+    data.clan?.tag ||
+    null;
+  const clanBadge = data.primary_guild?.badge || data.clan?.badge || null;
   const badges = Array.isArray(data.badges) ? data.badges : [];
   const decorationUrl = data.decoration?.url || data.avatar_decoration?.url || null;
 
@@ -1358,9 +1363,22 @@ function DiscordProfile({ w, accent, data, status, error, refresh }) {
     guildTag ? (
       <span
         className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-white/10 hover:bg-white/15 border border-white/10 text-[10px] font-bold text-zinc-200 tracking-wider uppercase shrink-0 shadow-xs"
-        title={data.clan?.tag ? `Discord Clan: ${data.clan.tag}` : `Guild: ${guildTag}`}
+        title={data.primary_guild?.tag || data.clan?.tag ? `Server Tag: ${guildTag}` : `Tag: ${guildTag}`}
       >
-        {data.clan?.badge && <img src={data.clan.badge} alt="" className="w-2.5 h-2.5 object-contain" />}
+        {clanBadge && (
+          <img
+            src={clanBadge}
+            alt=""
+            className="w-3 h-3 object-contain rounded-xs"
+            onError={(e) => {
+              if (e.currentTarget.src.includes("clan-badges")) {
+                e.currentTarget.src = e.currentTarget.src.replace("clan-badges", "guild-tag-badges");
+              } else {
+                e.currentTarget.style.display = "none";
+              }
+            }}
+          />
+        )}
         <span>{guildTag}</span>
       </span>
     ) : null;
@@ -1371,12 +1389,17 @@ function DiscordProfile({ w, accent, data, status, error, refresh }) {
         {badges.slice(0, max).map((b) => (
           <img
             key={b.id}
-            src={`${process.env.PUBLIC_URL || ""}/badges/discord/${b.icon}`}
+            src={`${process.env.PUBLIC_URL || ""}/badges/discord/${b.icon || `core/${b.id}.svg`}`}
             alt={b.name}
             title={b.name}
             className="w-4 h-4 object-contain filter drop-shadow hover:scale-110 transition-transform duration-150 cursor-help"
             onError={(e) => {
-              e.currentTarget.style.display = "none";
+              if (!e.currentTarget.dataset.retried) {
+                e.currentTarget.dataset.retried = "1";
+                e.currentTarget.src = `${process.env.PUBLIC_URL || ""}/badges/discord/core/${b.id}.svg`;
+              } else {
+                e.currentTarget.style.display = "none";
+              }
             }}
           />
         ))}

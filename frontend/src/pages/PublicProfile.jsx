@@ -5,7 +5,9 @@ import { buildCrosshairCursor, crosshairSettings } from "@/lib/crosshair";
 import { useProfileViewTracker } from "@/lib/viewTracker";
 import { ProfilePreview, viewsInCorner, compactCount } from "@/components/ProfilePreview";
 import { CursorEffect } from "@/components/CursorEffect";
+import { CustomCursor } from "@/components/CustomCursor";
 import { Eye } from "lucide-react";
+import { fontStackOf, ensureFontsLoaded } from "@/constants/fonts";
 
 // Where a moved view counter sits. The four corners are the page's, not the
 // card's, so it stays put whatever the card is doing.
