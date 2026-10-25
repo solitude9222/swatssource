@@ -137,7 +137,8 @@ function baseWidgetRequest(w) {
   }
 
   if (type === "discord") {
-    if (sub === "profile" || sub === "bot") {
+    const isProfile = sub === "profile" || sub === "bot" || Boolean(w.user_id) || (!w.invite_url && !w.server_id && /^\d{17,20}$/.test(String(w.value || w.username || "").trim()));
+    if (isProfile) {
       const id = digits(w.user_id || w.username || w.value);
       if (!id) return null;
       return { path: "/widgets/discord/profile", params: { id }, ttl: LIVE_TTL };

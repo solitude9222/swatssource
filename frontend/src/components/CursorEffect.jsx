@@ -38,6 +38,7 @@ export const CursorEffect = ({ effect, accent }) => {
     let w = 0;
     let h = 0;
     let raf = 0;
+    let running = false;
 
     const resize = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -48,29 +49,52 @@ export const CursorEffect = ({ effect, accent }) => {
       canvas.style.width = `${w}px`;
       canvas.style.height = `${h}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      // Ghost resizes via setEffect on its own read; our transform handles it.
-    };
-
-    const onMove = (e) => {
-      ghostEmit(state, id, e.clientX, e.clientY);
     };
 
     const frame = () => {
       ghostDrawMouse(ctx, state, id, w, h);
+      // If particles and trail have cleared, stop loop to save CPU/GPU cycles
+      if (state.parts.length === 0 && state.trail.length === 0) {
+        ctx.clearRect(0, 0, w, h);
+        running = false;
+        return;
+      }
       raf = requestAnimationFrame(frame);
+    };
+
+    const startLoop = () => {
+      if (!running && !document.hidden) {
+        running = true;
+        raf = requestAnimationFrame(frame);
+      }
+    };
+
+    const onMove = (e) => {
+      ghostEmit(state, id, e.clientX, e.clientY);
+      startLoop();
+    };
+
+    const onVisibility = () => {
+      if (document.hidden) {
+        cancelAnimationFrame(raf);
+        running = false;
+      } else if (state.parts.length > 0 || state.trail.length > 0) {
+        startLoop();
+      }
     };
 
     const moveEvent = typeof window !== "undefined" && "onpointermove" in window ? "pointermove" : "mousemove";
 
     window.addEventListener(moveEvent, onMove, { passive: true });
     window.addEventListener("resize", resize);
+    document.addEventListener("visibilitychange", onVisibility);
     resize();
-    raf = requestAnimationFrame(frame);
 
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener(moveEvent, onMove);
       window.removeEventListener("resize", resize);
+      document.removeEventListener("visibilitychange", onVisibility);
       state.parts.length = 0;
       state.trail.length = 0;
     };

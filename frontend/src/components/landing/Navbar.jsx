@@ -5,7 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 
 export const Logo = ({ size = "text-lg" }) => (
   <Link to="/" data-testid="nav-logo" className="flex items-center gap-2 group">
-    <img src="/logo.png?v=10" alt="tourn.lol" className="w-9 h-9 rounded-lg object-contain group-hover:scale-105 transition-transform" />
+    <img src="/logo.png?v=36" alt="tourn.lol" className="w-10 h-10 rounded-lg object-contain group-hover:scale-105 transition-transform" />
     <span className={`font-display font-extrabold tracking-tight text-zinc-100 ${size}`}>
       tourn<span className="text-brand-400">.lol</span>
     </span>
@@ -16,7 +16,7 @@ export const Logo = ({ size = "text-lg" }) => (
 // because it is the thing people come back for after their first visit.
 const NAV = [
   { label: "Home", to: "/!/home" },
-  { label: "Marketplace", to: "/!/marketplace" },
+  { label: "Devlog", to: "/!/devlogs" },
   { label: "Explore", to: "/!/explore" },
   { label: "Pricing", to: "/!/pricing" },
 ];

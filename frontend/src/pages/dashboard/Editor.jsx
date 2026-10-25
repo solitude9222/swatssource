@@ -38,7 +38,7 @@ import {
 import {
   Upload, Trash2, Loader2, Lock, Save, Image as ImageIcon, Film, Layout, Check, ChevronDown,
   ChevronRight, MousePointer2, User, Paintbrush, Music, Sparkles, Sliders, Volume2, VolumeX,
-  Play, Pause, Disc, FileText, AlignLeft, Shuffle, Repeat, Plus, Store, ShoppingBag,
+  Play, Pause, Disc, FileText, AlignLeft, Shuffle, Repeat, Plus, Store, ShoppingBag, Layers,
 } from "lucide-react";
 
 export const CARD_STYLE_PRESETS = {
@@ -124,7 +124,7 @@ const PREVIEW_WORD = "tourn";
 // are not separate panels any more â€” the layout picker lives in Appearance and
 // the effect pickers in Extra â€” so an old bookmark lands on the page that owns
 // those controls instead of a bare panel.
-const EDITOR_TABS = ["about", "appearance", "audios", "other", "extra", "store"];
+const EDITOR_TABS = ["about", "appearance", "audios", "other", "extra"];
 const TAB_ALIASES = {
   profile: "about",
   card: "appearance",
@@ -133,7 +133,8 @@ const TAB_ALIASES = {
   extra: "other",
   entry: "other",
   other: "other",
-  shop: "store",
+  shop: "about",
+  store: "about",
 };
 const resolveEditorTab = (raw) => {
   const id = String(raw || "");
@@ -789,6 +790,7 @@ export default function Editor() {
   const [showOverlayEffectsModal, setShowOverlayEffectsModal] = useState(false);
   const [showBgEffectsModal, setShowBgEffectsModal] = useState(false);
   const [showCursorEffectsModal, setShowCursorEffectsModal] = useState(false);
+  const [showCardEffectsModal, setShowCardEffectsModal] = useState(false);
 
   // Media modals state
   const [showAvatarModal, setShowAvatarModal] = useState(false);
@@ -1029,22 +1031,12 @@ export default function Editor() {
   }, [autoSave, isDirty, saving, p, displayName]);
 
   const isAdmin = user?.role === "admin" || !!user?.is_owner;
-  const [editingProduct, setEditingProduct] = useState(null);
-  const [productForm, setProductForm] = useState({
-    title: "",
-    price: "$5.00",
-    category: "Digital",
-    tag: "Instant Delivery",
-    description: "",
-    stock: "Unlimited",
-  });
 
   const SUBTAB_ITEMS = [
     { id: "about", label: "Profile", icon: User },
     { id: "appearance", label: "Appearance", icon: Paintbrush },
     { id: "audios", label: "Audio", icon: Music },
     { id: "other", label: "Other", icon: Sparkles },
-    { id: "store", label: "Store", icon: Store },
   ];
 
   return (
@@ -1328,6 +1320,25 @@ export default function Editor() {
                     <span className="block text-sm font-semibold text-white">Decorations</span>
                     <span className="mt-0.5 block truncate text-[11px] text-zinc-500">
                       {p.avatar_decoration ? "Avatar decoration set — tap to change" : "Frames and avatar decorations"}
+                    </span>
+                  </span>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-zinc-600 transition-colors group-hover:text-[#b4bffa]" />
+                </button>
+
+                {/* Card effects */}
+                <button
+                  type="button"
+                  data-testid="effects-open-card"
+                  onClick={() => setShowCardEffectsModal(true)}
+                  className="group flex items-center gap-3.5 rounded-2xl border border-[#1a1a1a] bg-[#060606] p-3.5 text-left transition-colors hover:border-[#b4bffa]/50 hover:bg-[#0b0b10]"
+                >
+                  <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-[#0d0d0f]">
+                    <Layers className="h-5 w-5 text-[#b4bffa]" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-semibold text-white">Card Effects</span>
+                    <span className="mt-0.5 block truncate text-[11px] text-zinc-500">
+                      {CARD_EFFECTS.find((e) => e.id === p.card_effect)?.label || "Shine, shimmer, spotlight, ambient glow"}
                     </span>
                   </span>
                   <ChevronRight className="h-4 w-4 shrink-0 text-zinc-600 transition-colors group-hover:text-[#b4bffa]" />
@@ -1760,59 +1771,22 @@ export default function Editor() {
                       </div>
                     )}
 
-                    {/* Card Effects Section */}
-                    <div className="border-t border-[#1f1f1f] pt-4 space-y-3">
+                    {/* Card Effects Shortcut */}
+                    <div className="border-t border-[#1f1f1f] pt-4 flex items-center justify-between">
                       <div>
                         <div className="text-xs font-semibold text-white">Card Effects</div>
-                        <div className="text-[11px] text-zinc-400">Shine, shimmer, spotlight, ambient glow and border beams</div>
-                      </div>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                        {CARD_EFFECTS.map((eff) => {
-                          const active = (p.card_effect || "") === eff.id;
-                          return (
-                            <button
-                              key={eff.id || "none"}
-                              type="button"
-                              onClick={() => {
-                                if (eff.premium && !isPremium) {
-                                  askPremium("Card effect")();
-                                  return;
-                                }
-                                set("card_effect", eff.id);
-                              }}
-                              className={`flex flex-col items-center justify-center p-2.5 rounded-xl border text-xs font-semibold transition cursor-pointer ${
-                                active
-                                  ? "border-[#b4bffa] bg-[#b4bffa]/15 text-white ring-1 ring-[#b4bffa]"
-                                  : "border-[#1f1f1f] bg-[#060606] text-zinc-400 hover:border-white/20 hover:text-zinc-200"
-                              }`}
-                            >
-                              <span className="truncate">{eff.label}</span>
-                              {eff.premium && !isPremium && <Lock className="w-3 h-3 text-amber-400 mt-1" />}
-                            </button>
-                          );
-                        })}
-                      </div>
-
-                      {p.card_effect && (
-                        <div className="grid gap-4 sm:grid-cols-2 border-t border-[#1f1f1f] pt-3">
-                          <div>
-                            <label className="mb-1.5 block text-xs text-zinc-400">Card Effect Color</label>
-                            <ColorPicker
-                              value={p.card_effect_color || (p.card_gradient_enabled ? p.card_gradient_color : p.accent_color) || accentColor}
-                              onChange={(v) => set("card_effect_color", v)}
-                            />
-                          </div>
-                          <div className="flex flex-col justify-end">
-                            <button
-                              type="button"
-                              onClick={() => set("card_effect_color", p.card_gradient_enabled ? p.card_gradient_color : p.accent_color)}
-                              className="px-3 py-2 rounded-xl text-xs font-semibold border border-white/10 hover:border-white/20 text-zinc-300 hover:text-white transition"
-                            >
-                              Sync with Gradient & Accent
-                            </button>
-                          </div>
+                        <div className="text-[11px] text-zinc-400">
+                          {CARD_EFFECTS.find((e) => e.id === p.card_effect)?.label || "None configured"} • Configure in Effects Studio
                         </div>
-                      )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowCardEffectsModal(true)}
+                        className="px-3 py-1.5 rounded-xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-xs font-semibold text-[#b4bffa] transition flex items-center gap-1.5"
+                      >
+                        <Layers className="w-3.5 h-3.5" />
+                        <span>Configure</span>
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -2954,259 +2928,80 @@ export default function Editor() {
                   })}
                 </div>
               </FxModal>
-          </>
-          )}
 
-          {sub === "store" && (
-            <div className="space-y-6">
-              <Section title="Creator Storefront" hint="Sell products, custom CSS themes, commissions, or VIP roles directly at tourn.lol/@username/shop">
-                {!isAdmin ? (
-                  <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-6 text-center space-y-3">
-                    <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mx-auto text-amber-400">
-                      <Lock className="w-6 h-6" />
-                    </div>
-                    <h3 className="text-sm font-bold text-white">Creator Storefront (Admin Beta)</h3>
-                    <p className="text-xs text-zinc-400 max-w-md mx-auto leading-relaxed">
-                      Personal creator storefronts at <span className="font-mono2 text-amber-300">tourn.lol/@{user?.username}/shop</span> are currently in private beta and limited to site administrators. Once escrow channels are verified, this will unlock for all Premium creators.
-                    </p>
-                    <div className="pt-2">
-                      <a
-                        href={`/${user?.username}/shop`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] text-xs font-semibold text-white transition border border-white/10"
-                      >
-                        <Store className="w-3.5 h-3.5" />
-                        <span>Preview My Store Page</span>
-                      </a>
-                    </div>
+              {/* Card Effects Modal with Live Previews */}
+              <FxModal
+                open={showCardEffectsModal}
+                onOpenChange={setShowCardEffectsModal}
+                id="card-effects-modal"
+                eyebrow="Surface Dynamics"
+                title="Card Effects"
+                description="Luminescent light beams, holographic shimmers, spotlight, and ambient edge glows for your profile card."
+                testid="card-effects-modal"
+                footer={
+                  <div className="flex justify-end">
+                    <button type="button" onClick={() => setShowCardEffectsModal(false)} className="px-4 py-2 text-xs bg-[#b4bffa] text-black font-bold rounded-xl hover:brightness-110 transition shadow-sm cursor-pointer">
+                      Done
+                    </button>
                   </div>
-                ) : (
-                  <div className="space-y-6">
-                    {/* Store Enable Toggle & Live Link */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/[0.02] p-4 sm:p-5">
-                      <div className="space-y-0.5">
-                        <span className="text-sm font-bold text-white flex items-center gap-2">
-                          <Store className="w-4 h-4 text-[#b4bffa]" /> Enable Creator Storefront
-                        </span>
-                        <p className="text-xs text-zinc-400">
-                          Turn your personal shop live at <span className="font-mono2 text-[#b4bffa]">tourn.lol/@{user?.username}/shop</span>
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <a
-                          href={`/${user?.username}/shop`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="px-3.5 py-1.5 rounded-xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-xs font-semibold text-zinc-300 transition flex items-center gap-1.5"
-                        >
-                          <span>View Live</span>
-                          <ChevronRight className="w-3.5 h-3.5" />
-                        </a>
-                        <Switch
-                          className={SWITCH_CLASS}
-                          checked={p.store_enabled !== false}
-                          onCheckedChange={(val) => set("store_enabled", val)}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Products List & Add Button */}
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-400">Products Catalog</h4>
-                          <p className="text-[11px] text-zinc-500">{(p.shop_items || []).length} product(s) configured</p>
-                        </div>
+                }
+              >
+                <div className="space-y-5">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    {CARD_EFFECTS.map((eff) => {
+                      const active = (p.card_effect || "") === eff.id;
+                      const locked = eff.premium && !isPremium;
+                      return (
                         <button
+                          key={eff.id || "none"}
                           type="button"
                           onClick={() => {
-                            setProductForm({
-                              id: crypto.randomUUID(),
-                              title: "",
-                              price: "$5.00",
-                              category: "Digital",
-                              tag: "Instant Delivery",
-                              description: "",
-                              stock: "Unlimited",
-                            });
-                            setEditingProduct("new");
+                            if (locked) {
+                              setShowCardEffectsModal(false);
+                              askPremium("Card effect")();
+                              return;
+                            }
+                            set("card_effect", eff.id);
                           }}
-                          className="px-3.5 py-2 rounded-xl bg-[#b4bffa] text-black font-extrabold text-xs hover:brightness-110 transition flex items-center gap-1.5 shadow-sm cursor-pointer"
+                          className={`p-3 rounded-2xl border text-center transition flex flex-col items-center justify-center gap-1.5 group cursor-pointer ${
+                            active
+                              ? "border-[#b4bffa] bg-[#b4bffa]/15 text-white ring-1 ring-[#b4bffa]"
+                              : "border-[#2a2a2e] bg-[#09090b] text-zinc-300 hover:border-white/30"
+                          }`}
                         >
-                          <Plus className="w-3.5 h-3.5 stroke-[3]" />
-                          <span>Add Product</span>
+                          <span className={`text-xs font-bold truncate ${active ? "text-[#b4bffa]" : "text-white"}`}>{eff.label}</span>
+                          {locked ? <Lock className="w-3.5 h-3.5 text-amber-400" /> : active ? <Check className="w-3.5 h-3.5 text-[#b4bffa]" /> : null}
                         </button>
+                      );
+                    })}
+                  </div>
+
+                  {p.card_effect && (
+                    <div className="rounded-2xl border border-[#2a2a2e] bg-[#111111] p-4 space-y-3">
+                      <div className="text-xs font-bold text-white">Effect Color Harmonization</div>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <div>
+                          <label className="mb-1.5 block text-xs text-zinc-400">Card Effect Color</label>
+                          <ColorPicker
+                            value={p.card_effect_color || (p.card_gradient_enabled ? p.card_gradient_color : p.accent_color) || accentColor}
+                            onChange={(v) => set("card_effect_color", v)}
+                          />
+                        </div>
+                        <div className="flex flex-col justify-end">
+                          <button
+                            type="button"
+                            onClick={() => set("card_effect_color", p.card_gradient_enabled ? p.card_gradient_color : p.accent_color)}
+                            className="px-3 py-2 rounded-xl text-xs font-semibold border border-white/10 hover:border-white/20 text-zinc-300 hover:text-white transition"
+                          >
+                            Sync with Accent Color
+                          </button>
+                        </div>
                       </div>
-
-                      {/* Existing Products */}
-                      {(p.shop_items || []).length > 0 ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                          {(p.shop_items || []).map((item, idx) => (
-                            <div key={item.id || idx} className="rounded-2xl border border-white/10 bg-[#0d0d10] p-4 flex flex-col justify-between gap-3 group">
-                              <div className="space-y-1.5">
-                                <div className="flex items-start justify-between gap-2">
-                                  <span className="text-[10px] font-bold font-mono2 uppercase px-2 py-0.5 rounded bg-white/[0.05] text-zinc-400 border border-white/5">
-                                    {item.category || "Digital"}
-                                  </span>
-                                  <span className="text-xs font-black font-mono2 text-white">
-                                    {item.price}
-                                  </span>
-                                </div>
-                                <h5 className="text-xs font-bold text-white group-hover:text-[#b4bffa] transition-colors">{item.title}</h5>
-                                <p className="text-[11px] text-zinc-400 line-clamp-2 leading-relaxed">{item.description}</p>
-                              </div>
-
-                              <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between text-xs">
-                                <span className="text-[10px] text-zinc-500 font-mono2">{item.tag || item.stock}</span>
-                                <div className="flex items-center gap-1.5">
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setProductForm({ ...item });
-                                      setEditingProduct("edit");
-                                    }}
-                                    className="px-2.5 py-1 rounded-lg bg-white/[0.06] hover:bg-white/[0.1] text-zinc-200 text-xs font-semibold transition"
-                                  >
-                                    Edit
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      const next = (p.shop_items || []).filter((_, i) => i !== idx);
-                                      set("shop_items", next);
-                                      toast.success("Product deleted");
-                                    }}
-                                    className="p-1 rounded-lg text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 transition"
-                                  >
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="rounded-2xl border border-dashed border-white/10 p-8 text-center space-y-2 text-zinc-500">
-                          <Store className="w-8 h-8 mx-auto text-zinc-600" />
-                          <div className="text-xs font-semibold text-zinc-300">No products created yet</div>
-                          <p className="text-[11px] text-zinc-500 max-w-xs mx-auto">
-                            Click &apos;Add Product&apos; above to list themes, commission slots, roles, or audio packages on your store.
-                          </p>
-                        </div>
-                      )}
                     </div>
-                  </div>
-                )}
-              </Section>
-            </div>
-          )}
-
-          {editingProduct && (
-            <div
-              className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-150"
-              onClick={(e) => { if (e.target === e.currentTarget) setEditingProduct(null); }}
-            >
-              <div className="relative w-full max-w-md rounded-2xl border border-white/15 bg-[#0e0e12] p-6 shadow-2xl text-left space-y-4">
-                <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                  <h3 className="text-sm font-bold text-white">
-                    {editingProduct === "new" ? "Add Store Product" : "Edit Store Product"}
-                  </h3>
-                  <button type="button" onClick={() => setEditingProduct(null)} className="p-1 text-zinc-400 hover:text-white">
-                    <X className="w-4 h-4" />
-                  </button>
+                  )}
                 </div>
-
-                <div className="space-y-3 text-xs">
-                  <div>
-                    <label className="text-zinc-300 font-semibold block mb-1">Product Title</label>
-                    <input
-                      type="text"
-                      value={productForm.title}
-                      onChange={(e) => setProductForm({ ...productForm, title: e.target.value })}
-                      placeholder="e.g. Custom Profile CSS Theme"
-                      className="w-full px-3 py-2 rounded-xl bg-black/50 border border-white/10 text-white outline-none focus:border-[#b4bffa]"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-zinc-300 font-semibold block mb-1">Price</label>
-                      <input
-                        type="text"
-                        value={productForm.price}
-                        onChange={(e) => setProductForm({ ...productForm, price: e.target.value })}
-                        placeholder="e.g. $5.00"
-                        className="w-full px-3 py-2 rounded-xl bg-black/50 border border-white/10 text-white outline-none focus:border-[#b4bffa]"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-zinc-300 font-semibold block mb-1">Category</label>
-                      <input
-                        type="text"
-                        value={productForm.category}
-                        onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
-                        placeholder="e.g. Themes, Audio, Roles"
-                        className="w-full px-3 py-2 rounded-xl bg-black/50 border border-white/10 text-white outline-none focus:border-[#b4bffa]"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-zinc-300 font-semibold block mb-1">Delivery / Stock Tag</label>
-                    <input
-                      type="text"
-                      value={productForm.tag}
-                      onChange={(e) => setProductForm({ ...productForm, tag: e.target.value })}
-                      placeholder="e.g. Instant Delivery, Digital, 3 slots"
-                      className="w-full px-3 py-2 rounded-xl bg-black/50 border border-white/10 text-white outline-none focus:border-[#b4bffa]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-zinc-300 font-semibold block mb-1">Description</label>
-                    <textarea
-                      rows={3}
-                      value={productForm.description}
-                      onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
-                      placeholder="What is included with this product..."
-                      className="w-full px-3 py-2 rounded-xl bg-black/50 border border-white/10 text-white outline-none focus:border-[#b4bffa] resize-none"
-                    />
-                  </div>
-                </div>
-
-                <div className="pt-2 flex items-center justify-end gap-2 border-t border-white/10">
-                  <button
-                    type="button"
-                    onClick={() => setEditingProduct(null)}
-                    className="px-4 py-2 rounded-xl text-xs font-semibold text-zinc-400 hover:text-white"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (!productForm.title.trim()) {
-                        toast.error("Please provide a product title");
-                        return;
-                      }
-                      const current = p.shop_items || [];
-                      const exists = current.some((it) => it.id === productForm.id);
-                      const next = exists
-                        ? current.map((it) => (it.id === productForm.id ? productForm : it))
-                        : [...current, productForm];
-                      set("shop_items", next);
-                      setEditingProduct(null);
-                      toast.success(exists ? "Product updated" : "Product added to store");
-                    }}
-                    className="px-5 py-2 rounded-xl bg-[#b4bffa] text-black font-extrabold text-xs hover:brightness-110 transition cursor-pointer"
-                  >
-                    Save Product
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+              </FxModal>
+          </>
 
 
           </motion.div>

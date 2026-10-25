@@ -151,8 +151,8 @@ function App() {
               <Route path="/!/compare" element={<Navigate to="/!/home" replace />} />
               <Route path="/compare" element={<Navigate to="/" replace />} />
               <Route path="/!/auth/discord" element={<DiscordCallback />} />
-              <Route path="/!/marketplace" element={<Marketplace />} />
-              <Route path="/marketplace" element={<Navigate to="/!/marketplace" replace />} />
+              <Route path="/!/marketplace" element={<Navigate to="/!/home" replace />} />
+              <Route path="/marketplace" element={<Navigate to="/" replace />} />
               {/* Public devlog / changelog. */}
               <Route path="/!/explore" element={<Explore />} />
               <Route path="/explore" element={<Explore />} />
@@ -183,8 +183,8 @@ function App() {
                 <Route path="effects" element={<EffectsMedia />} />
                 <Route path="settings" element={<Settings />} />
                 <Route path="templates" element={<Templates />} />
-                <Route path="shop" element={<ShopManager />} />
-                <Route path="marketplace" element={<Shop />} />
+                <Route path="shop" element={<Navigate to="/!/dashboard" replace />} />
+                <Route path="marketplace" element={<Navigate to="/!/dashboard" replace />} />
                 <Route path="leaderboard" element={<Leaderboard />} />
                 {/* The build log â€” the dashboard's own devlog feed, separate
                     from the public changelog at /!/devlogs. */}

@@ -4,7 +4,7 @@ import { query } from '../db.js';
 import { requireAuth, formatUser, requireDiscordToEdit, signToken } from '../auth.js';
 import { startSetup, completeSetup, disable as disableTwoFactor } from '../twoFactor.js';
 import { rankForUser } from '../ranks.js';
-import { sanitizeBadgeGrants } from '../badges.js';
+import { sanitizeBadgeGrants, computeAutoBadges } from '../badges.js';
 import { upcomingEvents } from '../eventBadges.js';
 import { loadRewardSettings, claimMilestoneReward } from '../rewards.js';
 import { loadRankedSettings, computeRankDetails } from '../rankedSettings.js';
@@ -184,8 +184,9 @@ router.put('/profile', requireAuth, requireDiscordToEdit, async (req, res) => {
 
     // A client may only manage its own `custom_*` badges: staff-granted and auto
     // badges (owner, admin, verified, og, ...) are server-controlled and must not
-    // be self-assignable here.
-    let ownedBadges = req.user.badges || [];
+    // be self-assignable here, but auto-granted badges must be retained and equippable.
+    const autoBadges = await computeAutoBadges(req.user);
+    let ownedBadges = [...new Set([...(req.user.badges || []), ...autoBadges])];
     if (Array.isArray(badges)) {
       // Ownership is additive: the request may only ADD custom badges, never drop
       // one that is already owned. Otherwise a client sending a partial list would
@@ -195,6 +196,9 @@ router.put('/profile', requireAuth, requireDiscordToEdit, async (req, res) => {
         .map(String)
         .filter((b) => b.startsWith('custom_') && (isPremium || alreadyOwned.has(b)));
       ownedBadges = [...new Set([...ownedBadges, ...requested])];
+      values.push(ownedBadges);
+      sets.push(`badges = $${values.length}`);
+    } else if (autoBadges.some((b) => !(req.user.badges || []).includes(b))) {
       values.push(ownedBadges);
       sets.push(`badges = $${values.length}`);
     }

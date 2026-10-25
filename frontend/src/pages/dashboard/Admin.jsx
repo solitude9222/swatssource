@@ -32,12 +32,7 @@ const SECTIONS = [
     title: "Users",
     body: "Every account, its Discord link, roles, tiers, badges and views — plus the bot's refresh and booster sync.",
   },
-  {
-    to: "/!/dashboard/admin/users?tab=stores",
-    icon: ShoppingBag,
-    title: "Creator Stores",
-    body: "Manage member storefronts, moderate listings, toggle access, and inspect buyer messages.",
-  },
+
   {
     to: "/!/dashboard/admin/invites",
     icon: Ticket,

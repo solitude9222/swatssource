@@ -107,17 +107,6 @@ const NAV_GROUPS = [
     ],
   },
   {
-    id: "shop",
-    label: "Shop",
-    icon: Store,
-    expandable: true,
-    tabs: [
-      { to: "/!/dashboard/shop", label: "My Products", icon: ShoppingBag, testid: "tab-my-products", desc: "Upload and manage your store products", ownHeader: true },
-      { to: "/!/dashboard/editor?tab=store", label: "Store Settings", icon: Store, testid: "tab-store-settings", desc: "Configure your storefront settings" },
-      { to: "/!/dashboard/marketplace", label: "Marketplace", icon: ShoppingBag, testid: "tab-marketplace", desc: "Community exchange for handles, accounts, and boosts" },
-    ],
-  },
-  {
     id: "premium",
     label: "Premium",
     navLabel: "Premium",
@@ -871,7 +860,7 @@ export default function DashboardLayout() {
           <div className="flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
               <div className="lg:hidden">
-                <Link to="/!/dashboard" aria-label="tourn.lol dashboard" className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/[0.06] bg-[#0a0a0b]"><img src="/logo.png?v=10" alt="" className="h-6 w-6 object-contain" /></Link>
+                <Link to="/!/dashboard" aria-label="tourn.lol dashboard" className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/[0.06] bg-[#0a0a0b]"><img src="/logo.png?v=36" alt="" className="h-7 w-7 object-contain" /></Link>
               </div>
               <nav
                 aria-label="Breadcrumb"

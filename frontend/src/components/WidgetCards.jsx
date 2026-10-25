@@ -372,7 +372,7 @@ function WidgetShell({
   const { tipProps, tipNode } = useTooltip(w?.tooltip);
   const popoutUrl = resolveWidgetUrl(w, data);
   const openStyle = w?.open_style || "button";
-  const popupToggle = Boolean(w?.popup_toggle);
+  const popupToggle = Boolean(w?.popup_toggle || w?.info_modal);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
 
   const handleOpenAction = (e) => {
@@ -531,7 +531,7 @@ function WidgetShell({
     ...customStyleProps,
   };
 
-  const isClickableCard = openStyle === "click" && (popoutUrl || popupToggle);
+  const isClickableCard = (openStyle === "click" || popupToggle) && (popoutUrl || popupToggle);
 
   return (
     <div
@@ -570,14 +570,14 @@ function WidgetShell({
             <div className={`absolute inset-0 pointer-events-none ${overlayClass}`} />
           ) : null}
 
-          {/* Top right sleek popout button for widgets that support it. ONLY shown if openStyle === 'icon' */}
-          {popoutUrl && openStyle === "icon" && (
+          {/* Top right sleek open / popout button */}
+          {(popoutUrl || popupToggle) && (
             <button
               type="button"
               data-testid="widget-popout-link"
               title={popupToggle ? "Preview widget" : "Open link"}
               onClick={handleOpenAction}
-              className="absolute top-2.5 right-2.5 z-20 flex h-6 w-6 items-center justify-center rounded-lg bg-black/50 text-zinc-400 hover:text-white hover:bg-white/10 hover:border-white/20 border border-white/10 backdrop-blur-md transition-all duration-150 shadow-sm cursor-pointer"
+              className="absolute top-2.5 right-2.5 z-20 flex h-6 w-6 items-center justify-center rounded-lg bg-black/60 text-zinc-400 hover:text-white hover:bg-white/15 hover:border-white/20 border border-white/10 backdrop-blur-md transition-all duration-150 shadow-sm cursor-pointer hover:scale-105 active:scale-95"
             >
               <ExternalLink className="h-3 w-3" />
             </button>
@@ -2606,7 +2606,7 @@ export function WidgetCard({ w, accent = "#b4bffa", ownerCreated, owner = "", pr
   }
 
   if (type === "discord") {
-    const isProfile = sub === "profile" || sub === "bot";
+    const isProfile = sub === "profile" || sub === "bot" || Boolean(w?.user_id) || Boolean(data?.global_name || data?.username) || (!w?.invite_url && !w?.server_id && /^\d{17,20}$/.test(String(w?.value || w?.username || "")));
     const title = isProfile ? "Discord Presence Preview" : "Discord Invite Preview";
     return (
       <WidgetShell w={w} accent={accent} data={data} headerTitle={w.title || title} HeaderIcon={FaDiscord}>
@@ -2950,7 +2950,8 @@ export function WidgetPill({ w, accent = "#b4bffa", ownerCreated, owner = "", p 
   let isLive = false;
 
   if (type === "discord") {
-    if (sub === "profile") {
+    const isProfile = sub === "profile" || sub === "bot" || Boolean(w?.user_id) || Boolean(data?.global_name || data?.username) || (!w?.invite_url && !w?.server_id && /^\d{17,20}$/.test(String(w?.value || w?.username || "")));
+    if (isProfile) {
       title = data?.global_name || data?.username || w?.username || "Discord Presence";
       subtitle = data?.activity?.name ? `Playing ${data.activity.name}` : data?.custom_status || (data?.status ? data.status.toUpperCase() : "Online");
       avatarUrl = data?.avatar || "";

@@ -623,7 +623,7 @@ export default function Settings() {
               </div>
               <div className="text-sm font-semibold text-zinc-300">No Purchases Recorded</div>
               <div className="text-xs text-zinc-500 max-w-sm mt-1">
-                When you acquire marketplace templates, custom badges, or upgrades, they will appear here.
+                When you acquire templates, custom badges, or upgrades, they will appear here.
               </div>
             </div>
           </div>

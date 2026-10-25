@@ -369,7 +369,7 @@ export const getWidgetDisplayOptions = (widget) => {
         { key: "show_banner", label: "Show banner", desc: "Display the server or profile header banner image." },
         { key: "show_online", label: "Show online", desc: "Display current online member count for servers." },
         { key: "show_members", label: "Show members", desc: "Display total member count for servers." },
-        { key: "show_boost", label: "Show boost level", desc: "Display the Discord server boost level." },
+        { key: "popup_toggle", label: "Interactive Popup Preview", desc: "Clicking the widget or its top-right button opens an interactive preview modal." },
         { key: "info_modal", label: "Info modal", desc: "Open the detailed widget modal when the card is clicked." },
         { key: "view_button", label: "View button", desc: "Show the small external-link button on the card." },
         { key: "platform_badge", label: "Platform badge", desc: "Show the platform label in the top-right corner." },
@@ -431,6 +431,19 @@ const snapshot = (widgets, shared, tracks, trackStyle, shuffle, volume) =>
 function getPreviewStats(widget, kind, data) {
   const isDiscord = widget.type === "discord";
   if (isDiscord) {
+    const isProfile = widget.subtype === "profile" || widget.subtype === "bot" || Boolean(widget.user_id) || Boolean(data?.username || data?.global_name);
+    if (isProfile) {
+      const statusLabel = data?.status ? (data.status.charAt(0).toUpperCase() + data.status.slice(1)) : "Online";
+      const statusColor = data?.status === "dnd" ? "text-rose-400" : (data?.status === "idle" ? "text-amber-400" : (data?.status === "offline" ? "text-zinc-500" : "text-emerald-400"));
+      const statusDot = data?.status === "dnd" ? "bg-rose-400" : (data?.status === "idle" ? "bg-amber-400" : (data?.status === "offline" ? "bg-zinc-500" : "bg-emerald-400"));
+      const activity = data?.activity?.name ? `Playing ${data.activity.name}` : (data?.custom_status || "Discord User");
+      const tag = data?.clan?.tag ? `[${data.clan.tag}]` : (data?.badges?.length ? `${data.badges.length} Badges` : "Verified");
+      return {
+        stat1: { label: statusLabel, color: statusColor, dot: statusDot },
+        stat2: { label: activity, color: "text-zinc-300" },
+        stat3: { label: tag, color: "text-purple-400" },
+      };
+    }
     const online = data?.online != null ? `${formatCount(data.online)} Online` : "13 Online";
     const members = data?.total_members != null ? `${formatCount(data.total_members)} Members` : "88 Members";
     const boost = data?.boost_level != null ? `Level ${data.boost_level}` : (data?.boost_count != null ? `${data.boost_count} Boosts` : "Level 3");
@@ -537,7 +550,9 @@ function RealLiveWidgetPreview({ widget, kind, styleOverride }) {
   // Data values (REAL DATA with fallback to config)
   let title = data?.name || data?.global_name || data?.username || data?.title || widget.title || kind.label;
   if (isDiscord && widget.subtype === "server") {
-    title = data?.name || (widget.invite_url ? `/${widget.invite_url.replace(/.*discord\.gg\//, "").replace(/^\/+/, "")}` : "/acheron");
+    title = data?.name || (widget.invite_url ? `/${widget.invite_url.replace(/.*discord\.gg\//, "").replace(/^\/+/, "")}` : (widget.title || "Discord Server"));
+  } else if (isDiscord && (widget.subtype === "profile" || widget.subtype === "bot")) {
+    title = data?.global_name || data?.username || widget.title || "Discord User";
   } else if (widget.type === "youtube") {
     title = data?.title || (widget.channel ? widget.channel.replace(/.*youtube\.com\/(@?)/, "@") : "@creator");
   } else if (widget.type === "spotify") {
@@ -1399,8 +1414,14 @@ export default function Widgets() {
               <div key={item.key} className="flex items-center justify-between p-3.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e]">
                 <div className="text-xs font-semibold text-zinc-200">{item.label}</div>
                 <Switch
-                  checked={editingWidget.widget[item.key] !== false}
-                  onCheckedChange={(checked) => patchEditingWidget({ [item.key]: checked })}
+                  checked={item.key === "popup_toggle" ? Boolean(editingWidget.widget.popup_toggle || editingWidget.widget.info_modal) : editingWidget.widget[item.key] !== false}
+                  onCheckedChange={(checked) => {
+                    if (item.key === "popup_toggle") {
+                      patchEditingWidget({ popup_toggle: checked, info_modal: checked });
+                    } else {
+                      patchEditingWidget({ [item.key]: checked });
+                    }
+                  }}
                   className="data-[state=checked]:bg-[#535978]"
                 />
               </div>

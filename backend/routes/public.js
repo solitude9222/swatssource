@@ -2,7 +2,7 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { query, memberNumber } from '../db.js';
-import { BADGE_CATALOG } from '../badges.js';
+import { BADGE_CATALOG, computeAutoBadges } from '../badges.js';
 import { eventBadgeCatalog, upcomingEvents } from '../eventBadges.js';
 import { loadRankedSettings, computeRankDetails, flattenStages } from '../rankedSettings.js';
 
@@ -46,6 +46,12 @@ router.get('/u/:alias', async (req, res) => {
     // /api/views/register, after the visitor has dwelled on the page and solved
     // the challenge — so simply loading this endpoint (or a bot hammering it)
     // can never inflate the number. This endpoint reports the current total.
+    const autoBadges = await computeAutoBadges(user);
+    const allBadges = [...new Set([...(user.badges || []), ...autoBadges])];
+    const equipped = Array.isArray(user.equipped_badges) && user.equipped_badges.length > 0
+      ? user.equipped_badges.filter((b) => allBadges.includes(b))
+      : allBadges;
+
     return res.json({
       id: user.id,
       uid_number,
@@ -56,10 +62,9 @@ router.get('/u/:alias', async (req, res) => {
       // The join date a card can show. It is the same signup time the member
       // number is derived from, and it is public by design.
       created_at: user.created_at || null,
-      badges: user.badges || [],
-      // The curated set the owner chose to display. Falls back to every owned
-      // badge only when nothing is equipped, so an empty selection stays empty.
-      equipped_badges: Array.isArray(user.equipped_badges) ? user.equipped_badges : [],
+      badges: allBadges,
+      // The curated set the owner chose to display, falling back to all owned/earned badges.
+      equipped_badges: equipped.length ? equipped : allBadges,
       custom_badges: Array.isArray(user.custom_badges) ? user.custom_badges : [],
       discord: user.discord || {},
       profile: user.profile || {},

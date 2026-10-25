@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { api, setToken, fileUrl } from "@/lib/api";
@@ -493,82 +493,36 @@ export default function Overview() {
       </section>
 
       {/* â”€â”€ Announcements + Recent activity â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      {/* Marketplace & Shops */}
+      {/* Community Templates */}
       <section className="rounded-[20px] border border-white/[0.07] bg-[#111113] p-5 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <ShoppingBag className="h-4 w-4 text-[#b4bffa]" />
-            <h2 className="text-sm font-bold text-white">Marketplace & Shops</h2>
+            <Layers className="h-4 w-4 text-violet-400" />
+            <h2 className="text-sm font-bold text-white">Community Templates</h2>
           </div>
-          <div className="flex items-center gap-2">
-            <Link
-              to="/!/dashboard/editor?tab=store"
-              className="text-[11px] font-semibold text-[#b4bffa] transition hover:text-white flex items-center gap-1"
-            >
-              <Store className="h-3 w-3" />
-              My Store
-            </Link>
-            <span className="text-zinc-700">·</span>
-            <Link
-              to="/!/dashboard/shop"
-              className="text-[11px] text-zinc-500 transition hover:text-zinc-300"
-            >
-              Browse marketplace
-            </Link>
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <Link
-            to="/!/dashboard/editor?tab=store"
-            className="group flex flex-col gap-2.5 rounded-xl border border-white/[0.07] bg-white/[0.02] p-4 transition-all hover:border-[#b4bffa]/40 hover:bg-[#b4bffa]/[0.04]"
-          >
-            <div className="flex items-center justify-between">
-              <div className="h-9 w-9 rounded-xl bg-[#b4bffa]/15 border border-[#b4bffa]/30 flex items-center justify-center">
-                <Store className="h-4 w-4 text-[#b4bffa]" />
-              </div>
-              <ChevronRight className="h-4 w-4 text-zinc-600 group-hover:text-[#b4bffa] transition-colors" />
-            </div>
-            <div>
-              <h3 className="text-xs font-bold text-white group-hover:text-[#b4bffa] transition-colors">Your Store</h3>
-              <p className="text-[11px] text-zinc-500 mt-0.5">Manage products and sales</p>
-            </div>
-          </Link>
-          
-          <Link
-            to="/!/dashboard/shop"
-            className="group flex flex-col gap-2.5 rounded-xl border border-white/[0.07] bg-white/[0.02] p-4 transition-all hover:border-amber-500/40 hover:bg-amber-500/[0.04]"
-          >
-            <div className="flex items-center justify-between">
-              <div className="h-9 w-9 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center">
-                <ShoppingBag className="h-4 w-4 text-amber-400" />
-              </div>
-              <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-amber-500/15 text-amber-300 border border-amber-500/30">
-                Coming Soon
-              </span>
-            </div>
-            <div>
-              <h3 className="text-xs font-bold text-white group-hover:text-amber-400 transition-colors">Marketplace</h3>
-              <p className="text-[11px] text-zinc-500 mt-0.5">Buy and sell accounts, boosts</p>
-            </div>
-          </Link>
-          
           <Link
             to="/!/dashboard/templates"
-            className="group flex flex-col gap-2.5 rounded-xl border border-white/[0.07] bg-white/[0.02] p-4 transition-all hover:border-violet-500/40 hover:bg-violet-500/[0.04]"
+            className="text-[11px] font-semibold text-violet-400 transition hover:text-white flex items-center gap-1"
           >
-            <div className="flex items-center justify-between">
-              <div className="h-9 w-9 rounded-xl bg-violet-500/15 border border-violet-500/30 flex items-center justify-center">
-                <Layers className="h-4 w-4 text-violet-400" />
-              </div>
-              <ChevronRight className="h-4 w-4 text-zinc-600 group-hover:text-violet-400 transition-colors" />
-            </div>
-            <div>
-              <h3 className="text-xs font-bold text-white group-hover:text-violet-400 transition-colors">Templates</h3>
-              <p className="text-[11px] text-zinc-500 mt-0.5">Community profile designs</p>
-            </div>
+            Browse all templates →
           </Link>
         </div>
+        
+        <Link
+          to="/!/dashboard/templates"
+          className="group flex items-center justify-between gap-4 rounded-xl border border-white/[0.07] bg-white/[0.02] p-4 transition-all hover:border-violet-500/40 hover:bg-violet-500/[0.04]"
+        >
+          <div className="flex items-center gap-3.5">
+            <div className="h-10 w-10 rounded-xl bg-violet-500/15 border border-violet-500/30 flex items-center justify-center shrink-0">
+              <Layers className="h-5 w-5 text-violet-400" />
+            </div>
+            <div>
+              <h3 className="text-xs font-bold text-white group-hover:text-violet-400 transition-colors">Profile Templates</h3>
+              <p className="text-[11px] text-zinc-500 mt-0.5">Publish your look or clone curated community biolink designs with 1 click</p>
+            </div>
+          </div>
+          <ChevronRight className="h-4 w-4 text-zinc-600 group-hover:text-violet-400 transition-colors shrink-0" />
+        </Link>
       </section>
 
       <div className="grid gap-5 xl:grid-cols-2">

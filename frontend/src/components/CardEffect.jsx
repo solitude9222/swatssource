@@ -74,7 +74,7 @@ export function CardEffect({
 }) {
   const id = resolveCardEffect(effect);
   const containerRef = useRef(null);
-  const [pos, setPos] = useState({ x: 50, y: 50, hovering: false });
+  const spotlightRef = useRef(null);
 
   // Compute harmonized colors
   const primaryRgba = useMemo(() => toRgba(color, 85), [color]);
@@ -84,26 +84,51 @@ export function CardEffect({
   const secondaryRgba = useMemo(() => toRgba(secondaryColor, 80), [secondaryColor]);
   const secondarySoft = useMemo(() => toRgba(secondaryColor, 20), [secondaryColor]);
 
-  // Spotlight mouse tracking on parent card
+  // Spotlight mouse tracking on parent card via RAF and CSS variables (zero React re-renders)
   useEffect(() => {
     if (id !== "spotlight") return undefined;
     const parent = containerRef.current?.parentElement;
     if (!parent) return undefined;
 
+    let rafId = null;
+    let pendingX = 50;
+    let pendingY = 50;
+
+    const updateSpotlight = () => {
+      if (spotlightRef.current) {
+        spotlightRef.current.style.setProperty("--spot-x", `${pendingX.toFixed(2)}%`);
+        spotlightRef.current.style.setProperty("--spot-y", `${pendingY.toFixed(2)}%`);
+        spotlightRef.current.style.opacity = "1";
+      }
+      rafId = null;
+    };
+
     const onPointerMove = (e) => {
       const rect = parent.getBoundingClientRect();
-      const x = ((e.clientX - rect.left) / rect.width) * 100;
-      const y = ((e.clientY - rect.top) / rect.height) * 100;
-      setPos({ x, y, hovering: true });
+      if (!rect.width || !rect.height) return;
+      pendingX = ((e.clientX - rect.left) / rect.width) * 100;
+      pendingY = ((e.clientY - rect.top) / rect.height) * 100;
+      if (!rafId) {
+        rafId = requestAnimationFrame(updateSpotlight);
+      }
     };
 
     const onPointerLeave = () => {
-      setPos((prev) => ({ ...prev, hovering: false }));
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
+      if (spotlightRef.current) {
+        spotlightRef.current.style.setProperty("--spot-x", "50%");
+        spotlightRef.current.style.setProperty("--spot-y", "30%");
+        spotlightRef.current.style.opacity = "0.65";
+      }
     };
 
     parent.addEventListener("pointermove", onPointerMove, { passive: true });
     parent.addEventListener("pointerleave", onPointerLeave, { passive: true });
     return () => {
+      if (rafId) cancelAnimationFrame(rafId);
       parent.removeEventListener("pointermove", onPointerMove);
       parent.removeEventListener("pointerleave", onPointerLeave);
     };
@@ -146,11 +171,14 @@ export function CardEffect({
       {/* 3. SPOTLIGHT: Mouse-following radial beam (or idle sweep) */}
       {id === "spotlight" && (
         <div
-          className="absolute inset-0 transition-opacity duration-300"
+          ref={spotlightRef}
+          className="absolute inset-0 transition-opacity duration-300 pointer-events-none"
           style={{
-            background: `radial-gradient(circle 320px at ${pos.hovering ? `${pos.x}% ${pos.y}%` : "50% 30%"}, ${primaryGlow} 0%, ${secondarySoft} 40%, transparent 80%)`,
+            "--spot-x": "50%",
+            "--spot-y": "30%",
+            background: `radial-gradient(circle 320px at var(--spot-x, 50%) var(--spot-y, 30%), ${primaryGlow} 0%, ${secondarySoft} 40%, transparent 80%)`,
             mixBlendMode: "screen",
-            opacity: pos.hovering ? 1 : 0.65,
+            opacity: 0.65,
           }}
         />
       )}
