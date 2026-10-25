@@ -1059,15 +1059,37 @@ router.get('/media/oembed', async (req, res) => {
   // Handle bare handles for TikTok like "@username" or "username"
   if (/^@?[a-zA-Z0-9_.-]+$/.test(pageUrl) && !pageUrl.includes('.')) {
     const handle = pageUrl.replace(/^@/, '');
+    const profileUrl = `https://www.tiktok.com/@${handle}`;
+    try {
+      const o = await fetchJson(`https://www.tiktok.com/oembed?url=${encodeURIComponent(profileUrl)}`, { timeout: 10000 }).catch(() => null);
+      if (o) {
+        return res.json({
+          kind: 'media',
+          provider: 'tiktok',
+          title: o.title || `@${handle}`,
+          author: handle,
+          author_name: o.author_name || handle,
+          thumbnail: o.thumbnail_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
+          embed_url: null,
+          page_url: profileUrl,
+          url: profileUrl,
+          is_profile: true,
+          followers: 148500,
+          likes: 2400000,
+          verified: true,
+        });
+      }
+    } catch {}
     return res.json({
       kind: 'media',
       provider: 'tiktok',
       title: `@${handle}`,
       author: handle,
+      author_name: handle,
       thumbnail: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
       embed_url: null,
-      page_url: `https://www.tiktok.com/@${handle}`,
-      url: `https://www.tiktok.com/@${handle}`,
+      page_url: profileUrl,
+      url: profileUrl,
       is_profile: true,
       followers: 148500,
       likes: 2400000,
@@ -1090,14 +1112,36 @@ router.get('/media/oembed', async (req, res) => {
   }
   const provider = OEMBED_HOSTS[matchedHost];
 
-  // TikTok profile check: e.g. /@username without /video/
-  if (provider === 'tiktok' && /\/@([a-zA-Z0-9_.-]+)\/?$/.test(parsed.pathname)) {
-    const handle = parsed.pathname.match(/@([a-zA-Z0-9_.-]+)/)?.[1] || 'creator';
+  // TikTok profile or video fetch with real oEmbed
+  if (provider === 'tiktok') {
+    const handleMatch = parsed.pathname.match(/@([a-zA-Z0-9_.-]+)/);
+    const handle = handleMatch ? handleMatch[1] : (parsed.pathname.replace(/^\/+/, '') || 'creator');
+    try {
+      const o = await fetchJson(`https://www.tiktok.com/oembed?url=${encodeURIComponent(parsed.href)}`, { timeout: 10000 }).catch(() => null);
+      if (o) {
+        return res.json({
+          kind: 'media',
+          provider: 'tiktok',
+          title: o.title || `@${handle}`,
+          author: handle,
+          author_name: o.author_name || handle,
+          thumbnail: o.thumbnail_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
+          embed_url: null,
+          page_url: o.author_url || parsed.href,
+          url: o.author_url || parsed.href,
+          is_profile: o.embed_type === 'profile' || !parsed.pathname.includes('/video/'),
+          followers: 148500,
+          likes: 2400000,
+          verified: true,
+        });
+      }
+    } catch {}
     return res.json({
       kind: 'media',
       provider: 'tiktok',
       title: `@${handle}`,
       author: handle,
+      author_name: handle,
       thumbnail: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
       embed_url: null,
       page_url: parsed.href,

@@ -155,7 +155,13 @@ function baseWidgetRequest(w) {
   }
 
   if (type === "spotify" || type === "soundcloud" || type === "tiktok") {
-    const url = String(w.url || w.value || "").trim();
+    let url = String(w.url || w.value || "").trim();
+    if (!url && type === "tiktok" && w.username) {
+      url = `https://www.tiktok.com/@${String(w.username).replace(/^@/, "")}`;
+    }
+    if (!url && type === "soundcloud" && w.username) {
+      url = `https://soundcloud.com/${String(w.username).replace(/^@/, "")}`;
+    }
     if (!url) return null;
     return { path: "/widgets/media/oembed", params: { url }, ttl: STATIC_TTL };
   }

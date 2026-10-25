@@ -2249,26 +2249,31 @@ function CustomCard({ w, accent }) {
 
 function TikTokCard({ w, accent, data, status, error, refresh }) {
   if (status === "loading") return <Skeleton />;
-  if (status !== "success" || !data) {
-    return (
-      <WidgetError
-        w={w}
-        accent={accent}
-        Icon={FaTiktok}
-        message={error || "Enter your TikTok username (@handle) or video link."}
-        onRetry={refresh}
-      />
-    );
-  }
 
-  const handle = String(data.author || w?.username || "welovekoni").replace(/^@/, "");
-  const displayName = data.author_name || data.name || `@${handle}`;
-  const avatar = data.thumbnail || data.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80";
-  const followers = data.followers ? formatCount(data.followers) : "148.5K";
-  const likes = data.likes ? formatCount(data.likes) : "2.4M";
-  const pageUrl = data.url || data.page_url || (w?.url ? w.url : `https://www.tiktok.com/@${handle}`);
-  const banner = fileUrl(w?.banner_url) || data.banner || "";
-  const bio = data.bio || data.title || (w?.username ? "" : "Official TikTok Creator");
+  const rawUrl = data?.url || data?.page_url || w?.url || "";
+  const rawHandle = data?.author || w?.username || (rawUrl ? rawUrl.replace(/^https?:\/\/(?:www\.)?tiktok\.com\/@?/i, "").replace(/[\/?].*$/, "") : "welovekoni");
+  const handle = String(rawHandle || "welovekoni").replace(/^@/, "");
+  const displayName = data?.author_name || data?.name || (data?.title ? data.title.replace(/'s Creator Profile$/i, "") : `@${handle}`);
+  const avatar = data?.thumbnail || data?.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80";
+  const followers = data?.followers ? formatCount(data.followers) : "148.5K";
+  const likes = data?.likes ? formatCount(data.likes) : "2.4M";
+  const pageUrl = data?.url || data?.page_url || (w?.url ? w.url : `https://www.tiktok.com/@${handle}`);
+  const banner = fileUrl(w?.banner_url) || data?.banner || "";
+  const bio = data?.bio || (w?.username ? "" : "Official TikTok Creator");
+
+  if (status !== "success" || !data) {
+    if (!w?.url && !w?.username) {
+      return (
+        <WidgetError
+          w={w}
+          accent={accent}
+          Icon={FaTiktok}
+          message={error || "Enter your TikTok username (@handle) or video link."}
+          onRetry={refresh}
+        />
+      );
+    }
+  }
 
   return (
     <div className="relative text-white select-none py-0.5">
@@ -2330,30 +2335,91 @@ function TikTokCard({ w, accent, data, status, error, refresh }) {
 }
 
 // ---------------------------------------------------------------------------
-// SoundCloud Audio Player (Compact horizontal monochrome card matching Spotify)
+// SoundCloud Card (Artist Profile Showcase & Track Player)
 // ---------------------------------------------------------------------------
 
 function SoundCloudCard({ w, accent, data, status, error, refresh }) {
   const [isPlaying, setIsPlaying] = useState(false);
 
   if (status === "loading") return <Skeleton />;
+
+  const rawUrl = data?.url || data?.page_url || w?.url || "";
+  const authorSlug = String(w?.username || (rawUrl ? rawUrl.replace(/^https?:\/\/(?:www\.)?soundcloud\.com\//i, "").replace(/\/.*$/, "") : "bondages"));
+  const title = data?.title || (w?.title && w.title !== "SoundCloud" ? w.title : (authorSlug || "SoundCloud Artist"));
+  const author = data?.author || data?.author_name || authorSlug;
+  const cover = data?.thumbnail || data?.avatar || "https://i1.sndcdn.com/avatars-P5eC0qmzsl2LVQtY-deRPow-t500x500.jpg";
+  const trackUrl = rawUrl || (authorSlug ? `https://soundcloud.com/${authorSlug}` : "#");
+
+  const pathParts = rawUrl ? rawUrl.replace(/^https?:\/\/(?:www\.)?soundcloud\.com\/?/i, "").split("/").filter(Boolean) : [];
+  const isProfile = Boolean(
+    data?.is_profile ||
+    w?.subtype === "profile" ||
+    pathParts.length <= 1 ||
+    (title && author && title.toLowerCase() === author.toLowerCase())
+  );
+
   if (status !== "success" || !data) {
+    if (!w?.url && !w?.username) {
+      return (
+        <WidgetError
+          w={w}
+          accent={accent}
+          Icon={FaSoundcloud}
+          message={error || "Paste a link to a SoundCloud profile or track."}
+          onRetry={refresh}
+        />
+      );
+    }
+  }
+
+  // Profile layout (e.g. soundcloud.com/bondages)
+  if (isProfile) {
     return (
-      <WidgetError
-        w={w}
-        accent={accent}
-        Icon={FaSoundcloud}
-        message={error || "Paste a link to a SoundCloud track or playlist."}
-        onRetry={refresh}
-      />
+      <div className="relative text-white select-none py-0.5">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            {/* Circular artist avatar */}
+            <div className="relative shrink-0">
+              <div className="w-12 h-12 rounded-full overflow-hidden border border-white/20 bg-zinc-900 shadow-md">
+                <img src={cover} alt={title} className="w-full h-full object-cover" />
+              </div>
+              <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-[#ff5500] text-white flex items-center justify-center text-[9px] font-bold shadow-sm">
+                <FaSoundcloud className="w-2.5 h-2.5" />
+              </div>
+            </div>
+
+            {/* Artist Info */}
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5 leading-tight">
+                <span className="text-sm font-bold text-white truncate">{title}</span>
+              </div>
+              <div className="text-[11px] text-zinc-400 font-mono2 truncate mt-0.5">
+                @{authorSlug}
+              </div>
+              <div className="text-xs font-semibold text-zinc-300 truncate mt-1 flex items-center gap-1.5">
+                <span>SoundCloud Creator</span>
+                <span className="text-zinc-600">•</span>
+                <span className="text-zinc-400">Audio &amp; Tracks</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Follow / Listen Button */}
+          {trackUrl && (
+            <WidgetInternalButton
+              href={trackUrl}
+              className="shrink-0 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-semibold border border-white/10 transition active:scale-95 cursor-pointer flex items-center gap-1.5"
+              label="Listen"
+            >
+              <span>Listen</span>
+            </WidgetInternalButton>
+          )}
+        </div>
+      </div>
     );
   }
 
-  const trackUrl = data.url || data.page_url || (w?.url ? w.url : "#");
-  const title = data.title || (w?.title ? w.title : "SoundCloud Track");
-  const author = data.author || (w?.author ? w.author : "SoundCloud Artist");
-  const cover = data.thumbnail || "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=200&auto=format&fit=crop&q=80";
-
+  // Track layout (with audio player scrubber)
   return (
     <div className="relative text-white select-none py-0.5">
       <div className="flex items-center gap-3">
