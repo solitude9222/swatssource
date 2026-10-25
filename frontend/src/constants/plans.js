@@ -7,7 +7,7 @@
  * popup cannot promise a feature the editor does not have.
  */
 
-export const PREMIUM_PRICE = { amount: 5, label: "$5", cadence: "per month" };
+export const PREMIUM_PRICE = { amount: 9.99, label: "$9.99", cadence: "one-time", isOneTime: true };
 
 export const FREE_PERKS = [
   "Your own tourn.lol page",

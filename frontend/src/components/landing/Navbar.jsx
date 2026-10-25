@@ -12,13 +12,11 @@ export const Logo = ({ size = "text-lg" }) => (
   </Link>
 );
 
-// The pill is centred and narrow, so this stays short. Devlog sits second
-// because it is the thing people come back for after their first visit.
+// The pill is centred and narrow, so this stays short.
 const NAV = [
   { label: "Home", to: "/!/home" },
   { label: "Devlog", to: "/!/devlogs" },
-  { label: "Explore", to: "/!/explore" },
-  { label: "Pricing", to: "/!/pricing" },
+  { label: "Premium", to: "/!/pricing" },
 ];
 
 export const Navbar = () => {

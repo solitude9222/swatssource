@@ -100,7 +100,7 @@ export function PremiumPlansModal({ open = false, onClose, highlight = null }) {
               data-testid="premium-plans-upgrade"
               className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 px-5 py-2.5 text-xs font-semibold text-white transition hover:brightness-110 disabled:opacity-60"
             >
-              {busy && <Loader2 className="h-3.5 w-3.5 animate-spin" />} Go Premium · {PREMIUM_PRICE.label}/mo
+              {busy && <Loader2 className="h-3.5 w-3.5 animate-spin" />} Go Lifetime Premium · {PREMIUM_PRICE.label}
             </button>
           )}
         </>

@@ -3,7 +3,7 @@ import { Logo } from "./Navbar";
 import { CONTACT_EMAIL } from "@/lib/api";
 
 const COLS = [
-  { title: "Product", links: [["Features", "/!/home"], ["Pricing", "/!/pricing"], ["Explore", "/!/explore"], ["Docs", "/!/docs"]] },
+  { title: "Product", links: [["Features", "/!/home"], ["Premium", "/!/pricing"], ["Docs", "/!/docs"]] },
   {
     title: "Legal",
     links: [
