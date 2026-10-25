@@ -102,7 +102,7 @@ export const WIDGET_KINDS = [
     Icon: FaSpotify,
     color: "#1DB954",
     desc: "Display Spotify content: user profiles, tracks, albums, artists, or playlists.",
-    subtypes: [{ id: "media", label: "Track / Album / Playlist", fields: ["media_url"] }],
+    subtypes: [{ id: "media", label: "Track / Album / Playlist", fields: ["spotify_url"] }],
   },
   {
     id: "minecraft",
@@ -159,15 +159,15 @@ export const WIDGET_KINDS = [
     Icon: FaSoundcloud,
     color: "#ff5500",
     desc: "Track artwork, title and artist from any track link",
-    subtypes: [{ id: "media", label: "Track", fields: ["media_url"] }],
+    subtypes: [{ id: "media", label: "Track", fields: ["soundcloud_url"] }],
   },
   {
     id: "tiktok",
     label: "TikTok",
     Icon: FaTiktok,
     color: "#25F4EE",
-    desc: "Any TikTok video, with its real caption and thumbnail",
-    subtypes: [{ id: "media", label: "Video", fields: ["media_url"] }],
+    desc: "Any TikTok creator profile or video, with caption and statistics",
+    subtypes: [{ id: "media", label: "Profile / Video", fields: ["tiktok_url"] }],
   },
   {
     id: "countdown",
@@ -224,8 +224,8 @@ export const WIDGET_KINDS = [
 export const WIDGET_FIELDS = {
   roblox_user: {
     key: "username",
-    label: "Roblox username or user ID",
-    placeholder: "e.g. builderman",
+    label: "Roblox username or profile link",
+    placeholder: "e.g. builderman or https://www.roblox.com/users/156/profile",
     help: "The card shows their avatar, display name, about text, join date and friend count.",
   },
   roblox_group: {
@@ -249,7 +249,7 @@ export const WIDGET_FIELDS = {
   discord_invite: {
     key: "invite_url",
     label: "Server Invite",
-    placeholder: "discord.gg/achern",
+    placeholder: "discord.gg/ivera or ivera",
     help: "The invite unlocks the server banner and the exact total member count — Discord only returns those for an invite.",
   },
   discord_user: {
@@ -258,16 +258,34 @@ export const WIDGET_FIELDS = {
     placeholder: "e.g. 94490510688792576",
     help: "Your live Discord status, custom status, activity and Spotify. Join discord.gg/lanyard with this account to go live.",
   },
+  spotify_url: {
+    key: "url",
+    label: "Spotify Link",
+    placeholder: "https://open.spotify.com/track/4cOdK2wGLETKBW3PvgPWqT",
+    help: "Title, artwork and author are read straight from the link — tracks, albums, or playlists.",
+  },
+  soundcloud_url: {
+    key: "url",
+    label: "SoundCloud Link",
+    placeholder: "https://soundcloud.com/artist/track",
+    help: "Track artwork, title and artist are read straight from any SoundCloud track link.",
+  },
+  tiktok_url: {
+    key: "url",
+    label: "TikTok Link or Handle",
+    placeholder: "https://www.tiktok.com/@welovekoni or @welovekoni",
+    help: "Creator profile avatar, verified badge, likes and followers are fetched automatically.",
+  },
   media_url: {
     key: "url",
-    label: "Link",
-    placeholder: "https://open.spotify.com/track/...",
+    label: "Media Link",
+    placeholder: "https://open.spotify.com/track/... or https://soundcloud.com/...",
     help: "Title, artwork and author are read straight from the link — nothing is typed in twice.",
   },
   youtube_channel: {
     key: "channel",
     label: "Channel link or @handle",
-    placeholder: "https://www.youtube.com/@yourchannel",
+    placeholder: "https://www.youtube.com/@tournlol or @tournlol",
     help: "Channel avatar, name, subscriber count and newest upload.",
   },
   github_user: {
@@ -279,19 +297,19 @@ export const WIDGET_FIELDS = {
   github_repo: {
     key: "repo",
     label: "Repository",
-    placeholder: "facebook/react",
+    placeholder: "facebook/react or https://github.com/owner/repo",
     help: "Stars, forks, language, licence and description.",
   },
   steam_user: {
     key: "username",
     label: "Steam profile link or custom URL",
-    placeholder: "https://steamcommunity.com/id/yourname",
+    placeholder: "https://steamcommunity.com/id/customurl or SteamID64",
     help: "Persona, avatar, online state and current game.",
   },
   twitch_channel: {
     key: "channel",
-    label: "Twitch channel name",
-    placeholder: "e.g. shroud",
+    label: "Twitch channel name or URL",
+    placeholder: "e.g. shroud or https://twitch.tv/shroud",
     help: "Live status, follower count and current stream title.",
   },
   lastfm_user: {

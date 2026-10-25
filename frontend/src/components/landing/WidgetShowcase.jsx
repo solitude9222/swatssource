@@ -30,8 +30,8 @@ const WIDGETS = [
     w: {
       type: "tiktok",
       title: "TikTok",
-      username: "koniwtfs",
-      url: "https://www.tiktok.com/@koniwtfs",
+      username: "welovekoni",
+      url: "https://www.tiktok.com/@welovekoni",
     },
   },
   {

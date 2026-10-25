@@ -449,270 +449,280 @@ const DEFAULT_SHARED = {
 const snapshot = (widgets, shared, tracks, trackStyle, shuffle, volume) =>
   JSON.stringify({ widgets, shared, tracks, trackStyle, shuffle, volume });
 
-function getPreviewStats(widget, kind, data) {
-  const isDiscord = widget.type === "discord";
-  if (isDiscord) {
-    const isProfile = widget.subtype === "profile" || widget.subtype === "bot" || Boolean(widget.user_id) || Boolean(data?.username || data?.global_name);
-    if (isProfile) {
-      const statusLabel = data?.status ? (data.status.charAt(0).toUpperCase() + data.status.slice(1)) : "Online";
-      const statusColor = data?.status === "dnd" ? "text-rose-400" : (data?.status === "idle" ? "text-amber-400" : (data?.status === "offline" ? "text-zinc-500" : "text-emerald-400"));
-      const statusDot = data?.status === "dnd" ? "bg-rose-400" : (data?.status === "idle" ? "bg-amber-400" : (data?.status === "offline" ? "bg-zinc-500" : "bg-emerald-400"));
-      const activity = data?.activity?.name ? `Playing ${data.activity.name}` : (data?.custom_status || "Discord User");
-      const tag = data?.clan?.tag ? `[${data.clan.tag}]` : (data?.badges?.length ? `${data.badges.length} Badges` : "Verified");
-      return {
-        stat1: { label: statusLabel, color: statusColor, dot: statusDot },
-        stat2: { label: activity, color: "text-zinc-300" },
-        stat3: { label: tag, color: "text-purple-400" },
-      };
-    }
-    const online = data?.online != null ? `${formatCount(data.online)} Online` : "13 Online";
-    const members = data?.total_members != null ? `${formatCount(data.total_members)} Members` : "88 Members";
-    const boost = data?.boost_level != null ? `Level ${data.boost_level}` : (data?.boost_count != null ? `${data.boost_count} Boosts` : "Level 3");
+export const WIDGET_PRESETS = {
+  discord: {
+    type: "discord",
+    subtype: "server",
+    invite_url: "discord.gg/ivera",
+    server_name: "ivera",
+    title: "ivera",
+    mockData: {
+      name: "ivera",
+      online: 1420,
+      total_members: 8950,
+      icon: "https://cdn.discordapp.com/icons/613712999795015681/a_1b2c3d4e.png",
+      splash: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80",
+      description: "Official community server for tourn.lol creators.",
+    },
+  },
+  spotify: {
+    type: "spotify",
+    url: "https://open.spotify.com/track/4cOdK2wGLETKBW3PvgPWqT",
+    title: "Starboy",
+    artist: "The Weeknd",
+    track: "Starboy (feat. Daft Punk)",
+    mockData: {
+      title: "Starboy (feat. Daft Punk)",
+      author: "The Weeknd",
+      thumbnail: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&auto=format&fit=crop&q=80",
+      duration: "3:50",
+    },
+  },
+  roblox: {
+    type: "roblox",
+    subtype: "profile",
+    username: "builderman",
+    title: "Builderman",
+    mockData: {
+      name: "Builderman",
+      username: "builderman",
+      display_name: "Builderman",
+      avatar: "https://images.rbxcdn.com/264b38345ab2d3856bcbb9024f0c78a0.png",
+      presence: "Online",
+      friends: 84,
+      followers: 72400000,
+      about: "Official Roblox CEO & Founder profile.",
+      joined_date: "18 years ago",
+    },
+  },
+  github: {
+    type: "github",
+    subtype: "user",
+    username: "torvalds",
+    title: "Linus Torvalds",
+    mockData: {
+      username: "torvalds",
+      name: "Linus Torvalds",
+      avatar: "https://avatars.githubusercontent.com/u/1024025?v=4",
+      bio: "Creator of Linux and Git.",
+      followers: 242000,
+      following: 0,
+      repos: 12,
+      company: "Linux Foundation",
+      created_at: "2011-09-03T00:00:00Z",
+    },
+  },
+  youtube: {
+    type: "youtube",
+    channel: "https://www.youtube.com/@tournlol",
+    title: "tourn.lol",
+    mockData: {
+      title: "tourn.lol",
+      handle: "@tournlol",
+      avatar: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=200&auto=format&fit=crop&q=80",
+      stats: {
+        subscribers: 28400,
+        video_count: 52,
+        view_count: 3200000,
+      },
+      online: true,
+    },
+  },
+  steam: {
+    type: "steam",
+    username: "GabeLoganNewell",
+    title: "Gabe Newell",
+    mockData: {
+      persona: "Gabe Newell",
+      avatar: "https://avatars.akamai.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg",
+      online: true,
+      current_game: "Counter-Strike 2",
+      state_message: "Currently in-game: Counter-Strike 2",
+      level: 124,
+    },
+  },
+  tiktok: {
+    type: "tiktok",
+    username: "welovekoni",
+    url: "https://www.tiktok.com/@welovekoni",
+    title: "welovekoni",
+    mockData: {
+      author: "welovekoni",
+      author_name: "welovekoni",
+      thumbnail: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80",
+      followers: 148500,
+      likes: 2400000,
+      bio: "tourn.lol verified creator showcase.",
+    },
+  },
+  soundcloud: {
+    type: "soundcloud",
+    url: "https://soundcloud.com/octobersveryown/drake-gods-plan",
+    title: "SoundCloud Track",
+    mockData: {
+      title: "God's Plan",
+      author: "Drake",
+      thumbnail: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&auto=format&fit=crop&q=80",
+      duration: "3:18",
+    },
+  },
+  valorant: {
+    type: "valorant",
+    riot_id: "TenZ#0001",
+    title: "TenZ#0001",
+    mockData: {
+      name: "TenZ",
+      tag: "0001",
+      rank: "Radiant",
+      rr: 840,
+      level: 420,
+    },
+  },
+  weather: {
+    type: "weather",
+    value: "Tokyo",
+    title: "Tokyo",
+    mockData: {
+      city: "Tokyo",
+      temp_c: 22,
+      temp_f: 72,
+      condition: "Sunny",
+      humidity: 48,
+    },
+  },
+  timezone: {
+    type: "timezone",
+    value: "America/New_York",
+    title: "New York",
+  },
+  countdown: {
+    type: "countdown",
+    date: "2027-01-01T00:00",
+    title: "New Year 2027",
+  },
+  minecraft: {
+    type: "minecraft",
+    value: "mc.hypixel.net",
+    title: "Hypixel Network",
+    mockData: {
+      online: true,
+      players: { online: 48210, max: 100000 },
+      motd: "Hypixel Network [1.8-1.20]",
+    },
+  },
+  games: {
+    type: "games",
+    title: "Favorite Games",
+    games_list: "Valorant, Elden Ring, Minecraft, CS2",
+    now_playing: "Valorant",
+  },
+  projects: {
+    type: "projects",
+    title: "tourn.lol Engine",
+    description: "Next-gen biolink engine & profile customizer",
+    tags: "React, Node.js, Tailwind",
+    url: "https://tourn.lol",
+  },
+  lastfm: {
+    type: "lastfm",
+    username: "welovekoni",
+    title: "welovekoni",
+    mockData: {
+      username: "welovekoni",
+      scrobbles: 14820,
+      top_artist: "The Weeknd",
+      recent_track: "Starboy",
+    },
+  },
+  statsfm: {
+    type: "statsfm",
+    username: "welovekoni",
+    title: "welovekoni",
+    mockData: {
+      username: "welovekoni",
+      minutes_streamed: 84200,
+      top_track: "Starboy",
+      top_artist: "The Weeknd",
+    },
+  },
+  twitch: {
+    type: "twitch",
+    channel: "shroud",
+    title: "shroud",
+    mockData: {
+      channel: "shroud",
+      name: "shroud",
+      online: true,
+      game: "Valorant",
+      viewers: 18450,
+      avatar: "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=200&auto=format&fit=crop&q=80",
+    },
+  },
+  "clash-of-clans": {
+    type: "clash-of-clans",
+    value: "#9PPP02V2",
+    title: "Clash of Clans",
+    mockData: {
+      name: "Chief",
+      townHallLevel: 16,
+      trophies: 5400,
+      clan: { name: "Champions" },
+    },
+  },
+  "clash-royale": {
+    type: "clash-royale",
+    value: "#8L9L9GL",
+    title: "Clash Royale",
+    mockData: {
+      name: "King",
+      arena: { name: "Ultimate Champion" },
+      trophies: 9000,
+    },
+  },
+  "brawl-stars": {
+    type: "brawl-stars",
+    value: "#2P0LY9Y9",
+    title: "Brawl Stars",
+    mockData: {
+      name: "Brawler",
+      trophies: 34500,
+      club: { name: "Mythic Club" },
+    },
+  },
+};
+
+export function getPreviewWidget(widget) {
+  if (!widget) return null;
+  const kindId = widget.type || "discord";
+  const preset = WIDGET_PRESETS[kindId] || {};
+
+  const hasUserInput = Boolean(
+    widget.username || widget.url || widget.channel || widget.invite_url ||
+    widget.user_id || widget.server_id || widget.riot_id || widget.value ||
+    widget.repo || (widget.games_list && widget.games_list !== "Favorite Games") ||
+    (widget.description && widget.type === "projects")
+  );
+
+  if (hasUserInput) {
     return {
-      stat1: { label: online, color: "text-emerald-400", dot: "bg-emerald-400" },
-      stat2: { label: members, color: "text-zinc-300" },
-      stat3: { label: boost, color: "text-purple-400" },
+      ...widget,
+      mockData: widget.mockData || preset.mockData,
     };
   }
-  if (widget.type === "youtube") {
-    const subs = data?.stats?.subscribers != null ? `${formatCount(data.stats.subscribers)} Subs` : "10.4K Subs";
-    const vids = data?.stats?.video_count != null ? `${formatCount(data.stats.video_count)} Videos` : "142 Videos";
-    const views = data?.stats?.view_count != null ? `${formatCount(data.stats.view_count)} Views` : "1.2M Views";
-    return {
-      stat1: { label: subs, color: "text-red-400", dot: "bg-red-400" },
-      stat2: { label: vids, color: "text-zinc-300" },
-      stat3: { label: views, color: "text-amber-400" },
-    };
-  }
-  if (widget.type === "github") {
-    const followers = data?.followers != null ? `${formatCount(data.followers)} Followers` : "42 Followers";
-    const repos = data?.repos != null ? `${formatCount(data.repos)} Repos` : "18 Repos";
-    const stars = data?.stars != null ? `${formatCount(data.stars)} Stars` : "120 Stars";
-    return {
-      stat1: { label: followers, color: "text-blue-400", dot: "bg-blue-400" },
-      stat2: { label: repos, color: "text-zinc-300" },
-      stat3: { label: stars, color: "text-amber-400" },
-    };
-  }
-  if (widget.type === "roblox") {
-    const playing = data?.playing != null ? `${formatCount(data.playing)} Playing` : (data?.presence || "Online");
-    const friends = data?.friends != null ? `${formatCount(data.friends)} Friends` : (data?.members != null ? `${formatCount(data.members)} Members` : "84 Friends");
-    const visits = data?.visits != null ? `${formatCount(data.visits)} Visits` : (data?.followers != null ? `${formatCount(data.followers)} Followers` : "Level 40");
-    return {
-      stat1: { label: playing, color: "text-emerald-400", dot: "bg-emerald-400" },
-      stat2: { label: friends, color: "text-zinc-300" },
-      stat3: { label: visits, color: "text-purple-400" },
-    };
-  }
-  if (widget.type === "steam") {
-    const status = data?.current_game ? `In: ${data.current_game}` : (data?.online ? "Online" : "Offline");
-    const game = data?.game_info || "Counter-Strike 2";
-    const lvl = data?.level ? `Level ${data.level}` : "Level 64";
-    return {
-      stat1: { label: status, color: data?.current_game ? "text-emerald-400" : "text-sky-400", dot: "bg-emerald-400" },
-      stat2: { label: game, color: "text-zinc-300" },
-      stat3: { label: lvl, color: "text-purple-400" },
-    };
-  }
-  if (widget.type === "spotify") {
-    return {
-      stat1: { label: data?.author || "The Weeknd", color: "text-emerald-400", dot: "bg-emerald-400" },
-      stat2: { label: data?.duration || "3:24", color: "text-zinc-300" },
-      stat3: { label: "Lossless Audio", color: "text-brand-400" },
-    };
-  }
+
   return {
-    stat1: { label: data?.online != null ? `${formatCount(data.online)} Online` : "Active", color: "text-emerald-400", dot: "bg-emerald-400" },
-    stat2: { label: data?.total_members != null ? `${formatCount(data.total_members)} Total` : "Connected", color: "text-zinc-300" },
-    stat3: { label: "Synced", color: "text-purple-400" },
+    ...preset,
+    ...widget,
+    title: widget.title || preset.title,
+    mockData: preset.mockData,
   };
 }
 
-/**
- * Real Live Data Widget Preview Component
- * Fetches real API data dynamically using useWidgetData
- */
-function RealLiveWidgetPreview({ widget, kind, styleOverride }) {
-  const isDiscord = widget.type === "discord";
-  const { status, data, error } = useWidgetData(widget, { refreshSec: 0 });
-  const Icon = kind.Icon || GENERIC_WIDGET_ICON;
-
-  // Background artwork
-  let bgImage = "";
-  if (widget.artwork_bg && widget.artwork_bg !== "none") {
-    if (widget.artwork_bg === "banner") {
-      if (widget.show_banner !== false) {
-        bgImage = data?.banner || data?.banner_url || data?.backdrop || (widget.banner_url ? fileUrl(widget.banner_url) : "") || (widget.type === "youtube" ? "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80" : (isDiscord ? "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80" : ""));
-      }
-    } else if (widget.artwork_bg === "splash") {
-      bgImage = data?.splash || data?.splash_url || data?.banner || (isDiscord ? "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=800&auto=format&fit=crop&q=80" : "");
-    } else if (widget.artwork_bg === "thumbnail") {
-      bgImage = data?.thumbnail || data?.latest?.thumbnail || data?.album_art || data?.cover || (widget.type === "youtube" ? "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80" : (widget.type === "spotify" ? "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&auto=format&fit=crop&q=80" : ""));
-    } else if (widget.artwork_bg === "game") {
-      bgImage = data?.game_image || data?.current_game?.image || "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&auto=format&fit=crop&q=80";
-    } else if (widget.artwork_bg === "avatar") {
-      bgImage = data?.icon || data?.avatar || (isDiscord ? "https://cdn.discordapp.com/embed/avatars/0.png" : "");
-    }
-  } else if (!widget.artwork_bg && widget.show_banner !== false && (data?.banner || data?.splash)) {
-    bgImage = data.banner || data.splash;
-  }
-
-  // Filter overlays
-  const filterStyles = {
-    none: "",
-    soft: "bg-black/30 backdrop-blur-[2px]",
-    dark: "bg-black/60",
-    blur: "backdrop-blur-md bg-black/45",
-    dark_blur: "backdrop-blur-xl bg-black/75",
-    vignette: "bg-gradient-to-t from-black via-black/40 to-transparent",
-  };
-  const overlayClass = filterStyles[widget.bg_filter || "dark"] ?? "bg-black/60";
-
-  // Data values (REAL DATA with fallback to config)
-  let title = data?.name || data?.global_name || data?.username || data?.title || widget.title || kind.label;
-  if (isDiscord && widget.subtype === "server") {
-    title = data?.name || (widget.invite_url ? `/${widget.invite_url.replace(/.*discord\.gg\//, "").replace(/^\/+/, "")}` : (widget.title || "Discord Server"));
-  } else if (isDiscord && (widget.subtype === "profile" || widget.subtype === "bot")) {
-    title = data?.global_name || data?.username || widget.title || "Discord User";
-  } else if (widget.type === "youtube") {
-    title = data?.title || (widget.channel ? widget.channel.replace(/.*youtube\.com\/(@?)/, "@") : "@creator");
-  } else if (widget.type === "spotify") {
-    title = data?.title || "Starboy (feat. Daft Punk)";
-  } else if (widget.type === "steam") {
-    title = data?.persona || widget.username || "GabeLoganNewell";
-  } else if (widget.type === "roblox") {
-    title = data?.name || widget.username || "Builderman";
-  } else if (widget.type === "valorant") {
-    title = data?.name ? `${data.name}#${data.tag || "NA1"}` : (widget.riot_id || "TenZ#0001");
-  } else if (widget.type === "games") {
-    title = widget.title || "Favorite Games";
-  } else if (widget.type === "projects") {
-    title = widget.title || "Projects Showcase";
-  }
-
-  let subtitle = data?.description || data?.bio || (widget.show_subtitle !== false ? kind.desc : "");
-  if (isDiscord && widget.subtype === "server" && !data?.description) {
-    subtitle = "The modern solution for your personal biolink website. Simple, fast, and fully customizable.";
-  } else if (widget.type === "youtube" && !data?.description) {
-    subtitle = "Official YouTube Channel • Daily high quality content & streams";
-  } else if (widget.type === "spotify" && !data?.description) {
-    subtitle = data?.author || "The Weeknd • Starboy";
-  } else if (widget.type === "steam" && !data?.description) {
-    subtitle = data?.state_message || "Currently in-game: Counter-Strike 2";
-  } else if (widget.type === "games" && !data?.description) {
-    subtitle = widget.now_playing ? `Playing now: ${widget.now_playing}` : (widget.games_list || "Elden Ring, Valorant, Minecraft, GTA V");
-  } else if (widget.type === "projects" && !data?.description) {
-    subtitle = widget.description || (widget.tags ? `Tags: ${widget.tags}` : "Fullstack development & creative design");
-  }
-
-  // Deduplicate: If subtitle is identical to title, remove it
-  if (subtitle && (subtitle.trim().toLowerCase() === title.trim().toLowerCase() || subtitle.trim().toLowerCase().replace(/^\//, '') === title.trim().toLowerCase().replace(/^\//, '') || (title.trim().toLowerCase().includes(subtitle.trim().toLowerCase()) && subtitle.length < title.length + 3))) {
-    subtitle = "";
-  }
-
-  const avatarUrl = data?.icon || data?.avatar || data?.thumbnail || (isDiscord ? "https://cdn.discordapp.com/embed/avatars/0.png" : "");
-  const stats = getPreviewStats(widget, kind, data);
-
-  // If artwork_bg is "none" but show_banner is enabled, show banner header
-  const showTopHeaderBanner = widget.show_banner !== false && widget.artwork_bg === "none" && (data?.banner || data?.splash || widget.banner_url || (isDiscord && "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80"));
-
+export function RealLiveWidgetPreview({ widget, kind, styleOverride }) {
+  const preview = getPreviewWidget(widget);
   return (
-    <div
-      className={`relative w-full max-w-md rounded-2xl overflow-hidden shadow-2xl transition-all duration-300 text-left ${!styleOverride ? "border border-white/10 bg-[#0c0d14]" : ""}`}
-      style={{ minHeight: "150px", ...styleOverride }}
-    >
-      {/* Real Background Image Artwork if selected */}
-      {widget.artwork_bg !== "none" && bgImage && (
-        <div
-          className="absolute inset-0 bg-cover bg-center transition-all duration-300"
-          style={{ backgroundImage: `url(${bgImage})` }}
-        />
-      )}
-
-      {/* Background Filter Overlay */}
-      <div className={`relative z-10 p-5 space-y-3.5 ${widget.artwork_bg !== "none" && bgImage ? overlayClass : ""}`}>
-        {/* Optional Top Header Banner if artwork_bg is none and show_banner is true */}
-        {showTopHeaderBanner && (
-          <div className="relative -mx-5 -mt-5 mb-3 h-20 overflow-hidden border-b border-white/10">
-            <img
-              src={typeof showTopHeaderBanner === "string" ? showTopHeaderBanner : (data?.banner || data?.splash || widget.banner_url || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80")}
-              alt=""
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-          </div>
-        )}
-
-        {/* Header row — icon only on the left, platform badge icon on right */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border overflow-hidden shadow-sm"
-              style={{ background: `${kind.color || "#5865F2"}22`, borderColor: `${kind.color || "#5865F2"}55` }}
-            >
-              {avatarUrl ? (
-                <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
-              ) : (
-                <Icon className="w-4 h-4" style={{ color: kind.color || "#5865F2" }} />
-              )}
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            {widget.platform_badge !== false && (
-              <div
-                className="w-6 h-6 rounded-lg flex items-center justify-center border"
-                style={{ background: `${kind.color || "#5865F2"}15`, borderColor: `${kind.color || "#5865F2"}30` }}
-              >
-                <Icon className="w-3 h-3" style={{ color: kind.color || "#5865F2" }} />
-              </div>
-            )}
-            {widget.view_button !== false && (
-              <div className="w-6 h-6 rounded-lg bg-white/[0.07] flex items-center justify-center text-zinc-400 border border-white/10">
-                <ExternalLink className="w-3 h-3" />
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Title & subtitle */}
-        <div>
-          <div className="text-sm font-bold text-white truncate">{title}</div>
-          {widget.show_subtitle !== false && subtitle && (
-            <div className="text-xs text-zinc-300/80 mt-1 line-clamp-2 leading-relaxed">
-              {subtitle}
-            </div>
-          )}
-        </div>
-
-        {/* Real Stats row */}
-        {widget.stats_row !== false && (
-          <div className="flex flex-wrap items-center gap-3 pt-1 text-xs">
-            {widget.show_online !== false && (
-              <span className={`flex items-center gap-1.5 font-medium ${stats.stat1.color}`}>
-                <span className={`w-2 h-2 rounded-full ${stats.stat1.dot}`} />
-                {stats.stat1.label}
-              </span>
-            )}
-            {widget.show_members !== false && (
-              <span className={`font-medium ${stats.stat2.color}`}>
-                {stats.stat2.label}
-              </span>
-            )}
-            {widget.show_boost !== false && (
-              <span className={`font-medium flex items-center gap-1 ${stats.stat3.color}`}>
-                <span className="w-1.5 h-1.5 rounded-full bg-current opacity-70" />
-                {stats.stat3.label}
-              </span>
-            )}
-            {status === "loading" && (
-              <span className="text-[10px] text-zinc-500 font-mono2 ml-auto flex items-center gap-1">
-                <Loader2 className="w-3 h-3 animate-spin" /> Live sync
-              </span>
-            )}
-          </div>
-        )}
-      </div>
+    <div className="w-full max-w-md select-none" style={styleOverride}>
+      <WidgetCard w={preview} accent="#b4bffa" />
     </div>
   );
 }

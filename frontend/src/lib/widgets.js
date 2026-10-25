@@ -240,6 +240,7 @@ export function widgetKey(w, owner) {
  * `refreshSec` keeps presence-style widgets current without a page reload.
  */
 export function useWidgetData(w, { refreshSec = 0, auto = AUTO_FETCH, owner = "" } = {}) {
+  const mock = w?.mockData || w?.data || null;
   const request = useMemo(() => widgetRequest(w, owner), [w, owner]);
   const key = request ? widgetKey(w, owner) : null;
 
@@ -276,9 +277,30 @@ export function useWidgetData(w, { refreshSec = 0, auto = AUTO_FETCH, owner = ""
 
   const refresh = () => (key ? runRequest(key, request, { force: true }) : Promise.resolve(null));
 
+  const realData = entry?.data;
+  const realStatus = entry?.status;
+
+  if (realData) {
+    return {
+      status: "success",
+      data: realData,
+      error: null,
+      refresh,
+    };
+  }
+
+  if (mock) {
+    return {
+      status: "success",
+      data: mock,
+      error: null,
+      refresh,
+    };
+  }
+
   return {
-    status: key ? (entry?.status || (auto ? "loading" : "idle")) : "local",
-    data: entry?.data || null,
+    status: key ? (realStatus || (auto ? "loading" : "idle")) : "local",
+    data: null,
     error: entry?.error || null,
     refresh,
   };

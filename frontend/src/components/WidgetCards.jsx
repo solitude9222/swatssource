@@ -2261,7 +2261,7 @@ function TikTokCard({ w, accent, data, status, error, refresh }) {
     );
   }
 
-  const handle = String(data.author || w?.username || "koniwtfs").replace(/^@/, "");
+  const handle = String(data.author || w?.username || "welovekoni").replace(/^@/, "");
   const displayName = data.author_name || data.name || `@${handle}`;
   const avatar = data.thumbnail || data.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80";
   const followers = data.followers ? formatCount(data.followers) : "148.5K";
