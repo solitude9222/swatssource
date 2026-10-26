@@ -103,56 +103,33 @@ const VARIANTS = {
   success: {
     Icon: CheckCircle2,
     accent: "text-emerald-400",
-    ring: "ring-emerald-500/20",
-    chip: "bg-emerald-950/50 border-emerald-500/30 text-emerald-300",
-    bar: "bg-gradient-to-r from-emerald-500 to-teal-400",
-    edge: "border-emerald-500/30",
-    glow: "rgba(16,185,129,0.04)",
+    bar: "bg-emerald-500",
   },
   error: {
     Icon: AlertCircle,
     accent: "text-rose-400",
-    ring: "ring-rose-500/20",
-    chip: "bg-rose-950/50 border-rose-500/30 text-rose-300",
-    bar: "bg-gradient-to-r from-rose-500 to-pink-500",
-    edge: "border-rose-500/30",
-    glow: "rgba(244,63,94,0.04)",
+    bar: "bg-rose-500",
   },
   warning: {
     Icon: AlertTriangle,
     accent: "text-amber-400",
-    ring: "ring-amber-500/20",
-    chip: "bg-amber-950/50 border-amber-500/30 text-amber-300",
-    bar: "bg-gradient-to-r from-amber-500 to-yellow-400",
-    edge: "border-amber-500/30",
-    glow: "rgba(245,158,11,0.04)",
+    bar: "bg-amber-500",
   },
   info: {
     Icon: Info,
     accent: "text-[#b4bffa]",
-    ring: "ring-[#b4bffa]/20",
-    chip: "bg-[#0f1021] border-[#b4bffa]/30 text-[#b4bffa]",
-    bar: "bg-gradient-to-r from-[#b4bffa] to-indigo-400",
-    edge: "border-[#b4bffa]/30",
-    glow: "rgba(180,191,250,0.04)",
+    bar: "bg-[#b4bffa]",
   },
   loading: {
     Icon: Loader2,
     accent: "text-[#b4bffa]",
-    ring: "ring-[#b4bffa]/20",
-    chip: "bg-[#0f1021] border-[#b4bffa]/30 text-[#b4bffa]",
-    bar: "bg-gradient-to-r from-[#b4bffa] to-cyan-400",
-    edge: "border-[#b4bffa]/30",
-    glow: "rgba(180,191,250,0.04)",
+    bar: "bg-[#b4bffa]",
   },
 };
 
-/* One notification card.
- *
- * Solid `#0b0b10` rather than a translucent blur: at /95 behind a backdrop blur
- * the page showed through a toast and its text lost contrast over busy profile
- * backgrounds. The accent hairline down the left edge and the countdown bar
- * along the bottom make the card instantly readable and sleek. */
+/* Redesigned notification block:
+ * A clean, minimalist rounded block sliding in from top-right.
+ * Solid #0b0b10 obsidian body with a thin border and shadow. */
 function NotificationCard({ item }) {
   const variant = VARIANTS[item.type] || VARIANTS.info;
   const { Icon } = variant;
@@ -161,30 +138,25 @@ function NotificationCard({ item }) {
   return (
     <li
       data-testid={`notification-${item.type}`}
-      style={{ backgroundImage: `radial-gradient(ellipse at top left, ${variant.glow}, transparent 70%)` }}
-      className={`pointer-events-auto relative flex w-full items-start gap-3.5 overflow-hidden rounded-2xl border border-white/10 bg-[#0b0b10] p-4 text-left shadow-[0_16px_40px_rgba(0,0,0,0.8)] ring-1 backdrop-blur-2xl transition-all duration-300 hover:border-white/20 ${variant.ring} ${variant.edge} ${
+      className={`pointer-events-auto relative flex w-full items-center gap-3 overflow-hidden rounded-2xl border border-white/10 bg-[#0b0b10] px-4 py-3 text-left shadow-[0_16px_40px_rgba(0,0,0,0.85)] ring-1 ring-white/5 backdrop-blur-xl transition-all duration-200 hover:border-white/20 ${
         item.closing
-          ? "animate-out fade-out slide-out-to-top-3 duration-200"
-          : "animate-in fade-in slide-in-from-top-3 duration-200"
+          ? "animate-out fade-out slide-out-to-right-8 duration-150"
+          : "animate-in fade-in slide-in-from-right-8 duration-200"
       }`}
     >
-      {/* Sleek rounded vertical accent pill */}
-      <span className={`absolute top-2.5 bottom-2.5 left-1.5 w-1 rounded-full ${variant.bar}`} aria-hidden="true" />
-
-      {/* Ambient badge chip */}
-      <span className={`ml-1 mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-xl border ${variant.chip}`}>
+      <div className="shrink-0 flex items-center justify-center">
         <Icon className={`h-4 w-4 ${variant.accent} ${item.type === "loading" ? "animate-spin" : ""}`} />
-      </span>
+      </div>
 
-      <div className="min-w-0 flex-1 pt-0.5">
+      <div className="min-w-0 flex-1">
         {item.title && <div className="text-xs font-bold text-white tracking-wide">{item.title}</div>}
         {text && (
-          <div className={`text-xs leading-relaxed text-zinc-100 font-medium ${item.title ? "mt-0.5 text-zinc-300" : ""}`}>
-            {item.message || (item.title ? "" : null)}
+          <div className={`text-xs leading-snug font-medium text-zinc-100 ${item.title ? "mt-0.5 text-zinc-300" : ""}`}>
+            {text}
           </div>
         )}
         {item.description && (
-          <div className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-zinc-400">{item.description}</div>
+          <div className="mt-0.5 line-clamp-2 text-[11px] leading-relaxed text-zinc-400">{item.description}</div>
         )}
       </div>
 
@@ -192,7 +164,7 @@ function NotificationCard({ item }) {
         type="button"
         aria-label="Dismiss notification"
         onClick={() => dismiss(item.id)}
-        className="-mr-1 -mt-1 shrink-0 rounded-xl p-1.5 text-zinc-400 outline-none transition-all duration-200 hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-brand-500/50 cursor-pointer active:scale-95"
+        className="shrink-0 rounded-lg p-1 text-zinc-500 hover:text-white hover:bg-white/10 transition cursor-pointer active:scale-95"
       >
         <X className="h-3.5 w-3.5" />
       </button>
@@ -201,7 +173,7 @@ function NotificationCard({ item }) {
         <span
           data-testid="notification-timer"
           aria-hidden="true"
-          className={`absolute bottom-0 left-0 h-0.5 ${variant.bar}`}
+          className={`absolute bottom-0 left-0 h-[2px] opacity-40 ${variant.bar}`}
           style={{ animation: `sw-toast-timer ${item.duration}ms linear forwards` }}
         />
       )}
@@ -217,7 +189,7 @@ export function Toaster() {
       data-testid="notification-region"
       role="status"
       aria-live="polite"
-      className="pointer-events-none fixed bottom-0 right-0 p-4 sm:p-5 z-[9999] flex flex-col items-end"
+      className="pointer-events-none fixed top-0 right-0 p-4 sm:p-5 z-[9999] flex flex-col items-end"
     >
       <ol className="flex w-full max-w-sm flex-col-reverse gap-2.5">
         {list.map((item) => (

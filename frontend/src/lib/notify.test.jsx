@@ -32,14 +32,14 @@ const settle = () => act(() => jest.advanceTimersByTime(1));
 const cards = () => [...container.querySelectorAll("li")];
 const text = () => container.textContent;
 
-it("renders notifications in a fixed bottom-right region", () => {
+it("renders notifications in a fixed top-right region", () => {
   notify(() => toast.success("Profile saved"));
 
   const region = container.querySelector('[data-testid="notification-region"]');
   expect(region).toBeTruthy();
-  // bottom right: anchored to the bottom edge, its cards aligned right
+  // top right: anchored to the top edge, its cards aligned right
   expect(region.className).toContain("fixed");
-  expect(region.className).toContain("bottom-0");
+  expect(region.className).toContain("top-0");
   expect(region.className).toContain("right-0");
   expect(region.className).toContain("items-end");
 
