@@ -1836,13 +1836,26 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
     }
   };
 
+  const cardRectRef = useRef(null);
+
+  const handleMouseEnter = () => {
+    const card = cardRef.current;
+    if (card) {
+      cardRectRef.current = card.getBoundingClientRect();
+    }
+  };
+
   const handleMouseMove = (e) => {
     const card = cardRef.current;
     if (!card || !tiltEnabled) return;
-    // No hover on touch, and a rotating card fights the scroll gesture.
-    if (e.pointerType === "touch") return;
-    const rect = card.getBoundingClientRect();
-    if (!rect.width || !rect.height) return;
+    // No hover on touch devices; rotating card fights mobile scroll gesture
+    if (e.pointerType === "touch" || (typeof window !== "undefined" && window.matchMedia && window.matchMedia("(pointer: coarse)").matches)) return;
+
+    let rect = cardRectRef.current;
+    if (!rect || !rect.width || !rect.height) {
+      rect = card.getBoundingClientRect();
+      cardRectRef.current = rect;
+    }
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     const { strength, mult } = tiltCfg.current;
@@ -1851,10 +1864,6 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
     const glowX = (x / rect.width) * 100;
     const glowY = (y / rect.height) * 100;
 
-    // `transition: transform 60ms linear` used to be re-applied on every single
-    // move, which restarted the transition each frame — the card never caught up
-    // with the cursor, which is exactly what read as "slow and buggy". Set it
-    // once per gesture instead, so the tilt tracks the pointer 1:1.
     if (!tilting.current) {
       card.style.transition = "transform 70ms ease-out";
       tilting.current = true;
@@ -1865,6 +1874,7 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
   };
 
   const handleMouseLeave = () => {
+    cardRectRef.current = null;
     cancelAnimationFrame(rafRef.current);
     tilting.current = false;
     const card = cardRef.current;

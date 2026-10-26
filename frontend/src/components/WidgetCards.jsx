@@ -1864,22 +1864,23 @@ function SteamProfile({ w, accent, data, status, error, refresh }) {
     );
   }
 
-  const inGame = !!data.current_game;
+  const inGame = !!data.current_game || data.online_state === "in-game";
   const profileUrl = data.url || resolveWidgetUrl(w, data);
   const persona = data.persona || "Steam User";
-  const level = data.level || (data.steam_id ? (Number(data.steam_id.slice(-2)) % 80) + 15 : 75);
 
   return (
     <div className="relative text-white select-none py-0.5">
-      {/* Top Header Row with Platform & Level Badges - Monochrome Obsidian */}
+      {/* Top Header Row with Platform & Real Status Badges - Monochrome Obsidian */}
       <div className="relative z-10 flex items-center justify-between pb-2 pr-7">
         <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/5 border border-white/10 text-zinc-300 text-[10px] font-bold tracking-wider uppercase">
           <FaSteam className="w-3.5 h-3.5 text-white" />
           <span>Steam Profile</span>
         </div>
-        <div className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-mono2 font-bold text-zinc-200">
-          <Star className="w-3 h-3 text-white fill-white" />
-          <span>Level {level}</span>
+        <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-mono2 font-bold">
+          <span className={`w-1.5 h-1.5 rounded-full ${inGame ? "bg-emerald-400 animate-pulse" : (data.online ? "bg-emerald-400" : "bg-zinc-500")}`} />
+          <span className={inGame ? "text-emerald-300" : (data.online ? "text-emerald-300" : "text-zinc-400")}>
+            {inGame ? "In-Game" : (data.online ? "Online" : "Offline")}
+          </span>
         </div>
       </div>
 
@@ -1898,7 +1899,7 @@ function SteamProfile({ w, accent, data, status, error, refresh }) {
               )}
             </div>
             {/* Status dot */}
-            <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0c0d12] ${inGame || data.online ? "bg-white" : "bg-zinc-600"}`} />
+            <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0c0d12] ${inGame ? "bg-emerald-400" : (data.online ? "bg-emerald-400" : "bg-zinc-600")}`} />
           </div>
 
           <div className="min-w-0 flex-1">
@@ -1906,7 +1907,9 @@ function SteamProfile({ w, accent, data, status, error, refresh }) {
               {persona}
             </div>
             <div className="text-xs font-medium text-zinc-400 mt-0.5 truncate">
-              {inGame ? `Playing ${data.current_game.name}` : data.state_message || (data.online ? "Online" : "Offline")}
+              {inGame && data.current_game
+                ? `Playing ${data.current_game.name}`
+                : data.state_message || (data.online ? "Online" : "Offline")}
             </div>
           </div>
         </div>
@@ -1921,14 +1924,29 @@ function SteamProfile({ w, accent, data, status, error, refresh }) {
         )}
       </div>
 
-      {/* Bottom Steam Stats Bar */}
-      {w.stats_row !== false && (
+      {/* Bottom Steam Stats Bar - ONLY REAL DATA, NO FAKE NUMBERS */}
+      {w.stats_row !== false && (data.member_since || data.location || (data.current_game && data.current_game.hours_played) || data.steam_id) && (
         <div className="relative z-10 mt-2.5 pt-2 border-t border-white/[0.08] flex items-center justify-between text-xs text-zinc-400">
-          <span>Games: <strong className="text-white">{data.games_count || 148}</strong></span>
+          {data.member_since ? (
+            <span>Since: <strong className="text-white">{data.member_since}</strong></span>
+          ) : data.location ? (
+            <span className="truncate max-w-[130px] text-zinc-300">{data.location}</span>
+          ) : (
+            <span className="text-zinc-500 font-mono2 text-[10px]">ID: {data.steam_id?.slice(-8) || "Steam"}</span>
+          )}
+          {data.current_game?.hours_played ? (
+            <>
+              <span className="text-zinc-600">•</span>
+              <span><strong className="text-white">{data.current_game.hours_played}</strong> hrs</span>
+            </>
+          ) : data.location && data.member_since ? (
+            <>
+              <span className="text-zinc-600">•</span>
+              <span className="truncate max-w-[120px] text-zinc-300">{data.location}</span>
+            </>
+          ) : null}
           <span className="text-zinc-600">•</span>
-          <span>Badges: <strong className="text-white">{data.badges_count || 42}</strong></span>
-          <span className="text-zinc-600">•</span>
-          <span className="text-zinc-400">Community Verified</span>
+          <span className="text-zinc-400">Verified Profile</span>
         </div>
       )}
     </div>

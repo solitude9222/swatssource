@@ -1,23 +1,23 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { fileUrl } from "@/lib/api";
 import { crosshairSettings } from "@/lib/crosshair";
 
 /**
  * CustomCursor
  * Renders a high-performance custom cursor follower supporting:
- * - Full animated GIF playback (real <img> element, 60fps)
+ * - Full animated GIF playback (real <img> element, 60-144fps)
  * - Normal small cursor sizing (24-32px default, scaled cleanly)
  * - Perfectly centered hotspot (translate(-50%, -50%))
- * - Smooth pointer tracking with requestAnimationFrame
+ * - Zero React re-renders on mouse movement (direct DOM transform in RAF)
+ * - Zero CSS transform transition to eliminate motion jitter
  * - Automatic suppression on touch/mobile devices
  */
 export function CustomCursor({ profile }) {
   const settings = crosshairSettings(profile || {});
-  const [visible, setVisible] = useState(false);
-  const [hoveringClickable, setHoveringClickable] = useState(false);
   const cursorRef = useRef(null);
   const posRef = useRef({ x: -100, y: -100 });
   const rafRef = useRef(0);
+  const clickableRef = useRef(false);
 
   const imgSrc = settings.image ? fileUrl(settings.image) : "";
 
@@ -29,8 +29,8 @@ export function CustomCursor({ profile }) {
       return undefined;
     }
 
-    // Check if device has fine pointer (mouse/trackpad, not touch)
-    const isFinePointer = window.matchMedia("(pointer: fine)").matches;
+    // Only run on fine pointer devices (mouse / trackpad)
+    const isFinePointer = window.matchMedia && window.matchMedia("(pointer: fine)").matches;
     if (!isFinePointer) return undefined;
 
     // Hide default cursor across the page
@@ -40,21 +40,19 @@ export function CustomCursor({ profile }) {
       posRef.current.x = e.clientX;
       posRef.current.y = e.clientY;
 
-      if (!visible) setVisible(true);
-
-      // Check if hovering clickable element
       const target = e.target;
-      if (target && (target.closest("a, button, [role=button], input, textarea, select, label, .cursor-pointer"))) {
-        setHoveringClickable(true);
-      } else {
-        setHoveringClickable(false);
-      }
+      clickableRef.current = !!(
+        target &&
+        typeof target.closest === "function" &&
+        target.closest("a, button, [role=button], input, textarea, select, label, .cursor-pointer")
+      );
 
       if (!rafRef.current) {
         rafRef.current = requestAnimationFrame(() => {
           if (cursorRef.current) {
+            cursorRef.current.style.opacity = "1";
             cursorRef.current.style.transform = `translate3d(${posRef.current.x}px, ${posRef.current.y}px, 0) translate(-50%, -50%) scale(${
-              hoveringClickable ? 1.15 : 1
+              clickableRef.current ? 1.15 : 1
             })`;
           }
           rafRef.current = 0;
@@ -63,11 +61,11 @@ export function CustomCursor({ profile }) {
     };
 
     const onPointerLeave = () => {
-      setVisible(false);
+      if (cursorRef.current) cursorRef.current.style.opacity = "0";
     };
 
     const onPointerEnter = () => {
-      setVisible(true);
+      if (cursorRef.current) cursorRef.current.style.opacity = "1";
     };
 
     window.addEventListener("pointermove", onPointerMove, { passive: true });
@@ -79,13 +77,21 @@ export function CustomCursor({ profile }) {
       window.removeEventListener("pointermove", onPointerMove);
       document.removeEventListener("mouseleave", onPointerLeave);
       document.removeEventListener("mouseenter", onPointerEnter);
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = 0;
+      }
     };
-  }, [imgSrc, visible, hoveringClickable]);
+  }, [imgSrc, settings.scale]);
 
   if (!imgSrc) return null;
 
-  // Normal cursor base dimension: 28px, scaled between 16px and 48px
+  // Don't render on touch/coarse devices
+  if (typeof window !== "undefined" && window.matchMedia && !window.matchMedia("(pointer: fine)").matches) {
+    return null;
+  }
+
+  // Normal cursor base dimension: 28px, scaled cleanly
   const baseSize = 28;
   const currentScale = settings.scale || 1;
   const sizePx = Math.round(Math.max(16, Math.min(64, baseSize * currentScale)));
@@ -97,11 +103,11 @@ export function CustomCursor({ profile }) {
       aria-hidden="true"
       className="pointer-events-none fixed left-0 top-0 z-[999999] select-none will-change-transform"
       style={{
-        opacity: visible ? 1 : 0,
-        transition: "opacity 120ms ease-out, transform 40ms linear",
+        opacity: 0,
+        transition: "opacity 120ms ease-out",
         width: `${sizePx}px`,
         height: `${sizePx}px`,
-        transform: `translate3d(${posRef.current.x}px, ${posRef.current.y}px, 0) translate(-50%, -50%)`,
+        transform: "translate3d(-100px, -100px, 0) translate(-50%, -50%)",
       }}
     >
       <img

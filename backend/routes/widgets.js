@@ -956,7 +956,25 @@ router.get('/steam/profile', async (req, res) => {
   const raw = clean(req.query.vanity || clean(req.query.id || clean(req.query.value)));
   if (!raw) return res.status(400).json({ detail: 'Add your Steam profile link or custom URL name' });
 
-  const path = /^\d{17}$/.test(raw) ? `profiles/${raw}` : `id/${raw.replace(/^https?:\/\/steamcommunity\.com\//, '').replace(/\/+$/, '')}`;
+  let path;
+  const cleanInput = raw.replace(/^https?:\/\/steamcommunity\.com\//i, '').replace(/\/+$/, '').trim();
+  const profMatch = cleanInput.match(/profiles\/(\d{17})/i);
+  const idMatch = cleanInput.match(/^(\d{17})$/);
+  const vanityMatch = cleanInput.match(/id\/([\w-]+)/i);
+
+  if (profMatch) {
+    path = `profiles/${profMatch[1]}`;
+  } else if (idMatch) {
+    path = `profiles/${idMatch[1]}`;
+  } else if (vanityMatch) {
+    path = `id/${vanityMatch[1]}`;
+  } else {
+    if (/^\d{17}$/.test(cleanInput)) {
+      path = `profiles/${cleanInput}`;
+    } else {
+      path = `id/${cleanInput}`;
+    }
+  }
 
   try {
     const profile = await cached(`steam:${path.toLowerCase()}`, CACHE_TTL.steam, async () => {
@@ -970,13 +988,14 @@ router.get('/steam/profile', async (req, res) => {
         });
 
       if (xml === 'RATE_LIMITED') {
-        const username = raw.replace(/^https?:\/\/steamcommunity\.com\/(id|profiles)\//i, '').replace(/\/+$/, '');
+        const username = cleanInput.replace(/^(id|profiles)\//i, '');
         return {
           kind: 'profile',
-          steam_id: /^\d{17}$/.test(raw) ? raw : null,
+          steam_id: /^\d{17}$/.test(cleanInput) ? cleanInput : null,
           persona: username || 'Steam User',
           avatar: 'https://avatars.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg',
           online: false,
+          online_state: 'offline',
           state_message: 'Steam profile linked',
           privacy: 'public',
           member_since: null,
@@ -994,19 +1013,31 @@ router.get('/steam/profile', async (req, res) => {
       }
 
       const recent = xml.match(/<mostRecentGame>([\s\S]*?)<\/mostRecentGame>/)?.[1] || null;
+      const rawStateMsg = xmlValue(xml, 'stateMessage') || '';
+      const state_message = rawStateMsg.replace(/<br\s*\/?>/gi, ' - ').replace(/<[^>]+>/g, '').trim();
+      const onlineState = (xmlValue(xml, 'onlineState') || 'offline').toLowerCase();
+      const isOnline = onlineState === 'online' || onlineState === 'in-game';
+
       return {
         kind: 'profile',
         steam_id: xmlValue(xml, 'steamID64'),
         persona: xmlValue(xml, 'steamID'),
-        avatar: xmlValue(xml, 'avatarFull'),
-        online: (xmlValue(xml, 'onlineState') || 'offline') === 'online',
-        state_message: xmlValue(xml, 'stateMessage'),
+        avatar: xmlValue(xml, 'avatarFull') || xmlValue(xml, 'avatarMedium') || xmlValue(xml, 'avatarIcon'),
+        online: isOnline,
+        online_state: onlineState,
+        state_message: state_message || (isOnline ? 'Online' : 'Offline'),
         privacy: xmlValue(xml, 'privacyState'),
         member_since: xmlValue(xml, 'memberSince'),
         location: xmlValue(xml, 'location'),
+        headline: xmlValue(xml, 'headline'),
         summary: (xmlValue(xml, 'summary') || '').replace(/<[^>]+>/g, '').slice(0, 300),
         current_game: recent
-          ? { name: xmlValue(recent, 'name'), url: xmlValue(recent, 'link') }
+          ? {
+              name: xmlValue(recent, 'name'),
+              url: xmlValue(recent, 'link'),
+              hours_played: xmlValue(recent, 'hoursOnRecord') || xmlValue(recent, 'hoursLast2Weeks'),
+              logo: xmlValue(recent, 'logo'),
+            }
           : null,
         url: `https://steamcommunity.com/${path}`,
       };
@@ -1014,13 +1045,14 @@ router.get('/steam/profile', async (req, res) => {
     return res.json(profile);
   } catch (err) {
     if (err.response?.status === 429 || err?.status === 429) {
-      const username = raw.replace(/^https?:\/\/steamcommunity\.com\/(id|profiles)\//i, '').replace(/\/+$/, '');
+      const username = cleanInput.replace(/^(id|profiles)\//i, '');
       return res.json({
         kind: 'profile',
-        steam_id: /^\d{17}$/.test(raw) ? raw : null,
+        steam_id: /^\d{17}$/.test(cleanInput) ? cleanInput : null,
         persona: username || 'Steam User',
         avatar: 'https://avatars.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg',
         online: false,
+        online_state: 'offline',
         state_message: 'Steam profile linked',
         privacy: 'public',
         member_since: null,

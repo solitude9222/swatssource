@@ -18,6 +18,8 @@ const fmt = (n) => {
 /* Real Premium User Preview Card for Infinite Ticker */
 const PremiumUserTickerCard = ({ u, onOpen }) => {
   const avatarSrc = u.avatar ? fileUrl(u.avatar) : (u.avatar_url ? fileUrl(u.avatar_url) : "");
+  const tagText = u.tier === "admin" || (u.badges || []).includes("owner") ? "ADMIN" : (u.tier === "premium" ? "LIFETIME PRO" : "VERIFIED");
+
   return (
     <div
       onClick={() => onOpen(u)}
@@ -47,7 +49,7 @@ const PremiumUserTickerCard = ({ u, onOpen }) => {
           @{u.username}
         </div>
         <div className="flex items-center gap-2 mt-1 text-[10px] font-mono2 text-brand-300">
-          <span className="px-1.5 py-0.2 rounded bg-brand-500/20 text-brand-200 uppercase font-bold">LIFETIME</span>
+          <span className="px-1.5 py-0.2 rounded bg-brand-500/20 text-brand-200 uppercase font-bold">{tagText}</span>
           <span className="text-zinc-500">·</span>
           <span className="text-zinc-400">{fmt(u.views)} views</span>
         </div>
@@ -78,16 +80,47 @@ export default function Pricing() {
     }
   }, [params]);
 
-  // Load strictly real premium creators from backend API
+  // Load strictly real premium/creator accounts from backend APIs
   useEffect(() => {
-    loadLeaderboardRows(100)
-      .then((rows) => {
-        const proRows = (rows || []).filter((r) => r && r.username && (r.tier === "premium" || r.verified));
-        setPremiumUsers(proRows);
-      })
-      .catch(() => {
-        setPremiumUsers([]);
-      });
+    Promise.allSettled([
+      loadLeaderboardRows(100),
+      api.get("/users/showcase").then((r) => r.data || []),
+    ]).then(([lbRes, scRes]) => {
+      const lbRows = lbRes.status === "fulfilled" ? (lbRes.value || []) : [];
+      const scRows = scRes.status === "fulfilled" ? (scRes.value || []) : [];
+
+      const map = new Map();
+      for (const u of [...lbRows, ...scRows]) {
+        if (!u || !u.username) continue;
+        const key = u.username.toLowerCase();
+        if (!map.has(key)) {
+          map.set(key, {
+            id: u.id,
+            username: u.username,
+            display_name: u.display_name || u.username,
+            avatar: u.avatar || u.avatar_url || "",
+            views: u.views || 0,
+            tier: u.tier,
+            verified: u.verified || (u.badges || []).includes("verified") || u.tier === "admin" || (u.badges || []).includes("owner"),
+            badges: u.badges || [],
+          });
+        }
+      }
+
+      const allReal = Array.from(map.values());
+      const premiumOrStaff = allReal.filter(
+        (u) =>
+          u.tier === "premium" ||
+          u.tier === "admin" ||
+          u.verified ||
+          (u.badges || []).some((b) => ["owner", "admin", "staff", "verified", "premium", "vip", "developer"].includes(b))
+      );
+
+      const stream = premiumOrStaff.length > 0 ? premiumOrStaff : allReal;
+      setPremiumUsers(stream);
+    }).catch(() => {
+      setPremiumUsers([]);
+    });
   }, []);
 
   const upgrade = async () => {
@@ -128,14 +161,23 @@ export default function Pricing() {
     navigate(`/${encodeURIComponent(u.username)}`);
   };
 
-  // Dual rows for the infinite scrolling ticker
+  // Dual rows for the infinite scrolling ticker - repeat smoothly to fill widescreen tracks
   const tickerRow1 = useMemo(() => {
-    return [...premiumUsers, ...premiumUsers, ...premiumUsers];
+    if (!premiumUsers || premiumUsers.length === 0) return [];
+    let list = [...premiumUsers];
+    while (list.length < 12) {
+      list = [...list, ...premiumUsers];
+    }
+    return [...list, ...list];
   }, [premiumUsers]);
 
   const tickerRow2 = useMemo(() => {
-    const reversed = [...premiumUsers].reverse();
-    return [...reversed, ...reversed, ...reversed];
+    if (!premiumUsers || premiumUsers.length === 0) return [];
+    let list = [...premiumUsers].reverse();
+    while (list.length < 12) {
+      list = [...list, ...premiumUsers].reverse();
+    }
+    return [...list, ...list];
   }, [premiumUsers]);
 
   return (

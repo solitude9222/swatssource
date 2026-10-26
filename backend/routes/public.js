@@ -250,22 +250,34 @@ router.get('/ranked/tiers', async (req, res) => {
 // GET /api/users/showcase
 router.get('/users/showcase', async (req, res) => {
   try {
-    const { rows } = await query(`
+    let { rows } = await query(`
       SELECT id, username, display_name, tier, views, badges, profile
       FROM users
-      WHERE 'featured' = ANY(badges) OR tier = 'premium' OR views > 0
-      ORDER BY views DESC
+      WHERE 'featured' = ANY(badges) OR tier = 'premium' OR tier = 'admin' OR 'owner' = ANY(badges) OR 'staff' = ANY(badges) OR views > 0
+      ORDER BY views DESC, id ASC
       LIMIT 20
     `);
+
+    if (!rows || rows.length === 0) {
+      const fallback = await query(`
+        SELECT id, username, display_name, tier, views, badges, profile
+        FROM users
+        ORDER BY created_at ASC
+        LIMIT 20
+      `);
+      rows = fallback.rows || [];
+    }
 
     const showcase = rows.map((u) => ({
       id: u.id,
       username: u.username,
       display_name: u.display_name || u.username,
       avatar: u.profile?.avatar_url || '',
-      verified: (u.badges || []).includes('verified'),
+      verified: (u.badges || []).includes('verified') || u.tier === 'admin' || (u.badges || []).includes('owner'),
       views: u.views || 0,
-      tag: u.tier === 'premium' ? 'PRO' : 'VIP',
+      tier: u.tier,
+      badges: u.badges || [],
+      tag: u.tier === 'admin' || (u.badges || []).includes('owner') ? 'ADMIN' : (u.tier === 'premium' ? 'PRO' : 'VIP'),
     }));
 
     return res.json(showcase);

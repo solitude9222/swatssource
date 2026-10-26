@@ -94,11 +94,13 @@ export function robloxIdFromInput(input) {
 
 export function steamIdFromInput(input) {
   const raw = String(input || "").trim();
-  const id64 = raw.match(/profiles\/(\d{17})/);
+  const id64 = raw.match(/profiles\/(\d{17})/i);
   if (id64) return { id: id64[1] };
+  if (/^\d{17}$/.test(raw)) return { id: raw };
   const vanity = raw.match(/steamcommunity\.com\/id\/([\w-]+)/i);
   if (vanity) return { vanity: vanity[1] };
-  return { vanity: raw };
+  const cleanVanity = raw.replace(/^https?:\/\/steamcommunity\.com\/(?:id|profiles)\//i, "").replace(/\/+$/, "");
+  return { vanity: cleanVanity || raw };
 }
 
 export function splitRiotId(input) {
@@ -181,7 +183,7 @@ function baseWidgetRequest(w) {
   }
 
   if (type === "steam") {
-    const target = steamIdFromInput(w.username || w.url || w.value);
+    const target = steamIdFromInput(w.steam_user || w.username || w.url || w.value);
     if (!target.id && !target.vanity) return null;
     return { path: "/widgets/steam/profile", params: target, ttl: STATIC_TTL };
   }
