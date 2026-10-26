@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { api, fileUrl } from "@/lib/api";
 import { PLATFORMS } from "@/constants/platforms";
@@ -140,6 +140,103 @@ function ChipRow({ label, options, value, onChange, testid }) {
     </div>
   );
 }
+
+const PlatformPresetButton = React.memo(function PlatformPresetButton({ preset, onSelect }) {
+  const Icon = preset.Icon;
+  return (
+    <button
+      type="button"
+      data-testid={`link-preset-${preset.id}`}
+      onClick={() => onSelect(preset.id)}
+      className="group flex flex-col items-center gap-2.5 py-4 px-2 rounded-xl border border-white/[0.06] bg-[#0c0c0e] hover:border-white/[0.15] hover:bg-[#141416] transition-colors duration-150 cursor-pointer"
+    >
+      <div className="w-10 h-10 rounded-xl flex items-center justify-center">
+        <Icon className="w-6 h-6" style={{ color: preset.color || "#ffffff" }} />
+      </div>
+      <span className="text-[10px] font-medium text-zinc-400 group-hover:text-white truncate w-full text-center transition-colors">
+        {preset.name}
+      </span>
+    </button>
+  );
+});
+
+const ConnectedLinkRow = React.memo(function ConnectedLinkRow({
+  link,
+  originalIndex,
+  isDragging,
+  onDragStart,
+  onDragOver,
+  onDrop,
+  onDragEnd,
+  onToggleEnabled,
+  onEdit,
+  onRemove,
+}) {
+  const meta = ALL_MAP[link.platform] || {};
+  const Icon = meta.Icon || LinkIcon;
+
+  return (
+    <div
+      data-testid={`link-row-${originalIndex}`}
+      draggable
+      onDragStart={onDragStart}
+      onDragOver={onDragOver}
+      onDrop={onDrop}
+      onDragEnd={onDragEnd}
+      className={`flex cursor-grab items-center gap-3 rounded-xl border p-3 transition-colors duration-150 active:cursor-grabbing ${
+        isDragging
+          ? "border-[#b4bffa]/40 opacity-50 bg-[#0c0c0e]"
+          : "border-white/[0.06] bg-[#0c0c0e] hover:border-white/[0.12]"
+      }`}
+    >
+      <GripVertical className="h-4 w-4 shrink-0 text-zinc-700" aria-hidden />
+
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg">
+        {fileUrl(link.icon_url) ? (
+          <img src={fileUrl(link.icon_url)} alt="" className="h-5 w-5 rounded object-cover" />
+        ) : (
+          <Icon className="h-5 w-5" style={{ color: meta.color || "#9ca3af" }} />
+        )}
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <span className="text-xs font-semibold text-white truncate block">
+          {link.label || meta.name || link.platform}
+        </span>
+        <span className="text-[11px] text-zinc-500 font-mono2 truncate block">
+          {link.url || link.username || "—"}
+        </span>
+      </div>
+
+      <div className="flex shrink-0 items-center gap-1.5">
+        <Switch
+          checked={link.enabled !== false}
+          onCheckedChange={onToggleEnabled}
+          className="data-[state=checked]:bg-[#535978]"
+        />
+        <button
+          type="button"
+          data-testid={`link-edit-${originalIndex}`}
+          onClick={onEdit}
+          className="rounded-lg p-1.5 text-zinc-500 hover:text-white hover:bg-white/[0.06] transition-colors cursor-pointer"
+          title="Edit"
+        >
+          <Edit2 className="h-3.5 w-3.5" />
+        </button>
+        <button
+          type="button"
+          data-testid={`link-delete-${originalIndex}`}
+          onClick={onRemove}
+          className="rounded-lg p-1.5 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
+          title="Delete"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </button>
+      </div>
+    </div>
+  );
+});
+
 
 export default function Links() {
   const { user, setUser } = useAuth();
@@ -329,20 +426,7 @@ export default function Links() {
 
         <div data-testid="link-presets" className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3">
           {PLATFORM_PRESETS.map((p) => (
-            <button
-              key={p.id}
-              type="button"
-              data-testid={`link-preset-${p.id}`}
-              onClick={() => openAddLinkModal(p.id)}
-              className="group flex flex-col items-center gap-2.5 py-4 px-2 rounded-xl border border-white/[0.06] bg-[#0c0c0e] hover:border-white/[0.15] hover:bg-[#141416] transition-all duration-200 cursor-pointer"
-            >
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center">
-                <p.Icon className="w-6 h-6" style={{ color: p.color || "#ffffff" }} />
-              </div>
-              <span className="text-[10px] font-medium text-zinc-400 group-hover:text-white truncate w-full text-center transition-colors">
-                {p.name}
-              </span>
-            </button>
+            <PlatformPresetButton key={p.id} preset={p} onSelect={openAddLinkModal} />
           ))}
         </div>
       </div>
@@ -389,71 +473,22 @@ export default function Links() {
           <div className="space-y-1.5">
             {visibleLinks.map((l) => {
               const i = l.originalIndex;
-              const meta = ALL_MAP[l.platform] || {};
-              const Icon = meta.Icon || LinkIcon;
-
               return (
-                <div
+                <ConnectedLinkRow
                   key={i}
-                  data-testid={`link-row-${i}`}
-                  draggable
+                  link={l}
+                  originalIndex={i}
+                  isDragging={dragIndex === i}
                   onDragStart={() => setDragIndex(i)}
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={() => { moveLink(dragIndex, i); setDragIndex(null); }}
                   onDragEnd={() => setDragIndex(null)}
-                  className={`flex cursor-grab items-center gap-3 rounded-xl border p-3 transition-all duration-150 active:cursor-grabbing ${
-                    dragIndex === i
-                      ? "border-[#b4bffa]/40 opacity-50 bg-[#0c0c0e]"
-                      : "border-white/[0.06] bg-[#0c0c0e] hover:border-white/[0.12]"
-                  }`}
-                >
-                  <GripVertical className="h-4 w-4 shrink-0 text-zinc-700" aria-hidden />
-
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg">
-                    {fileUrl(l.icon_url) ? (
-                      <img src={fileUrl(l.icon_url)} alt="" className="h-5 w-5 rounded object-cover" />
-                    ) : (
-                      <Icon className="h-5 w-5" style={{ color: meta.color || "#9ca3af" }} />
-                    )}
-                  </div>
-
-                  <div className="min-w-0 flex-1">
-                    <span className="text-xs font-semibold text-white truncate block">
-                      {l.label || meta.name || l.platform}
-                    </span>
-                    <span className="text-[11px] text-zinc-500 font-mono2 truncate block">
-                      {l.url || l.username || "—"}
-                    </span>
-                  </div>
-
-                  <div className="flex shrink-0 items-center gap-1.5">
-                    <Switch
-                      checked={l.enabled !== false}
-                      onCheckedChange={(checked) => {
-                        setLinks(links.map((item, idx) => (idx === i ? { ...item, enabled: checked } : item)));
-                      }}
-                      className="data-[state=checked]:bg-[#535978]"
-                    />
-                    <button
-                      type="button"
-                      data-testid={`link-edit-${i}`}
-                      onClick={() => openEditLinkModal(i)}
-                      className="rounded-lg p-1.5 text-zinc-500 hover:text-white hover:bg-white/[0.06] transition cursor-pointer"
-                      title="Edit"
-                    >
-                      <Edit2 className="h-3.5 w-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      data-testid={`link-delete-${i}`}
-                      onClick={() => removeLink(i)}
-                      className="rounded-lg p-1.5 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 transition cursor-pointer"
-                      title="Delete"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                </div>
+                  onToggleEnabled={(checked) => {
+                    setLinks((prev) => prev.map((item, idx) => (idx === i ? { ...item, enabled: checked } : item)));
+                  }}
+                  onEdit={() => openEditLinkModal(i)}
+                  onRemove={() => removeLink(i)}
+                />
               );
             })}
           </div>

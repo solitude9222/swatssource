@@ -2582,22 +2582,25 @@ export default function Editor() {
                     </div>
 
                     {p.entry_style === "image" && (
-                      <div>
-                        <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
-                          Entry Image Stamp
+                      <div className="space-y-2">
+                        <label className="block text-xs font-semibold text-zinc-300">
+                          Entry Image
                         </label>
-                        <div className="flex items-center gap-2.5">
-                          {p.entry_image ? (
-                            <img src={fileUrl(p.entry_image)} alt="" className="h-10 w-10 rounded-xl object-contain bg-black/40 border border-[#2a2a2e] p-1" />
-                          ) : null}
-                          <input
-                            type="text"
-                            value={p.entry_image || ""}
-                            onChange={(e) => set("entry_image", e.target.value)}
-                            placeholder="Paste image URL (or image path)"
-                            className="flex-1 px-3.5 py-2.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs text-white outline-none focus:border-[#b4bffa]"
-                          />
-                        </div>
+                        {p.entry_image && (
+                          <div className="flex items-center gap-3 p-2.5 rounded-xl bg-black/40 border border-[#2a2a2e]">
+                            <img src={fileUrl(p.entry_image)} alt="" className="h-12 w-12 rounded-lg object-contain bg-black/60 p-1" />
+                            <span className="text-xs text-zinc-400 truncate flex-1 font-mono2">{p.entry_image}</span>
+                          </div>
+                        )}
+                        <QuickUpload
+                          testid="entry-image-upload"
+                          label="Entry Image"
+                          buttonLabel={p.entry_image ? "Change Image" : "Upload Image"}
+                          value={p.entry_image}
+                          accept="image/*"
+                          onUploaded={(u) => set("entry_image", u)}
+                          onRemove={() => set("entry_image", "")}
+                        />
                       </div>
                     )}
 

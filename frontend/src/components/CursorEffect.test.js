@@ -86,7 +86,7 @@ const step = (n) => {
   act(() => {
     for (let i = 0; i < n; i += 1) {
       const cb = pending.shift();
-      cb(performance.now());
+      if (typeof cb === "function") cb(performance.now());
     }
   });
 };

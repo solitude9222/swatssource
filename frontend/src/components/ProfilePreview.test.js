@@ -133,7 +133,7 @@ const badgeChip = () =>
 // surviving layout and requires every one of them to differ from every other.
 it("renders a visibly different structure for every layout mode", () => {
   const ids = LAYOUTS.map((l) => l.id);
-  expect(ids).toEqual(["minimal", "floating", "banner", "slideshow"]);
+  expect(ids).toEqual(["minimal", "floating", "banner", "split", "bento", "compact", "slideshow"]);
 
   const html = {};
   for (const layout of ids) {

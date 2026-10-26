@@ -24,7 +24,12 @@ export function OverlayEffect({ effect, color, opacity, zIndex, className = "", 
     if (!id) return undefined;
     const canvas = canvasRef.current;
     if (!canvas) return undefined;
-    const ctx = canvas.getContext("2d");
+    let ctx = null;
+    try {
+      ctx = canvas.getContext ? canvas.getContext("2d") : null;
+    } catch {
+      ctx = null;
+    }
     if (!ctx) return undefined;
 
     let raf = 0;

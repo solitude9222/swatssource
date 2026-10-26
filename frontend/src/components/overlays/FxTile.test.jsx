@@ -35,7 +35,7 @@ it("draws the sample wearing the tile's own effect", () => {
 
   expect(tile.className).toBe("ov-tile-preview");
   const word = tile.querySelector(".ov-tile-word");
-  expect(word.textContent).toBe("swats");
+  expect(word.textContent).toBe("tourn");
   expect(word.className).toContain("fx-text-rainbow");
 });
 
@@ -45,7 +45,7 @@ it("draws the plain sample for None", () => {
   expect(tile.querySelector(".ov-tile-word").className).not.toContain("fx-text-");
   // The sample is still there: "None" means the card without the effect, not an
   // empty box.
-  expect(tile.querySelector(".ov-tile-word").textContent).toBe("swats");
+  expect(tile.querySelector(".ov-tile-word").textContent).toBe("tourn");
 });
 
 it("mounts a tile's effect only while the tile is on screen", () => {

@@ -254,9 +254,10 @@ export default function Overview() {
                 <span className="text-lg font-bold text-white truncate max-w-[200px]">
                   {user.display_name || user.username}
                 </span>
-                <span
+                <Link
+                  to="/!/pricing"
                   data-testid="stat-tier"
-                  className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide ${
+                  className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide hover:border-white/20 transition ${
                     isPremium
                       ? "border-amber-400/25 bg-amber-400/[0.08] text-amber-300"
                       : "border-white/[0.07] bg-white/[0.03] text-zinc-500"
@@ -264,7 +265,7 @@ export default function Overview() {
                 >
                   {isPremium && <Crown className="h-2.5 w-2.5" />}
                   {tier}
-                </span>
+                </Link>
               </div>
               <div className="mt-0.5 flex items-center gap-2 text-xs text-zinc-500">
                 <span data-testid="stat-username" className="font-mono2">@{user.username}</span>

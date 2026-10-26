@@ -260,33 +260,15 @@ export default function PublicProfile() {
           onClick={pinActive ? undefined : handleEnter}
         >
           {p.entry_style === "image" ? (
-            <div className="flex flex-col items-center gap-3 text-center p-4">
-              {p.entry_image ? (
-                <img
-                  src={fileUrl(p.entry_image)}
-                  alt="Click to enter"
-                  className="max-w-[220px] max-h-[220px] object-contain drop-shadow-[0_0_25px_rgba(255,255,255,0.25)] hover:scale-105 transition-transform duration-300"
-                  style={{
-                    filter: `drop-shadow(0 0 20px ${entryGlow}88)`,
-                  }}
-                />
-              ) : (
-                <div
-                  className="w-24 h-24 rounded-2xl border border-white/20 flex items-center justify-center text-zinc-400 bg-white/5 hover:scale-105 transition-transform"
-                  style={{ boxShadow: `0 0 30px ${entryGlow}44` }}
-                >
-                  <img src="/logo.png" alt="" className="w-12 h-12 object-contain" />
-                </div>
-              )}
-              <div
-                className="text-xs font-semibold tracking-wider hover:brightness-110 transition drop-shadow-[0_0_12px_rgba(255,255,255,0.5)]"
-                style={{ fontFamily: entryFont, color: entryTextColor }}
-              >
-                {p.entry_text || "Click to enter"}
-              </div>
-              {p.entry_subtext && (
-                <div className="text-[11px] font-mono2 text-zinc-400 uppercase tracking-wider">{p.entry_subtext}</div>
-              )}
+            <div className="flex items-center justify-center p-4">
+              <img
+                src={p.entry_image ? fileUrl(p.entry_image) : "/logo.png"}
+                alt="Click to enter"
+                className="max-w-[90vw] max-h-[80vh] sm:max-w-xl sm:max-h-[560px] object-contain drop-shadow-[0_0_40px_rgba(255,255,255,0.25)] hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer select-none"
+                style={{
+                  filter: `drop-shadow(0 0 35px ${entryGlow}aa)`,
+                }}
+              />
             </div>
           ) : p.entry_style === "text" ? (
             <div className="flex flex-col items-center gap-2.5 text-center p-4">

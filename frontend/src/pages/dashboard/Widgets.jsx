@@ -25,6 +25,7 @@ import { SiRoblox, SiValorant, SiSupercell } from "react-icons/si";
 import { ColorPicker } from "@/components/ColorPicker";
 import { SmartSelect } from "@/components/ui-shared/SmartSelect";
 import { PremiumGate } from "@/components/ui-shared/PremiumGate";
+import { DEFAULT_PREVIEW_WIDGETS } from "@/constants/widgetExamples";
 
 export const PRESET_CITIES = [
   "New York", "London", "Tokyo", "Paris", "Los Angeles", "Toronto",
@@ -639,13 +640,15 @@ export default function Widgets() {
   const savedTimer = useRef(null);
 
   const activeWidgets = useMemo(() => widgets.filter((w) => w.enabled !== false), [widgets]);
+  const previewList = activeWidgets.length > 0 ? activeWidgets : DEFAULT_PREVIEW_WIDGETS;
+  const isExamplePreview = activeWidgets.length === 0;
   const [activePreviewIdx, setActivePreviewIdx] = useState(0);
 
   useEffect(() => {
-    if (activeWidgets.length > 0 && activePreviewIdx >= activeWidgets.length) {
+    if (previewList.length > 0 && activePreviewIdx >= previewList.length) {
       setActivePreviewIdx(0);
     }
-  }, [activeWidgets.length, activePreviewIdx]);
+  }, [previewList.length, activePreviewIdx]);
 
   const currentShared = { borderWidth, borderOpacity, borderColor, bgColor, bgOpacity, bgBlur, padding, density, widget_popups: widgetPopups };
   const baseline = useRef(
@@ -1727,24 +1730,31 @@ export default function Widgets() {
         {/* Right: Preview Panel */}
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Preview</span>
-            {activeWidgets.length > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Preview</span>
+              {isExamplePreview && (
+                <span className="text-[10px] font-mono2 px-1.5 py-0.5 rounded bg-brand-500/15 border border-brand-400/25 text-brand-300 font-bold uppercase">
+                  Example Preview
+                </span>
+              )}
+            </div>
+            {previewList.length > 0 && (
               <div className="flex items-center gap-1 bg-white/[0.04] border border-white/10 px-2 py-1 rounded-lg">
                 <span className="text-[10px] font-medium text-zinc-400">
-                  <span className="text-brand-300 font-bold">{activePreviewIdx + 1}</span>/{activeWidgets.length}
+                  <span className="text-brand-300 font-bold">{(activePreviewIdx % previewList.length) + 1}</span>/{previewList.length}
                 </span>
                 <button
                   type="button"
-                  disabled={activeWidgets.length <= 1}
-                  onClick={() => setActivePreviewIdx((i) => (i - 1 + activeWidgets.length) % activeWidgets.length)}
+                  disabled={previewList.length <= 1}
+                  onClick={() => setActivePreviewIdx((i) => (i - 1 + previewList.length) % previewList.length)}
                   className="p-0.5 rounded hover:bg-white/10 text-zinc-500 hover:text-white disabled:opacity-30 transition cursor-pointer"
                 >
                   <ChevronLeft className="w-3 h-3" />
                 </button>
                 <button
                   type="button"
-                  disabled={activeWidgets.length <= 1}
-                  onClick={() => setActivePreviewIdx((i) => (i + 1) % activeWidgets.length)}
+                  disabled={previewList.length <= 1}
+                  onClick={() => setActivePreviewIdx((i) => (i + 1) % previewList.length)}
                   className="p-0.5 rounded hover:bg-white/10 text-zinc-500 hover:text-white disabled:opacity-30 transition cursor-pointer"
                 >
                   <ChevronRight className="w-3 h-3" />
@@ -1754,11 +1764,11 @@ export default function Widgets() {
           </div>
 
           <div className="flex-1 rounded-2xl bg-[#070709] border border-white/[0.06] flex flex-col items-center justify-center gap-4 p-5 min-h-[220px]">
-            {activeWidgets.length > 0 ? (
+            {previewList.length > 0 && (
               <>
                 <RealLiveWidgetPreview
-                  widget={activeWidgets[activePreviewIdx]}
-                  kind={KIND_MAP[activeWidgets[activePreviewIdx]?.type] || { label: activeWidgets[activePreviewIdx]?.type || "Widget" }}
+                  widget={previewList[activePreviewIdx % previewList.length]}
+                  kind={KIND_MAP[previewList[activePreviewIdx % previewList.length]?.type] || { label: previewList[activePreviewIdx % previewList.length]?.type || "Widget" }}
                   styleOverride={{
                     borderRadius: "18px",
                     borderWidth: `${borderWidth}px`,
@@ -1771,75 +1781,23 @@ export default function Widgets() {
                   }}
                 />
 
-                {/* Dots indicator for active widgets */}
-                {activeWidgets.length > 1 && (
+                {/* Dots indicator for active/example widgets */}
+                {previewList.length > 1 && (
                   <div className="flex items-center gap-1.5 pt-1">
-                    {activeWidgets.map((w, idx) => (
+                    {previewList.map((w, idx) => (
                       <button
                         key={idx}
                         type="button"
                         onClick={() => setActivePreviewIdx(idx)}
                         title={w.title || w.type}
                         className={`h-1.5 rounded-full transition-all cursor-pointer ${
-                          idx === activePreviewIdx ? "w-6 bg-brand-400" : "w-1.5 bg-white/20 hover:bg-white/40"
+                          idx === (activePreviewIdx % previewList.length) ? "w-6 bg-brand-400" : "w-1.5 bg-white/20 hover:bg-white/40"
                         }`}
                       />
                     ))}
                   </div>
                 )}
               </>
-            ) : (
-              <div
-                className="w-full max-w-md p-4 transition-all duration-200 space-y-3 relative overflow-hidden text-left"
-                style={{
-                  borderRadius: "18px",
-                  borderWidth: `${borderWidth}px`,
-                  borderStyle: borderWidth > 0 ? "solid" : "none",
-                  borderColor: hexOrRgba(borderColor, borderOpacity * 100),
-                  backgroundColor: hexOrRgba(bgColor, bgOpacity * 100),
-                  backdropFilter: bgBlur > 0 ? `blur(${bgBlur}px)` : "none",
-                  WebkitBackdropFilter: bgBlur > 0 ? `blur(${bgBlur}px)` : "none",
-                  boxShadow: "0 8px 32px rgba(0,0,0,0.45)",
-                }}
-              >
-              {/* Header row */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-lg bg-[#5865F2]/20 border border-[#5865F2]/40 flex items-center justify-center">
-                      <FaDiscord className="w-4 h-4 text-[#5865F2]" />
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-5 h-5 rounded-md bg-[#5865F2]/15 border border-[#5865F2]/30 flex items-center justify-center">
-                      <FaDiscord className="w-2.5 h-2.5 text-[#5865F2]" />
-                    </div>
-                    <div className="w-6 h-6 rounded-md bg-white/5 flex items-center justify-center text-zinc-400">
-                      <ExternalLink className="w-3 h-3" />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Title & subtitle */}
-                <div>
-                  <div className="text-sm font-bold text-white">tourn.lol</div>
-                  <div className="text-xs text-zinc-400 mt-0.5 line-clamp-2">
-                    The modern solution for your personal biolink website. Simple, fast, and fully customizable.
-                  </div>
-                </div>
-
-                {/* Stats row */}
-                <div className="flex items-center gap-3 pt-1 text-xs">
-                  <span className="flex items-center gap-1.5 text-emerald-400 font-medium">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#34d399]" />
-                    23 Online
-                  </span>
-                  <span className="text-zinc-400">466 Members</span>
-                  <span className="text-purple-400 font-medium flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />
-                    Level 3
-                  </span>
-                </div>
-              </div>
             )}
           </div>
         </div>
