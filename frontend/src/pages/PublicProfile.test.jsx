@@ -192,15 +192,10 @@ it("ignores the retired 18+ flag and shows the profile straight away", async () 
 
 it("keeps the footer nudge by default", async () => {
   await mount();
-  // The footer is the short logotype pill: logo + "swats", not the long
-  // "made with swats.bio" string it used to render, and it hugs its own content
-  // (no stretched glass bar across the bottom of the page).
-  expect(container.textContent).toContain("swats");
   const pill = container.querySelector('[data-testid="profile-footer-pill"]');
   expect(pill).toBeTruthy();
-  expect(pill.className).toContain("w-auto");
-  expect(pill.className).toContain("text-[10px]");
-  expect(pill.className).not.toContain("px-3");
+  expect(pill.getAttribute("href")).toBe("/!/home");
+  expect(pill.querySelector("img")).toBeTruthy();
 });
 
 it("hides the footer nudge when the owner has paid for that", async () => {

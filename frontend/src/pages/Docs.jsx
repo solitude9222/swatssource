@@ -84,7 +84,7 @@ export const DOC_GROUPS = [
         title: "Widgets",
         summary: "Live third-party data on your page.",
         blocks: [
-          ["Available widgets", "Discord, Spotify, Valorant, Roblox, GitHub, YouTube, Steam, TikTok, SoundCloud, Timezone and Account Date. Custom Code is Premium."],
+          ["Available widgets", "Discord, Spotify, Valorant, Roblox, GitHub, YouTube, Steam, SoundCloud, Timezone and Account Date. Custom Code is Premium."],
           ["Live data", "Widgets read from the backend proxy, not from the visitor's browser. Third-party keys stay on the server and are never exposed to visitors. A provider being down can temporarily blank a widget without breaking the page."],
           ["Limits", "A profile can hold up to 40 widgets. Identical widget types can be repeated where the provider allows it."],
         ],

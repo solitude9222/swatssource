@@ -19,6 +19,9 @@ export const LAYOUTS = [
   { id: "minimal", label: "Minimal", hint: "Wide card: avatar on the left, everything stacked underneath, audio in its own box" },
   { id: "floating", label: "Floating Avatar", hint: "Narrow centred card with the avatar floating half on and half off the top" },
   { id: "banner", label: "Banner", hint: "Hero banner with an overlapping avatar, pill links, and a bottom widget card" },
+  { id: "split", label: "Dual Column (Split)", hint: "Side-by-side: profile & bio on the left, live widgets & music on the right" },
+  { id: "bento", label: "Bento Grid", hint: "Modern modular bento grid with balanced tiles for avatar, bio, links, and widgets" },
+  { id: "compact", label: "Compact Grid", hint: "Streamlined high-density card with side-by-side elements" },
   { id: "slideshow", label: "Slideshow", hint: "Fullpage scroll slides with side dot navigation", premium: true },
 ];
 
@@ -27,9 +30,7 @@ export const LAYOUT_MAP = Object.fromEntries(LAYOUTS.map((l) => [l.id, l]));
 export const isPremiumLayout = (id) => !!LAYOUT_MAP[id]?.premium;
 export const isLayout = (id) => LAYOUT_IDS.includes(id);
 
-// The layouts that no longer exist. A profile saved on one of them renders as
-// `DEFAULT_LAYOUT` instead of as a layout whose renderer is gone, and the
-// backend maps them the same way when a profile is saved (routes/profile.js).
+// The layouts that no longer exist.
 export const REMOVED_LAYOUTS = [
   "classic",
   "rail",
@@ -39,10 +40,6 @@ export const REMOVED_LAYOUTS = [
   "divider",
   "showcase",
   "nowplaying",
-  // Existing profiles may still be saved on Compact. It was Minimal with the
-  // widgets and player tucked inside the same card, which is not a difference
-  // worth a second renderer to keep in sync, so it resolves to Minimal now.
-  "compact",
 ];
 
 export const DEFAULT_LAYOUT = "minimal";
@@ -50,17 +47,14 @@ export const DEFAULT_LAYOUT = "minimal";
 /** The layout a profile actually renders as: its own choice, or the default. */
 export const resolveLayout = (id) => (LAYOUT_MAP[id] ? id : DEFAULT_LAYOUT);
 
-// Where the audio player sits is part of the shell a layout describes, not a
-// second unrelated choice: a wide card keeps the player in its own audio box,
-// the floating card lets it ride along the bottom edge, and the banner has a
-// hero header with an empty right side to pin it to. "" means the player stays
-// inside the card. Profiles used to store this as `track_position`; that field
-// is no longer written, so old values simply stop applying.
 export const TRACK_POSITION_BY_LAYOUT = {
   minimal: "",
   floating: "bottom-center",
   banner: "top-right",
   slideshow: "",
+  split: "",
+  bento: "",
+  compact: "",
 };
 
 export const TRACK_POSITION_LABELS = {

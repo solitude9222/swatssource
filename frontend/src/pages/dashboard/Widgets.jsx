@@ -160,7 +160,6 @@ export const getWidgetArtworkOptions = (widget) => {
         { value: "banner", label: "Sky & weather scenery" },
         { value: "avatar", label: "Weather condition icon" },
       ];
-    case "tiktok":
     case "soundcloud":
       return [
         { value: "none", label: "None" },
@@ -342,7 +341,6 @@ export const getWidgetDisplayOptions = (widget) => {
         { key: "stats_row", label: "Time row", desc: "Display time and date status line." },
       ];
       break;
-    case "tiktok":
     case "soundcloud":
       specific = [
         { key: "show_online", label: "Creator name", desc: "Show author or video producer." },
@@ -402,7 +400,7 @@ export const getWidgetDisplayOptions = (widget) => {
 
 const getInitialArtworkBg = (kindId) => {
   if (kindId === "discord") return "splash";
-  if (["youtube", "spotify", "twitch", "tiktok", "soundcloud", "lastfm", "statsfm", "roblox"].includes(kindId)) return "thumbnail";
+  if (["youtube", "spotify", "twitch", "soundcloud", "lastfm", "statsfm", "roblox"].includes(kindId)) return "thumbnail";
   if (kindId === "steam") return "game";
   if (["github", "minecraft"].includes(kindId)) return "avatar";
   return "none";
@@ -453,17 +451,9 @@ export const WIDGET_PRESETS = {
   discord: {
     type: "discord",
     subtype: "server",
-    invite_url: "discord.gg/ivera",
-    server_name: "ivera",
-    title: "ivera",
-    mockData: {
-      name: "ivera",
-      online: 1420,
-      total_members: 8950,
-      icon: "https://cdn.discordapp.com/icons/613712999795015681/a_1b2c3d4e.png",
-      splash: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80",
-      description: "Official community server for tourn.lol creators.",
-    },
+    invite_url: "https://discord.gg/tournlol",
+    server_name: "tourn.lol",
+    title: "Discord",
   },
   spotify: {
     type: "spotify",
@@ -471,128 +461,45 @@ export const WIDGET_PRESETS = {
     title: "She's Everything",
     artist: "Brad Paisley",
     track: "She's Everything",
-    mockData: {
-      title: "She's Everything",
-      author: "Brad Paisley",
-      thumbnail: "https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e02fc117d21aee734d714d132fe",
-      duration: "4:26",
-    },
   },
   roblox: {
     type: "roblox",
     subtype: "profile",
-    username: "builderman",
-    title: "Builderman",
-    mockData: {
-      name: "Builderman",
-      username: "builderman",
-      display_name: "Builderman",
-      avatar: "https://images.rbxcdn.com/264b38345ab2d3856bcbb9024f0c78a0.png",
-      presence: "Online",
-      friends: 84,
-      followers: 72400000,
-      about: "Official Roblox CEO & Founder profile.",
-      joined_date: "18 years ago",
-    },
+    username: "",
+    title: "Roblox",
   },
   github: {
     type: "github",
     subtype: "user",
-    username: "torvalds",
-    title: "Linus Torvalds",
-    mockData: {
-      username: "torvalds",
-      name: "Linus Torvalds",
-      avatar: "https://avatars.githubusercontent.com/u/1024025?v=4",
-      bio: "Creator of Linux and Git.",
-      followers: 242000,
-      following: 0,
-      repos: 12,
-      company: "Linux Foundation",
-      created_at: "2011-09-03T00:00:00Z",
-    },
+    username: "",
+    title: "GitHub",
   },
   youtube: {
     type: "youtube",
-    channel: "https://www.youtube.com/@tournlol",
-    title: "tourn.lol",
-    mockData: {
-      title: "tourn.lol",
-      handle: "@tournlol",
-      avatar: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=200&auto=format&fit=crop&q=80",
-      stats: {
-        subscribers: 28400,
-        video_count: 52,
-        view_count: 3200000,
-      },
-      online: true,
-    },
+    channel: "",
+    title: "YouTube",
   },
   steam: {
     type: "steam",
-    username: "GabeLoganNewell",
-    title: "Gabe Newell",
-    mockData: {
-      persona: "Gabe Newell",
-      avatar: "https://avatars.akamai.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg",
-      online: true,
-      current_game: "Counter-Strike 2",
-      state_message: "Currently in-game: Counter-Strike 2",
-      level: 124,
-    },
-  },
-  tiktok: {
-    type: "tiktok",
-    username: "welovekoni",
-    url: "https://www.tiktok.com/@welovekoni",
-    title: "welovekoni",
-    mockData: {
-      author: "welovekoni",
-      author_name: "welovekoni",
-      thumbnail: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80",
-      followers: 148500,
-      likes: 2400000,
-      bio: "tourn.lol verified creator showcase.",
-    },
+    username: "",
+    title: "Steam",
   },
   soundcloud: {
     type: "soundcloud",
     subtype: "profile",
     username: "bondages",
     url: "https://soundcloud.com/bondages",
-    title: "goreshyt",
-    mockData: {
-      title: "goreshyt",
-      author: "goreshyt",
-      author_name: "goreshyt",
-      author_url: "https://soundcloud.com/bondages",
-      thumbnail: "https://i1.sndcdn.com/avatars-P5eC0qmzsl2LVQtY-deRPow-t500x500.jpg",
-      is_profile: true,
-    },
+    title: "SoundCloud",
   },
   valorant: {
     type: "valorant",
-    riot_id: "TenZ#0001",
-    title: "TenZ#0001",
-    mockData: {
-      name: "TenZ",
-      tag: "0001",
-      rank: "Radiant",
-      rr: 840,
-      level: 420,
-    },
+    riot_id: "",
+    title: "Valorant",
   },
   weather: {
     type: "weather",
     value: "Tokyo",
     title: "Tokyo",
-    mockData: {
-      city: "Tokyo",
-      temp_c: 22,
-      temp_f: 72,
-      condition: "Sunny",
-      humidity: 48,
-    },
   },
   timezone: {
     type: "timezone",
@@ -608,11 +515,6 @@ export const WIDGET_PRESETS = {
     type: "minecraft",
     value: "mc.hypixel.net",
     title: "Hypixel Network",
-    mockData: {
-      online: true,
-      players: { online: 48210, max: 100000 },
-      motd: "Hypixel Network [1.8-1.20]",
-    },
   },
   games: {
     type: "games",
@@ -629,69 +531,33 @@ export const WIDGET_PRESETS = {
   },
   lastfm: {
     type: "lastfm",
-    username: "welovekoni",
-    title: "welovekoni",
-    mockData: {
-      username: "welovekoni",
-      scrobbles: 14820,
-      top_artist: "The Weeknd",
-      recent_track: "Starboy",
-    },
+    username: "",
+    title: "Last.fm",
   },
   statsfm: {
     type: "statsfm",
-    username: "welovekoni",
-    title: "welovekoni",
-    mockData: {
-      username: "welovekoni",
-      minutes_streamed: 84200,
-      top_track: "Starboy",
-      top_artist: "The Weeknd",
-    },
+    username: "",
+    title: "stats.fm",
   },
   twitch: {
     type: "twitch",
-    channel: "shroud",
-    title: "shroud",
-    mockData: {
-      channel: "shroud",
-      name: "shroud",
-      online: true,
-      game: "Valorant",
-      viewers: 18450,
-      avatar: "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=200&auto=format&fit=crop&q=80",
-    },
+    channel: "",
+    title: "Twitch",
   },
   "clash-of-clans": {
     type: "clash-of-clans",
-    value: "#9PPP02V2",
+    value: "",
     title: "Clash of Clans",
-    mockData: {
-      name: "Chief",
-      townHallLevel: 16,
-      trophies: 5400,
-      clan: { name: "Champions" },
-    },
   },
   "clash-royale": {
     type: "clash-royale",
-    value: "#8L9L9GL",
+    value: "",
     title: "Clash Royale",
-    mockData: {
-      name: "King",
-      arena: { name: "Ultimate Champion" },
-      trophies: 9000,
-    },
   },
   "brawl-stars": {
     type: "brawl-stars",
-    value: "#2P0LY9Y9",
+    value: "",
     title: "Brawl Stars",
-    mockData: {
-      name: "Brawler",
-      trophies: 34500,
-      club: { name: "Mythic Club" },
-    },
   },
 };
 
@@ -710,7 +576,6 @@ export function getPreviewWidget(widget) {
   if (hasUserInput) {
     return {
       ...widget,
-      mockData: widget.mockData || preset.mockData,
     };
   }
 
@@ -718,7 +583,6 @@ export function getPreviewWidget(widget) {
     ...preset,
     ...widget,
     title: widget.title || preset.title,
-    mockData: preset.mockData,
   };
 }
 
@@ -762,6 +626,7 @@ export default function Widgets() {
     Number.isFinite(Number(user.profile?.widget_padding)) ? Number(user.profile.widget_padding) : DEFAULT_SHARED.padding
   );
   const [density, setDensity] = useState(user.profile?.widget_density || DEFAULT_SHARED.density);
+  const [widgetPopups, setWidgetPopups] = useState(user.profile?.widget_popups !== false);
 
   // Audio state
   const [tracks, setTracks] = useState(user.profile?.tracks || []);
@@ -782,7 +647,7 @@ export default function Widgets() {
     }
   }, [activeWidgets.length, activePreviewIdx]);
 
-  const currentShared = { borderWidth, borderOpacity, borderColor, bgColor, bgOpacity, bgBlur, padding, density };
+  const currentShared = { borderWidth, borderOpacity, borderColor, bgColor, bgOpacity, bgBlur, padding, density, widget_popups: widgetPopups };
   const baseline = useRef(
     snapshot(
       user.profile?.widgets || [],
@@ -925,6 +790,7 @@ export default function Widgets() {
         widget_bg_blur: bgBlur,
         widget_padding: padding,
         widget_density: density,
+        widget_popups: widgetPopups,
         tracks,
         track_style: trackStyle,
         track_shuffle: shuffle,
@@ -1834,6 +1700,27 @@ export default function Widgets() {
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* 9. Global Widget Popups Toggle */}
+          <div className="p-4 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] flex items-center justify-between sm:col-span-2">
+            <div>
+              <div className="text-xs font-semibold text-zinc-200">Global Widget Popups</div>
+              <div className="text-[11px] text-zinc-400 mt-0.5">Enable or disable modal dialogue popups across all widgets platform-wide</div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setWidgetPopups(!widgetPopups)}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                widgetPopups ? "bg-[#b4bffa]" : "bg-zinc-700"
+              }`}
+            >
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-black shadow-lg ring-0 transition duration-200 ease-in-out ${
+                  widgetPopups ? "translate-x-5" : "translate-x-0"
+                }`}
+              />
+            </button>
           </div>
         </div>
 

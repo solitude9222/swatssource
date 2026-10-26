@@ -53,9 +53,9 @@ it("renders the real widget components instead of hand-built mock cards", () => 
   const { el, cleanup } = mount();
 
   const cards = el.querySelectorAll('[data-testid="real-widget-card"]');
-  expect(cards).toHaveLength(5);
+  expect(cards).toHaveLength(4);
   expect([...cards].map((c) => c.getAttribute("data-type"))).toEqual([
-    "spotify", "soundcloud", "tiktok", "discord", "discord",
+    "spotify", "soundcloud", "discord", "discord",
   ]);
   expect([...cards].filter((c) => c.getAttribute("data-subtype") === "server")).toHaveLength(1);
 
@@ -82,7 +82,7 @@ it("tilts the cards with the pointer", () => {
   // Every card carries a resting 3D tilt, so the band reads as tilted even
   // before a pointer arrives (and on reduced-motion machines).
   const tilts = el.querySelectorAll('[data-testid^="tilt-"]');
-  expect(tilts).toHaveLength(5);
+  expect(tilts).toHaveLength(4);
   expect(tilts[0].getAttribute("style")).toContain("rotateX(12deg)");
   // The card itself is lifted off the tilted plane, which is what sells the depth.
   expect(tilts[0].querySelector('div[style*="translateZ(34px)"]')).toBeTruthy();

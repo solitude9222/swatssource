@@ -154,11 +154,8 @@ function baseWidgetRequest(w) {
     return { path: "/widgets/discord/server", params, ttl: LIVE_TTL };
   }
 
-  if (type === "spotify" || type === "soundcloud" || type === "tiktok") {
+  if (type === "spotify" || type === "soundcloud") {
     let url = String(w.url || w.value || "").trim();
-    if (!url && type === "tiktok" && w.username) {
-      url = `https://www.tiktok.com/@${String(w.username).replace(/^@/, "")}`;
-    }
     if (!url && type === "soundcloud" && w.username) {
       url = `https://soundcloud.com/${String(w.username).replace(/^@/, "")}`;
     }
@@ -246,7 +243,6 @@ export function widgetKey(w, owner) {
  * `refreshSec` keeps presence-style widgets current without a page reload.
  */
 export function useWidgetData(w, { refreshSec = 0, auto = AUTO_FETCH, owner = "" } = {}) {
-  const mock = w?.mockData || w?.data || null;
   const request = useMemo(() => widgetRequest(w, owner), [w, owner]);
   const key = request ? widgetKey(w, owner) : null;
 
@@ -290,15 +286,6 @@ export function useWidgetData(w, { refreshSec = 0, auto = AUTO_FETCH, owner = ""
     return {
       status: "success",
       data: realData,
-      error: null,
-      refresh,
-    };
-  }
-
-  if (mock) {
-    return {
-      status: "success",
-      data: mock,
       error: null,
       refresh,
     };

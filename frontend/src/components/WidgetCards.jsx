@@ -7,13 +7,14 @@ import { WIDGET_SURFACE_DEFAULTS, POPULAR_GAMES_PRESETS } from "@/constants/widg
 import { useTooltip, resolveTooltipStyle } from "@/components/FxTooltip";
 import { resolveLayout } from "@/constants/layouts";
 import {
-  AlertTriangle, ArrowRight, Building2, Calendar, Check, Clock, Code2,
+  AlertTriangle, ArrowRight, Building2, Calendar, Check, Clock, Code2, Copy,
   ExternalLink, Globe, Info, MapPin, Pause, Play, RefreshCw, Sparkles, Star,
   Users, Volume2, X, Gamepad2, FolderGit2, Palette,
   CloudSun, Sun, Cloud, CloudRain, CloudSnow, CloudLightning, Wind, Droplets, Thermometer,
 } from "lucide-react";
+import { toast } from "@/lib/notify";
 import {
-  FaDiscord, FaGithub, FaSoundcloud, FaSpotify, FaSteam, FaTiktok, FaYoutube,
+  FaDiscord, FaGithub, FaSoundcloud, FaSpotify, FaSteam, FaYoutube,
 } from "react-icons/fa6";
 import { SiRoblox, SiValorant } from "react-icons/si";
 
@@ -32,7 +33,6 @@ const BRAND_ICON = {
   youtube: FaYoutube,
   github: FaGithub,
   steam: FaSteam,
-  tiktok: FaTiktok,
   soundcloud: FaSoundcloud,
   valorant: SiValorant,
   timezone: Clock,
@@ -285,10 +285,6 @@ export function resolveWidgetUrl(w, data) {
     if (w?.custom_url) return `https://steamcommunity.com/id/${w.custom_url}`;
     if (data?.profileurl) return data.profileurl;
   }
-  if (t === "tiktok") {
-    if (w?.username) return `https://www.tiktok.com/@${String(w.username).replace(/^@/, '')}`;
-    if (data?.url) return data.url;
-  }
   if (t === "kick") {
     if (w?.channel) return `https://kick.com/${w.channel}`;
   }
@@ -357,22 +353,27 @@ function WidgetShell({
   const customPad = w?.card_padding != null ? Number(w.card_padding) : (sharedProfile?.widget_padding != null ? Number(sharedProfile.widget_padding) : null);
   // Widget Density styles: Minimal (Thin), Compact, Normal
   let pad = "p-3 sm:p-3.5";
+  let minHStyle = {};
   if (customPad != null) {
     pad = "";
   } else if (density === "minimal") {
     pad = "px-3 py-1.5 sm:px-3.5 sm:py-2";
+    minHStyle = { minHeight: "56px" };
   } else if (density === "compact") {
     pad = "p-2.5 sm:p-3";
+    minHStyle = { minHeight: "76px" };
   } else {
-    // Compact normal padding for sleek cards
+    // normal
     pad = "p-3.5 sm:p-4";
+    minHStyle = { minHeight: "96px" };
   }
   const padStyle = customPad != null ? { padding: `${customPad}px` } : undefined;
   const bgEnabled = w?.background !== false && w?.bg_enabled !== false && w?.show_bg !== false && !w?.transparent && w?.card_style !== "transparent";
   const { tipProps, tipNode } = useTooltip(w?.tooltip);
   const popoutUrl = resolveWidgetUrl(w, data);
   const openStyle = w?.open_style || "button";
-  const popupsEnabled = w?.popups !== false && w?.popup !== false;
+  const globalPopups = sharedProfile?.widget_popups !== false && sharedProfile?.popups_enabled !== false;
+  const popupsEnabled = globalPopups && w?.popups !== false && w?.popup !== false;
   const popupToggle = popupsEnabled && Boolean(w?.popup_toggle || w?.info_modal || w?.popups);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
 
@@ -543,15 +544,15 @@ function WidgetShell({
       data-menu-href={popoutUrl || ""}
       data-menu-name={headerTitle || w?.title || w?.type || "Widget"}
       {...tipProps}
-      className={`${full ? "col-span-2" : ""} flex flex-col text-left transition duration-300 ${className}`}
+      className={`${full ? "sm:col-span-2" : ""} flex flex-col h-full text-left transition duration-300 ${className}`}
     >
       {/* Inner Card */}
       {raw ? (
         children
       ) : (
         <div
-          className={`${pad} text-left relative overflow-hidden transition duration-300 ${bgEnabled ? "widget-card-sheen" : ""} ${isClickableCard ? "cursor-pointer hover:brightness-110 active:scale-[0.99]" : ""} ${innerClassName}`}
-          style={{ ...surface, ...padStyle, ...innerStyle }}
+          className={`${pad} text-left relative overflow-hidden transition duration-300 flex-1 flex flex-col justify-between ${bgEnabled ? "widget-card-sheen" : ""} ${isClickableCard ? "cursor-pointer hover:brightness-110 active:scale-[0.99]" : ""} ${innerClassName}`}
+          style={{ ...surface, ...padStyle, ...minHStyle, ...innerStyle }}
           onClick={isClickableCard ? handleOpenAction : undefined}
           data-testid={isClickableCard ? "widget-popout-link" : undefined}
           role={isClickableCard ? "button" : undefined}
@@ -2243,96 +2244,7 @@ function CustomCard({ w, accent }) {
   );
 }
 
-// ---------------------------------------------------------------------------
-// TikTok Creator Profile Showcase (With custom banners & pure monochrome aesthetic)
-// ---------------------------------------------------------------------------
 
-function TikTokCard({ w, accent, data, status, error, refresh }) {
-  if (status === "loading") return <Skeleton />;
-
-  const rawUrl = data?.url || data?.page_url || w?.url || "";
-  const rawHandle = data?.author || w?.username || (rawUrl ? rawUrl.replace(/^https?:\/\/(?:www\.)?tiktok\.com\/@?/i, "").replace(/[\/?].*$/, "") : "welovekoni");
-  const handle = String(rawHandle || "welovekoni").replace(/^@/, "");
-  const displayName = data?.author_name || data?.name || (data?.title ? data.title.replace(/'s Creator Profile$/i, "") : `@${handle}`);
-  const avatar = data?.thumbnail || data?.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80";
-  const followers = data?.followers ? formatCount(data.followers) : "148.5K";
-  const likes = data?.likes ? formatCount(data.likes) : "2.4M";
-  const pageUrl = data?.url || data?.page_url || (w?.url ? w.url : `https://www.tiktok.com/@${handle}`);
-  const banner = fileUrl(w?.banner_url) || data?.banner || "";
-  const bio = data?.bio || (w?.username ? "" : "Official TikTok Creator");
-
-  if (status !== "success" || !data) {
-    if (!w?.url && !w?.username) {
-      return (
-        <WidgetError
-          w={w}
-          accent={accent}
-          Icon={FaTiktok}
-          message={error || "Enter your TikTok username (@handle) or video link."}
-          onRetry={refresh}
-        />
-      );
-    }
-  }
-
-  return (
-    <div className="relative text-white select-none py-0.5">
-      {/* Optional Creator Header Banner */}
-      {banner && (
-        <div className="relative -mx-3.5 -mt-3.5 mb-2.5 h-16 overflow-hidden rounded-t-xl border-b border-white/10">
-          <img src={banner} alt="" className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0c0d12] to-transparent" />
-        </div>
-      )}
-
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3 min-w-0 flex-1">
-          {/* Circular avatar with verified checkmark */}
-          <div className="relative shrink-0">
-            <div className="w-12 h-12 rounded-full overflow-hidden border border-white/20 bg-zinc-900 shadow-md">
-              <img src={avatar} alt={handle} className="w-full h-full object-cover" />
-            </div>
-            <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-white text-black flex items-center justify-center text-[9px] font-bold shadow-sm">
-              ✓
-            </div>
-          </div>
-
-          {/* Creator Information */}
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-1.5 leading-tight">
-              <span className="text-sm font-bold text-white truncate">{displayName}</span>
-              <FaTiktok className="w-3 h-3 text-zinc-400 shrink-0" />
-            </div>
-            <div className="text-[11px] text-zinc-400 font-mono2 truncate mt-0.5">
-              @{handle}
-            </div>
-            <div className="text-xs font-semibold text-white truncate mt-1">
-              {followers} Followers · {likes} Likes
-            </div>
-          </div>
-        </div>
-
-        {/* Watch / Open Button */}
-        {pageUrl && (
-          <WidgetInternalButton
-            href={pageUrl}
-            className="shrink-0 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-semibold border border-white/10 transition active:scale-95 cursor-pointer"
-            label="Watch"
-          >
-            <span>Watch</span>
-          </WidgetInternalButton>
-        )}
-      </div>
-
-      {/* Bio / Description line */}
-      {bio && bio !== displayName && (
-        <div className="mt-2.5 pt-2 border-t border-white/[0.08] text-xs text-zinc-400 line-clamp-2 leading-relaxed">
-          {bio}
-        </div>
-      )}
-    </div>
-  );
-}
 
 // ---------------------------------------------------------------------------
 // SoundCloud Card (Artist Profile Showcase & Track Player)
@@ -2473,9 +2385,6 @@ function SoundCloudCard({ w, accent, data, status, error, refresh }) {
 
 // MediaCard wrapper for backward compatibility
 function MediaCard(props) {
-  if (props.provider === "tiktok" || props.w?.type === "tiktok") {
-    return <TikTokCard {...props} />;
-  }
   return <SoundCloudCard {...props} />;
 }
 
@@ -2783,14 +2692,6 @@ export function WidgetCard({ w, accent = "#b4bffa", ownerCreated, owner = "", pr
     );
   }
 
-  if (type === "tiktok") {
-    return (
-      <WidgetShell w={w} accent={accent} data={data} headerTitle={w.title || "TikTok Creator"} HeaderIcon={FaTiktok}>
-        <TikTokCard {...props} />
-      </WidgetShell>
-    );
-  }
-
   if (type === "soundcloud") {
     return (
       <WidgetShell w={w} accent={accent} data={data} headerTitle={w.title || "SoundCloud Track"} HeaderIcon={FaSoundcloud}>
@@ -3010,9 +2911,64 @@ export function LinkCard({ link, profile, accent, Icon, compact = false }) {
       : <Icon style={{ width: size, height: size, color }} />;
   };
 
+  const CRYPTO_PLATFORMS = useMemo(() => new Set([
+    "bitcoin", "ethereum", "solana", "litecoin", "tether", "monero", "crypto",
+    "btc", "eth", "sol", "ltc", "usdt", "xmr"
+  ]), []);
+  const isCrypto = Boolean(
+    link.isCrypto || link.is_crypto ||
+    CRYPTO_PLATFORMS.has((link.platform || "").toLowerCase()) ||
+    CRYPTO_PLATFORMS.has((link.label || "").toLowerCase()) ||
+    /^(?:bitcoin|ethereum|solana|litecoin|tether|monero|crypto):/i.test(link.url || "")
+  );
+
+  const handleCryptoClick = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    const textToCopy = link.address || link.wallet || link.value || link.url || "";
+    if (textToCopy) {
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        toast.success("Wallet address copied to clipboard!");
+      }).catch(() => {
+        toast.success("Wallet address copied!");
+      });
+    } else {
+      toast.info("No wallet address configured");
+    }
+  };
+
   if (mode === "icon") {
     const size = compact ? Math.round(iconSize * 0.86) : iconSize;
     const glyphSize = Math.max(16, Math.round(size * 0.58));
+    if (isCrypto) {
+      return (
+        <button
+          type="button"
+          onClick={handleCryptoClick}
+          {...tipProps}
+          data-menu-id="link"
+          title={hasTip ? undefined : `Click to copy ${label} address`}
+          aria-label={`Copy ${label} address`}
+          className={`relative inline-flex items-center justify-center transition duration-200 hover:scale-110 hover:brightness-125 cursor-pointer ${bare ? "" : radius}`}
+          style={
+            bare
+              ? { width: size, height: size, background: "transparent", border: "none", filter: glow ? `drop-shadow(0 0 10px ${glow})` : "drop-shadow(0 4px 10px rgba(0,0,0,0.55))" }
+              : {
+                width: size,
+                height: size,
+                background: iconFill ? `${color}2b` : "rgba(255,255,255,0.04)",
+                border: `1px solid ${color}55`,
+                boxShadow: glow ? `0 0 18px ${glow}` : "0 6px 16px rgba(0,0,0,0.3)",
+              }
+          }
+        >
+          {bare ? <BareGlyph size={glyphSize} /> : <Glyph size={glyphSize} />}
+          {tipNode}
+        </button>
+      );
+    }
     return (
       <a
         href={href}
@@ -3043,6 +2999,41 @@ export function LinkCard({ link, profile, accent, Icon, compact = false }) {
   }
 
   const pro = cardStyle === "new";
+
+  if (isCrypto) {
+    return (
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={handleCryptoClick}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleCryptoClick(e); }}
+        data-menu-id="link"
+        {...tipProps}
+        className={`group relative flex items-center text-xs font-bold text-white transition duration-200 hover:scale-[1.02] hover:brightness-110 cursor-pointer ${pro ? "gap-3.5 px-4 py-3.5" : "gap-3 py-3 px-4"}`}
+        style={surface}
+      >
+        <span
+          className={`relative shrink-0 flex items-center justify-center ${bare ? "" : radius}`}
+          style={{
+            width: pro ? 40 : 32,
+            height: pro ? 40 : 32,
+            background: bare ? "transparent" : iconFill ? `${color}2b` : "transparent",
+            ...(pro && !bare ? { border: `1px solid ${color}33` } : null),
+          }}
+        >
+          {bare ? <BareGlyph size={pro ? 26 : 20} /> : <Glyph size={pro ? 24 : 18} />}
+        </span>
+        <span className="min-w-0 flex-1 text-left">
+          <span className={`block truncate ${pro ? "text-[13px]" : ""}`}>{effectiveLabel}</span>
+          <span className="block text-[10px] text-zinc-400 mt-0.5 font-mono2 truncate">Click to copy wallet address</span>
+        </span>
+        <span className="flex items-center gap-1.5 shrink-0 text-zinc-400 group-hover:text-white transition-colors">
+          <Copy className="w-3.5 h-3.5 opacity-75" />
+        </span>
+        {tipNode}
+      </div>
+    );
+  }
 
   return (
     <a

@@ -1,5 +1,5 @@
 import { Clock, CalendarDays, Code2, Hourglass, LayoutGrid, BarChart3, CloudSun, Box, Gamepad2, FolderGit2 } from "lucide-react";
-import { FaDiscord, FaSpotify, FaGithub, FaYoutube, FaSteam, FaTiktok, FaSoundcloud, FaTwitch, FaLastfm } from "react-icons/fa6";
+import { FaDiscord, FaSpotify, FaGithub, FaYoutube, FaSteam, FaSoundcloud, FaTwitch, FaLastfm } from "react-icons/fa6";
 import { SiRoblox, SiValorant, SiSupercell } from "react-icons/si";
 
 // ---------------------------------------------------------------------------
@@ -162,14 +162,6 @@ export const WIDGET_KINDS = [
     subtypes: [{ id: "media", label: "Track", fields: ["soundcloud_url"] }],
   },
   {
-    id: "tiktok",
-    label: "TikTok",
-    Icon: FaTiktok,
-    color: "#25F4EE",
-    desc: "Any TikTok creator profile or video, with caption and statistics",
-    subtypes: [{ id: "media", label: "Profile / Video", fields: ["tiktok_url"] }],
-  },
-  {
     id: "countdown",
     label: "Countdown",
     Icon: Hourglass,
@@ -270,12 +262,7 @@ export const WIDGET_FIELDS = {
     placeholder: "https://soundcloud.com/artist/track",
     help: "Track artwork, title and artist are read straight from any SoundCloud track link.",
   },
-  tiktok_url: {
-    key: "url",
-    label: "TikTok Link or Handle",
-    placeholder: "https://www.tiktok.com/@welovekoni or @welovekoni",
-    help: "Creator profile avatar, verified badge, likes and followers are fetched automatically.",
-  },
+
   media_url: {
     key: "url",
     label: "Media Link",

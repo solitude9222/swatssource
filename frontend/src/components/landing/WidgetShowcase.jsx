@@ -15,12 +15,6 @@ const WIDGETS = [
       track: "She's Everything",
       artist: "Brad Paisley",
       url: "https://open.spotify.com/track/4PkQuSF1CzodLjv2FxqP6e?si=8a9b752f4ae74586",
-      mockData: {
-        title: "She's Everything",
-        author: "Brad Paisley",
-        thumbnail: "https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e02fc117d21aee734d714d132fe",
-        duration: "4:26",
-      },
     },
   },
   {
@@ -31,35 +25,6 @@ const WIDGETS = [
       title: "SoundCloud",
       username: "bondages",
       url: "https://soundcloud.com/bondages",
-      mockData: {
-        title: "goreshyt",
-        author: "goreshyt",
-        author_name: "goreshyt",
-        author_url: "https://soundcloud.com/bondages",
-        thumbnail: "https://i1.sndcdn.com/avatars-P5eC0qmzsl2LVQtY-deRPow-t500x500.jpg",
-        is_profile: true,
-      },
-    },
-  },
-  {
-    accent: "#ffffff",
-    w: {
-      type: "tiktok",
-      title: "TikTok",
-      username: "welovekoni",
-      url: "https://www.tiktok.com/@welovekoni",
-      mockData: {
-        title: "ØG køni's Creator Profile",
-        author: "welovekoni",
-        author_name: "ØG køni",
-        page_url: "https://www.tiktok.com/@welovekoni",
-        url: "https://www.tiktok.com/@welovekoni",
-        thumbnail: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80",
-        followers: 148500,
-        likes: 2400000,
-        bio: "tourn.lol verified creator showcase.",
-        is_profile: true,
-      },
     },
   },
   {
@@ -212,7 +177,7 @@ export const WidgetShowcase = () => (
           transformOrigin: "center center",
         }}
       >
-        Live data directly from Spotify, SoundCloud, TikTok, and Discord. Real-time media feeds that live right on your profile.
+        Live data directly from Spotify, SoundCloud, and Discord. Real-time media feeds that live right on your profile.
       </p>
     </div>
 

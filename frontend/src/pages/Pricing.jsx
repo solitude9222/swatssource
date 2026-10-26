@@ -18,67 +18,7 @@ const fmt = (n) => {
   return num >= 1000 ? `${(num / 1000).toFixed(1)}k` : String(num);
 };
 
-/* Verified Premium Member Fallback Profiles */
-const FALLBACK_PREMIUM_CREATORS = [
-  {
-    username: "welovekoni",
-    display_name: "ØG køni",
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80",
-    views: 148500,
-    verified: true,
-  },
-  {
-    username: "bondages",
-    display_name: "goreshyt",
-    avatar: "https://i1.sndcdn.com/avatars-P5eC0qmzsl2LVQtY-deRPow-t500x500.jpg",
-    views: 92400,
-    verified: true,
-  },
-  {
-    username: "solitude",
-    display_name: "Solitude",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80",
-    views: 64100,
-    verified: true,
-  },
-  {
-    username: "phantom",
-    display_name: "Phantom",
-    avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&auto=format&fit=crop&q=80",
-    views: 48900,
-    verified: true,
-  },
-  {
-    username: "velvet",
-    display_name: "Velvet",
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&auto=format&fit=crop&q=80",
-    views: 37200,
-    verified: true,
-  },
-  {
-    username: "cipher",
-    display_name: "Cipher",
-    avatar: "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=200&auto=format&fit=crop&q=80",
-    views: 29800,
-    verified: true,
-  },
-  {
-    username: "aura",
-    display_name: "Aura",
-    avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=200&auto=format&fit=crop&q=80",
-    views: 22400,
-    verified: true,
-  },
-  {
-    username: "vortex",
-    display_name: "Vortex",
-    avatar: "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=200&auto=format&fit=crop&q=80",
-    views: 19100,
-    verified: true,
-  },
-];
-
-/* High-Density Premium User Preview Card for Infinite Ticker */
+/* Real Premium User Preview Card for Infinite Ticker */
 const PremiumUserTickerCard = ({ u, onOpen }) => {
   const avatarSrc = u.avatar ? fileUrl(u.avatar) : (u.avatar_url ? fileUrl(u.avatar_url) : "");
   return (
@@ -127,7 +67,7 @@ const COMPARISON = [
   ["Custom Code & HTML Widgets", false, true],
   ["3D Card Perspective Tilt & Glare Effects", false, true],
   ["Remove tourn.lol Branding & Watermarks", false, true],
-  ["All Widgets (Spotify, SoundCloud, TikTok, Discord, Steam)", "Standard", "Full Access + Custom"],
+  ["All Widgets (Spotify, SoundCloud, Discord, Steam)", "Standard", "Full Access + Custom"],
   ["Fonts & Custom Cursors", "Basic Library", "40+ Designer Fonts + Crosshairs"],
   ["Template Vault", "1 Template", "Up to 5 Saved Templates"],
   ["Validated Views & Real-Time Radar", true, true],
@@ -172,7 +112,7 @@ export default function Pricing() {
   const [params] = useSearchParams();
   const [busy, setBusy] = useState(false);
   const [portalBusy, setPortalBusy] = useState(false);
-  const [premiumUsers, setPremiumUsers] = useState(FALLBACK_PREMIUM_CREATORS);
+  const [premiumUsers, setPremiumUsers] = useState([]);
 
   const alreadyPremium = !!user && user !== false && (user.tier === "premium" || isStaffLike(user));
 
@@ -184,19 +124,15 @@ export default function Pricing() {
     }
   }, [params]);
 
-  // Load real premium creators from backend or use verified creators
+  // Load strictly real premium creators from backend API
   useEffect(() => {
     loadLeaderboardRows(100)
       .then((rows) => {
-        const proRows = rows.filter((r) => r.tier === "premium" || r.verified);
-        if (proRows.length >= 4) {
-          setPremiumUsers(proRows);
-        } else if (rows.length > 0) {
-          setPremiumUsers([...rows.slice(0, 8), ...FALLBACK_PREMIUM_CREATORS]);
-        }
+        const proRows = (rows || []).filter((r) => r && r.username && (r.tier === "premium" || r.verified));
+        setPremiumUsers(proRows);
       })
       .catch(() => {
-        setPremiumUsers(FALLBACK_PREMIUM_CREATORS);
+        setPremiumUsers([]);
       });
   }, []);
 
@@ -429,7 +365,7 @@ export default function Pricing() {
               </div>
               <h3 className="text-sm font-bold text-zinc-100">All Custom Media Widgets</h3>
               <p className="mt-2 text-xs text-zinc-400 leading-relaxed">
-                Embed custom Spotify tracks, SoundCloud creator profiles, TikTok feeds, Discord rich status, Steam, and Roblox.
+                Embed custom Spotify tracks, SoundCloud creator profiles, Discord rich status, Steam, and Roblox.
               </p>
             </div>
 
@@ -455,46 +391,48 @@ export default function Pricing() {
           </div>
         </section>
 
-        {/* Infinitely Scrolling Preview of All Premium Users */}
-        <section className="mb-24" data-testid="infinite-premium-users">
-          <div className="text-center max-w-2xl mx-auto mb-8">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] font-mono2 text-brand-300 uppercase tracking-wider mb-2">
-              <Crown className="w-3.5 h-3.5" />
-              <span>LIVE MEMBER STREAM</span>
-            </div>
-            <h2 className="font-display text-2xl sm:text-3xl font-black text-zinc-50">
-              All tourn.lol Premium Members
-            </h2>
-            <p className="mt-2 text-xs sm:text-sm text-zinc-400">
-              Join verified creators, streamers, and developers who upgraded to Lifetime.
-            </p>
-          </div>
-
-          {/* Dual Row Continuous Infinite Ticker */}
-          <div className="space-y-4 overflow-hidden relative pause-on-hover [mask-image:linear-gradient(90deg,transparent,#000_8%,#000_92%,transparent)]">
-            {/* Row 1: Leftward */}
-            <div className="flex gap-4 animate-marquee-left">
-              {tickerRow1.map((u, idx) => (
-                <PremiumUserTickerCard
-                  key={`ticker1-${u.username}-${idx}`}
-                  u={u}
-                  onOpen={openProfile}
-                />
-              ))}
+        {/* Infinitely Scrolling Preview of All Premium Users (Only real accounts) */}
+        {premiumUsers.length > 0 && (
+          <section className="mb-24" data-testid="infinite-premium-users">
+            <div className="text-center max-w-2xl mx-auto mb-8">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] font-mono2 text-brand-300 uppercase tracking-wider mb-2">
+                <Crown className="w-3.5 h-3.5" />
+                <span>LIVE MEMBER STREAM</span>
+              </div>
+              <h2 className="font-display text-2xl sm:text-3xl font-black text-zinc-50">
+                All tourn.lol Premium Members
+              </h2>
+              <p className="mt-2 text-xs sm:text-sm text-zinc-400">
+                Join verified creators, streamers, and developers who upgraded to Lifetime.
+              </p>
             </div>
 
-            {/* Row 2: Rightward */}
-            <div className="flex gap-4 animate-marquee-right">
-              {tickerRow2.map((u, idx) => (
-                <PremiumUserTickerCard
-                  key={`ticker2-${u.username}-${idx}`}
-                  u={u}
-                  onOpen={openProfile}
-                />
-              ))}
+            {/* Dual Row Continuous Infinite Ticker */}
+            <div className="space-y-4 overflow-hidden relative pause-on-hover [mask-image:linear-gradient(90deg,transparent,#000_8%,#000_92%,transparent)]">
+              {/* Row 1: Leftward */}
+              <div className="flex gap-4 animate-marquee-left">
+                {tickerRow1.map((u, idx) => (
+                  <PremiumUserTickerCard
+                    key={`ticker1-${u.username}-${idx}`}
+                    u={u}
+                    onOpen={openProfile}
+                  />
+                ))}
+              </div>
+
+              {/* Row 2: Rightward */}
+              <div className="flex gap-4 animate-marquee-right">
+                {tickerRow2.map((u, idx) => (
+                  <PremiumUserTickerCard
+                    key={`ticker2-${u.username}-${idx}`}
+                    u={u}
+                    onOpen={openProfile}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         {/* Compare the Plans Matrix */}
         <section className="mb-20" data-testid="pricing-comparison">

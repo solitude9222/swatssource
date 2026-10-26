@@ -9,7 +9,7 @@ import {
   MapPin, Volume2, VolumeX, CalendarDays, Music, Disc, SkipBack, SkipForward,
 } from "lucide-react";
 import { AutoMarqueeText } from "@/components/AutoMarqueeText";
-import { WidgetCard, LinkCard, WidgetPill } from "@/components/WidgetCards";
+import { WidgetCard, LinkCard, WidgetPill, WidgetProfileContext } from "@/components/WidgetCards";
 import { BackgroundEffect } from "@/components/BackgroundEffect";
 import { OverlayEffect } from "@/components/OverlayEffect";
 import { CardEffect } from "@/components/CardEffect";
@@ -1533,68 +1533,71 @@ function SlideshowView({
         )}
       </section>
 
-      {/* Slide 2: About Me (Big wide card, text on far left, with widgets and bio inside) */}
+      {/* Slide 2: About Me (Side-by-side: bio & info on left, widgets on right) */}
       <section
         id="about-me"
         className={`relative flex ${slideH} w-full snap-start shrink-0 flex-col items-center justify-center p-4 sm:p-8 select-none`}
       >
-        <div className="z-10 w-full max-w-4xl sm:max-w-5xl mx-auto my-auto py-2">
+        <div className="z-10 w-full max-w-5xl sm:max-w-6xl mx-auto my-auto py-2">
           <div
             data-testid="slideshow-about-card"
-            className="relative p-7 sm:p-10 text-left transition duration-300 space-y-6"
+            className="relative p-6 sm:p-9 text-left transition duration-300"
             style={{ ...slideCard, boxShadow: slideShadow }}
           >
-            {/* About Me header on far left - NO quote marks, NO ugly lines */}
-            <div className="flex items-center justify-start">
-              <span className="font-mono2 text-xs uppercase tracking-[0.25em] text-zinc-400 font-semibold">
-                About Me
-              </span>
-            </div>
-
-            {/* Bio text on far left */}
-            <div data-block="bio">
-              <FxText
-                as="p"
-                id={p.bio_effect || ""}
-                text={p.bio || "Welcome to my profile."}
-                className="text-left text-base sm:text-lg font-medium leading-relaxed"
-                style={{ color: bioColor, fontFamily: p.bio_font || "Inter" }}
-              />
-            </div>
-
-            {/* Location & member since pills */}
-            {(p.location || data.created_at) && (
-              <div className="flex flex-wrap items-center justify-start gap-2.5 font-mono2 text-xs text-zinc-400">
-                {p.location && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10">
-                    <MapPin className="w-3.5 h-3.5" style={{ color: accent }} /> {p.location}
+            <div className={`grid grid-cols-1 ${widgets.length > 0 ? "lg:grid-cols-12 gap-8 items-start" : "gap-6"}`}>
+              {/* Left Column: About Me, Bio, Location, Audio player */}
+              <div className={`${widgets.length > 0 ? "lg:col-span-5" : "w-full"} space-y-5 text-left`}>
+                <div className="flex items-center justify-start">
+                  <span className="font-mono2 text-xs uppercase tracking-[0.25em] text-zinc-400 font-semibold">
+                    About Me
                   </span>
-                )}
-                {data.created_at && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10">
-                    Member since {new Date(data.created_at).getFullYear()}
-                  </span>
-                )}
-              </div>
-            )}
-
-            {/* Live Widgets inside the same wide card - NO text above widgets, NO ugly dividing lines */}
-            {widgets.length > 0 && (
-              <div data-block="widgets" className="pt-2">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-left auto-rows-min grid-flow-row-dense items-start content-start">
-                  {widgets.map((w, i) => (
-                    <WidgetCard key={i} w={w} accent={accent} ownerCreated={data.created_at} owner={data.username} profileRadius={Number(p.card_radius ?? 24)} profile={p} />
-                  ))}
                 </div>
-              </div>
-            )}
 
-            {/* Audio player if tracks exist - NO ugly dividing lines */}
-            {showAudioBlock && (
-              <div data-block="audio" className="pt-2 text-left">
-                <AudioBlock />
+                <div data-block="bio">
+                  <FxText
+                    as="p"
+                    id={p.bio_effect || ""}
+                    text={p.bio || "Welcome to my profile."}
+                    className="text-left text-base sm:text-lg font-medium leading-relaxed"
+                    style={{ color: bioColor, fontFamily: p.bio_font || "Inter" }}
+                  />
+                </div>
+
+                {(p.location || data.created_at) && (
+                  <div className="flex flex-wrap items-center justify-start gap-2.5 font-mono2 text-xs text-zinc-400 pt-1">
+                    {p.location && (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10">
+                        <MapPin className="w-3.5 h-3.5" style={{ color: accent }} /> {p.location}
+                      </span>
+                    )}
+                    {data.created_at && (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10">
+                        Member since {new Date(data.created_at).getFullYear()}
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {showAudioBlock && (
+                  <div data-block="audio" className="pt-3 text-left">
+                    <AudioBlock />
+                  </div>
+                )}
               </div>
-            )}
+
+              {/* Right Column: Widgets multi-column side-by-side */}
+              {widgets.length > 0 && (
+                <div data-block="widgets" className="lg:col-span-7 w-full text-left">
+                  <WidgetProfileContext.Provider value={p}>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-left auto-rows-fr items-stretch">
+                      {widgets.map((w, i) => (
+                        <WidgetCard key={i} w={w} accent={accent} ownerCreated={data.created_at} owner={data.username} profileRadius={Number(p.card_radius ?? 24)} profile={p} />
+                      ))}
+                    </div>
+                  </WidgetProfileContext.Provider>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -2298,30 +2301,29 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
   const widgetsStacked = needFit && fitScale < 0.85;
   const WidgetsBlock = ({ pill = false, className = "" }) => (
     widgets.length > 0 ? (
-      /* One grid for every widget. `grid-flow-row-dense` is what makes a
-         Half-width card backfill the gap left beside a taller one, instead of
-         being pushed to the next row and leaving a hole where it could have sat. */
-      <div
-        data-block="widgets"
-        className={`w-full text-left grid auto-rows-min grid-flow-row-dense items-start content-start ${
-          widgetsStacked ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"
-        } ${
-          pill ? "gap-2.5" : "gap-3"
-        } ${className}`}
-      >
-        {widgets.map((w, i) => {
-          const full = !widgetsStacked && Number(w.span ?? 2) === 2;
-          return (
-            <div key={i} className={full ? "sm:col-span-2" : ""}>
-              {pill ? (
-                <WidgetPill w={w} accent={accent} ownerCreated={data.created_at} owner={data.username} p={p} />
-              ) : (
-                <WidgetCard w={w} accent={accent} ownerCreated={data.created_at} owner={data.username} profileRadius={Number(p.card_radius ?? 24)} profile={p} />
-              )}
-            </div>
-          );
-        })}
-      </div>
+      <WidgetProfileContext.Provider value={p}>
+        <div
+          data-block="widgets"
+          className={`w-full text-left grid auto-rows-fr items-stretch ${
+            widgetsStacked ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"
+          } ${
+            pill ? "gap-2.5" : "gap-3.5"
+          } ${className}`}
+        >
+          {widgets.map((w, i) => {
+            const full = !widgetsStacked && Number(w.span ?? 2) === 2;
+            return (
+              <div key={i} className={full ? "sm:col-span-2" : ""}>
+                {pill ? (
+                  <WidgetPill w={w} accent={accent} ownerCreated={data.created_at} owner={data.username} p={p} />
+                ) : (
+                  <WidgetCard w={w} accent={accent} ownerCreated={data.created_at} owner={data.username} profileRadius={Number(p.card_radius ?? 24)} profile={p} />
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </WidgetProfileContext.Provider>
     ) : null
   );
 
@@ -2684,7 +2686,205 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
     );
   }
 
-  // Unreachable: `resolveLayout` maps anything unknown (including the layouts
-  // that were deleted) onto "minimal" before this point.
+  // ---------------------------------------------------------------------------
+  // SPLIT — Dual Column Layout: Left hero (pfp, bio, links), Right column (widgets, audio)
+  // ---------------------------------------------------------------------------
+  if (layout === "split") {
+    return (
+      <div
+        data-testid="profile-preview"
+        data-layout={layout}
+        className={`relative w-full ${minH} flex flex-col items-center ${fitScale < 1 ? "justify-start" : "justify-center"} p-4 sm:p-8`}
+        style={{ background: pageBg }}
+      >
+        {BgLayers}
+        {backgroundAudio && <BackgroundAudioButton disableBorder={p.disable_mute_border} />}
+
+        <div
+          ref={cardRef}
+          onMouseMove={tiltEnabled ? handleMouseMove : undefined}
+          onMouseLeave={tiltEnabled ? handleMouseLeave : undefined}
+          className="relative z-10 w-full max-w-4xl sm:max-w-5xl mx-auto my-auto group/name"
+          style={{ willChange: "transform", transformStyle: "preserve-3d", ...fitStyle }}
+        >
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
+            {/* Left Card: Profile, Bio, Links */}
+            <div
+              ref={cardInnerRef}
+              className="md:col-span-5 p-6 sm:p-7 text-left relative overflow-hidden transition duration-300 space-y-4"
+              style={cardSurface({ boxShadow: cardShadow() })}
+            >
+              {p.card_effect && (
+                <CardEffect
+                  effect={p.card_effect}
+                  color={p.card_effect_color || (p.card_gradient_enabled ? p.card_gradient_color : p.accent_color) || accent}
+                  gradientColor={p.card_gradient_color || accent}
+                  gradientEnabled={!!p.card_gradient_enabled}
+                  borderRadius={st.card.borderRadius || "24px"}
+                />
+              )}
+              <div className="flex items-center gap-4">
+                <AvatarBlock size={72} />
+                <div className="min-w-0 flex-1">
+                  <NameRow />
+                </div>
+              </div>
+              <BioBlock />
+              {p.location && (
+                <div className="inline-flex items-center gap-1.5 font-mono2 text-xs text-zinc-300 bg-white/5 border border-white/10 px-3 py-1 rounded-full">
+                  <MapPin className="h-3.5 w-3.5" style={{ color: accent }} /> {p.location}
+                </div>
+              )}
+              <LinksBlock links={links} align="left" />
+              <div className="pt-2 border-t border-white/10">
+                <MetaLine align="left" />
+              </div>
+            </div>
+
+            {/* Right Column: Widgets and Audio */}
+            <div className="md:col-span-7 space-y-4">
+              <WidgetsBlock />
+              {tracks.length > 0 && !pinnedPlayer && !cornerStyle && (
+                <div
+                  className="p-4 sm:p-5 text-left relative overflow-visible transition duration-300"
+                  style={cardSurface({
+                    borderRadius: Math.max(4, Number(p.card_radius ?? 24) - 4),
+                    boxShadow: cardShadow(true),
+                    ...(p.disable_audio_border ? { border: "none" } : {}),
+                  })}
+                >
+                  <AudioBlock />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // BENTO — Modern Bento Grid Tiles
+  // ---------------------------------------------------------------------------
+  if (layout === "bento") {
+    return (
+      <div
+        data-testid="profile-preview"
+        data-layout={layout}
+        className={`relative w-full ${minH} flex flex-col items-center ${fitScale < 1 ? "justify-start" : "justify-center"} p-4 sm:p-8`}
+        style={{ background: pageBg }}
+      >
+        {BgLayers}
+        {backgroundAudio && <BackgroundAudioButton disableBorder={p.disable_mute_border} />}
+
+        <div
+          ref={cardRef}
+          onMouseMove={tiltEnabled ? handleMouseMove : undefined}
+          onMouseLeave={tiltEnabled ? handleMouseLeave : undefined}
+          className="relative z-10 w-full max-w-4xl mx-auto my-auto space-y-4 group/name"
+          style={{ willChange: "transform", transformStyle: "preserve-3d", ...fitStyle }}
+        >
+          {/* Bento Header & Bio Tiles */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+            <div
+              ref={cardInnerRef}
+              className="md:col-span-7 p-6 text-left relative overflow-hidden transition duration-300 flex items-center gap-4"
+              style={cardSurface({ boxShadow: cardShadow() })}
+            >
+              <AvatarBlock size={80} />
+              <div className="min-w-0 flex-1">
+                <NameRow />
+                <BioBlock className="mt-2" />
+              </div>
+            </div>
+
+            <div
+              className="md:col-span-5 p-6 text-left relative overflow-hidden transition duration-300 flex flex-col justify-between gap-3"
+              style={cardSurface({ boxShadow: cardShadow() })}
+            >
+              <div className="space-y-2">
+                <span className="font-mono2 text-[11px] uppercase tracking-wider text-zinc-400 font-bold">Connections</span>
+                <LinksBlock links={links.slice(0, 4)} align="left" />
+              </div>
+              <MetaLine align="left" />
+            </div>
+          </div>
+
+          {/* Remaining Links if any */}
+          {links.length > 4 && (
+            <div
+              className="p-5 text-left relative overflow-hidden transition duration-300"
+              style={cardSurface({ boxShadow: cardShadow() })}
+            >
+              <LinksBlock links={links.slice(4)} align="left" />
+            </div>
+          )}
+
+          {/* Widgets & Audio */}
+          <WidgetsBlock />
+
+          {tracks.length > 0 && !pinnedPlayer && !cornerStyle && (
+            <div
+              className="p-4 sm:p-5 text-left relative overflow-visible transition duration-300"
+              style={cardSurface({
+                borderRadius: Math.max(4, Number(p.card_radius ?? 24) - 4),
+                boxShadow: cardShadow(true),
+                ...(p.disable_audio_border ? { border: "none" } : {}),
+              })}
+            >
+              <AudioBlock />
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // COMPACT — Ultra-dense streamline card
+  // ---------------------------------------------------------------------------
+  if (layout === "compact") {
+    return (
+      <div
+        data-testid="profile-preview"
+        data-layout={layout}
+        className={`relative w-full ${minH} flex flex-col items-center ${fitScale < 1 ? "justify-start" : "justify-center"} p-4 sm:p-6`}
+        style={{ background: pageBg }}
+      >
+        {BgLayers}
+        {backgroundAudio && <BackgroundAudioButton disableBorder={p.disable_mute_border} />}
+
+        <div
+          ref={cardRef}
+          onMouseMove={tiltEnabled ? handleMouseMove : undefined}
+          onMouseLeave={tiltEnabled ? handleMouseLeave : undefined}
+          className="relative z-10 w-full max-w-sm sm:max-w-md mx-auto my-auto space-y-3 group/name"
+          style={{ willChange: "transform", transformStyle: "preserve-3d", ...fitStyle }}
+        >
+          <div
+            ref={cardInnerRef}
+            className="p-4 sm:p-5 text-left relative overflow-hidden transition duration-300 space-y-3"
+            style={cardSurface({ boxShadow: cardShadow() })}
+          >
+            <div className="flex items-center gap-3">
+              <AvatarBlock size={56} />
+              <div className="min-w-0 flex-1">
+                <NameRow size="text-lg sm:text-xl" />
+              </div>
+            </div>
+            <BioBlock />
+            <LinksBlock links={links} align="left" />
+            <WidgetsBlock />
+            {tracks.length > 0 && !pinnedPlayer && !cornerStyle && <AudioBlock />}
+            <div className="pt-2 border-t border-white/10">
+              <MetaLine align="left" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Unreachable: `resolveLayout` maps anything unknown onto "minimal"
   return null;
 };
