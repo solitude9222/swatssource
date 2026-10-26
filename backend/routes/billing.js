@@ -16,8 +16,9 @@ router.post('/checkout', requireAuth, async (req, res) => {
   }
 
   try {
-    const successUrl = process.env.STRIPE_SUCCESS_URL || 'https://swats.bio/!/pricing?upgrade=success';
-    const cancelUrl = process.env.STRIPE_CANCEL_URL || 'https://swats.bio/!/pricing?upgrade=cancelled';
+    const origin = req.headers.origin || process.env.FRONTEND_URL || process.env.APP_URL || 'https://tourn.lol';
+    const successUrl = process.env.STRIPE_SUCCESS_URL || `${origin}/!/pricing?upgrade=success`;
+    const cancelUrl = process.env.STRIPE_CANCEL_URL || `${origin}/!/pricing?upgrade=cancelled`;
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -26,16 +27,15 @@ router.post('/checkout', requireAuth, async (req, res) => {
           price_data: {
             currency: 'usd',
             product_data: {
-              name: 'swats.bio Premium Subscription',
-              description: 'Unlock all 100+ fonts, custom code widgets, MP4 video uploads, card styles, and animations.',
+              name: 'tourn.lol Lifetime Premium',
+              description: 'One-time purchase: Lifetime access to all fonts, custom widgets, video backgrounds, and verified badge.',
             },
-            unit_amount: 500, // $5.00
-            recurring: { interval: 'month' },
+            unit_amount: 999, // $9.99
           },
           quantity: 1,
         },
       ],
-      mode: 'subscription',
+      mode: 'payment',
       customer_email: req.user.email,
       success_url: successUrl,
       cancel_url: cancelUrl,

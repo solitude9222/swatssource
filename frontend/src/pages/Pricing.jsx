@@ -1,16 +1,14 @@
-import { useEffect, useState, useRef, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { motion, useReducedMotion } from "framer-motion";
 import { Navbar } from "@/components/landing/Navbar";
 import { Footer } from "@/components/landing/Footer";
 import {
   Check, Crown, ExternalLink, Heart, Loader2, Minus, Sparkles, Zap,
-  ShieldCheck, Eye, BadgeCheck, Flame, Link2, User, Video, Layers,
-  Palette, Code2, BarChart3, MousePointer, FolderLock, Infinity as InfinityIcon
+  ShieldCheck, Eye, BadgeCheck, Video, Layers,
+  Palette, Code2, FolderLock, Infinity as InfinityIcon
 } from "lucide-react";
-import { FaDiscord, FaSpotify, FaGithub, FaSoundcloud, FaTiktok, FaSteam } from "react-icons/fa6";
 import { useAuth } from "@/context/AuthContext";
-import { api, fileUrl, profileUrl } from "@/lib/api";
+import { api, fileUrl } from "@/lib/api";
 import { toast } from "@/lib/notify";
 import { FREE_PERKS as FREE, PREMIUM_PERKS as PREMIUM, PREMIUM_PRICE } from "@/constants/plans";
 import { loadLeaderboardRows } from "@/lib/publicProfiles";
@@ -20,282 +18,65 @@ const fmt = (n) => {
   return num >= 1000 ? `${(num / 1000).toFixed(1)}k` : String(num);
 };
 
-/* Curated Fallback Premium Creators to guarantee a rich flow if backend is offline */
+/* Verified Premium Member Fallback Profiles */
 const FALLBACK_PREMIUM_CREATORS = [
   {
     username: "welovekoni",
     display_name: "ØG køni",
     avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80",
-    banner: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80",
-    bio: "Obsidian visual architect. Custom widgets, dark aesthetics & 3D card physics.",
     views: 148500,
     verified: true,
-    tier: "premium",
-    badges: ["verified", "og", "media"],
   },
   {
     username: "bondages",
     display_name: "goreshyt",
     avatar: "https://i1.sndcdn.com/avatars-P5eC0qmzsl2LVQtY-deRPow-t500x500.jpg",
-    banner: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&auto=format&fit=crop&q=80",
-    bio: "SoundCloud soundscapes, breakcore producer, verified audio creator.",
     views: 92400,
     verified: true,
-    tier: "premium",
-    badges: ["verified", "media"],
   },
   {
     username: "solitude",
     display_name: "Solitude",
     avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80",
-    banner: "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=800&auto=format&fit=crop&q=80",
-    bio: "Full stack digital designer crafting bespoke bio pages for tourn.lol creators.",
     views: 64100,
     verified: true,
-    tier: "premium",
-    badges: ["verified", "og"],
   },
   {
     username: "phantom",
     display_name: "Phantom",
     avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&auto=format&fit=crop&q=80",
-    banner: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&auto=format&fit=crop&q=80",
-    bio: "Cybersecurity engineer & dark mode enthusiast. Custom video backgrounds & audio.",
     views: 48900,
     verified: true,
-    tier: "premium",
-    badges: ["verified"],
   },
   {
     username: "velvet",
     display_name: "Velvet",
     avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&auto=format&fit=crop&q=80",
-    banner: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&auto=format&fit=crop&q=80",
-    bio: "Digital artist & streamer. Minimalist typography and verified PRO member.",
     views: 37200,
     verified: true,
-    tier: "premium",
-    badges: ["verified", "media"],
   },
   {
     username: "cipher",
     display_name: "Cipher",
     avatar: "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=200&auto=format&fit=crop&q=80",
-    banner: "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=800&auto=format&fit=crop&q=80",
-    bio: "Creative developer building open-source themes and interactive Discord widgets.",
     views: 29800,
     verified: true,
-    tier: "premium",
-    badges: ["verified"],
   },
   {
     username: "aura",
     display_name: "Aura",
     avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=200&auto=format&fit=crop&q=80",
-    banner: "https://images.unsplash.com/photo-1557683316-973673baf926?w=800&auto=format&fit=crop&q=80",
-    bio: "VFX animator. Looping MP4 backgrounds and custom cursor effects.",
     views: 22400,
     verified: true,
-    tier: "premium",
-    badges: ["verified", "og"],
   },
   {
     username: "vortex",
     display_name: "Vortex",
     avatar: "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=200&auto=format&fit=crop&q=80",
-    banner: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&auto=format&fit=crop&q=80",
-    bio: "Tourn PRO lifetime member. Infinite widget stacking & custom badge master.",
     views: 19100,
     verified: true,
-    tier: "premium",
-    badges: ["verified"],
   },
 ];
-
-/* 3D Interactive Tilt & Spin Profile Card with Specular Glare */
-const ProfileCard3D = ({ u, onOpen, isFlowItem = false }) => {
-  const cardRef = useRef(null);
-  const glareRef = useRef(null);
-  const reduce = useReducedMotion();
-
-  const handlePointerMove = (e) => {
-    if (reduce || !cardRef.current) return;
-    const box = cardRef.current.getBoundingClientRect();
-    if (!box) return;
-
-    const px = (e.clientX - box.left) / box.width - 0.5;
-    const py = (e.clientY - box.top) / box.height - 0.5;
-
-    const rotX = -py * 16;
-    const rotY = px * 18;
-    cardRef.current.style.transform = `perspective(1000px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale3d(1.02, 1.02, 1.02)`;
-
-    if (glareRef.current) {
-      const gx = ((e.clientX - box.left) / box.width) * 100;
-      const gy = ((e.clientY - box.top) / box.height) * 100;
-      glareRef.current.style.background = `radial-gradient(circle at ${gx}% ${gy}%, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.03) 40%, transparent 70%)`;
-      glareRef.current.style.opacity = "1";
-    }
-  };
-
-  const handlePointerLeave = () => {
-    if (cardRef.current) {
-      cardRef.current.style.transform = "perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)";
-    }
-    if (glareRef.current) {
-      glareRef.current.style.opacity = "0";
-    }
-  };
-
-  const copy = (e) => {
-    e.stopPropagation();
-    navigator.clipboard?.writeText(profileUrl(u.username));
-    toast.success("Profile link copied to clipboard");
-  };
-
-  const avatarSrc = u.avatar ? fileUrl(u.avatar) : (u.avatar_url ? fileUrl(u.avatar_url) : "");
-  const bannerSrc = u.banner ? fileUrl(u.banner) : (u.banner_url ? fileUrl(u.banner_url) : "");
-
-  return (
-    <div
-      ref={cardRef}
-      onPointerMove={handlePointerMove}
-      onPointerLeave={handlePointerLeave}
-      data-testid={`featured-creator-card-${u.username}`}
-      onClick={() => onOpen(u)}
-      style={{
-        transformStyle: "preserve-3d",
-        transition: "transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease",
-      }}
-      className={`group relative rounded-3xl overflow-hidden cursor-pointer select-none border border-white/10 bg-gradient-to-b from-[#141522] via-[#0c0d14] to-black shadow-[0_12px_36px_rgba(0,0,0,0.65)] hover:border-brand-400/50 hover:shadow-[0_20px_50px_rgba(180,191,250,0.16)] ${
-        isFlowItem ? "w-[280px] sm:w-[320px] shrink-0" : "w-full"
-      }`}
-    >
-      {/* Specular glare overlay */}
-      <span
-        ref={glareRef}
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 z-30 rounded-3xl opacity-0 transition-opacity duration-300"
-      />
-
-      {/* Ambient colorful banner glow */}
-      <div
-        className="pointer-events-none absolute -top-12 inset-x-0 h-36 opacity-30 blur-2xl transition-opacity duration-500 group-hover:opacity-60"
-        style={{
-          background: "radial-gradient(circle at 50% 0%, #b4bffa, transparent 70%)",
-        }}
-      />
-
-      {/* Top Banner Graphic */}
-      <div className="relative h-28 w-full overflow-hidden bg-gradient-to-br from-brand-900/40 via-zinc-900 to-black/80">
-        {bannerSrc ? (
-          <img
-            src={bannerSrc}
-            alt=""
-            className="w-full h-full object-cover opacity-85 transition-transform duration-700 group-hover:scale-108"
-          />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-r from-brand-950/60 via-zinc-900 to-brand-900/30 flex items-center justify-center opacity-70">
-            <Sparkles className="w-8 h-8 text-white/10" />
-          </div>
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0c0d14] via-transparent to-black/30" />
-
-        {/* Tier badge chip */}
-        <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5">
-          <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-brand-500/30 to-purple-500/30 border border-brand-400/40 text-[10px] font-mono2 font-bold uppercase tracking-wider text-brand-200 shadow-[0_0_12px_rgba(180,191,250,0.3)] backdrop-blur-md">
-            <Sparkles className="w-3 h-3 text-brand-300" />
-            <span>PRO</span>
-          </span>
-          <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/60 border border-white/10 text-[10px] font-mono2 text-zinc-400 backdrop-blur-md">
-            <Eye className="w-3 h-3" />
-            <span>{fmt(u.views)}</span>
-          </span>
-        </div>
-      </div>
-
-      {/* Profile Body with 3D Depth Layering */}
-      <div
-        className="px-5 pb-5 -mt-10 relative z-10"
-        style={{ transform: "translateZ(30px)" }}
-      >
-        <div className="flex items-end justify-between">
-          {/* Avatar with Cybernetic Ring */}
-          <div className="relative">
-            <div className="w-18 h-18 rounded-2xl overflow-hidden bg-zinc-900 border-2 border-white/20 p-0.5 shadow-2xl ring-4 ring-[#0c0d14] group-hover:border-brand-400/60 transition-colors duration-300">
-              {avatarSrc ? (
-                <img
-                  src={avatarSrc}
-                  alt={u.display_name}
-                  className="w-full h-full object-cover rounded-xl"
-                />
-              ) : (
-                <div className="w-full h-full rounded-xl bg-zinc-800 flex items-center justify-center text-zinc-500">
-                  <User className="w-8 h-8" />
-                </div>
-              )}
-            </div>
-            {/* Online / Active status pulse */}
-            <span className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-[#0c0d14] shadow-[0_0_8px_#34d399]" />
-          </div>
-
-          {/* Social Badges */}
-          <div className="flex items-center gap-1.5 pb-1">
-            <span className="w-6 h-6 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition">
-              <FaDiscord className="w-3 h-3 text-[#5865F2]" />
-            </span>
-            <span className="w-6 h-6 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition">
-              <FaSpotify className="w-3 h-3 text-[#1DB954]" />
-            </span>
-          </div>
-        </div>
-
-        {/* Display name & verified badge */}
-        <div className="mt-3.5">
-          <div className="flex items-center gap-1.5 truncate">
-            <h3 className="font-display font-black text-base text-zinc-100 group-hover:text-white truncate tracking-tight transition-colors">
-              {u.display_name || u.username}
-            </h3>
-            {u.verified && (
-              <BadgeCheck className="w-4 h-4 text-brand-400 shrink-0 drop-shadow-[0_0_6px_rgba(180,191,250,0.5)]" />
-            )}
-          </div>
-          <p className="text-xs font-mono2 text-brand-400/80 truncate mt-0.5">
-            tourn.lol/{u.username}
-          </p>
-        </div>
-
-        {/* Bio summary */}
-        <p className="mt-2.5 text-xs text-zinc-400/90 line-clamp-2 leading-relaxed min-h-[32px]">
-          {u.bio || "Crafting digital experiences and bio identities with tourn.lol."}
-        </p>
-
-        {/* Action Buttons */}
-        <div className="mt-4 pt-3.5 border-t border-white/[0.08] flex items-center gap-2">
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onOpen(u);
-            }}
-            className="flex-1 inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-brand-500 to-brand-600 hover:brightness-110 active:scale-95 transition shadow-sm cursor-pointer"
-          >
-            <ExternalLink className="w-3.5 h-3.5" />
-            <span>View Profile</span>
-          </button>
-          <button
-            type="button"
-            onClick={copy}
-            className="inline-flex items-center justify-center p-2 rounded-xl text-zinc-400 hover:text-white bg-white/5 hover:bg-white/15 border border-white/10 transition active:scale-95 cursor-pointer"
-            title="Copy Profile URL"
-          >
-            <Link2 className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 /* High-Density Premium User Preview Card for Infinite Ticker */
 const PremiumUserTickerCard = ({ u, onOpen }) => {
@@ -363,7 +144,7 @@ const Cell = ({ value }) => {
 const FAQ = [
   [
     "Is tourn.lol Premium really a one-time purchase?",
-    "Yes, 100%. You pay once ($9.99) and receive lifetime access forever. There are no recurring monthly bills, hidden renewal charges, or surprise fees. Pay once, own it forever."
+    "Yes. You pay once ($9.99) and receive lifetime access forever. There are no recurring monthly bills, hidden renewal charges, or surprise fees."
   ],
   [
     "What happens when new features are released?",
@@ -371,11 +152,11 @@ const FAQ = [
   ],
   [
     "Can I use custom video backgrounds and audio?",
-    "Yes! Lifetime Premium lets you upload MP4 video backgrounds, animated avatars, custom audio players (with lyrics and vinyl modes), and custom cursor crosshairs."
+    "Yes! Lifetime Premium lets you upload MP4 video backgrounds, animated avatars, custom audio players, and custom cursor crosshairs."
   ],
   [
     "How does payment processing work?",
-    "All checkouts are processed securely through Stripe with 256-bit encryption. We accept all major debit/credit cards, Apple Pay, Google Pay, and Cash App."
+    "All checkouts are processed securely through Stripe with 256-bit encryption. We accept credit/debit cards, Apple Pay, Google Pay, and Cash App."
   ],
   [
     "Can I remove the tourn.lol footer on my page?",
@@ -457,11 +238,6 @@ export default function Pricing() {
     navigate(`/${encodeURIComponent(u.username)}`);
   };
 
-  // Flow items for 3D Angled Perspective Track
-  const flowItems = useMemo(() => {
-    return [...premiumUsers, ...premiumUsers];
-  }, [premiumUsers]);
-
   // Dual rows for the infinite scrolling ticker
   const tickerRow1 = useMemo(() => {
     return [...premiumUsers, ...premiumUsers, ...premiumUsers];
@@ -476,8 +252,8 @@ export default function Pricing() {
     <div className="min-h-screen sw-page-bg text-zinc-100 grain overflow-x-hidden" data-testid="pricing-page">
       <Navbar />
 
-      <main className="relative z-10 max-w-6xl mx-auto px-4 pt-32 pb-24">
-        {/* Hero Section with One-Time Purchase Highlight */}
+      <main className="relative z-10 max-w-5xl mx-auto px-4 pt-32 pb-24">
+        {/* Clean Hero Section */}
         <div className="text-center max-w-3xl mx-auto mb-14">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-brand-400/30 bg-brand-500/10 text-xs font-mono2 font-bold uppercase tracking-wider text-brand-200 mb-6 backdrop-blur shadow-[0_0_20px_rgba(180,191,250,0.15)]">
             <Sparkles className="w-3.5 h-3.5 text-brand-300" />
@@ -490,24 +266,9 @@ export default function Pricing() {
 
           <p className="mt-4 text-base sm:text-lg text-zinc-400 leading-relaxed max-w-2xl mx-auto">
             {alreadyPremium
-              ? "All premium features, 3D card physics, video backgrounds, and custom widgets are permanently unlocked on your account."
+              ? "All premium features, custom widgets, video backgrounds, and card styles are permanently unlocked on your account."
               : "Pay once. Keep it forever. No subscriptions, no monthly charges, and zero hidden renewal fees."}
           </p>
-
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-xs font-mono2 text-zinc-400">
-            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10">
-              <InfinityIcon className="w-3.5 h-3.5 text-brand-400" />
-              <span>Lifetime License</span>
-            </span>
-            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Instant Activation</span>
-            </span>
-            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10">
-              <Zap className="w-3.5 h-3.5 text-amber-400" />
-              <span>All Future Updates Included</span>
-            </span>
-          </div>
         </div>
 
         {/* Pricing Cards Grid */}
@@ -656,9 +417,9 @@ export default function Pricing() {
               <div className="w-10 h-10 rounded-2xl bg-brand-500/15 border border-brand-400/30 flex items-center justify-center text-brand-300 mb-4">
                 <Layers className="w-5 h-5" />
               </div>
-              <h3 className="text-sm font-bold text-zinc-100">3D Interactive Tilt & Specular Glare</h3>
+              <h3 className="text-sm font-bold text-zinc-100">Card Effects & Aesthetics</h3>
               <p className="mt-2 text-xs text-zinc-400 leading-relaxed">
-                Unlock physical card perspective, dynamic cursor lighting reflections, cybernetic glow rings, and card physics.
+                Unlock custom card themes, floating card layouts, background blur gradients, and sleek obsidian designs.
               </p>
             </div>
 
@@ -694,56 +455,7 @@ export default function Pricing() {
           </div>
         </section>
 
-        {/* Featured Creators Flow (Moved from Explore to Premium Page) */}
-        <section className="mb-24 relative" data-testid="featured-creators-flow">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-6 px-2 gap-2">
-            <div>
-              <div className="flex items-center gap-2">
-                <Flame className="w-4 h-4 text-brand-400" />
-                <span className="text-xs font-bold text-zinc-200 uppercase tracking-widest font-mono2">
-                  Featured Creators Flow
-                </span>
-              </div>
-              <h2 className="mt-1 font-display text-2xl font-black text-zinc-50">
-                Created with tourn.lol Lifetime
-              </h2>
-            </div>
-            <span className="text-xs font-mono2 text-zinc-400">
-              Hover to tilt · 3D Specular Lighting
-            </span>
-          </div>
-
-          {/* Angled 3D Perspective Track */}
-          <div
-            className="relative overflow-hidden py-6 -mx-4 px-4 mask-radial"
-            style={{
-              perspective: "1200px",
-            }}
-          >
-            {/* Fade out masks on sides */}
-            <div className="pointer-events-none absolute left-0 inset-y-0 w-24 bg-gradient-to-r from-[#0c0d14] to-transparent z-20" />
-            <div className="pointer-events-none absolute right-0 inset-y-0 w-24 bg-gradient-to-l from-[#0c0d14] to-transparent z-20" />
-
-            <div
-              className="flex gap-6 animate-marquee hover:[animation-play-state:paused]"
-              style={{
-                transform: "rotateX(8deg)",
-                transformStyle: "preserve-3d",
-              }}
-            >
-              {flowItems.map((u, idx) => (
-                <ProfileCard3D
-                  key={`flow-${u.username}-${idx}`}
-                  u={u}
-                  onOpen={openProfile}
-                  isFlowItem
-                />
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Infinitely Scrolling Preview of All Premium Users ("bellow show a infitley scrolling preivwe of all teh pridmum usres") */}
+        {/* Infinitely Scrolling Preview of All Premium Users */}
         <section className="mb-24" data-testid="infinite-premium-users">
           <div className="text-center max-w-2xl mx-auto mb-8">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] font-mono2 text-brand-300 uppercase tracking-wider mb-2">
@@ -754,7 +466,7 @@ export default function Pricing() {
               All tourn.lol Premium Members
             </h2>
             <p className="mt-2 text-xs sm:text-sm text-zinc-400">
-              Join hundreds of verified creators, streamers, and developers who upgraded to Lifetime.
+              Join verified creators, streamers, and developers who upgraded to Lifetime.
             </p>
           </div>
 
