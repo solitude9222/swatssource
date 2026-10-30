@@ -14,7 +14,7 @@ import {
   Trophy, BarChart3, Users, Ticket, SlidersHorizontal, LineChart, LogOut,
   ExternalLink, Crown, ChevronDown, Sparkles, BellRing, Newspaper, ShieldCheck, Plus,
   ScrollText, Loader2, Gift, ShoppingBag, Store, Search, User, Home, ChevronRight, Eye,
-  Layers, Star, PanelLeftClose, PanelLeftOpen, Globe, UserCheck, Layout,
+  Layers, Star, PanelLeftClose, PanelLeftOpen, Globe, UserCheck, Layout, FolderGit2,
 } from "lucide-react";
 import PremiumPlansModal from "@/components/PremiumPlansModal";
 import DevlogFeedModal from "@/components/DevlogFeedModal";
@@ -93,6 +93,7 @@ const NAV_GROUPS = [
       { to: "/!/dashboard/links", label: "Links", icon: Link2, testid: "tab-links", desc: "Add, order and style the links on your page", ownHeader: true },
       { to: "/!/dashboard/widgets", label: "Widgets", icon: LayoutGrid, testid: "tab-widgets", desc: "Live platform widgets shown on your profile", ownHeader: true },
       { to: "/!/dashboard/sections", label: "Sections", icon: Layers, testid: "tab-sections", desc: "Full-page scroll sections — games, music, anime, gallery", ownHeader: true },
+      { to: "/!/dashboard/projects", label: "Projects", icon: FolderGit2, testid: "tab-projects", desc: "Create and manage your portfolio projects", ownHeader: true },
       { to: "/!/dashboard/badges", label: "Badges", icon: Award, testid: "tab-badges", desc: "Earn, equip and reorder your profile badges", ownHeader: true },
     ],
   },
