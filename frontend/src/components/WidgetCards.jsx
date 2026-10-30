@@ -525,21 +525,29 @@ function WidgetShell({
     }
   }
 
-  const surface = {
-    borderWidth: `${borderWidthVal}px`,
-    borderStyle: borderWidthVal > 0 ? "solid" : "none",
-    borderColor: borderColorVal,
-    borderRadius: widgetRadius(w?.card_radius),
-    ...(bgEnabled
-      ? {
-          background: bgFill,
-          backdropFilter: `blur(${blurVal}px)`,
-          WebkitBackdropFilter: `blur(${blurVal}px)`,
-        }
-      : { background: "transparent" }),
-    ...cardSurface(w, accent),
-    ...customStyleProps,
-  };
+    // Merge glow shadow from cardSurface with any card-style boxShadow so
+    // a custom style never silently drops the user's glow.
+    const glowShadow = cardSurface(w, accent);
+    const mergedBoxShadow = customStyleProps.boxShadow && glowShadow.boxShadow
+      ? `${glowShadow.boxShadow}, ${customStyleProps.boxShadow}`
+      : customStyleProps.boxShadow || glowShadow.boxShadow;
+
+    const surface = {
+      borderWidth: `${borderWidthVal}px`,
+      borderStyle: borderWidthVal > 0 ? "solid" : "none",
+      borderColor: borderColorVal,
+      borderRadius: widgetRadius(w?.card_radius),
+      ...(bgEnabled
+        ? {
+            background: bgFill,
+            backdropFilter: `blur(${blurVal}px)`,
+            WebkitBackdropFilter: `blur(${blurVal}px)`,
+          }
+        : { background: "transparent" }),
+      ...glowShadow,
+      ...customStyleProps,
+      boxShadow: mergedBoxShadow,
+    };
 
   const isClickableCard = (openStyle === "click" || popupToggle) && (popoutUrl || popupToggle);
 
@@ -1221,9 +1229,9 @@ function SpotifyTrackCard({ w, accent, data, status, error, refresh }) {
     el.play().catch(() => setIsPlaying(false));
   };
 
-  const cover = data.thumbnail || data.artwork || "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=300&auto=format&fit=crop&q=80";
-  const title = data.title || w?.track || w?.title || "WHAT TO DO? (feat. Don Toliver)";
-  const artist = data.author || data.artist || w?.artist || "JACKBOYS, Travis Scott";
+  const cover = data.thumbnail || data.artwork || "";
+  const title = data.title || w?.track || w?.title || "Unknown Track";
+  const artist = data.author || data.artist || w?.artist || "Unknown Artist";
 
   return (
     <div className="relative text-white select-none py-0.5">
@@ -1236,11 +1244,17 @@ function SpotifyTrackCard({ w, accent, data, status, error, refresh }) {
         />
       )}
 
-      {/* Main Track Row matching Image 2 */}
+      {/* Main Track Row */}
       <div className="flex items-center gap-3">
         {/* Album Artwork */}
         <div className="w-12 h-12 rounded-xl overflow-hidden bg-zinc-900 border border-white/10 shrink-0 shadow-sm relative group">
-          <img src={cover} alt={title} className="w-full h-full object-cover" />
+          {cover ? (
+            <img src={cover} alt={title} className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <FaSpotify className="w-5 h-5 text-[#1DB954]/60" />
+            </div>
+          )}
           <button
             type="button"
             onClick={togglePlay}
@@ -1269,16 +1283,22 @@ function SpotifyTrackCard({ w, accent, data, status, error, refresh }) {
             {artist}
           </div>
 
-          {/* Scrubber row with timestamps and mini controls matching Image 2 */}
+          {/* Scrubber row with real audio timestamps */}
           <div className="flex items-center gap-2 mt-1.5 text-[10px] font-mono2 text-zinc-400">
-            <span className="shrink-0">{isPlaying ? "0:14" : "0:00"}</span>
-            <div className="relative flex-1 h-1 rounded-full bg-white/10 overflow-hidden cursor-pointer">
+            <span className="shrink-0">{previewAudio && audioRef.current ? (() => { const ct = audioRef.current.currentTime || 0; return `${Math.floor(ct / 60)}:${String(Math.floor(ct % 60)).padStart(2, "0")}`; })() : "—"}</span>
+            <div className="relative flex-1 h-1 rounded-full bg-white/10 overflow-hidden cursor-pointer"
+              onClick={(e) => {
+                if (!audioRef.current?.duration) return;
+                const rect = e.currentTarget.getBoundingClientRect();
+                audioRef.current.currentTime = ((e.clientX - rect.left) / rect.width) * audioRef.current.duration;
+              }}
+            >
               <div
-                className="h-full rounded-full bg-white transition-all duration-300"
-                style={{ width: isPlaying ? "45%" : "24%" }}
+                className="h-full rounded-full bg-white transition-all duration-150"
+                style={{ width: `${previewAudio && audioRef.current?.duration ? ((audioRef.current.currentTime || 0) / audioRef.current.duration * 100) : 0}%` }}
               />
             </div>
-            <span className="shrink-0 text-zinc-500">0:29</span>
+            <span className="shrink-0 text-zinc-500">{previewAudio && audioRef.current?.duration ? (() => { const d = audioRef.current.duration; return `${Math.floor(d / 60)}:${String(Math.floor(d % 60)).padStart(2, "0")}`; })() : "—"}</span>
             <div className="flex items-center gap-1.5 text-zinc-400 shrink-0 ml-1">
               <button type="button" onClick={togglePlay} className="hover:text-white transition cursor-pointer" aria-label="Toggle playback">
                 {isPlaying ? <Pause className="w-3 h-3 fill-current" /> : <Play className="w-3 h-3 fill-current" />}
@@ -2283,10 +2303,10 @@ function SoundCloudCard({ w, accent, data, status, error, refresh }) {
   if (status === "loading") return <Skeleton />;
 
   const rawUrl = data?.url || data?.page_url || w?.url || "";
-  const authorSlug = String(w?.username || (rawUrl ? rawUrl.replace(/^https?:\/\/(?:www\.)?soundcloud\.com\//i, "").replace(/\/.*$/, "") : "bondages"));
-  const title = data?.title || (w?.title && w.title !== "SoundCloud" ? w.title : (authorSlug || "SoundCloud Artist"));
-  const author = data?.author || data?.author_name || authorSlug;
-  const cover = data?.thumbnail || data?.avatar || "https://i1.sndcdn.com/avatars-P5eC0qmzsl2LVQtY-deRPow-t500x500.jpg";
+  const authorSlug = String(w?.username || (rawUrl ? rawUrl.replace(/^https?:\/\/(?:www\.)?soundcloud\.com\//i, "").replace(/\/.*$/, "") : ""));
+  const title = data?.title || (w?.title && w.title !== "SoundCloud" ? w.title : (authorSlug || "SoundCloud"));
+  const author = data?.author || data?.author_name || authorSlug || "Unknown Artist";
+  const cover = data?.thumbnail || data?.avatar || "";
   const trackUrl = rawUrl || (authorSlug ? `https://soundcloud.com/${authorSlug}` : "#");
 
   const pathParts = rawUrl ? rawUrl.replace(/^https?:\/\/(?:www\.)?soundcloud\.com\/?/i, "").split("/").filter(Boolean) : [];

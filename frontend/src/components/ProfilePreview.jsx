@@ -235,10 +235,11 @@ const buildAudioCardStyle = (p = {}, accent = "#b4bffa") => {
     borderRgba = `${borderColor}${Math.round(borderOpacity * 255).toString(16).padStart(2, "0")}`;
   }
 
-  // Use the actual glow spread value — no overrides
+  // Use the actual glow spread value — no overrides. Softer shadow to prevent
+  // bleeding into the card above.
   const boxShadow = glowEnabled && glowSpread > 0
-    ? `0 12px 35px rgba(0,0,0,0.6), 0 0 ${glowSpread}px ${glowColor}25`
-    : "0 12px 35px rgba(0,0,0,0.6)";
+    ? `0 4px 16px rgba(0,0,0,0.4), 0 0 ${glowSpread}px ${glowColor}25`
+    : "0 4px 16px rgba(0,0,0,0.4)";
 
   return {
     background: bg,
@@ -2465,10 +2466,10 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
 
           {/* The player's own box only exists when a player rides in the card:
               a pinned or corner player used to leave this shell empty below
-              the card. */}
+              the card. Audio box gets extra top margin to prevent shadow overlap. */}
           {tracks.length > 0 && !pinnedPlayer && !cornerStyle && (
             <div
-              className="p-4 sm:p-5 text-left relative overflow-visible transition duration-300"
+              className="mt-1 p-4 sm:p-5 text-left relative overflow-visible transition duration-300"
               style={cardSurface({
                 // Numeric on purpose — see the border-radius fix above.
                 borderRadius: Math.max(4, Number(p.card_radius ?? 24) - 4),

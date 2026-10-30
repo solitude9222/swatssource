@@ -440,7 +440,7 @@ const DEFAULT_SHARED = {
   bgOpacity: 0.05,
   bgBlur: 0,
   padding: 10,
-  density: "compact",
+  density: "tight",
 };
 
 // Player placement is no longer stored: it follows the profile layout (see
@@ -459,9 +459,7 @@ export const WIDGET_PRESETS = {
   spotify: {
     type: "spotify",
     url: "https://open.spotify.com/track/4PkQuSF1CzodLjv2FxqP6e?si=8a9b752f4ae74586",
-    title: "She's Everything",
-    artist: "Brad Paisley",
-    track: "She's Everything",
+    title: "Spotify",
   },
   roblox: {
     type: "roblox",
@@ -488,8 +486,8 @@ export const WIDGET_PRESETS = {
   soundcloud: {
     type: "soundcloud",
     subtype: "profile",
-    username: "bondages",
-    url: "https://soundcloud.com/bondages",
+    username: "",
+    url: "",
     title: "SoundCloud",
   },
   valorant: {
