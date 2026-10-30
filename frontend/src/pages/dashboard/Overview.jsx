@@ -59,21 +59,21 @@ function StatTile({ label, value, icon: Icon, trend, to, testId }) {
   const inner = (
     <div
       data-testid={testId}
-      className="group rounded-[20px] border border-white/[0.07] bg-[#111113] p-4 transition-all hover:border-white/[0.14] hover:bg-[#141416]"
+      className="group rounded-2xl border border-white/[0.07] bg-[#111113] p-3 transition-all hover:border-white/[0.14] hover:bg-[#141416]"
     >
       <div className="flex items-start justify-between">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/[0.04] text-zinc-400">
-          <Icon className="h-4 w-4" />
+        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/[0.04] text-zinc-400">
+          <Icon className="h-3.5 w-3.5" />
         </div>
         {trend !== undefined && (
-          <span className={`text-[11px] font-semibold ${Number(trend) >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+          <span className={`text-[10px] font-semibold ${Number(trend) >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
             {Number(trend) >= 0 ? "+" : ""}{trend}%
           </span>
         )}
       </div>
-      <div className="mt-3">
-        <div className="text-2xl font-bold tabular-nums text-white">{value}</div>
-        <div className="mt-0.5 text-xs text-zinc-500 font-medium">{label}</div>
+      <div className="mt-2">
+        <div className="text-xl font-bold tabular-nums text-white">{value}</div>
+        <div className="mt-0.5 text-[11px] text-zinc-500 font-medium">{label}</div>
       </div>
     </div>
   );
@@ -165,6 +165,7 @@ export default function Overview() {
   const [redeemCode, setRedeemCode]        = useState("");
   const [redeeming, setRedeeming]          = useState(false);
   const [syncing, setSyncing]              = useState(false);
+  const [devlogs, setDevlogs]              = useState([]);
 
   useEffect(() => {
     let alive = true;
@@ -174,6 +175,18 @@ export default function Overview() {
       .catch(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
   }, [range, user.username, user.views]);
+
+  // Fetch latest devlogs for the "What's new" section
+  useEffect(() => {
+    let alive = true;
+    api.get("/devlogs?limit=3")
+      .then(({ data }) => {
+        if (alive && Array.isArray(data)) setDevlogs(data.slice(0, 3));
+        else if (alive && Array.isArray(data?.devlogs)) setDevlogs(data.devlogs.slice(0, 3));
+      })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, []);
 
   const redeemPremium = async (e) => {
     e.preventDefault();
@@ -305,10 +318,18 @@ export default function Overview() {
             <Globe className="h-4 w-4 text-[#b4bffa]" />
             <h2 className="text-xs font-bold uppercase tracking-wider text-white">Your domains:</h2>
           </div>
-          <span className="text-[11px] font-mono2 text-emerald-400 flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-            2 Active Domains
-          </span>
+          {(() => {
+            const domains = [
+              { domain: "tourn.lol", url: `https://tourn.lol/${user.username}`, label: `tourn.lol/${user.username}` },
+              { domain: "swats.bio", url: `https://swats.bio/${user.username}`, label: `swats.bio/${user.username}` },
+            ];
+            return (
+              <span className="text-[11px] font-mono2 text-emerald-400 flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                {domains.length} Active {domains.length === 1 ? "Domain" : "Domains"}
+              </span>
+            );
+          })()}
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {[
@@ -540,16 +561,16 @@ export default function Overview() {
             </Link>
           </div>
           <div className="space-y-2">
-            {[
-              { title: "Dashboard overhaul",      desc: "New nav structure, home page and design system", live: true  },
-              { title: "Card style presets fixed", desc: "Frosted, Aurora and Outlined now preview correctly", live: false },
-              { title: "Links page redesigned",   desc: "Quick add strip and full platform modal",         live: false },
-            ].map((item) => (
-              <div key={item.title} className="flex items-start gap-2.5 rounded-xl border border-white/[0.07] bg-white/[0.02] p-3">
-                <span className={`mt-1 h-1.5 w-1.5 shrink-0 rounded-full ${item.live ? "bg-[#b4bffa]" : "bg-zinc-600"}`} />
+            {(devlogs.length > 0 ? devlogs : [
+              { title: "Dashboard overhaul",      body: "New nav structure, home page and design system", pinned: true  },
+              { title: "Card style presets fixed", body: "Frosted, Aurora and Outlined now preview correctly" },
+              { title: "Links page redesigned",   body: "Quick add strip and full platform modal" },
+            ]).map((item, i) => (
+              <div key={item.title || i} className="flex items-start gap-2.5 rounded-xl border border-white/[0.07] bg-white/[0.02] p-3">
+                <span className={`mt-1 h-1.5 w-1.5 shrink-0 rounded-full ${item.pinned || i === 0 ? "bg-[#b4bffa]" : "bg-zinc-600"}`} />
                 <div>
                   <p className="text-xs font-semibold text-white">{item.title}</p>
-                  <p className="text-[11px] text-zinc-500 mt-0.5">{item.desc}</p>
+                  <p className="text-[11px] text-zinc-500 mt-0.5">{item.body || item.desc || item.summary || ""}</p>
                 </div>
               </div>
             ))}

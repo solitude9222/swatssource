@@ -102,7 +102,7 @@ const NAV_GROUPS = [
     expandable: true,
     tabs: [
       { to: "/!/dashboard/editor?tab=appearance", label: "Appearance", icon: Paintbrush, testid: "tab-appearance", desc: "Card surface, decorations, glow, borders and fonts" },
-      { to: "/!/dashboard/editor?tab=appearance", label: "Layout", icon: Layout, testid: "tab-layout", desc: "Layout style and positioning settings" },
+      { to: "/!/dashboard/editor?tab=audios", label: "Audio & Media", icon: Sparkles, testid: "tab-audios", desc: "Background music, tracks and media settings" },
       { to: "/!/dashboard/editor?tab=other", label: "Other", icon: Sparkles, testid: "tab-other", desc: "View counter, stats, card title and advanced toggles" },
     ],
   },

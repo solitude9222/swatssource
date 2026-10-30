@@ -349,23 +349,32 @@ function WidgetShell({
   const full = Number(w.span ?? 2) === 2;
   const sharedProfile = useContext(WidgetProfileContext) || w?.profile;
   const hasShared = !!sharedProfile;
-  const density = w?.density || sharedProfile?.widget_density || (w?.compact ? "compact" : "compact");
+  const density = w?.density || sharedProfile?.widget_density || (w?.compact ? "compact" : "tight");
   const customPad = w?.card_padding != null ? Number(w.card_padding) : (sharedProfile?.widget_padding != null ? Number(sharedProfile.widget_padding) : null);
-  // Widget Density styles: Minimal (Thin), Compact, Normal
-  let pad = "p-3 sm:p-3.5";
+  // Widget Density styles: Micro → Minimal → Tight (default) → Compact → Normal → Spacious
+  let pad = "p-2 sm:p-2.5";
   let minHStyle = {};
   if (customPad != null) {
     pad = "";
+  } else if (density === "micro") {
+    pad = "px-2 py-1";
+    minHStyle = { minHeight: "36px" };
   } else if (density === "minimal") {
-    pad = "px-3 py-1.5 sm:px-3.5 sm:py-2";
-    minHStyle = { minHeight: "56px" };
+    pad = "px-2 py-1.5 sm:px-2.5 sm:py-2";
+    minHStyle = { minHeight: "44px" };
+  } else if (density === "tight") {
+    pad = "p-2 sm:p-2.5";
+    minHStyle = { minHeight: "52px" };
   } else if (density === "compact") {
     pad = "p-2.5 sm:p-3";
-    minHStyle = { minHeight: "76px" };
-  } else {
-    // normal
+    minHStyle = { minHeight: "60px" };
+  } else if (density === "spacious") {
     pad = "p-3.5 sm:p-4";
     minHStyle = { minHeight: "96px" };
+  } else {
+    // normal
+    pad = "p-3 sm:p-3.5";
+    minHStyle = { minHeight: "72px" };
   }
   const padStyle = customPad != null ? { padding: `${customPad}px` } : undefined;
   const bgEnabled = w?.background !== false && w?.bg_enabled !== false && w?.show_bg !== false && !w?.transparent && w?.card_style !== "transparent";

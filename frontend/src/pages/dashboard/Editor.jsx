@@ -124,7 +124,7 @@ const PREVIEW_WORD = "tourn";
 // are not separate panels any more â€” the layout picker lives in Appearance and
 // the effect pickers in Extra â€” so an old bookmark lands on the page that owns
 // those controls instead of a bare panel.
-const EDITOR_TABS = ["about", "appearance", "audios", "other", "extra"];
+const EDITOR_TABS = ["about", "appearance", "audios", "other"];
 const TAB_ALIASES = {
   profile: "about",
   card: "appearance",
@@ -132,7 +132,6 @@ const TAB_ALIASES = {
   effects: "other",
   extra: "other",
   entry: "other",
-  other: "other",
   shop: "about",
   store: "about",
 };

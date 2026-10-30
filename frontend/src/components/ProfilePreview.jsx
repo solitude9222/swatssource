@@ -235,10 +235,9 @@ const buildAudioCardStyle = (p = {}, accent = "#b4bffa") => {
     borderRgba = `${borderColor}${Math.round(borderOpacity * 255).toString(16).padStart(2, "0")}`;
   }
 
-  // Avoid 10px or 20px specifically as unit tests verify no /0 0 (10|20)px/ match
-  const safeGlowSpread = (glowSpread === 10 || glowSpread === 20) ? 24 : glowSpread;
-  const boxShadow = glowEnabled && safeGlowSpread > 0
-    ? `0 12px 35px rgba(0,0,0,0.6), 0 0 ${safeGlowSpread}px ${glowColor}25`
+  // Use the actual glow spread value — no overrides
+  const boxShadow = glowEnabled && glowSpread > 0
+    ? `0 12px 35px rgba(0,0,0,0.6), 0 0 ${glowSpread}px ${glowColor}25`
     : "0 12px 35px rgba(0,0,0,0.6)";
 
   return {
@@ -289,8 +288,10 @@ function VolumeHoverSlider({ muted, setMuted, visitorVolume, handleVolumeChange,
 
   return (
     <div className="relative group/vol flex items-center justify-center">
-      {/* Sleek Dynamic Island / Pill Volume HUD popover on hover */}
-      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2.5 opacity-0 pointer-events-none group-hover/vol:opacity-100 group-hover/vol:pointer-events-auto flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-black/95 border border-white/20 shadow-[0_10px_35px_rgba(0,0,0,0.95)] z-50 transition-all duration-200">
+      {/* Volume HUD — visible on hover (desktop) and on tap (mobile via peer-focus) */}
+      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2.5 opacity-0 pointer-events-none group-hover/vol:opacity-100 group-hover/vol:pointer-events-auto focus-within:opacity-100 focus-within:pointer-events-auto peer-focus:opacity-100 peer-focus:pointer-events-auto flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-black/95 border border-white/20 shadow-[0_10px_35px_rgba(0,0,0,0.95)] z-50 transition-all duration-200"
+           id="vol-popup"
+      >
         <Volume2 className="w-3.5 h-3.5 text-white shrink-0 fill-white" />
         <div
           ref={trackRef}
@@ -311,14 +312,26 @@ function VolumeHoverSlider({ muted, setMuted, visitorVolume, handleVolumeChange,
             style={{ width: `${pct}%` }}
           />
         </div>
+        <span className="text-[10px] text-zinc-400 font-mono2 w-8 text-right tabular-nums">{Math.round(pct)}%</span>
       </div>
 
-      {/* Mute Button */}
+      {/* Mute / Volume Toggle — click opens slider on mobile, hover on desktop */}
       <button
         type="button"
-        onClick={() => setMuted((m) => !m)}
+        onClick={(e) => {
+          // On touch devices, toggle the popup visibility instead of just muting
+          const popup = e.currentTarget.parentElement?.querySelector('#vol-popup');
+          if (popup && window.matchMedia('(hover: none)').matches) {
+            const isVisible = popup.style.opacity === '1';
+            popup.style.opacity = isVisible ? '0' : '1';
+            popup.style.pointerEvents = isVisible ? 'none' : 'auto';
+          } else {
+            setMuted((m) => !m);
+          }
+        }}
+        onDoubleClick={() => setMuted((m) => !m)}
         aria-label={muted ? "Unmute track" : "Mute track"}
-        className="text-zinc-400 hover:text-white transition p-1.5 rounded-lg hover:bg-white/[0.08] active:scale-95"
+        className="peer text-zinc-400 hover:text-white transition p-1.5 rounded-lg hover:bg-white/[0.08] active:scale-95"
       >
         {muted || visitorVolume === 0 ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
       </button>

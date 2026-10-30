@@ -257,8 +257,22 @@ export default function Settings() {
                 <div className="grid grid-cols-2 gap-3 mb-4">
                   <div className="p-3 rounded-xl bg-black/40 border border-white/[0.06]">
                     <div className="text-[11px] text-zinc-400">Security Score</div>
-                    <div className="text-xl font-bold text-white mt-0.5">85 / 100</div>
-                    <div className="text-[10px] text-emerald-400 mt-0.5">Protected</div>
+                    {(() => {
+                      let score = 30; // base: account exists
+                      if (user?.totp_enabled) score += 30;
+                      if (user?.discord?.linked) score += 15;
+                      if (user?.email) score += 15;
+                      if (user?.profile?.avatar_url) score += 10;
+                      score = Math.min(100, score);
+                      const label = score >= 80 ? "Protected" : score >= 50 ? "Moderate" : "Needs Attention";
+                      const color = score >= 80 ? "text-emerald-400" : score >= 50 ? "text-amber-400" : "text-rose-400";
+                      return (
+                        <>
+                          <div className="text-xl font-bold text-white mt-0.5">{score} / 100</div>
+                          <div className={`text-[10px] ${color} mt-0.5`}>{label}</div>
+                        </>
+                      );
+                    })()}
                   </div>
                   <div className="p-3 rounded-xl bg-black/40 border border-white/[0.06]">
                     <div className="text-[11px] text-zinc-400">Unlocked Badges</div>
@@ -436,7 +450,14 @@ export default function Settings() {
                 <span className="text-[11px] text-zinc-500">1 active device</span>
                 <button
                   type="button"
-                  onClick={() => toast.success("All other sessions logged out")}
+                  onClick={async () => {
+                    try {
+                      await api.post("/me/sessions/revoke-others");
+                      toast.success("All other sessions have been logged out");
+                    } catch {
+                      toast.error("Could not revoke other sessions — try again");
+                    }
+                  }}
                   className="text-xs font-semibold text-rose-400 hover:text-rose-300 transition cursor-pointer"
                 >
                   Sign Out Other Sessions
