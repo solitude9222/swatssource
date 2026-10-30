@@ -185,7 +185,7 @@ it("gives every layout its own defining structure", () => {
   expect(htmlFor("slideshow")).toContain('data-testid="slideshow-indicators"');
 });
 
-// The four deleted layouts are still stored on real profiles. They must render
+// Deleted layouts are still stored on real profiles. They must render
 // as Minimal rather than as a layout whose renderer no longer exists.
 it("renders a deleted layout as the default one", () => {
   for (const removed of ["showcase", "divider", "nowplaying", "rail", "stacks", "panels", "document", "classic"]) {
@@ -779,6 +779,36 @@ it("draws every badge bare, at one size, in an evenly spaced row", () => {
   act(() => root.render(<ProfilePreview data={{ ...data, profile: { ...data.profile, badge_overlap: 100 } }} />));
   const tight = [...container.querySelectorAll("[data-badge]")];
   expect(tight.every((c) => c.style.marginLeft === "")).toBe(true);
+});
+
+it("applies the selected reveal animation to profile content and cascades badges", () => {
+  const data = {
+    ...base,
+    equipped_badges: ["verified", "og"],
+    profile: {
+      ...base.profile,
+      reveal_animation: "cascade",
+      widgets: [{ type: "timezone", value: "UTC" }, { type: "timezone", value: "PST" }],
+    },
+  };
+  act(() => root.render(<ProfilePreview data={data} />));
+
+  expect(container.querySelector('[data-block="avatar"]').className).toContain("animate-in");
+  expect(container.querySelector('[data-block="name"]').className).toContain("animate-in");
+  expect(container.querySelector('[data-block="bio"]').className).toContain("animate-in");
+  expect(container.querySelector('[data-block="links"] .animate-in')).toBeTruthy();
+
+  const badges = [...container.querySelectorAll('[data-testid="badge-row"] > span')];
+  expect(badges).toHaveLength(2);
+  expect(badges[0].className).toContain("animate-in");
+  expect(badges[0].style.animationDelay).toBe("240ms");
+  expect(badges[1].style.animationDelay).toBe("300ms");
+
+  const widgetEntrances = [...container.querySelectorAll('[data-block="widgets"] > div')];
+  expect(widgetEntrances).toHaveLength(2);
+  expect(widgetEntrances[0].className).toContain("animate-in");
+  expect(widgetEntrances[0].style.animationDelay).toBe("400ms");
+  expect(widgetEntrances[1].style.animationDelay).toBe("460ms");
 });
 
 // The card's little extras: the join date the API now sends, the bio size, and

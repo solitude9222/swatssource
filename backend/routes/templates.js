@@ -199,7 +199,7 @@ export const FREE_FONTS = [
   'Syne', 'Unbounded', 'system-ui',
 ];
 
-export const FREE_TRACK_STYLES = ['', 'mini-bar', 'compact', 'corner-icon'];
+export const FREE_TRACK_STYLES = ['', 'mini-bar', 'compact', 'corner-icon', 'lyrics', 'marquee', 'vinyl'];
 
 const PREMIUM_VALUE_KEYS = /^(name_effect|bio_effect|avatar_effect|overlay|background_effect|cursor_effect|crosshair_image|crosshair_scale|crosshair_x|crosshair_y|custom_css|custom_html)$/;
 

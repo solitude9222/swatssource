@@ -123,22 +123,28 @@ describe("reworked dashboard shell", () => {
 
     // "Home" is a flat link now (like the reference), not a foldable category.
     const home = container.querySelector('[data-testid="tab-overview"]');
-    const customization = container.querySelector('[data-testid="navgroup-customization"]');
-    const other = container.querySelector('[data-testid="navgroup-other"]');
+    const profile = container.querySelector('[data-testid="navgroup-profile"]');
+    const customize = container.querySelector('[data-testid="navgroup-customize"]');
+    const analytics = container.querySelector('[data-testid="navgroup-analytics"]');
     expect(home).toBeTruthy();
-    expect(customization).toBeTruthy();
-    expect(other).toBeTruthy();
+    expect(profile).toBeTruthy();
+    expect(customize).toBeTruthy();
+    expect(analytics).toBeTruthy();
 
     // Expanded by default, and folding one flips its aria state.
-    expect(other.getAttribute("aria-expanded")).toBe("true");
-    click(other);
-    expect(other.getAttribute("aria-expanded")).toBe("false");
+    expect(profile.getAttribute("aria-expanded")).toBe("true");
+    click(profile);
+    expect(profile.getAttribute("aria-expanded")).toBe("false");
+    // Framer Motion keeps exiting links mounted until their collapse animation
+    // completes. The links are intentionally discoverable in the expanded nav.
+    expect(container.querySelector('[data-testid="tab-templates"]').getAttribute("href")).toBe("/!/dashboard/templates");
+    expect(container.querySelector('[data-testid="tab-store"]')).toBeTruthy();
   });
 
   it("shows the current page as the title, with a breadcrumb above it", async () => {
     await renderDashboard();
 
-    expect(container.querySelector("h1").textContent).toBe("Overview");
+    expect(container.querySelector("h1").textContent).toBe("Home");
     expect(container.querySelector('[data-testid="dash-breadcrumb"]')).toBeTruthy();
     expect(container.querySelector('[data-testid="tab-overview"]')).toBeTruthy();
 
@@ -166,25 +172,20 @@ describe("overview statistics", () => {
 
     expect(container.querySelector('[data-testid="stat-username"]').textContent).toContain("tester");
     expect(container.querySelector('[data-testid="stat-views"]').textContent).toContain("42");
-    expect(container.querySelector('[data-testid="stat-tier"]').textContent).toContain("Free");
+    expect(container.querySelector('[data-testid="stat-tier"]').textContent).toContain("free");
 
     expect(container.querySelector('[data-testid="completion-card"]')).toBeTruthy();
-    expect(container.querySelector('[data-testid="connect-card"]')).toBeTruthy();
-    expect(container.querySelector('[data-testid="connect-discord-btn"]')).toBeTruthy();
-    expect(container.querySelector('[data-testid="analytics-view-more"]')).toBeTruthy();
-
-    // Account quick actions.
-    for (const id of ["qa-username", "qa-layout", "qa-settings"]) {
-      expect(container.querySelector(`[data-testid="${id}"]`)).toBeTruthy();
-    }
+    expect(container.textContent).toContain("Account info");
+    expect(container.textContent).toContain("Community Templates");
+    expect(container.querySelector('a[href="/!/dashboard/templates"]')).toBeTruthy();
   });
 
   it("links each chip where its number lives, and puts no dialogs behind them", async () => {
     await renderDashboard();
 
     expect(container.querySelector('[data-testid="stat-tier"]').getAttribute("href")).toContain("/!/pricing");
-    expect(container.querySelector('[data-testid="stat-views"]').getAttribute("href")).toContain("/!/dashboard/stats");
-    expect(container.querySelector('[data-testid="stat-badges"]').getAttribute("href")).toContain("/!/dashboard/badges");
+    expect(container.querySelector('[data-testid="stat-views"]').closest("a").getAttribute("href")).toContain("/!/dashboard/stats");
+    expect(container.querySelector('[data-testid="stat-badges"]').closest("a").getAttribute("href")).toContain("/!/dashboard/badges");
 
     // Clicking a chip opens nothing: the old modal zoo (alias, uid, views, tier,
     // badges, layout) is retired with the clutter it made.

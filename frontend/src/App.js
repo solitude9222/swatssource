@@ -1,4 +1,5 @@
-import { useEffect, lazy, Suspense } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
+import { MotionConfig } from "framer-motion";
 import "@/App.css";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
@@ -19,7 +20,6 @@ const DevlogFeed = lazy(() => import("@/pages/Devlogs"));
 const Explore = lazy(() => import("@/pages/Explore"));
 const Docs = lazy(() => import("@/pages/Docs"));
 const Ranked = lazy(() => import("@/pages/Ranked"));
-const Marketplace = lazy(() => import("@/pages/Marketplace"));
 const UserShop = lazy(() => import("@/pages/UserShop"));
 
 // Route-level code splitting. The dashboard (and its two variants) is the bulk
@@ -39,7 +39,6 @@ const Templates = lazy(() => import("@/pages/dashboard/Templates"));
 const Settings = lazy(() => import("@/pages/dashboard/Settings"));
 const Stats = lazy(() => import("@/pages/dashboard/Stats"));
 const Rewards = lazy(() => import("@/pages/dashboard/Rewards"));
-const Shop = lazy(() => import("@/pages/dashboard/Shop"));
 const ShopManager = lazy(() => import("@/pages/dashboard/ShopManager"));
 const UserManager = lazy(() => import("@/pages/dashboard/UserManager"));
 const InviteCodes = lazy(() => import("@/pages/dashboard/InviteCodes"));
@@ -56,6 +55,7 @@ const RankedManager = lazy(() => import("@/pages/dashboard/RankedManager"));
 
 import { api, API } from "@/lib/api";
 import { TitleManager } from "@/components/TitleManager";
+import { loadReducedMotion } from "@/lib/appearance";
 
 function BackendHealthCheck() {
   useEffect(() => {
@@ -122,8 +122,17 @@ const RouteFallback = () => (
 );
 
 function App() {
+  const [reducedMotion, setReducedMotion] = useState(loadReducedMotion);
+
+  useEffect(() => {
+    const updateReducedMotion = (event) => setReducedMotion(Boolean(event.detail));
+    window.addEventListener("swats:reduced-motion", updateReducedMotion);
+    return () => window.removeEventListener("swats:reduced-motion", updateReducedMotion);
+  }, []);
+
   return (
-    <div className="App">
+    <MotionConfig reducedMotion={reducedMotion ? "always" : "never"}>
+      <div className="App">
       {/* Mounted once, globally. Renders its own bottom-right stack. */}
       <Toaster />
       {/* The swats right-click menu: one provider for the whole document, so
@@ -187,7 +196,8 @@ function App() {
                 <Route path="effects" element={<EffectsMedia />} />
                 <Route path="settings" element={<Settings />} />
                 <Route path="templates" element={<Templates />} />
-                <Route path="shop" element={<Navigate to="/!/dashboard" replace />} />
+                <Route path="store" element={<ShopManager />} />
+                <Route path="shop" element={<Navigate to="/!/dashboard/store" replace />} />
                 <Route path="marketplace" element={<Navigate to="/!/dashboard" replace />} />
                 <Route path="leaderboard" element={<Leaderboard />} />
                 {/* The build log â€” the dashboard's own devlog feed, separate
@@ -240,7 +250,8 @@ function App() {
             </Suspense>
         </BrowserRouter>
       </AuthProvider>
-    </div>
+      </div>
+    </MotionConfig>
   );
 }
 

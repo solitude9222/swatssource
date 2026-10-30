@@ -31,11 +31,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@/index.css";
 import "@/effects.css";
 import App from "@/App";
-import { applyRounding } from "@/lib/appearance";
+import { applyRounding, applyReducedMotion } from "@/lib/appearance";
 
 /* The rounding preference is applied before the first paint of the app, so a
    chosen radius never flashes the default. */
 applyRounding();
+applyReducedMotion();
 
 const queryClient = new QueryClient({
   defaultOptions: {

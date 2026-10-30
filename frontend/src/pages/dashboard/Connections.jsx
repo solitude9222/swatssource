@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { api, fileUrl } from "@/lib/api";
+import { api } from "@/lib/api";
 import { toast } from "@/lib/notify";
 import { FaDiscord } from "react-icons/fa6";
 import {
-  Globe, Link2, Unlink, RefreshCw, Loader2, ExternalLink, Check, Shield,
+  Globe, RefreshCw, Loader2, ExternalLink, Check, Shield,
 } from "lucide-react";
 
 export default function Connections() {
@@ -12,7 +12,6 @@ export default function Connections() {
   const discord = user?.discord || {};
   const linked = !!discord.linked;
   const [syncing, setSyncing] = useState(false);
-  const [unlinking, setUnlinking] = useState(false);
 
   const syncDiscord = async () => {
     setSyncing(true);
@@ -24,20 +23,6 @@ export default function Connections() {
       toast.error("Sync failed — try reconnecting");
     } finally {
       setSyncing(false);
-    }
-  };
-
-  const unlinkDiscord = async () => {
-    if (!window.confirm("Unlink your Discord account? You'll lose synced roles and badges.")) return;
-    setUnlinking(true);
-    try {
-      const { data } = await api.post("/auth/discord/unlink");
-      if (data.user) setUser(data.user);
-      toast.success("Discord unlinked");
-    } catch {
-      toast.error("Could not unlink — try again later");
-    } finally {
-      setUnlinking(false);
     }
   };
 
@@ -124,15 +109,6 @@ export default function Connections() {
               >
                 {syncing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
                 Sync Now
-              </button>
-              <button
-                type="button"
-                onClick={unlinkDiscord}
-                disabled={unlinking}
-                className="flex items-center gap-2 rounded-xl border border-red-500/20 bg-red-500/10 hover:bg-red-500/20 px-4 py-2.5 text-xs font-semibold text-red-400 transition cursor-pointer disabled:opacity-50"
-              >
-                {unlinking ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Unlink className="h-3.5 w-3.5" />}
-                Unlink
               </button>
               <a
                 href={`https://discord.com/users/${discord.id}`}

@@ -38,7 +38,7 @@ export default function ShopManager() {
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const { data } = await api.get("/me");
+      const { data } = await api.get("/auth/me");
       const profile = data.profile || {};
       setProducts(Array.isArray(profile.shop_items) ? profile.shop_items : []);
       setStoreEnabled(profile.store_enabled !== false);

@@ -33,6 +33,6 @@ test('no removed layout is still in the registry', () => {
   }
 });
 
-test('the registry only offers the four layouts the site is built around', () => {
-  assert.deepEqual(LAYOUT_IDS, ['minimal', 'floating', 'banner', 'slideshow']);
+test('the registry offers all supported layouts and no removed layouts', () => {
+  assert.deepEqual(LAYOUT_IDS, ['minimal', 'floating', 'banner', 'split', 'bento', 'compact', 'slideshow']);
 });

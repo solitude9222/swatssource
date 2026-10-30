@@ -1842,7 +1842,7 @@ export default function Editor() {
                   tab (Fonts under the text boxes). Social Icons Glow lives with
                   the Links settings now. */}
 
-              <Section title="Animations" hint="Page entry animations and folding">
+              <Section title="Animations" hint="Reveal the avatar, name, badges, bio, links, widgets and audio">
                 <ChipGrid
                   testid="reveal"
                   cols={3}

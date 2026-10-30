@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import TwoFactorPanel from "@/components/TwoFactorPanel";
 import { Switch } from "@/components/ui/switch";
+import { applyReducedMotion } from "@/lib/appearance";
 
 function calcPasswordStrength(pw) {
   if (!pw) return { score: 0, label: "None", color: "bg-zinc-700", text: "text-zinc-500" };
@@ -73,6 +74,7 @@ export default function Settings() {
   const toggleReducedMotion = (val) => {
     setReducedMotion(val);
     localStorage.setItem("swats_reduced_motion", String(val));
+    applyReducedMotion(val);
     toast.success(val ? "Reduced motion enabled" : "Full animations restored");
   };
 
@@ -436,7 +438,7 @@ export default function Settings() {
                           Current Browser Session
                           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
                         </div>
-                        <div className="text-[10px] text-zinc-500 font-mono2">Windows · Chrome · IP Active</div>
+                        <div className="text-[10px] text-zinc-500 font-mono2">This browser session</div>
                       </div>
                     </div>
                     <span className="text-[9px] font-bold uppercase px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
@@ -447,20 +449,22 @@ export default function Settings() {
               </div>
 
               <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between">
-                <span className="text-[11px] text-zinc-500">1 active device</span>
+                <span className="text-[11px] text-zinc-500">Device inventory unavailable</span>
                 <button
                   type="button"
                   onClick={async () => {
                     try {
-                      await api.post("/me/sessions/revoke-others");
-                      toast.success("All other sessions have been logged out");
+                      await api.post("/me/logout-all");
+                      toast.success("All sessions have been signed out");
+                      await logout();
+                      navigate("/!/login");
                     } catch {
-                      toast.error("Could not revoke other sessions — try again");
+                      toast.error("Could not sign out all sessions — try again");
                     }
                   }}
                   className="text-xs font-semibold text-rose-400 hover:text-rose-300 transition cursor-pointer"
                 >
-                  Sign Out Other Sessions
+                  Sign Out All Sessions
                 </button>
               </div>
             </div>
@@ -490,7 +494,7 @@ export default function Settings() {
                 <div className="flex items-center justify-between py-2">
                   <div>
                     <div className="font-semibold text-zinc-200">Reduced Motion</div>
-                    <div className="text-[10px] text-zinc-500">Minimize animations and motion blur</div>
+                  <div className="text-[10px] text-zinc-500">Reduce animation and blur across the site</div>
                   </div>
                   <Switch checked={reducedMotion} onCheckedChange={toggleReducedMotion} />
                 </div>

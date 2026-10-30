@@ -23,8 +23,7 @@ const RESERVED = new Set([
 const DEFAULT_LAYOUT = 'minimal';
 const PREMIUM_LAYOUTS = ['slideshow'];
 const REMOVED_LAYOUTS = [
-  'classic', 'rail', 'stacks', 'panels', 'document', 'divider', 'showcase', 'nowplaying',
-  'compact'
+  'classic', 'rail', 'stacks', 'panels', 'document', 'divider', 'showcase', 'nowplaying'
 ];
 export const LAYOUTS = {
   default: DEFAULT_LAYOUT,

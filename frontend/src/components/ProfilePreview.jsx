@@ -1767,6 +1767,11 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
   // deleted layout can never leave somebody's page blank.
   const layout = resolveLayout(p.layout);
   const reveal = p.reveal_animation || "";
+  const revealAnimation = (sectionIndex = 0, itemIndex = 0) => {
+    const cascade = reveal === "cascade";
+    const delay = cascade ? sectionIndex * 80 + itemIndex * 60 : 0;
+    return animationClass(cascade ? "cascade" : reveal, delay);
+  };
   const folded = !!p.section_fold;
   const glowOn = p.card_glow !== false;
   // Editor previews are rendered inside a panel, so they must not claim the
@@ -1926,6 +1931,7 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
   );
 
   const AvatarBlock = ({ size = 80 }) => {
+    const entrance = revealAnimation(0);
     const frameSrc = deco.startsWith("/") || deco.startsWith("http")
       ? deco
       : deco.startsWith("frame_")
@@ -1961,8 +1967,8 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
         data-menu-id="avatar"
         data-menu-url={avatar || ""}
         data-menu-name={data?.username || "Avatar"}
-        className="relative flex items-center justify-center"
-        style={{ width: size, height: size, cursor: showUidTip ? "help" : undefined }}
+        className={`relative flex items-center justify-center ${entrance.className}`}
+        style={{ width: size, height: size, cursor: showUidTip ? "help" : undefined, ...entrance.style }}
         {...uidTip.props}
       >
         {uidTip.node}
@@ -2048,15 +2054,20 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
         data-testid="badge-row"
         className="inline-flex items-center flex-wrap justify-center gap-1 leading-none"
       >
-        {badgeList.map((b) => (
-          <HoverTip key={b} label={tipOn && showName ? labelOf(b) : ""} style={tipStyle} anim={p.tooltip_anim} accent={accent} size={p.tooltip_size || "md"}>
-            <BadgeChip
-              id={b}
-              {...chipProps}
-              className="cursor-pointer transition hover:scale-110"
-            />
-          </HoverTip>
-        ))}
+        {badgeList.map((b, index) => {
+          const entrance = revealAnimation(3, index);
+          return (
+            <span key={b} className={entrance.className} style={entrance.style}>
+              <HoverTip label={tipOn && showName ? labelOf(b) : ""} style={tipStyle} anim={p.tooltip_anim} accent={accent} size={p.tooltip_size || "md"}>
+                <BadgeChip
+                  id={b}
+                  {...chipProps}
+                  className="cursor-pointer transition hover:scale-110"
+                />
+              </HoverTip>
+            </span>
+          );
+        })}
       </div>
     );
   };
@@ -2122,7 +2133,8 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
     return (
       <div
         data-testid="profile-meta"
-        className={`flex flex-wrap items-center gap-x-4 gap-y-1.5 font-mono2 text-[11px] text-zinc-400 ${justify}`}
+        className={`flex flex-wrap items-center gap-x-4 gap-y-1.5 font-mono2 text-[11px] text-zinc-400 ${justify} ${revealAnimation(8).className}`}
+        style={revealAnimation(8).style}
       >
         <div
           className={metaStyle === "boxed"
@@ -2206,6 +2218,7 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
 
   const NameRow = ({ size = "text-xl sm:text-2xl", center = false, className = "" }) => {
     const placement = p.badge_placement || p.badge_position || "next_to_name";
+    const entrance = revealAnimation(1);
     return (
       <>
         {placement === "above_name" && (
@@ -2215,7 +2228,8 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
         )}
         <div
           data-block="name"
-          className={`flex flex-wrap items-center gap-1.5 ${center ? "justify-center" : ""} ${className}`}
+          className={`${entrance.className} flex flex-wrap items-center gap-1.5 ${center ? "justify-center" : ""} ${className}`}
+          style={entrance.style}
         >
           <FxText
             id={p.name_effect || ""}
@@ -2234,8 +2248,8 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
         <FxText
           id={p.use_name_effect_on_alias ? p.name_effect || "" : ""}
           text={`@${data.username}`}
-          className="block text-xs font-medium"
-          style={{ color: aliasColor, fontFamily: p.name_font || "Inter" }}
+          className={`block text-xs font-medium ${entrance.className}`}
+          style={{ color: aliasColor, fontFamily: p.name_font || "Inter", ...entrance.style }}
         />
         {placement === "below_name" && (
           <div data-block="badges" className={`inline-flex items-center leading-none mt-1.5 ${center ? "justify-center" : ""}`}>
@@ -2253,7 +2267,7 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
 
   const BioBlock = ({ className = "" }) => (
     p.bio ? (
-      <div data-block="bio" className={className}>
+      <div data-block="bio" className={`${className} ${revealAnimation(4).className}`} style={revealAnimation(4).style}>
         <FxText
           as="p"
           id={p.bio_effect || ""}
@@ -2285,8 +2299,9 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
         >
           {widgets.map((w, i) => {
             const full = !widgetsStacked && Number(w.span ?? 2) === 2;
+            const entrance = revealAnimation(5, i);
             return (
-              <div key={i} className={full ? "sm:col-span-2" : ""}>
+              <div key={i} className={`${full ? "sm:col-span-2" : ""} ${entrance.className}`} style={entrance.style}>
                 {pill ? (
                   <WidgetPill w={w} accent={accent} ownerCreated={data.created_at} owner={data.username} p={p} />
                 ) : (
@@ -2320,7 +2335,7 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
 
   const AudioBlock = () => (
     pinnedPlayer || cornerStyle || tracks.length === 0 ? null : (
-      <div data-block="audio" className="space-y-2.5">
+      <div data-block="audio" className={`space-y-2.5 ${revealAnimation(7).className}`} style={revealAnimation(7).style}>
         {tracks.map((t, i) => (
           <TrackCardPreview
             key={`${t.url || t.audio_url || t.title || "track"}-${i}`}

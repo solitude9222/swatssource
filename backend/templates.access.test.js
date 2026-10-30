@@ -75,7 +75,7 @@ test('a premium font or player style makes the template premium', () => {
   assert.equal(templateTier({ ...FREE, display_font: 'Clash Display' }), 'premium');
   assert.equal(templateTier({ ...FREE, bio_font: 'Melodrama' }), 'premium');
   assert.equal(templateTier({ ...FREE, track_style: 'wide' }), 'premium');
-  assert.equal(templateTier({ ...FREE, track_style: 'vinyl' }), 'premium');
+  assert.equal(templateTier({ ...FREE, track_style: 'vinyl' }), 'free');
 });
 
 test('the free font list is the frontend catalog, name for name', () => {

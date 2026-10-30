@@ -8,6 +8,7 @@
    picker in Settings reads and writes through these functions only. */
 
 const KEY = "swats_rounding";
+const REDUCED_MOTION_KEY = "swats_reduced_motion";
 
 export const ROUNDING_DEFAULT = "default";
 
@@ -40,4 +41,22 @@ export function applyRounding() {
     // the defaults in index.css are correct on their own.
   }
   return preset;
+}
+
+export function loadReducedMotion() {
+  try {
+    return localStorage.getItem(REDUCED_MOTION_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+export function applyReducedMotion(enabled = loadReducedMotion()) {
+  try {
+    document.documentElement.classList.toggle("swats-reduced-motion", enabled);
+    window.dispatchEvent(new CustomEvent("swats:reduced-motion", { detail: enabled }));
+  } catch {
+    // No document (SSR / a test harness without DOM): nothing to apply.
+  }
+  return enabled;
 }

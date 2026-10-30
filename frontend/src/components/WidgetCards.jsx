@@ -2713,8 +2713,6 @@ function GamesCard({ w, accent }) {
       )}
     </div>
   );
-    </div>
-  );
 }
 
 function ProjectsCard({ w, accent, profile }) {

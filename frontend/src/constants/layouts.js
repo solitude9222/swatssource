@@ -6,23 +6,18 @@
 // never exist in the picker without a renderer (or render identically to
 // another one) again.
 //
-// There used to be thirteen. Most were variations on the same idea — a column of
-// blocks with the avatar somewhere — and every one of them was another surface
-// that could break on its own, which is exactly what happened. Four are left,
-// and they are the four the site is built around: two flat cards (one wide, one
-// narrow with the picture floating off its top edge), one hero banner, and the
-// full-page Slideshow. Each one now draws the same shared blocks, so a profile
-// can never lose a section by picking a layout.
+// Every offered layout has one matching renderer; retired ids fall back to the
+// default rather than leaving a profile with an empty card.
 // ---------------------------------------------------------------------------
 
 export const LAYOUTS = [
   { id: "minimal", label: "Minimal", hint: "Wide card: avatar on the left, everything stacked underneath, audio in its own box" },
   { id: "floating", label: "Floating Avatar", hint: "Narrow centred card with the avatar floating half on and half off the top" },
   { id: "banner", label: "Banner", hint: "Hero banner with an overlapping avatar, pill links, and a bottom widget card" },
-  { id: "split", label: "Dual Column (Split)", hint: "Side-by-side: profile & bio on the left, live widgets & music on the right" },
-  { id: "bento", label: "Bento Grid", hint: "Modern modular bento grid with balanced tiles for avatar, bio, links, and widgets" },
-  { id: "compact", label: "Compact Grid", hint: "Streamlined high-density card with side-by-side elements" },
-  { id: "slideshow", label: "Slideshow", hint: "Fullpage scroll slides with side dot navigation (use Sections instead)", premium: true, removed: true },
+  { id: "split", label: "Dual Column (Split)", hint: "Profile and bio beside live widgets and music" },
+  { id: "bento", label: "Bento Grid", hint: "A modular grid for profile details, links and widgets" },
+  { id: "compact", label: "Compact Grid", hint: "A high-density profile card" },
+  { id: "slideshow", label: "Slideshow", hint: "Fullpage scroll slides with side dot navigation (use Sections instead)", premium: true },
 ];
 
 export const LAYOUT_IDS = LAYOUTS.map((l) => l.id);
@@ -51,10 +46,10 @@ export const TRACK_POSITION_BY_LAYOUT = {
   minimal: "",
   floating: "bottom-center",
   banner: "top-right",
-  slideshow: "",
   split: "",
   bento: "",
   compact: "",
+  slideshow: "",
 };
 
 export const TRACK_POSITION_LABELS = {

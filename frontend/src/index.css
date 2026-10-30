@@ -755,6 +755,16 @@ body.dash-theme .stagger-children > * {
 }
 
 /* Card Effects Keyframe Animations */
+.swats-reduced-motion {
+    scroll-behavior: auto !important;
+}
+.swats-reduced-motion *:not(.fx-reveal-blur) {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+}
+.swats-reduced-motion .fx-reveal-blur { animation-duration: 160ms !important; }
+
 @keyframes card-shine {
     0% { transform: translateX(-150%) skewX(-20deg); }
     35%, 100% { transform: translateX(250%) skewX(-20deg); }

@@ -187,7 +187,6 @@ export const WIDGET_KINDS = [
     subtypes: [{ id: "code", label: "HTML / CSS / Embed", fields: ["custom_code"] }],
   },
   {
-  {
     id: "interests",
     label: "Interests",
     Icon: Gamepad2,
