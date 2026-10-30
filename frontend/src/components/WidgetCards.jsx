@@ -814,13 +814,13 @@ function RobloxProfile({ w, accent, data, status, error, refresh }) {
     );
   }
 
-  const friendsCount = data.friends != null ? formatCount(data.friends) : (data.friends_count != null ? formatCount(data.friends_count) : "216");
-  const followersCount = data.followers != null ? formatCount(data.followers) : (data.followers_count != null ? formatCount(data.followers_count) : "213.8K");
+  const friendsCount = data.friends != null ? formatCount(data.friends) : (data.friends_count != null ? formatCount(data.friends_count) : "—");
+  const followersCount = data.followers != null ? formatCount(data.followers) : (data.followers_count != null ? formatCount(data.followers_count) : "—");
   const avatarSrc = data.avatar || data.headshot || "";
-  const displayName = data.display_name || data.name || data.username || "IShowSpeed";
-  const handle = data.username || username || "TheRealShowspeedy";
-  const bio = data.description || data.about || w.subtitle || (username ? "" : "Speed not on all the time, someone else sometimes");
-  const joinedText = data.created ? formatYearsAgo(data.created) : (data.created_at ? formatYearsAgo(data.created_at) : (username ? "" : "9 years ago"));
+  const displayName = data.display_name || data.name || data.username || username || "Roblox User";
+  const handle = data.username || username || "unknown";
+  const bio = data.description || data.about || w.subtitle || "";
+  const joinedText = data.created ? formatYearsAgo(data.created) : (data.created_at ? formatYearsAgo(data.created_at) : "");
 
   return (
     <div className="relative text-white select-none py-0.5">
@@ -1067,14 +1067,14 @@ function GitHubUser({ w, accent, data, status, error, refresh }) {
     );
   }
 
-  const followers = data.followers != null ? formatCount(data.followers) : "17.2K";
-  const following = data.following != null ? formatCount(data.following) : "0";
-  const repos = data.repos != null ? formatCount(data.repos) : (data.public_repos != null ? formatCount(data.public_repos) : "228");
-  const displayName = data.name || data.username || "shadcn";
-  const handle = data.username || username || "shadcn";
-  const bio = data.bio || (username ? "" : "I own a computer.");
-  const company = data.company ? (data.company.startsWith("@") ? data.company : `@${data.company}`) : (username ? "" : "@vercel");
-  const joinedText = data.created_at ? formatYearsAgo(data.created_at) : (data.created ? formatYearsAgo(data.created) : (username ? "" : "17 years ago"));
+  const followers = data.followers != null ? formatCount(data.followers) : "—";
+  const following = data.following != null ? formatCount(data.following) : "—";
+  const repos = data.repos != null ? formatCount(data.repos) : (data.public_repos != null ? formatCount(data.public_repos) : "—");
+  const displayName = data.name || data.username || username || "GitHub User";
+  const handle = data.username || username || "unknown";
+  const bio = data.bio || "";
+  const company = data.company ? (data.company.startsWith("@") ? data.company : `@${data.company}`) : "";
+  const joinedText = data.created_at ? formatYearsAgo(data.created_at) : (data.created ? formatYearsAgo(data.created) : "");
 
   return (
     <div className="relative text-white select-none py-0.5">
@@ -1376,6 +1376,48 @@ function DiscordProfile({ w, accent, data, status, error, refresh }) {
       ? `Listening to ${data.spotify.song}`
       : (data.last_seen ? `Last seen ${data.last_seen}` : realStatusLabel));
 
+  // Helper: format activity elapsed time
+  const activityElapsed = (() => {
+    const start = data.activity?.timestamps?.start;
+    if (!start) return null;
+    const ms = Date.now() - start;
+    if (ms < 0) return null;
+    const mins = Math.floor(ms / 60000);
+    if (mins < 60) return `${mins}m`;
+    const hrs = Math.floor(mins / 60);
+    return `${hrs}h ${mins % 60}m`;
+  })();
+
+  // Helper: Spotify elapsed progress (Lanyard sends timestamps.start / timestamps.end)
+  const spotifyProgress = (() => {
+    const sp = data.spotify;
+    if (!sp?.timestamps?.start || !sp?.timestamps?.end) return null;
+    const now = Date.now();
+    const total = sp.timestamps.end - sp.timestamps.start;
+    const elapsed = now - sp.timestamps.start;
+    if (total <= 0) return null;
+    return Math.max(0, Math.min(100, (elapsed / total) * 100));
+  })();
+
+  // Helper: Rich Presence activity image URL
+  const activityLargeImage = data.activity?.assets?.large_image
+    ? (data.activity.assets.large_image.startsWith("mp:") 
+        ? `https://media.discordapp.net/${data.activity.assets.large_image.slice(3)}`
+        : data.activity.application_id
+          ? `https://cdn.discordapp.com/app-assets/${data.activity.application_id}/${data.activity.assets.large_image}.png`
+          : data.activity.assets.large_image)
+    : null;
+  const activitySmallImage = data.activity?.assets?.small_image
+    ? (data.activity.assets.small_image.startsWith("mp:")
+        ? `https://media.discordapp.net/${data.activity.assets.small_image.slice(3)}`
+        : data.activity.application_id
+          ? `https://cdn.discordapp.com/app-assets/${data.activity.application_id}/${data.activity.assets.small_image}.png`
+          : data.activity.assets.small_image)
+    : null;
+
+  // Connected accounts from Lanyard / Discord API
+  const connectedAccounts = Array.isArray(data.connected_accounts) ? data.connected_accounts : [];
+
   const ClanTagBadge = () =>
     guildTag ? (
       <span
@@ -1518,19 +1560,40 @@ function DiscordProfile({ w, accent, data, status, error, refresh }) {
             <div className="mt-2.5 space-y-1.5 rounded-xl p-2.5" style={{ background: DC.row }}>
               {w.show_subtitle !== false && data.custom_status && <div className="text-[11px]" style={{ color: DC.text }}>{data.custom_status}</div>}
               {data.activity && (
-                <div className="text-[11px]" style={{ color: DC.muted }}>
-                  {data.activity.name}{data.activity.details ? ` · ${data.activity.details}` : ""}
+                <div className="flex items-center gap-2.5">
+                  {activityLargeImage && (
+                    <div className="relative shrink-0">
+                      <img src={activityLargeImage} alt="" className="w-14 h-14 rounded-lg object-cover border border-white/10" loading="lazy" />
+                      {activitySmallImage && (
+                        <img src={activitySmallImage} alt="" className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 object-cover" style={{ borderColor: DC.row }} loading="lazy" />
+                      )}
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[11px] font-bold" style={{ color: DC.text }}>{data.activity.name}</div>
+                    {data.activity.details && <div className="text-[10px] truncate" style={{ color: DC.muted }}>{data.activity.details}</div>}
+                    {data.activity.state && <div className="text-[10px] truncate" style={{ color: DC.muted }}>{data.activity.state}</div>}
+                    {activityElapsed && <div className="text-[9px] mt-0.5" style={{ color: DC.grey }}>{activityElapsed} elapsed</div>}
+                  </div>
                 </div>
               )}
               {data.spotify && (
-                <div className="flex items-center gap-2">
-                  {data.spotify.album_art && (
-                    <img src={data.spotify.album_art} alt="" className="h-8 w-8 rounded-md object-cover" loading="lazy" />
-                  )}
-                  <div className="min-w-0">
-                    <div className="truncate text-[10px] font-bold text-[#1DB954]">{data.spotify.song}</div>
-                    <div className="truncate text-[9px]" style={{ color: DC.muted }}>{data.spotify.artist}</div>
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2">
+                    {data.spotify.album_art && (
+                      <img src={data.spotify.album_art} alt="" className="h-10 w-10 rounded-md object-cover shadow-sm" loading="lazy" />
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-[10px] font-bold text-[#1DB954]">{data.spotify.song}</div>
+                      <div className="truncate text-[9px]" style={{ color: DC.muted }}>by {data.spotify.artist}</div>
+                      {data.spotify.album && <div className="truncate text-[9px]" style={{ color: DC.grey }}>on {data.spotify.album}</div>}
+                    </div>
                   </div>
+                  {spotifyProgress != null && (
+                    <div className="h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.1)" }}>
+                      <div className="h-full rounded-full bg-[#1DB954] transition-all duration-1000" style={{ width: `${spotifyProgress}%` }} />
+                    </div>
+                  )}
                 </div>
               )}
               {!data.custom_status && !data.activity && !data.spotify && (
@@ -1538,45 +1601,105 @@ function DiscordProfile({ w, accent, data, status, error, refresh }) {
               )}
             </div>
           )}
+
+          {/* Connected accounts */}
+          {connectedAccounts.length > 0 && (
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+              {connectedAccounts.slice(0, 6).map((acc) => (
+                <a
+                  key={`${acc.type}-${acc.id}`}
+                  href={acc.url || "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title={`${acc.type}: ${acc.name}`}
+                  className="flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-semibold border border-white/10 transition hover:border-white/20 hover:bg-white/5"
+                  style={{ color: DC.muted }}
+                >
+                  <Globe className="w-2.5 h-2.5" />
+                  <span className="capitalize truncate max-w-[80px]">{acc.name || acc.type}</span>
+                </a>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     );
   }
 
-  // Classic: Authentic Discord Presence Preview (Directly matches Image 1)
+  // Classic: Authentic Discord Presence Preview with Rich Presence
   return (
-    <div className="relative flex items-center justify-between gap-3.5 py-0.5">
-      <div className="flex items-center gap-3.5 min-w-0 flex-1">
-        <div className="relative shrink-0">
-          <div className="relative w-[48px] h-[48px] rounded-full overflow-hidden bg-zinc-900 border border-white/10 shadow-md">
-            <img src={data.avatar} alt={handle} className="w-full h-full object-cover" />
-            {decorationUrl && (
-              <img
-                src={decorationUrl}
-                alt=""
-                className="absolute -top-[12%] -left-[12%] w-[124%] h-[124%] pointer-events-none select-none z-10"
-              />
+    <div className="relative py-0.5">
+      <div className="flex items-center justify-between gap-3.5">
+        <div className="flex items-center gap-3.5 min-w-0 flex-1">
+          <div className="relative shrink-0">
+            <div className="relative w-[48px] h-[48px] rounded-full overflow-hidden bg-zinc-900 border border-white/10 shadow-md">
+              <img src={data.avatar} alt={handle} className="w-full h-full object-cover" />
+              {decorationUrl && (
+                <img
+                  src={decorationUrl}
+                  alt=""
+                  className="absolute -top-[12%] -left-[12%] w-[124%] h-[124%] pointer-events-none select-none z-10"
+                />
+              )}
+            </div>
+            {w.show_online !== false && (
+              <span className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-[#0c0d12] ${dot}`} />
             )}
           </div>
-          {w.show_online !== false && (
-            <span className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-[#0c0d12] ${dot}`} />
-          )}
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-sm sm:text-base font-bold text-white tracking-wide truncate">
-              {display || handle}
-            </span>
-            <ClanTagBadge />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-sm sm:text-base font-bold text-white tracking-wide truncate">
+                {display || handle}
+              </span>
+              <ClanTagBadge />
+            </div>
+            {w.show_subtitle !== false && (
+              <div className="text-xs text-zinc-400 font-normal truncate mt-0.5">
+                {statusSubtitle}
+                {activityElapsed && <span className="text-zinc-600"> · {activityElapsed}</span>}
+              </div>
+            )}
           </div>
-          {w.show_subtitle !== false && (
-            <div className="text-xs text-zinc-400 font-normal truncate mt-0.5">
-              {statusSubtitle}
+        </div>
+        <BadgesRack max={4} />
+      </div>
+
+      {/* Rich Presence activity block with game art */}
+      {data.activity && activityLargeImage && w.stats_row !== false && (
+        <div className="mt-2.5 flex items-center gap-2.5 rounded-xl bg-white/[0.04] border border-white/[0.06] p-2">
+          <div className="relative shrink-0">
+            <img src={activityLargeImage} alt="" className="w-12 h-12 rounded-lg object-cover" loading="lazy" />
+            {activitySmallImage && (
+              <img src={activitySmallImage} alt="" className="absolute -bottom-1 -right-1 w-4.5 h-4.5 rounded-full border-2 border-[#0c0d12] object-cover" loading="lazy" />
+            )}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="text-[11px] font-bold text-white truncate">{data.activity.name}</div>
+            {data.activity.details && <div className="text-[10px] text-zinc-400 truncate">{data.activity.details}</div>}
+            {data.activity.state && <div className="text-[10px] text-zinc-500 truncate">{data.activity.state}</div>}
+          </div>
+        </div>
+      )}
+
+      {/* Spotify listening block with progress bar */}
+      {data.spotify && !data.activity && w.stats_row !== false && (
+        <div className="mt-2.5 rounded-xl bg-white/[0.04] border border-white/[0.06] p-2 space-y-1.5">
+          <div className="flex items-center gap-2">
+            {data.spotify.album_art && (
+              <img src={data.spotify.album_art} alt="" className="h-10 w-10 rounded-md object-cover shadow-sm" loading="lazy" />
+            )}
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-[10px] font-bold text-[#1DB954]">{data.spotify.song}</div>
+              <div className="truncate text-[9px] text-zinc-400">by {data.spotify.artist}</div>
+            </div>
+          </div>
+          {spotifyProgress != null && (
+            <div className="h-1 rounded-full overflow-hidden bg-white/10">
+              <div className="h-full rounded-full bg-[#1DB954] transition-all duration-1000" style={{ width: `${spotifyProgress}%` }} />
             </div>
           )}
         </div>
-      </div>
-      <BadgesRack max={4} />
+      )}
     </div>
   );
 }
@@ -1598,7 +1721,7 @@ function DiscordServer({ w, accent, data, status, error, refresh }) {
   // Legacy "compact" / "discord" values fall back to the classic card so older
   // saved widgets keep rendering instead of silently losing their layout.
   const style = w.discord_style === "banner" ? "banner" : w.discord_style === "minimal" ? "minimal" : "classic";
-  const name = data.name || w.title || w.server_name || "tourn.lol";
+  const name = data.name || w.title || w.server_name || "Discord Server";
   const members = data.total_members != null ? formatCount(data.total_members) : "—";
   const online = data.online != null ? formatCount(data.online) : "—";
   const offline = data.offline != null
@@ -1833,11 +1956,11 @@ function YouTubeChannel({ w, accent, data, status, error, refresh }) {
     );
   }
 
-  const subs = data.stats?.subscribers != null ? `${formatCount(data.stats.subscribers)} Subscribers` : (data.subscribers_text || "16,600,000 Subscribers");
-  const videos = data.stats?.videos != null ? `${formatCount(data.stats.videos)} Videos` : (data.videos_text || "3,679 Videos");
+  const subs = data.stats?.subscribers != null ? `${formatCount(data.stats.subscribers)} Subscribers` : (data.subscribers_text || "— Subscribers");
+  const videos = data.stats?.videos != null ? `${formatCount(data.stats.videos)} Videos` : (data.videos_text || "— Videos");
   const channelUrl = data.url || (data.handle ? `https://www.youtube.com/${data.handle}` : "https://www.youtube.com");
-  const handle = (data.handle || (data.url ? String(data.url).split("/").pop() : "") || "KaiCenatLive").replace(/^@/, "");
-  const title = data.title || "Kai Cenat Live";
+  const handle = (data.handle || (data.url ? String(data.url).split("/").pop() : "") || "channel").replace(/^@/, "");
+  const title = data.title || w?.title || "YouTube Channel";
 
   return (
     <div className="relative text-white select-none py-0.5">
@@ -1975,7 +2098,7 @@ function SteamProfile({ w, accent, data, status, error, refresh }) {
             </>
           ) : null}
           <span className="text-zinc-600">•</span>
-          <span className="text-zinc-400">Verified Profile</span>
+          <span className="text-zinc-400">{data.profile_state || "Steam"}</span>
         </div>
       )}
     </div>
@@ -2162,9 +2285,9 @@ function WeatherCard({ w, accent, data, status, error, refresh }) {
   }
 
   const isDay = data.is_day ?? true;
-  const temp = `${data.temp_c ?? 20}°C`;
-  const tempF = `${data.temp_f ?? 68}°F`;
-  const feelsLike = `${data.feels_like_c ?? data.temp_c ?? 20}°C`;
+  const temp = data.temp_c != null ? `${data.temp_c}°C` : "—";
+  const tempF = data.temp_f != null ? `${data.temp_f}°F` : "—";
+  const feelsLike = data.feels_like_c != null ? `${data.feels_like_c}°C` : (data.temp_c != null ? `${data.temp_c}°C` : "—");
 
   const WeatherIcon = () => {
     const iconType = data.icon || "cloud-sun";
@@ -2436,7 +2559,7 @@ function MediaCard(props) {
 }
 
 function GamesCard({ w, accent }) {
-  const gamesListRaw = w?.games_list || "Valorant, Minecraft, Counter-Strike 2, Elden Ring";
+  const gamesListRaw = w?.games_list || "";
   const games = useMemo(() => {
     return gamesListRaw
       .split(/[,\n]/)
@@ -2444,7 +2567,7 @@ function GamesCard({ w, accent }) {
       .filter(Boolean);
   }, [gamesListRaw]);
 
-  const platform = w?.platform || "PC / Steam";
+  const platform = w?.platform || "";
   const nowPlaying = w?.now_playing || "";
 
   // Match each game name against POPULAR_GAMES_PRESETS for real official vertical background art
@@ -2461,7 +2584,7 @@ function GamesCard({ w, accent }) {
       return {
         name,
         genre: preset?.genre || "Action Game",
-        cover: preset?.cover || "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600&auto=format&fit=crop&q=80",
+        cover: preset?.cover || "",
         isPreset: !!preset,
       };
     });
@@ -2550,7 +2673,7 @@ function ProjectsCard({ w, accent, profile }) {
 
   const title = w?.title || "STACK";
   const desc = w?.description || "";
-  const tagsRaw = w?.tags || "TypeScript, Rust, Go, React, Next.js, Postgres, Docker";
+  const tagsRaw = w?.tags || "";
 
   // Categorize tags into Languages, Frontend, Infra matching reference image
   const stackGroups = useMemo(() => {
