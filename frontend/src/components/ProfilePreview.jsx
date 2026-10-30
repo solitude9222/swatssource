@@ -289,50 +289,51 @@ function VolumeHoverSlider({ muted, setMuted, visitorVolume, handleVolumeChange,
 
   return (
     <div className="relative group/vol flex items-center justify-center">
-      {/* Volume HUD — visible on hover (desktop) and on tap (mobile via peer-focus) */}
-      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2.5 opacity-0 pointer-events-none group-hover/vol:opacity-100 group-hover/vol:pointer-events-auto focus-within:opacity-100 focus-within:pointer-events-auto peer-focus:opacity-100 peer-focus:pointer-events-auto flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-black/95 border border-white/20 shadow-[0_10px_35px_rgba(0,0,0,0.95)] z-50 transition-all duration-200"
-           id="vol-popup"
-      >
-        <Volume2 className="w-3.5 h-3.5 text-white shrink-0 fill-white" />
-        <div
-          ref={trackRef}
-          data-testid="audio-volume-slider"
-          role="slider"
-          aria-label="Track volume"
-          aria-valuenow={Math.round(pct)}
-          aria-valuemin={0}
-          aria-valuemax={100}
-          onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerUp}
-          onClick={calculateVolumeFromEvent}
-          className="relative h-2 w-24 cursor-pointer rounded-full bg-zinc-700/80 overflow-hidden select-none touch-none"
-        >
+      {/* Volume HUD — uses padding-bottom bridge to prevent hover gap */}
+      <div className="absolute bottom-full left-1/2 -translate-x-1/2 pb-3 opacity-0 pointer-events-none group-hover/vol:opacity-100 group-hover/vol:pointer-events-auto z-50 transition-all duration-200">
+        <div className="flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-black/95 border border-white/20 shadow-[0_10px_35px_rgba(0,0,0,0.95)]">
+          <Volume2 className="w-3.5 h-3.5 text-white shrink-0 fill-white" />
           <div
-            className="h-full rounded-full bg-white transition-all duration-75"
-            style={{ width: `${pct}%` }}
-          />
+            ref={trackRef}
+            data-testid="audio-volume-slider"
+            role="slider"
+            aria-label="Track volume"
+            aria-valuenow={Math.round(pct)}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onClick={calculateVolumeFromEvent}
+            className="relative h-2 w-24 cursor-pointer rounded-full bg-zinc-700/80 overflow-hidden select-none touch-none"
+          >
+            <div
+              className="h-full rounded-full bg-white transition-all duration-75"
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+          <span className="text-[10px] text-zinc-400 font-mono2 w-8 text-right tabular-nums">{Math.round(pct)}%</span>
         </div>
-        <span className="text-[10px] text-zinc-400 font-mono2 w-8 text-right tabular-nums">{Math.round(pct)}%</span>
       </div>
 
-      {/* Mute / Volume Toggle — click opens slider on mobile, hover on desktop */}
+      {/* Mute / Volume Toggle — tap opens slider on mobile, hover on desktop */}
       <button
         type="button"
         onClick={(e) => {
-          // On touch devices, toggle the popup visibility instead of just muting
-          const popup = e.currentTarget.parentElement?.querySelector('#vol-popup');
-          if (popup && window.matchMedia('(hover: none)').matches) {
-            const isVisible = popup.style.opacity === '1';
-            popup.style.opacity = isVisible ? '0' : '1';
-            popup.style.pointerEvents = isVisible ? 'none' : 'auto';
+          if (window.matchMedia('(hover: none)').matches) {
+            const hud = e.currentTarget.parentElement?.firstElementChild;
+            if (hud) {
+              const showing = hud.style.opacity === '1';
+              hud.style.opacity = showing ? '0' : '1';
+              hud.style.pointerEvents = showing ? 'none' : 'auto';
+            }
           } else {
             setMuted((m) => !m);
           }
         }}
         onDoubleClick={() => setMuted((m) => !m)}
         aria-label={muted ? "Unmute track" : "Mute track"}
-        className="peer text-zinc-400 hover:text-white transition p-1.5 rounded-lg hover:bg-white/[0.08] active:scale-95"
+        className="text-zinc-400 hover:text-white transition p-1.5 rounded-lg hover:bg-white/[0.08] active:scale-95"
       >
         {muted || visitorVolume === 0 ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
       </button>
@@ -701,88 +702,73 @@ export function TrackCardPreview({ track, style, accent, volume = 0.8, onTime, a
     return (
       <div
         data-testid="track-compact"
-        className="w-full rounded-2xl px-3.5 py-3 text-left transition duration-300 overflow-hidden"
+        data-menu-id="audio"
+        data-menu-audio-src={audioSrc || ""}
+        className="w-full rounded-2xl px-3 py-2.5 text-left transition duration-300"
         style={customCardStyle}
       >
-        <div className="flex items-center gap-3">
-          {/* Cover on left center */}
-          {cover ? (
-            <img src={cover} alt="" className="w-11 h-11 rounded-xl object-cover shrink-0 border border-white/10 shadow-md" />
-          ) : (
-            <div
-              className="w-11 h-11 rounded-xl border flex items-center justify-center shrink-0 shadow-inner"
-              style={{ background: `${accent}18`, borderColor: `${accent}33` }}
+        <div className="flex items-center gap-2.5">
+          {/* Cover art */}
+          <div className="relative shrink-0 group/cover">
+            {cover ? (
+              <img src={cover} alt="" className="w-10 h-10 rounded-lg object-cover border border-white/10 shadow-sm" />
+            ) : (
+              <div
+                className="w-10 h-10 rounded-lg border flex items-center justify-center"
+                style={{ background: `${accent}15`, borderColor: `${accent}30` }}
+              >
+                <Music className="w-4 h-4" style={{ color: accent }} />
+              </div>
+            )}
+            <button
+              type="button"
+              data-testid="track-play-btn"
+              onClick={togglePlay}
+              aria-label={playing ? "Pause track" : "Play track"}
+              className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg opacity-0 group-hover/cover:opacity-100 transition-opacity cursor-pointer"
             >
-              <Music className="w-4 h-4" style={{ color: accent }} />
-            </div>
-          )}
+              {playing ? <Pause className="w-3.5 h-3.5 fill-white text-white" /> : <Play className="w-3.5 h-3.5 fill-white text-white ml-0.5" />}
+            </button>
+          </div>
 
-          {/* Center content: title on top center, scrubber below, mute with hover loudness line, right controls */}
-          <div className="min-w-0 flex-1 flex flex-col justify-center gap-1">
-            {/* Title on top center line, scrolls if too big */}
-            <div className="w-full text-center overflow-hidden">
-              <AutoMarqueeText speed={35} pauseMs={1200} className="text-xs font-bold text-white leading-tight">
-                {track.title || "Untitled track"}
-              </AutoMarqueeText>
+          {/* Track info + scrubber */}
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-semibold text-white truncate">{track.title || "Untitled"}</span>
+              {track.artist && <span className="text-[10px] text-zinc-500 truncate shrink-0 max-w-[35%]">{track.artist}</span>}
             </div>
-
-            {/* Timeline of the song below title */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 mt-1.5">
+              <span className="shrink-0 font-mono2 text-[9px] tabular-nums text-zinc-500 w-7">{fmtTime(elapsed) || "0:00"}</span>
               <div
                 data-testid="track-scrubber"
-                className="h-1.5 flex-1 cursor-pointer overflow-hidden rounded-full bg-white/10"
+                className="h-1 flex-1 cursor-pointer overflow-hidden rounded-full bg-white/10"
                 onClick={seekAt}
                 role="presentation"
               >
-                <div className="h-full rounded-full transition-all duration-150" style={{ width: `${progress}%`, background: `linear-gradient(90deg, ${accent}, #c084fc)` }} />
+                <div className="h-full rounded-full transition-all duration-150" style={{ width: `${progress}%`, background: accent }} />
               </div>
-              <span className="shrink-0 font-mono2 text-[9px] tabular-nums text-zinc-400">{timeLabel}</span>
+              <span className="shrink-0 font-mono2 text-[9px] tabular-nums text-zinc-500 w-7 text-right">{fmtTime(duration) || "—"}</span>
             </div>
+          </div>
 
-            {/* Middle center mute with hover loudness line; on right skip & play/pause */}
-            <div className="flex items-center justify-between">
-              <div className="w-14" />
-              <div className="flex items-center justify-center">
-                <VolumeHoverSlider
-                  muted={muted}
-                  setMuted={setMuted}
-                  visitorVolume={visitorVolume}
-                  handleVolumeChange={handleVolumeChange}
-                  accent={accent}
-                />
-              </div>
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={() => seekBy(-5)}
-                  aria-label="Skip backward 5 seconds"
-                  className="p-1 rounded-lg text-zinc-400 hover:text-white transition hover:bg-white/[0.06] active:scale-95"
-                >
-                  <SkipBack className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  type="button"
-                  data-testid="track-play-btn"
-                  onClick={togglePlay}
-                  aria-label={playing ? "Pause track" : "Play track"}
-                  className="w-7 h-7 rounded-full flex items-center justify-center text-white shadow-lg transition-transform duration-200 hover:scale-105 active:scale-95"
-                  style={{
-                    background: `linear-gradient(135deg, ${accent}, #7354D4)`,
-                    boxShadow: `0 0 16px ${accent}55`,
-                  }}
-                >
-                  {playing ? <Pause className="w-3 h-3 fill-white" /> : <Play className="w-3 h-3 fill-white translate-x-px" />}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => seekBy(5)}
-                  aria-label="Skip forward 5 seconds"
-                  className="p-1 rounded-lg text-zinc-400 hover:text-white transition hover:bg-white/[0.06] active:scale-95"
-                >
-                  <SkipForward className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
+          {/* Controls: volume + play */}
+          <div className="flex items-center gap-1 shrink-0">
+            <VolumeHoverSlider
+              muted={muted}
+              setMuted={setMuted}
+              visitorVolume={visitorVolume}
+              handleVolumeChange={handleVolumeChange}
+              accent={accent}
+            />
+            <button
+              type="button"
+              onClick={togglePlay}
+              aria-label={playing ? "Pause" : "Play"}
+              className="w-7 h-7 rounded-full flex items-center justify-center text-white transition-transform hover:scale-105 active:scale-95"
+              style={{ background: accent, boxShadow: `0 0 12px ${accent}44` }}
+            >
+              {playing ? <Pause className="w-3 h-3 fill-white" /> : <Play className="w-3 h-3 fill-white translate-x-px" />}
+            </button>
           </div>
         </div>
       </div>
@@ -2699,12 +2685,25 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
             <BioBlock />
             <LinksBlock links={links} align="center" />
             <WidgetsBlock />
-            <AudioBlock />
 
             <div className="mt-2 border-t border-white/10 pt-3.5">
               <MetaLine align="center" />
             </div>
           </div>
+
+          {/* Audio block sits OUTSIDE the overflow-hidden card to prevent clipping */}
+          {tracks.length > 0 && !pinnedPlayer && !cornerStyle && (
+            <div
+              className="mt-1 p-3 sm:p-4 text-left relative overflow-visible transition duration-300"
+              style={cardSurface({
+                borderRadius: Math.max(4, Number(p.card_radius ?? 24) - 4),
+                boxShadow: cardShadow(true),
+                ...(p.disable_audio_border ? { border: "none" } : {}),
+              })}
+            >
+              <AudioBlock />
+            </div>
+          )}
         </div>
       </div>
     );

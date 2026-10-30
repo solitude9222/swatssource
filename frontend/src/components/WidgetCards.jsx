@@ -2618,6 +2618,14 @@ function GamesCard({ w, accent }) {
       )}
 
       {/* Vertical rectangular game poster cards with real official backgrounds */}
+      {games.length === 0 ? (
+        <div className="flex items-center justify-center py-6 rounded-xl border border-dashed border-white/10">
+          <div className="text-center space-y-1">
+            <Gamepad2 className="w-5 h-5 text-zinc-600 mx-auto" />
+            <p className="text-[11px] text-zinc-500">Add games in widget settings</p>
+          </div>
+        </div>
+      ) : (
       <div className={`grid gap-2.5 pt-1 ${gameEntries.length <= 2 ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4"}`}>
         {gameEntries.map((game, i) => {
           const isActive = nowPlaying && nowPlaying.toLowerCase().includes(game.name.toLowerCase());
@@ -2660,6 +2668,7 @@ function GamesCard({ w, accent }) {
           );
         })}
       </div>
+      )}
     </div>
   );
 }
@@ -2749,6 +2758,8 @@ function ProjectsCard({ w, accent, profile }) {
     );
   };
 
+  const hasContent = tagsRaw.trim().length > 0 || desc;
+
   return (
     <div className="flex flex-col gap-3 py-1 text-left select-none">
       {/* STACK Main Heading matching reference image */}
@@ -2773,6 +2784,15 @@ function ProjectsCard({ w, accent, profile }) {
         <p className="text-xs text-zinc-400 leading-relaxed -mt-1">
           {desc}
         </p>
+      )}
+
+      {!hasContent && (
+        <div className="flex items-center justify-center py-6 rounded-xl border border-dashed border-white/10">
+          <div className="text-center space-y-1">
+            <FolderGit2 className="w-5 h-5 text-zinc-600 mx-auto" />
+            <p className="text-[11px] text-zinc-500">Add tech tags in widget settings</p>
+          </div>
+        </div>
       )}
 
       {/* Categorized Stack Sections matching reference image */}
