@@ -32,6 +32,7 @@ const Badges = lazy(() => import("@/pages/dashboard/Badges"));
 const Leaderboard = lazy(() => import("@/pages/dashboard/Leaderboard"));
 const Links = lazy(() => import("@/pages/dashboard/Links"));
 const Widgets = lazy(() => import("@/pages/dashboard/Widgets"));
+const Sections = lazy(() => import("@/pages/dashboard/Sections"));
 const EffectsMedia = lazy(() => import("@/pages/dashboard/EffectsMedia"));
 const Templates = lazy(() => import("@/pages/dashboard/Templates"));
 const Settings = lazy(() => import("@/pages/dashboard/Settings"));
@@ -179,6 +180,7 @@ function App() {
                 <Route path="links" element={<Links />} />
                 <Route path="badges" element={<Badges />} />
                 <Route path="widgets" element={<Widgets />} />
+                <Route path="sections" element={<Sections />} />
                 <Route path="connections" element={<Connections />} />
                 <Route path="effects" element={<EffectsMedia />} />
                 <Route path="settings" element={<Settings />} />

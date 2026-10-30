@@ -22,7 +22,7 @@ export const LAYOUTS = [
   { id: "split", label: "Dual Column (Split)", hint: "Side-by-side: profile & bio on the left, live widgets & music on the right" },
   { id: "bento", label: "Bento Grid", hint: "Modern modular bento grid with balanced tiles for avatar, bio, links, and widgets" },
   { id: "compact", label: "Compact Grid", hint: "Streamlined high-density card with side-by-side elements" },
-  { id: "slideshow", label: "Slideshow", hint: "Fullpage scroll slides with side dot navigation", premium: true },
+  { id: "slideshow", label: "Slideshow", hint: "Fullpage scroll slides with side dot navigation (use Sections instead)", premium: true, removed: true },
 ];
 
 export const LAYOUT_IDS = LAYOUTS.map((l) => l.id);

@@ -92,6 +92,7 @@ const NAV_GROUPS = [
       { to: "/!/dashboard/editor?tab=about", label: "About me", icon: User, testid: "tab-editor", desc: "Display name, bio, avatar, background and accent colour" },
       { to: "/!/dashboard/links", label: "Links", icon: Link2, testid: "tab-links", desc: "Add, order and style the links on your page", ownHeader: true },
       { to: "/!/dashboard/widgets", label: "Widgets", icon: LayoutGrid, testid: "tab-widgets", desc: "Live platform widgets shown on your profile", ownHeader: true },
+      { to: "/!/dashboard/sections", label: "Sections", icon: Layers, testid: "tab-sections", desc: "Full-page scroll sections — games, music, anime, gallery", ownHeader: true },
       { to: "/!/dashboard/badges", label: "Badges", icon: Award, testid: "tab-badges", desc: "Earn, equip and reorder your profile badges", ownHeader: true },
     ],
   },

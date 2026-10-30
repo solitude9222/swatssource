@@ -11,6 +11,7 @@ import billingRouter, { handleStripeWebhook } from './routes/billing.js';
 import adminRouter from './routes/admin.js';
 import integrationsRouter from './routes/integrations.js';
 import widgetsRouter from './routes/widgets.js';
+import searchRouter from './routes/search.js';
 import templatesRouter from './routes/templates.js';
 import viewsRouter from './routes/views.js';
 import notificationsRouter from './routes/notifications.js';
@@ -157,6 +158,7 @@ app.use('/api', viewsRouter);
 app.use('/api', notificationsRouter);
 // Live widget data: real third-party API proxies (Roblox, Discord, GitHub, ...)
 app.use('/api/widgets', widgetsRouter);
+app.use('/api/search', searchRouter);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
