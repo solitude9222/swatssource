@@ -185,8 +185,9 @@ export const getWidgetArtworkOptions = (widget) => {
         { value: "banner", label: "Project banner image" },
       ];
     case "games":
+    case "interests":
       return [
-        { value: "none", label: "None (Uses real official game covers)" },
+        { value: "none", label: "None (uses preset cover images)" },
       ];
     case "discord":
     default:
@@ -375,10 +376,11 @@ export const getWidgetDisplayOptions = (widget) => {
       ];
       break;
     case "games":
+    case "interests":
       specific = [
-        { key: "show_now_playing", label: "Playing now beacon", desc: "Show live status beacon with current game." },
-        { key: "platform_badge", label: "Platform badge", desc: "Show gaming platform (e.g. PC / Steam)." },
-        { key: "show_subtitle", label: "Game genres / info", desc: "Display genre or title under card." },
+        { key: "show_now_playing", label: "Now playing beacon", desc: "Show live status beacon with current item." },
+        { key: "platform_badge", label: "Platform badge", desc: "Show platform or category label." },
+        { key: "show_subtitle", label: "Genre / info", desc: "Display genre or subtitle under card." },
       ];
       break;
     case "discord":
@@ -515,11 +517,19 @@ export const WIDGET_PRESETS = {
     value: "mc.hypixel.net",
     title: "Hypixel Network",
   },
+  interests: {
+    type: "interests",
+    subtype: "mixed",
+    title: "Interests",
+    games_list: "",
+    now_playing: "",
+  },
   games: {
-    type: "games",
-    title: "Favorite Games",
-    games_list: "Valorant, Elden Ring, Minecraft, CS2",
-    now_playing: "Valorant",
+    type: "interests",
+    subtype: "games",
+    title: "Games",
+    games_list: "",
+    now_playing: "",
   },
   projects: {
     type: "projects",

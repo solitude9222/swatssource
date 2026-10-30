@@ -3,7 +3,7 @@ import { fileUrl } from "@/lib/api";
 import {
   useWidgetData, useTicker, formatCount, formatDate, discordServerId,
 } from "@/lib/widgets";
-import { WIDGET_SURFACE_DEFAULTS, POPULAR_GAMES_PRESETS } from "@/constants/widgets";
+import { WIDGET_SURFACE_DEFAULTS, POPULAR_GAMES_PRESETS, INTERESTS_PRESETS } from "@/constants/widgets";
 import { useTooltip, HoverTip, resolveTooltipStyle } from "@/components/FxTooltip";
 import { resolveLayout } from "@/constants/layouts";
 import {
@@ -441,7 +441,7 @@ function WidgetShell({
   const blurVal = numOr(w?.card_bg_blur ?? defBgBlur, defBgBlur);
 
   let bgImage = "";
-  if (w?.type !== "games" && w?.type !== "projects") {
+  if (w?.type !== "games" && w?.type !== "interests" && w?.type !== "projects") {
     const allowBanner = (w?.show_banner === true || w?.artwork_bg === "banner") && w?.show_banner !== false && w?.artwork_bg !== "none";
     if (w?.artwork_bg && w.artwork_bg !== "none") {
       if (w.artwork_bg === "banner") {
@@ -2597,7 +2597,7 @@ function SoundCloudCard({ w, accent, data, status, error, refresh }) {
 
 function GamesCard({ w, accent }) {
   const gamesListRaw = w?.games_list || "";
-  const games = useMemo(() => {
+  const items = useMemo(() => {
     return gamesListRaw
       .split(/[,\n]/)
       .map((g) => g.trim())
@@ -2606,12 +2606,19 @@ function GamesCard({ w, accent }) {
 
   const platform = w?.platform || "";
   const nowPlaying = w?.now_playing || "";
+  const subtype = w?.subtype || "mixed";
 
-  // Match each game name against POPULAR_GAMES_PRESETS for real official vertical background art
-  const gameEntries = useMemo(() => {
-    return games.map((name) => {
+  // Match each item against the full INTERESTS_PRESETS library
+  const entries = useMemo(() => {
+    // Filter presets by subtype if not mixed
+    const pool = subtype === "mixed" ? INTERESTS_PRESETS
+      : subtype === "music" ? INTERESTS_PRESETS.filter((p) => p.category === "music")
+      : subtype === "anime" ? INTERESTS_PRESETS.filter((p) => p.category === "anime")
+      : INTERESTS_PRESETS.filter((p) => p.category === "games");
+
+    return items.map((name) => {
       const lower = name.toLowerCase().replace(/[^a-z0-9]/g, "");
-      const preset = POPULAR_GAMES_PRESETS.find(
+      const preset = (pool.length > 0 ? pool : INTERESTS_PRESETS).find(
         (p) =>
           p.name.toLowerCase().replace(/[^a-z0-9]/g, "") === lower ||
           p.id === lower ||
@@ -2620,92 +2627,92 @@ function GamesCard({ w, accent }) {
       );
       return {
         name,
-        genre: preset?.genre || "Action Game",
+        genre: preset?.genre || "",
         cover: preset?.cover || "",
+        category: preset?.category || (subtype !== "mixed" ? subtype : "games"),
         isPreset: !!preset,
       };
     });
-  }, [games]);
+  }, [items, subtype]);
+
+  const categoryIcon = subtype === "music" ? "🎵" : subtype === "anime" ? "🎬" : "🎮";
+  const categoryLabel = w?.title || (subtype === "music" ? "Music" : subtype === "anime" ? "Anime" : subtype === "mixed" ? "Interests" : "Games");
 
   return (
-    <div className="flex flex-col gap-3 py-1">
-      {/* Top row with platform badge */}
+    <div className="flex flex-col gap-2 py-0.5">
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-lg bg-pink-500/15 border border-pink-500/30 flex items-center justify-center text-pink-400">
-            <Gamepad2 className="w-3.5 h-3.5" />
-          </div>
-          <span className="text-xs font-bold text-white tracking-wide">
-            {w?.title || "Favorite Games"}
-          </span>
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs">{categoryIcon}</span>
+          <span className="text-[11px] font-bold text-white tracking-wide">{categoryLabel}</span>
         </div>
-        {w?.platform_badge !== false && (
-          <span className="px-2 py-0.5 rounded-md bg-white/10 text-[10px] font-bold text-zinc-300 border border-white/15 uppercase tracking-wider">
+        {platform && w?.platform_badge !== false && (
+          <span className="px-1.5 py-0.5 rounded-md bg-white/8 text-[9px] font-semibold text-zinc-400 border border-white/10 uppercase tracking-wider">
             {platform}
           </span>
         )}
       </div>
 
-      {/* Now playing status banner if provided */}
+      {/* Now playing */}
       {nowPlaying && w?.show_now_playing !== false && (
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs font-medium">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#34d399]" />
-          <span className="truncate">Playing now: <strong className="text-white font-semibold">{nowPlaying}</strong></span>
+        <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/15 text-emerald-300 text-[10px] font-medium">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="truncate">Now: <strong className="text-white">{nowPlaying}</strong></span>
         </div>
       )}
 
-      {/* Vertical rectangular game poster cards with real official backgrounds */}
-      {games.length === 0 ? (
-        <div className="flex items-center justify-center py-6 rounded-xl border border-dashed border-white/10">
-          <div className="text-center space-y-1">
-            <Gamepad2 className="w-5 h-5 text-zinc-600 mx-auto" />
-            <p className="text-[11px] text-zinc-500">Add games in widget settings</p>
-          </div>
+      {/* Compact card grid */}
+      {items.length === 0 ? (
+        <div className="flex items-center justify-center py-4 rounded-lg border border-dashed border-white/8">
+          <p className="text-[10px] text-zinc-500">Add {subtype === "mixed" ? "interests" : subtype} in widget settings</p>
         </div>
       ) : (
-      <div className={`grid gap-2.5 pt-1 ${gameEntries.length <= 2 ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4"}`}>
-        {gameEntries.map((game, i) => {
-          const isActive = nowPlaying && nowPlaying.toLowerCase().includes(game.name.toLowerCase());
-          return (
-            <div
-              key={i}
-              className={`group relative overflow-hidden rounded-2xl border transition-all duration-300 aspect-[3/4] flex flex-col justify-end p-3 ${
-                isActive
-                  ? "border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.25)]"
-                  : "border-white/10 hover:border-white/30 hover:shadow-lg hover:scale-[1.02]"
-              }`}
-            >
-              {/* Official real game vertical background poster */}
+        <div className={`grid gap-1.5 ${entries.length <= 3 ? "grid-cols-3" : "grid-cols-3 sm:grid-cols-4"}`}>
+          {entries.map((item, i) => {
+            const isActive = nowPlaying && nowPlaying.toLowerCase().includes(item.name.toLowerCase());
+            return (
               <div
-                className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110"
-                style={{ backgroundImage: `url(${game.cover})` }}
-              />
+                key={i}
+                className={`group relative overflow-hidden rounded-lg border transition-all duration-200 aspect-[3/4] flex flex-col justify-end p-1.5 ${
+                  isActive
+                    ? "border-emerald-500/40 ring-1 ring-emerald-500/20"
+                    : "border-white/8 hover:border-white/20"
+                }`}
+              >
+                {/* Cover image */}
+                {item.cover ? (
+                  <div
+                    className="absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
+                    style={{ backgroundImage: `url(${item.cover})` }}
+                  />
+                ) : (
+                  <div className="absolute inset-0 bg-zinc-900" />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
 
-              {/* Gradient shading overlay for high contrast text */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none" />
+                {/* Active indicator */}
+                {isActive && (
+                  <div className="absolute top-1 right-1 z-10 w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_4px_#34d399]" />
+                )}
 
-              {/* Top active playing beacon */}
-              {isActive && (
-                <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-500/80 text-[9px] font-bold text-black uppercase tracking-wider shadow">
-                  <span className="w-1.5 h-1.5 rounded-full bg-black animate-ping" />
-                  Live
+                {/* Info */}
+                <div className="relative z-10">
+                  {item.genre && (
+                    <span className="text-[7px] font-semibold text-zinc-400 uppercase tracking-wider block truncate">
+                      {item.genre}
+                    </span>
+                  )}
+                  <span className="text-[9px] font-bold text-white leading-tight line-clamp-2 block">
+                    {item.name}
+                  </span>
                 </div>
-              )}
-
-              {/* Bottom game info inside card */}
-              <div className="relative z-10 flex flex-col gap-0.5 text-left">
-                <span className="text-[10px] font-semibold text-pink-300/90 uppercase tracking-wider truncate">
-                  {game.genre}
-                </span>
-                <span className="text-xs font-bold text-white tracking-tight line-clamp-1 group-hover:text-pink-200 transition">
-                  {game.name}
-                </span>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
       )}
+    </div>
+  );
     </div>
   );
 }
@@ -2993,9 +3000,10 @@ export function WidgetCard({ w, accent = "#b4bffa", ownerCreated, owner = "", pr
     );
   }
 
-  if (type === "games") {
+  if (type === "games" || type === "interests") {
+    const label = w.subtype === "music" ? "Music" : w.subtype === "anime" ? "Anime" : w.subtype === "mixed" ? "Interests" : "Games";
     return (
-      <WidgetShell w={w} accent={accent} data={data} headerTitle={w.title || "Favorite Games"} HeaderIcon={Gamepad2}>
+      <WidgetShell w={w} accent={accent} data={data} headerTitle={w.title || label} HeaderIcon={Gamepad2}>
         <GamesCard w={w} accent={accent} />
       </WidgetShell>
     );
@@ -3445,9 +3453,9 @@ export function WidgetPill({ w, accent = "#b4bffa", ownerCreated, owner = "", p 
   } else if (type === "account-date" || type === "countdown") {
     title = w?.title || (type === "countdown" ? "Countdown" : "Account Age");
     subtitle = formatYearsAgo(ownerCreated || data?.created_at || w?.date);
-  } else if (type === "games") {
-    title = w?.title || "Favorite Games";
-    subtitle = w?.now_playing ? `Playing ${w.now_playing}` : (w?.games_list ? w.games_list.split(/[,\n]/)[0]?.trim() : (w?.platform || "Gaming"));
+  } else if (type === "games" || type === "interests") {
+    title = w?.title || (w?.subtype === "music" ? "Music" : w?.subtype === "anime" ? "Anime" : "Interests");
+    subtitle = w?.now_playing ? `Playing ${w.now_playing}` : (w?.games_list ? w.games_list.split(/[,\n]/)[0]?.trim() : "");
     isLive = !!w?.now_playing;
   } else if (type === "projects") {
     title = w?.title || "Projects";

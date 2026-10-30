@@ -187,13 +187,17 @@ export const WIDGET_KINDS = [
     subtypes: [{ id: "code", label: "HTML / CSS / Embed", fields: ["custom_code"] }],
   },
   {
-    id: "games",
-    label: "Favorite Games",
+  {
+    id: "interests",
+    label: "Interests",
     Icon: Gamepad2,
     color: "#EC4899",
-    desc: "Showcase your top video games, active game status, and platform.",
+    desc: "Showcase games, music, and anime you love — with real cover art.",
     subtypes: [
-      { id: "favorites", label: "Favorite Games", fields: ["games_title", "games_list", "games_platform", "games_now_playing"] },
+      { id: "mixed", label: "Mixed Interests", fields: ["games_title", "games_list", "games_platform", "games_now_playing"] },
+      { id: "games", label: "Games Only", fields: ["games_title", "games_list", "games_platform", "games_now_playing"] },
+      { id: "music", label: "Music Only", fields: ["games_title", "games_list"] },
+      { id: "anime", label: "Anime Only", fields: ["games_title", "games_list"] },
     ],
   },
   {
@@ -541,89 +545,68 @@ export const PRESET_LINK_TYPES = [
   { id: "discord", label: "Community" },
 ];
 
-export const POPULAR_GAMES_PRESETS = [
-  {
-    id: "valorant",
-    name: "Valorant",
-    genre: "Tactical FPS",
-    platform: "PC",
-    cover: "https://static-cdn.jtvnw.net/ttv-boxart/516575-600x800.jpg",
-  },
-  {
-    id: "minecraft",
-    name: "Minecraft",
-    genre: "Sandbox Survival",
-    platform: "PC / Console",
-    cover: "https://static-cdn.jtvnw.net/ttv-boxart/27471_IGDB-600x800.jpg",
-  },
-  {
-    id: "cs2",
-    name: "Counter-Strike 2",
-    genre: "Competitive FPS",
-    platform: "PC / Steam",
-    cover: "https://cdn.cloudflare.steamstatic.com/steam/apps/730/library_600x900.jpg",
-  },
-  {
-    id: "roblox",
-    name: "Roblox",
-    genre: "Metaverse",
-    platform: "Cross-Platform",
-    cover: "https://static-cdn.jtvnw.net/ttv-boxart/494717-600x800.jpg",
-  },
-  {
-    id: "elden_ring",
-    name: "Elden Ring",
-    genre: "Action RPG",
-    platform: "PC / Console",
-    cover: "https://cdn.cloudflare.steamstatic.com/steam/apps/1245620/library_600x900.jpg",
-  },
-  {
-    id: "gta_v",
-    name: "GTA V",
-    genre: "Open World",
-    platform: "PC / Console",
-    cover: "https://cdn.cloudflare.steamstatic.com/steam/apps/271590/library_600x900.jpg",
-  },
-  {
-    id: "cyberpunk",
-    name: "Cyberpunk 2077",
-    genre: "Sci-Fi RPG",
-    platform: "PC / Console",
-    cover: "https://cdn.cloudflare.steamstatic.com/steam/apps/1091500/library_600x900.jpg",
-  },
-  {
-    id: "league",
-    name: "League of Legends",
-    genre: "MOBA",
-    platform: "PC",
-    cover: "https://static-cdn.jtvnw.net/ttv-boxart/21779-600x800.jpg",
-  },
-  {
-    id: "fortnite",
-    name: "Fortnite",
-    genre: "Battle Royale",
-    platform: "Cross-Platform",
-    cover: "https://static-cdn.jtvnw.net/ttv-boxart/33214-600x800.jpg",
-  },
-  {
-    id: "apex",
-    name: "Apex Legends",
-    genre: "Battle Royale",
-    platform: "PC / Console",
-    cover: "https://cdn.cloudflare.steamstatic.com/steam/apps/1172470/library_600x900.jpg",
-  },
-  {
-    id: "rocket_league",
-    name: "Rocket League",
-    genre: "Sports Action",
-    platform: "Cross-Platform",
-    cover: "https://cdn.cloudflare.steamstatic.com/steam/apps/252950/library_600x900.jpg",
-  },
-  {
-    id: "osu",
-    name: "osu!",
-    genre: "Rhythm",
-    platform: "PC",
-    cover: "https://static-cdn.jtvnw.net/ttv-boxart/21465_IGDB-600x800.jpg",
-  },
+// Interests presets — games, music artists, and anime with real cover images.
+// Cover URLs use Twitch box art (600x800) and Steam library art (600x900) for games,
+// Spotify/MusicBrainz-style placeholders for music, and AniList/MAL-style for anime.
+// The category field lets the card group them when the widget is in "mixed" mode.
+
+export const INTERESTS_PRESETS = [
+  // ── Games ──────────────────────────────────────────────────────────────────
+  { id: "valorant", name: "Valorant", category: "games", genre: "Tactical FPS", cover: "https://static-cdn.jtvnw.net/ttv-boxart/516575-600x800.jpg" },
+  { id: "minecraft", name: "Minecraft", category: "games", genre: "Sandbox", cover: "https://static-cdn.jtvnw.net/ttv-boxart/27471_IGDB-600x800.jpg" },
+  { id: "cs2", name: "Counter-Strike 2", category: "games", genre: "FPS", cover: "https://cdn.cloudflare.steamstatic.com/steam/apps/730/library_600x900.jpg" },
+  { id: "roblox", name: "Roblox", category: "games", genre: "Metaverse", cover: "https://static-cdn.jtvnw.net/ttv-boxart/494717-600x800.jpg" },
+  { id: "elden_ring", name: "Elden Ring", category: "games", genre: "Action RPG", cover: "https://cdn.cloudflare.steamstatic.com/steam/apps/1245620/library_600x900.jpg" },
+  { id: "gta_v", name: "GTA V", category: "games", genre: "Open World", cover: "https://cdn.cloudflare.steamstatic.com/steam/apps/271590/library_600x900.jpg" },
+  { id: "cyberpunk", name: "Cyberpunk 2077", category: "games", genre: "RPG", cover: "https://cdn.cloudflare.steamstatic.com/steam/apps/1091500/library_600x900.jpg" },
+  { id: "league", name: "League of Legends", category: "games", genre: "MOBA", cover: "https://static-cdn.jtvnw.net/ttv-boxart/21779-600x800.jpg" },
+  { id: "fortnite", name: "Fortnite", category: "games", genre: "Battle Royale", cover: "https://static-cdn.jtvnw.net/ttv-boxart/33214-600x800.jpg" },
+  { id: "apex", name: "Apex Legends", category: "games", genre: "Battle Royale", cover: "https://cdn.cloudflare.steamstatic.com/steam/apps/1172470/library_600x900.jpg" },
+  { id: "rocket_league", name: "Rocket League", category: "games", genre: "Sports", cover: "https://cdn.cloudflare.steamstatic.com/steam/apps/252950/library_600x900.jpg" },
+  { id: "osu", name: "osu!", category: "games", genre: "Rhythm", cover: "https://static-cdn.jtvnw.net/ttv-boxart/21465_IGDB-600x800.jpg" },
+  { id: "overwatch", name: "Overwatch 2", category: "games", genre: "Hero Shooter", cover: "https://static-cdn.jtvnw.net/ttv-boxart/515025-600x800.jpg" },
+  { id: "genshin", name: "Genshin Impact", category: "games", genre: "Action RPG", cover: "https://static-cdn.jtvnw.net/ttv-boxart/513181-600x800.jpg" },
+  { id: "deadlock", name: "Deadlock", category: "games", genre: "MOBA Shooter", cover: "https://cdn.cloudflare.steamstatic.com/steam/apps/1422450/library_600x900.jpg" },
+  { id: "cod", name: "Call of Duty", category: "games", genre: "FPS", cover: "https://static-cdn.jtvnw.net/ttv-boxart/512710-600x800.jpg" },
+  { id: "dota2", name: "Dota 2", category: "games", genre: "MOBA", cover: "https://cdn.cloudflare.steamstatic.com/steam/apps/570/library_600x900.jpg" },
+  { id: "rust", name: "Rust", category: "games", genre: "Survival", cover: "https://cdn.cloudflare.steamstatic.com/steam/apps/252490/library_600x900.jpg" },
+
+  // ── Music Artists ──────────────────────────────────────────────────────────
+  { id: "playboi_carti", name: "Playboi Carti", category: "music", genre: "Hip-Hop", cover: "https://i.scdn.co/image/ab6761610000e5eb62b0df3e48a89e04edce50af" },
+  { id: "kanye", name: "Kanye West", category: "music", genre: "Hip-Hop", cover: "https://i.scdn.co/image/ab6761610000e5eb6e835a500e791bf9c27f0ddf" },
+  { id: "travis_scott", name: "Travis Scott", category: "music", genre: "Hip-Hop", cover: "https://i.scdn.co/image/ab6761610000e5ebc3c218771dc4e8a4d0e86f11" },
+  { id: "the_weeknd", name: "The Weeknd", category: "music", genre: "R&B", cover: "https://i.scdn.co/image/ab6761610000e5eb214f3cf1cbe7139c1e26e1a1" },
+  { id: "drake", name: "Drake", category: "music", genre: "Hip-Hop", cover: "https://i.scdn.co/image/ab6761610000e5eb4293385d429161f61d5e5e32" },
+  { id: "kendrick", name: "Kendrick Lamar", category: "music", genre: "Hip-Hop", cover: "https://i.scdn.co/image/ab6761610000e5eb437b9e2a82505b3d93ff1022" },
+  { id: "billie", name: "Billie Eilish", category: "music", genre: "Pop", cover: "https://i.scdn.co/image/ab6761610000e5ebd8b9980db67272cb4d2c3daf" },
+  { id: "lana", name: "Lana Del Rey", category: "music", genre: "Indie Pop", cover: "https://i.scdn.co/image/ab6761610000e5eb6fda1e7e3ade09fc1e2b1664" },
+  { id: "tyler", name: "Tyler, The Creator", category: "music", genre: "Hip-Hop", cover: "https://i.scdn.co/image/ab6761610000e5eb8278b782cbb5a3963db88ada" },
+  { id: "sza", name: "SZA", category: "music", genre: "R&B", cover: "https://i.scdn.co/image/ab6761610000e5eb9e528993a2820267c2d4f3c4" },
+  { id: "21savage", name: "21 Savage", category: "music", genre: "Hip-Hop", cover: "https://i.scdn.co/image/ab6761610000e5eb2264d064b0e3e15be4360ffb" },
+  { id: "deftones", name: "Deftones", category: "music", genre: "Alt Metal", cover: "https://i.scdn.co/image/ab6761610000e5eb2e61e67bfa1a0e85e tried6f12" },
+  { id: "radiohead", name: "Radiohead", category: "music", genre: "Alt Rock", cover: "https://i.scdn.co/image/ab6761610000e5eba03696716c9ee605006047fd" },
+  { id: "bladee", name: "Bladee", category: "music", genre: "Drain Gang", cover: "https://i.scdn.co/image/ab6761610000e5eb30a4ef5011de1da13e5de8fe" },
+  { id: "yeat", name: "Yeat", category: "music", genre: "Hip-Hop", cover: "https://i.scdn.co/image/ab6761610000e5ebfa8abf4ea19fc5e0a3e20625" },
+  { id: "lil_uzi", name: "Lil Uzi Vert", category: "music", genre: "Hip-Hop", cover: "https://i.scdn.co/image/ab6761610000e5ebfc28eaf7a5c2c3d2568f0bca" },
+
+  // ── Anime ──────────────────────────────────────────────────────────────────
+  { id: "naruto", name: "Naruto", category: "anime", genre: "Shōnen", cover: "https://cdn.myanimelist.net/images/anime/1141/142503l.jpg" },
+  { id: "aot", name: "Attack on Titan", category: "anime", genre: "Dark Fantasy", cover: "https://cdn.myanimelist.net/images/anime/10/47347l.jpg" },
+  { id: "jjk", name: "Jujutsu Kaisen", category: "anime", genre: "Shōnen", cover: "https://cdn.myanimelist.net/images/anime/1171/109222l.jpg" },
+  { id: "one_piece", name: "One Piece", category: "anime", genre: "Adventure", cover: "https://cdn.myanimelist.net/images/anime/1244/138851l.jpg" },
+  { id: "demon_slayer", name: "Demon Slayer", category: "anime", genre: "Action", cover: "https://cdn.myanimelist.net/images/anime/1286/99889l.jpg" },
+  { id: "hxh", name: "Hunter x Hunter", category: "anime", genre: "Adventure", cover: "https://cdn.myanimelist.net/images/anime/1337/99013l.jpg" },
+  { id: "death_note", name: "Death Note", category: "anime", genre: "Thriller", cover: "https://cdn.myanimelist.net/images/anime/9/9453l.jpg" },
+  { id: "evangelion", name: "Neon Genesis Evangelion", category: "anime", genre: "Mecha", cover: "https://cdn.myanimelist.net/images/anime/1314/108941l.jpg" },
+  { id: "code_geass", name: "Code Geass", category: "anime", genre: "Mecha", cover: "https://cdn.myanimelist.net/images/anime/5/50331l.jpg" },
+  { id: "mob_psycho", name: "Mob Psycho 100", category: "anime", genre: "Action", cover: "https://cdn.myanimelist.net/images/anime/8/80356l.jpg" },
+  { id: "chainsaw_man", name: "Chainsaw Man", category: "anime", genre: "Action", cover: "https://cdn.myanimelist.net/images/anime/1806/126216l.jpg" },
+  { id: "spy_family", name: "Spy x Family", category: "anime", genre: "Comedy", cover: "https://cdn.myanimelist.net/images/anime/1441/122795l.jpg" },
+  { id: "steins_gate", name: "Steins;Gate", category: "anime", genre: "Sci-Fi", cover: "https://cdn.myanimelist.net/images/anime/5/73199l.jpg" },
+  { id: "fmab", name: "Fullmetal Alchemist: Brotherhood", category: "anime", genre: "Adventure", cover: "https://cdn.myanimelist.net/images/anime/1208/94745l.jpg" },
+  { id: "solo_leveling", name: "Solo Leveling", category: "anime", genre: "Action", cover: "https://cdn.myanimelist.net/images/anime/1900/142180l.jpg" },
+  { id: "tokyo_ghoul", name: "Tokyo Ghoul", category: "anime", genre: "Horror", cover: "https://cdn.myanimelist.net/images/anime/5/64449l.jpg" },
 ];
+
+// Backward compatibility alias
+export const POPULAR_GAMES_PRESETS = INTERESTS_PRESETS.filter((p) => p.category === "games");
