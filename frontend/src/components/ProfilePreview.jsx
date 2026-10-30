@@ -559,19 +559,16 @@ export function TrackCardPreview({ track, style, accent, volume = 0.8, onTime, a
           data-testid="track-play-btn"
           onClick={togglePlay}
           aria-label={playing ? "Pause track" : "Play track"}
-          className="relative z-10 flex h-11 w-11 items-center justify-center rounded-full border bg-black/70 text-white shadow-[0_8px_25px_rgba(0,0,0,0.6)] backdrop-blur-xl transition-all duration-300 hover:scale-110 active:scale-95"
-          style={{ borderColor: `${accent}66`, boxShadow: playing ? `0 0 24px ${accent}55` : undefined }}
+          className="relative z-10 flex h-10 w-10 items-center justify-center rounded-full border bg-black/80 text-white shadow-lg backdrop-blur-xl transition-all duration-200 hover:scale-105 active:scale-95"
+          style={{ borderColor: `${accent}44` }}
         >
-          {playing ? <Pause className="h-4 w-4 fill-white" /> : <Volume2 className="h-4 w-4" />}
+          {playing ? <Pause className="h-3.5 w-3.5 fill-white" /> : <Volume2 className="h-3.5 w-3.5" />}
           {playing && (
-            <span className="absolute -top-1 -right-1 flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: accent }} />
-              <span className="relative inline-flex rounded-full h-3 w-3" style={{ background: accent }} />
-            </span>
+            <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full" style={{ background: accent }} />
           )}
         </button>
 
-        <div className="pointer-events-none absolute left-0 top-full z-20 mt-2.5 w-72 -translate-y-1 rounded-2xl border border-white/15 bg-black/85 p-3.5 text-left opacity-0 shadow-[0_16px_50px_rgba(0,0,0,0.8)] backdrop-blur-2xl transition-all duration-200 group-hover/corner:pointer-events-auto group-hover/corner:translate-y-0 group-hover/corner:opacity-100">
+        <div className="pointer-events-none absolute left-0 top-full z-20 mt-2 w-64 -translate-y-1 rounded-xl border border-white/10 bg-black/90 p-3 text-left opacity-0 shadow-xl backdrop-blur-xl transition-all duration-200 group-hover/corner:pointer-events-auto group-hover/corner:translate-y-0 group-hover/corner:opacity-100">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/10 shrink-0">
               <Music className="w-4 h-4" style={{ color: accent }} />
@@ -588,7 +585,7 @@ export function TrackCardPreview({ track, style, accent, volume = 0.8, onTime, a
               seek(((e.clientX - rect.left) / rect.width) * 100);
             }}
           >
-            <div className="h-full rounded-full transition-all duration-150 shadow-[0_0_10px_currentColor]" style={{ width: `${progress}%`, background: `linear-gradient(90deg, ${accent}, ${accent}dd)`, color: accent }} />
+            <div className="h-full rounded-full transition-all duration-150" style={{ width: `${progress}%`, background: accent, color: accent }} />
           </div>
           <div className="mt-1.5 flex justify-between font-mono2 text-[9px] tabular-nums text-zinc-400">
             <span>{timeLabel}</span>
@@ -642,8 +639,8 @@ export function TrackCardPreview({ track, style, accent, volume = 0.8, onTime, a
             data-testid="track-play-btn"
             onClick={togglePlay}
             aria-label={playing ? "Pause track" : "Play track"}
-            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white shadow-md transition hover:scale-110 active:scale-95"
-            style={{ background: `linear-gradient(135deg, ${accent}, ${accent}cc)`, boxShadow: `0 0 12px ${accent}66` }}
+            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white shadow-sm transition hover:scale-105 active:scale-95"
+            style={{ background: accent }}
           >
             {playing ? <Pause className="h-3 w-3 fill-white" /> : <Play className="h-3 w-3 fill-white translate-x-px" />}
           </button>
@@ -655,7 +652,7 @@ export function TrackCardPreview({ track, style, accent, volume = 0.8, onTime, a
             onClick={seekAt}
             role="presentation"
           >
-            <div className="h-full rounded-full transition-all duration-150" style={{ width: `${progress}%`, background: `linear-gradient(90deg, ${accent}, ${accent}dd)` }} />
+            <div className="h-full rounded-full transition-all duration-150" style={{ width: `${progress}%`, background: accent }} />
           </div>
           <span className="shrink-0 font-mono2 text-[9px] tabular-nums text-zinc-400">{timeLabel}</span>
           <div className="flex items-center gap-1.5 shrink-0 group/vol">

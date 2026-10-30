@@ -89,10 +89,10 @@ const NAV_GROUPS = [
     icon: User,
     expandable: true,
     tabs: [
-      { to: "/!/dashboard/badges", label: "Badges", icon: Award, testid: "tab-badges", desc: "Earn, equip and reorder your profile badges", ownHeader: true },
       { to: "/!/dashboard/editor?tab=about", label: "About me", icon: User, testid: "tab-editor", desc: "Display name, bio, avatar, background and accent colour" },
       { to: "/!/dashboard/links", label: "Links", icon: Link2, testid: "tab-links", desc: "Add, order and style the links on your page", ownHeader: true },
       { to: "/!/dashboard/widgets", label: "Widgets", icon: LayoutGrid, testid: "tab-widgets", desc: "Live platform widgets shown on your profile", ownHeader: true },
+      { to: "/!/dashboard/badges", label: "Badges", icon: Award, testid: "tab-badges", desc: "Earn, equip and reorder your profile badges", ownHeader: true },
     ],
   },
   {
@@ -107,16 +107,13 @@ const NAV_GROUPS = [
     ],
   },
   {
-    id: "premium",
-    label: "Premium",
-    navLabel: "Premium",
-    icon: Crown,
-    flat: true,
+    id: "analytics",
+    label: "Analytics",
+    icon: BarChart3,
+    expandable: true,
     tabs: [
-      {
-        to: "/!/pricing", label: "Premium", icon: Crown, testid: "tab-premium",
-        desc: "Unlock exclusive features and custom badges",
-      },
+      { to: "/!/dashboard/stats", label: "Statistics", icon: BarChart3, testid: "tab-stats", desc: "Profile views, link clicks and referrer breakdown" },
+      { to: "/!/dashboard/connections", label: "Connections", icon: Globe, testid: "tab-connections", desc: "Link Discord and other external accounts" },
     ],
   },
   {
@@ -125,18 +122,21 @@ const NAV_GROUPS = [
     icon: Settings,
     expandable: true,
     tabs: [
-      { to: "/!/dashboard/settings", label: "Account settings", icon: UserCheck, testid: "tab-settings", desc: "Standing, profile info, active sessions & preferences" },
+      { to: "/!/dashboard/settings", label: "Account", icon: UserCheck, testid: "tab-settings", desc: "Standing, profile info, active sessions & preferences" },
       { to: "/!/dashboard/settings?tab=billing", label: "Billing & security", icon: ShieldCheck, testid: "tab-settings-billing", desc: "Account balance, purchases, security & 2FA" },
     ],
   },
   {
-    id: "other",
-    label: "Other",
-    icon: Layers,
-    expandable: true,
+    id: "premium",
+    label: "Premium",
+    navLabel: "Premium",
+    icon: Crown,
+    flat: true,
     tabs: [
-      { to: "/!/dashboard/connections", label: "Connections", icon: Globe, testid: "tab-connections", desc: "Link Discord and other external accounts" },
-      { to: "/!/dashboard/stats", label: "Statistics", icon: BarChart3, testid: "tab-stats", desc: "Profile views, link clicks and referrer breakdown" },
+      {
+        to: "/!/pricing", label: "Upgrade", icon: Crown, testid: "tab-premium",
+        desc: "Unlock exclusive features and custom badges",
+      },
     ],
   },
 ];
@@ -205,7 +205,7 @@ const tabFor = (pathname, search = "") => {
 
 const groupFor = (pathname, search = "") => {
   if (pathname.startsWith("/!/dashboard/admin")) {
-    return NAV_GROUPS.find((g) => g.id === "other") || null;
+    return NAV_GROUPS.find((g) => g.id === "analytics") || null;
   }
   const tab = tabFor(pathname, search);
   if (!tab) return null;

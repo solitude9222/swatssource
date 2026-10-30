@@ -4,7 +4,7 @@ import {
   useWidgetData, useTicker, formatCount, formatDate, discordServerId,
 } from "@/lib/widgets";
 import { WIDGET_SURFACE_DEFAULTS, POPULAR_GAMES_PRESETS } from "@/constants/widgets";
-import { useTooltip, resolveTooltipStyle } from "@/components/FxTooltip";
+import { useTooltip, HoverTip, resolveTooltipStyle } from "@/components/FxTooltip";
 import { resolveLayout } from "@/constants/layouts";
 import {
   AlertTriangle, ArrowRight, Building2, Calendar, Check, Clock, Code2, Copy,
@@ -453,7 +453,9 @@ function WidgetShell({
       } else if (w.artwork_bg === "thumbnail") {
         bgImage = data?.thumbnail || data?.latest?.thumbnail || data?.album_art || data?.cover || "";
       } else if (w.artwork_bg === "avatar") {
-        bgImage = data?.icon || data?.avatar || "";
+        bgImage = data?.icon || data?.avatar || data?.avatar_url || "";
+      } else if (w.artwork_bg === "game") {
+        bgImage = data?.game_header || data?.game_image || data?.backdrop || data?.banner || "";
       }
     } else if (!w?.artwork_bg && allowBanner && (data?.banner || data?.splash)) {
       bgImage = data?.banner || data?.splash || (w?.banner_url ? fileUrl(w.banner_url) : "");
@@ -1442,25 +1444,65 @@ function DiscordProfile({ w, accent, data, status, error, refresh }) {
       </span>
     ) : null;
 
+  // Map Discord/Lanyard badge IDs to actual file paths
+  const badgeSrc = (b) => {
+    const base = process.env.PUBLIC_URL || "";
+    // If the badge object carries an explicit icon path, use it directly
+    if (b.icon && !b.icon.includes("/")) return `${base}/badges/discord/${b.icon}`;
+    if (b.icon) return b.icon;
+    // Map known Discord badge IDs to our file structure
+    const ID_MAP = {
+      "active_developer": "core/active_developer.svg",
+      "bug_hunter_level_1": "core/bug_hunter_level_1.svg",
+      "bug_hunter_level_2": "core/bug_hunter_level_2.svg",
+      "certified_moderator": "core/certified_moderator.svg",
+      "early_supporter": "core/early_supporter.svg",
+      "early_verified_bot_developer": "core/early_verified_developer.svg",
+      "verified_developer": "core/early_verified_developer.svg",
+      "hypesquad_online_house_1": "core/hypesquad_bravery.svg",
+      "hypesquad_online_house_2": "core/hypesquad_brilliance.svg",
+      "hypesquad_online_house_3": "core/hypesquad_balance.svg",
+      "hypesquad": "core/hypesquad_events.svg",
+      "hypesquad_events": "core/hypesquad_events.svg",
+      "premium_early_supporter": "core/early_supporter.svg",
+      "discord_employee": "core/staff.svg",
+      "staff": "core/staff.svg",
+      "partnered_server_owner": "core/partnered_server_owner.svg",
+      "partner": "core/partnered_server_owner.svg",
+      "nitro": "core/nitro.svg",
+      "premium": "core/nitro.svg",
+      "subscriber": "core/nitro.svg",
+    };
+    const mapped = ID_MAP[b.id];
+    if (mapped) return `${base}/badges/discord/${mapped}`;
+    // Fallback: try core/{id}.svg, then root-level
+    return `${base}/badges/discord/core/${b.id}.svg`;
+  };
+
   const BadgesRack = ({ max = 8 }) =>
     badges.length > 0 ? (
       <div className="flex items-center gap-1 flex-wrap shrink-0">
         {badges.slice(0, max).map((b) => (
-          <img
-            key={b.id}
-            src={`${process.env.PUBLIC_URL || ""}/badges/discord/${b.icon || `core/${b.id}.svg`}`}
-            alt={b.name}
-            title={b.name}
-            className="w-4 h-4 object-contain filter drop-shadow hover:scale-110 transition-transform duration-150 cursor-help"
-            onError={(e) => {
-              if (!e.currentTarget.dataset.retried) {
-                e.currentTarget.dataset.retried = "1";
-                e.currentTarget.src = `${process.env.PUBLIC_URL || ""}/badges/discord/core/${b.id}.svg`;
-              } else {
-                e.currentTarget.style.display = "none";
-              }
-            }}
-          />
+          <HoverTip key={b.id} label={b.description || b.name || b.id.replace(/_/g, " ")}>
+            <img
+              src={badgeSrc(b)}
+              alt={b.name || b.id}
+              className="w-4 h-4 object-contain filter drop-shadow hover:scale-125 transition-transform duration-150 cursor-help"
+              onError={(e) => {
+                const base = process.env.PUBLIC_URL || "";
+                if (!e.currentTarget.dataset.retry1) {
+                  e.currentTarget.dataset.retry1 = "1";
+                  // Try the root-level file (no underscores, concatenated)
+                  e.currentTarget.src = `${base}/badges/discord/${b.id.replace(/_/g, "")}.svg`;
+                } else if (!e.currentTarget.dataset.retry2) {
+                  e.currentTarget.dataset.retry2 = "1";
+                  e.currentTarget.src = `${base}/badges/discord/core/${b.id}.svg`;
+                } else {
+                  e.currentTarget.style.display = "none";
+                }
+              }}
+            />
+          </HoverTip>
         ))}
       </div>
     ) : null;
