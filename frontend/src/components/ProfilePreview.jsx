@@ -1400,10 +1400,10 @@ function SlideshowView({
       </div>
       {backgroundAudio && <BackgroundAudioButton />}
 
-      {/* Right Vertical Slide Indicators */}
+      {/* Right Vertical Slide Indicators — clean minimal dots */}
       <div
         data-testid="slideshow-indicators"
-        className={`${embedded ? "absolute" : "fixed"} top-1/2 right-4 sm:right-6 z-40 -translate-y-1/2 flex flex-col items-center gap-2.5 transition-opacity duration-300 pointer-events-auto`}
+        className={`${embedded ? "absolute" : "fixed"} top-1/2 right-3 sm:right-5 z-40 -translate-y-1/2 flex flex-col items-center gap-2 transition-opacity duration-300 pointer-events-auto`}
         aria-label="Slide indicators"
       >
         {sections.map((sec, idx) => {
@@ -1416,18 +1416,17 @@ function SlideshowView({
               data-active={isActive}
               aria-current={isActive ? "true" : undefined}
               onClick={() => scrollToSlide(idx)}
-              className={`block rounded-full border transition-all duration-300 cursor-pointer ${
-                isActive
-                  ? "h-7 w-2 border-[color:var(--theme-color)] bg-[color:var(--theme-color)] shadow-[0_0_18px_var(--theme-color)]"
-                  : "size-2 border-white/20 bg-white/25 hover:bg-white/60 hover:scale-125"
-              }`}
-              style={isActive ? {
-                borderColor: accent,
-                backgroundColor: accent,
-                boxShadow: `0 0 16px ${accent}`,
-              } : undefined}
+              className="block rounded-full transition-all duration-200 cursor-pointer"
+              style={{
+                width: isActive ? 6 : 5,
+                height: isActive ? 20 : 5,
+                background: isActive ? accent : "rgba(255,255,255,0.25)",
+                border: isActive ? `1px solid ${accent}` : "1px solid rgba(255,255,255,0.15)",
+              }}
               aria-label={`Jump to ${sec.label}`}
             />
+          );
+        })}
           );
         })}
       </div>
@@ -1698,45 +1697,12 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
   // card becomes unreadable) and the widget grid stacks into a single column at
   // whatever scale the shrinking reaches, so dense profiles compact more, not
   // just shrink. The editor preview keeps its own fixed panel and is excluded.
-  const needFit = !embedded && resolveLayout(p.layout) !== "slideshow";
-  const [fitScale, setFitScale] = useState(1);
-  useEffect(() => {
-    if (!needFit) {
-      setFitScale(1);
-      return undefined;
-    }
-    let raf = 0;
-    const measure = () => {
-      const card = cardRef.current;
-      if (!card) return;
-      const avail = Math.max(320, window.innerHeight - 32);
-      const h = card.offsetHeight; // layout height — transform scale never skews it
-      if (!h) return;
-      if (h <= avail) {
-        setFitScale(1);
-        return;
-      }
-      setFitScale(Math.max(0.6, avail / h));
-    };
-    measure();
-    // Widgets grow as their images and canvases load, and the window is
-    // resized on rotation / split-screen: both paths change what fits. Old
-    // browsers without ResizeObserver keep the window listener only — they
-    // still fit, they just re-measure a little later.
-    const ro = typeof ResizeObserver === "function"
-      ? new ResizeObserver(() => {
-          cancelAnimationFrame(raf);
-          raf = requestAnimationFrame(measure);
-        })
-      : null;
-    if (ro && cardRef.current) ro.observe(cardRef.current);
-    window.addEventListener("resize", measure);
-    return () => {
-      if (ro) ro.disconnect();
-      window.removeEventListener("resize", measure);
-      cancelAnimationFrame(raf);
-    };
-  }, [needFit, p, tracks.length]);
+  // Card scaling is disabled — profiles scroll naturally instead of shrinking.
+  // The old fitScale system measured the card height every frame via
+  // ResizeObserver and scaled the card down to 60%, which caused constant
+  // layout thrashing and made the page feel sluggish.
+  const needFit = false;
+  const fitScale = 1;
 
   // Promote the card for the whole time tilt is on. Toggling `will-change` from
   // inside the pointer handler (which is what it did before) makes the browser
@@ -2305,7 +2271,7 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
   // When the fit pass is shrinking the card the grid drops its two-column
   // split: hoarding columns while shrinking would keep the card taller than
   // the screen, and a dense profile reads better stacked in one column anyway.
-  const widgetsStacked = needFit && fitScale < 0.85;
+  const widgetsStacked = false;
   const WidgetsBlock = ({ pill = false, className = "" }) => (
     widgets.length > 0 ? (
       <WidgetProfileContext.Provider value={p}>
@@ -2336,9 +2302,8 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
 
   // The scale the fit pass settled on, applied to the card's own wrapper so the
   // tilt transform on the card itself never has to know about it.
-  const fitStyle = fitScale < 1
-    ? { transform: `scale(${fitScale.toFixed(3)})`, transformOrigin: "top center" }
-    : undefined;
+  // fitScale is always 1 — no transform needed.
+  const fitStyle = undefined;
 
   const LinksBlock = ({ links: list, align = "center", className = "" }) => (
     list.length > 0 ? (
@@ -2381,7 +2346,7 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
       <div
         data-testid="profile-preview"
         data-layout={layout}
-        className={`relative w-full ${minH} flex flex-col items-center ${fitScale < 1 ? "justify-start pt-4" : "justify-center"} p-4 sm:p-6`}
+        className={`relative w-full ${minH} flex flex-col items-center justify-center p-4 sm:p-6`}
         style={{ background: pageBg }}
       >
         {BgLayers}
@@ -2518,7 +2483,7 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
       <div
         data-testid="profile-preview"
         data-layout={layout}
-        className={`relative w-full ${minH} flex flex-col items-center ${fitScale < 1 ? "justify-start pt-4" : "justify-center"} p-4 sm:p-8`}
+        className={`relative w-full ${minH} flex flex-col items-center justify-center p-4 sm:p-8`}
         style={{ background: pageBg }}
       >
         {BgLayers}
@@ -2639,7 +2604,7 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
       <div
         data-testid="profile-preview"
         data-layout={layout}
-        className={`relative w-full ${minH} flex flex-col items-center ${fitScale < 1 ? "justify-start" : "justify-center"} p-4 sm:p-8 pt-24`}
+        className={`relative w-full ${minH} flex flex-col items-center justify-center p-4 sm:p-8 pt-24`}
         style={{ background: pageBg }}
       >
         {BgLayers}
@@ -2714,7 +2679,7 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
       <div
         data-testid="profile-preview"
         data-layout={layout}
-        className={`relative w-full ${minH} flex flex-col items-center ${fitScale < 1 ? "justify-start" : "justify-center"} p-4 sm:p-8`}
+        className={`relative w-full ${minH} flex flex-col items-center justify-center p-4 sm:p-8`}
         style={{ background: pageBg }}
       >
         {BgLayers}
@@ -2791,7 +2756,7 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
       <div
         data-testid="profile-preview"
         data-layout={layout}
-        className={`relative w-full ${minH} flex flex-col items-center ${fitScale < 1 ? "justify-start" : "justify-center"} p-4 sm:p-8`}
+        className={`relative w-full ${minH} flex flex-col items-center justify-center p-4 sm:p-8`}
         style={{ background: pageBg }}
       >
         {BgLayers}
@@ -2868,7 +2833,7 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
       <div
         data-testid="profile-preview"
         data-layout={layout}
-        className={`relative w-full ${minH} flex flex-col items-center ${fitScale < 1 ? "justify-start" : "justify-center"} p-4 sm:p-6`}
+        className={`relative w-full ${minH} flex flex-col items-center justify-center p-4 sm:p-6`}
         style={{ background: pageBg }}
       >
         {BgLayers}
