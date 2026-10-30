@@ -1589,7 +1589,7 @@ function SlideshowView({
               {widgets.length > 0 && (
                 <div data-block="widgets" className="lg:col-span-7 w-full text-left">
                   <WidgetProfileContext.Provider value={p}>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-left auto-rows-fr items-stretch">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-left">
                       {widgets.map((w, i) => (
                         <WidgetCard key={i} w={w} accent={accent} ownerCreated={data.created_at} owner={data.username} profileRadius={Number(p.card_radius ?? 24)} profile={p} />
                       ))}
@@ -2314,10 +2314,10 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
       <WidgetProfileContext.Provider value={p}>
         <div
           data-block="widgets"
-          className={`w-full text-left grid auto-rows-fr items-stretch ${
+          className={`w-full text-left grid ${
             widgetsStacked ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"
           } ${
-            pill ? "gap-2.5" : "gap-3.5"
+            pill ? "gap-2" : "gap-2.5"
           } ${className}`}
         >
           {widgets.map((w, i) => {

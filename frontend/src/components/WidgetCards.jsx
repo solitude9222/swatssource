@@ -561,14 +561,14 @@ function WidgetShell({
       data-menu-href={popoutUrl || ""}
       data-menu-name={headerTitle || w?.title || w?.type || "Widget"}
       {...tipProps}
-      className={`${full ? "sm:col-span-2" : ""} flex flex-col h-full text-left transition duration-300 ${className}`}
+      className={`${full ? "sm:col-span-2" : ""} flex flex-col text-left transition duration-300 ${className}`}
     >
       {/* Inner Card */}
       {raw ? (
         children
       ) : (
         <div
-          className={`${pad} text-left relative overflow-hidden transition duration-300 flex-1 flex flex-col justify-between ${bgEnabled ? "widget-card-sheen" : ""} ${isClickableCard ? "cursor-pointer hover:brightness-110 active:scale-[0.99]" : ""} ${innerClassName}`}
+          className={`${pad} text-left relative overflow-hidden transition duration-300 flex flex-col ${bgEnabled ? "widget-card-sheen" : ""} ${isClickableCard ? "cursor-pointer hover:brightness-110 active:scale-[0.99]" : ""} ${innerClassName}`}
           style={{ ...surface, ...padStyle, ...minHStyle, ...innerStyle }}
           onClick={isClickableCard ? handleOpenAction : undefined}
           data-testid={isClickableCard ? "widget-popout-link" : undefined}
@@ -2551,11 +2551,6 @@ function SoundCloudCard({ w, accent, data, status, error, refresh }) {
       </div>
     </div>
   );
-}
-
-// MediaCard wrapper for backward compatibility
-function MediaCard(props) {
-  return <SoundCloudCard {...props} />;
 }
 
 function GamesCard({ w, accent }) {

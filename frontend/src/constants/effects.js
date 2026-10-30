@@ -180,17 +180,4 @@ export const resolveTrackStyle = (id) => {
   return "compact";
 };
 
-export const WIDGET_TYPES = [
-  { id: "discord", label: "Discord", premium: false },
-  { id: "spotify", label: "Spotify", premium: false },
-  { id: "valorant", label: "Valorant", premium: false },
-  { id: "roblox", label: "Roblox", premium: false },
-  { id: "github", label: "GitHub", premium: false },
-  { id: "youtube", label: "YouTube", premium: false },
-  { id: "steam", label: "Steam", premium: false },
-  { id: "tiktok", label: "TikTok", premium: false },
-  { id: "soundcloud", label: "SoundCloud", premium: false },
-  { id: "timezone", label: "Timezone", premium: false },
-  { id: "account-date", label: "Account Date", premium: false },
-  { id: "custom", label: "Custom Code", premium: true },
-];
+
