@@ -1,0 +1,12 @@
+node_modules
+dist
+.tools
+.wrangler
+.env
+.env*.local
+*.local
+uploads
+
+# large local-only assets
+example.mp4
+*.mp4

@@ -1,0 +1,508 @@
+export type AvatarDecorationStyle = "none" | "ring" | "glow" | "stars" | "flame" | "blob";
+export type CursorStyle = "default" | "dot" | "ring" | "crosshair" | "glow" | "custom";
+export type ProfileBackgroundStyle = "solid" | "gradient" | "image";
+/** Canvas background effects — the same twelve engines power both the
+ *  behind-the-card layer and the above-everything overlay layer. */
+export type BackgroundEffectId =
+  | "none"
+  | "snowstorm"
+  | "stars"
+  | "blur"
+  | "night"
+  | "tv"
+  | "dither"
+  | "fuzzy"
+  | "flash"
+  | "snow"
+  | "rain"
+  | "dust"
+  | "leaf";
+export type OverlayEffectId = BackgroundEffectId;
+export type AudioStyle = "none" | "compact" | "marquee" | "lyrics" | "vinyl";
+export type TextEffectId = "none" | "rgb" | "wave" | "typewriter" | "glow" | "sparkle" | "glitch" | "neon" | "bounce" | "fade" | "flicker" | "shake";
+export type TextEffectTarget = "alias" | "name" | "bio";
+
+/* ── per-effect custom settings ───────────────────────────────────────────
+   Every effect gets its own extra control (and only one of these two slots
+   is ever shown, decided by the schema below) instead of every effect
+   sharing the same four generic knobs. `amount` backs a slider, `flag`
+   backs a toggle. */
+export type EffectParams = { amount: number; flag: boolean };
+
+export type EffectParamSpec =
+  | { kind: "slider"; key: string; label: string; min: number; max: number; step: number; unit?: string; default: number }
+  | { kind: "toggle"; key: string; label: string; default: boolean };
+
+export const DEFAULT_EFFECT_PARAMS: EffectParams = { amount: 50, flag: false };
+
+export function defaultParamsFor(spec: EffectParamSpec | null): EffectParams {
+  if (!spec) return { ...DEFAULT_EFFECT_PARAMS };
+  return spec.kind === "slider" ? { amount: spec.default, flag: false } : { amount: 50, flag: spec.default };
+}
+
+function clampParamsFor(spec: EffectParamSpec | null, raw: unknown): EffectParams {
+  const r = (raw ?? {}) as Partial<EffectParams>;
+  const fallback = defaultParamsFor(spec);
+  if (!spec) return fallback;
+  if (spec.kind === "slider") {
+    const n = Number(r.amount);
+    const amount = Number.isFinite(n) ? Math.min(spec.max, Math.max(spec.min, n)) : fallback.amount;
+    return { amount, flag: false };
+  }
+  return { amount: 50, flag: typeof r.flag === "boolean" ? r.flag : fallback.flag };
+}
+
+export const TEXT_EFFECT_PARAM: Record<TextEffectId, EffectParamSpec | null> = {
+  none: null,
+  rgb: { kind: "slider", key: "bandSharpness", label: "Band sharpness", min: 10, max: 90, step: 5, unit: "%", default: 45 },
+  wave: { kind: "slider", key: "amplitude", label: "Amplitude", min: 2, max: 16, step: 1, unit: "px", default: 6 },
+  typewriter: { kind: "toggle", key: "cursor", label: "Blinking cursor", default: true },
+  glow: { kind: "toggle", key: "pulse", label: "Pulse", default: true },
+  sparkle: { kind: "slider", key: "density", label: "Density", min: 3, max: 20, step: 1, default: 10 },
+  glitch: { kind: "slider", key: "intensity", label: "Intensity", min: 1, max: 10, step: 1, default: 4 },
+  neon: { kind: "toggle", key: "flicker", label: "Flicker", default: true },
+  bounce: { kind: "slider", key: "amplitude", label: "Amplitude", min: 3, max: 18, step: 1, unit: "px", default: 8 },
+  fade: { kind: "slider", key: "dimTo", label: "Dim to", min: 0, max: 80, step: 5, unit: "%", default: 20 },
+  flicker: { kind: "slider", key: "chaos", label: "Chaos", min: 1, max: 10, step: 1, default: 5 },
+  shake: { kind: "slider", key: "amplitude", label: "Amplitude", min: 1, max: 6, step: 1, unit: "px", default: 2 },
+};
+
+export const BACKGROUND_EFFECT_PARAM: Record<BackgroundEffectId, EffectParamSpec | null> = {
+  none: null,
+  snowstorm: { kind: "slider", key: "gusts", label: "Wind gusts", min: 0, max: 100, step: 5, unit: "%", default: 50 },
+  stars: { kind: "slider", key: "meteorRate", label: "Meteor rate", min: 0, max: 100, step: 5, unit: "%", default: 50 },
+  blur: { kind: "slider", key: "extraBlur", label: "Extra blur", min: 0, max: 100, step: 5, unit: "%", default: 30 },
+  night: { kind: "slider", key: "vignette", label: "Corner darkening", min: 0, max: 100, step: 5, unit: "%", default: 50 },
+  tv: { kind: "slider", key: "scanlines", label: "Scanline strength", min: 0, max: 100, step: 5, unit: "%", default: 50 },
+  dither: { kind: "slider", key: "pixel", label: "Pixel size", min: 0, max: 100, step: 5, unit: "%", default: 40 },
+  fuzzy: { kind: "slider", key: "grain", label: "Grain size", min: 0, max: 100, step: 5, unit: "%", default: 50 },
+  flash: { kind: "slider", key: "lightSize", label: "Light size", min: 0, max: 100, step: 5, unit: "%", default: 50 },
+  snow: { kind: "slider", key: "drift", label: "Drift & sway", min: 0, max: 100, step: 5, unit: "%", default: 50 },
+  rain: { kind: "slider", key: "slant", label: "Wind slant", min: 0, max: 100, step: 5, unit: "%", default: 40 },
+  dust: { kind: "slider", key: "size", label: "Particle size", min: 0, max: 100, step: 5, unit: "%", default: 50 },
+  leaf: { kind: "slider", key: "spin", label: "Spin & flip", min: 0, max: 100, step: 5, unit: "%", default: 50 },
+};
+
+export const OVERLAY_EFFECT_PARAM: Record<OverlayEffectId, EffectParamSpec | null> =
+  BACKGROUND_EFFECT_PARAM;
+
+export type DecorationSettings = {
+  style: AvatarDecorationStyle;
+  color: string;
+  size: number;
+  spin: boolean;
+  /** Discord CDN avatar-decoration-preset URL (APNG overlay). */
+  discordUrl?: string;
+  /** Avatar zoom 0.5–2 */
+  zoom?: number;
+  /** Avatar rotation in degrees */
+  rotate?: number;
+};
+
+export type CursorSettings = {
+  style: CursorStyle;
+  color: string;
+  size: number;
+  trail: boolean;
+  trailLength: number;
+  imageUrl: string;
+};
+
+export type BackgroundSettings = {
+  style: ProfileBackgroundStyle;
+  color: string;
+  from: string;
+  to: string;
+  imageUrl: string;
+  blur: number;
+  dim: number;
+  /** Gradient animation: "none" | "shift" | "pulse" | "aurora" | "sweep" */
+  gradientAnim?: string;
+  /** Gradient angle in degrees */
+  angle?: number;
+};
+
+export type AudioSettings = {
+  style: AudioStyle;
+  /** Uploaded audio as a data URL — the only playback source. */
+  fileUrl: string;
+  /** Uploaded/pasted cover art shown in the player. */
+  coverUrl: string;
+  /** Manual track title — required, there's no metadata to read from a file. */
+  title: string;
+  artist: string;
+  /** Custom lyrics: plain text or LRC (with [mm:ss.xx] timestamps). */
+  lyrics: string;
+  /** Look up synced lyrics automatically when no custom lyrics are set. */
+  autoLyrics: boolean;
+  /** Card background opacity, 0 (fully transparent) – 1 (solid). */
+  cardOpacity: number;
+  /** Accent colour for the progress fill / highlighted lyric line. */
+  accentColor: string;
+  /** Player scale, 0.85–1.25 — how large the player renders on the page. */
+  size: number;
+};
+
+export type BannerSettings = {
+  enabled: boolean;
+  imageUrl: string;
+  height: number;
+  opacity: number;
+};
+
+export type BackgroundEffectSettings = {
+  id: BackgroundEffectId;
+  intensity: number;
+  speed: number;
+  color: string;
+  params: EffectParams;
+};
+
+export type OverlayEffectSettings = {
+  id: OverlayEffectId;
+  /** Canvas layer opacity, 0–1. */
+  opacity: number;
+  /** Kept for saved profiles; unused by the canvas engine. */
+  scale: number;
+  /** 0–100, the canvas engine's main slider. */
+  intensity: number;
+  /** 0.5–14s; higher = slower. */
+  speed: number;
+  /** Hex tint used by the engine. */
+  color: string;
+  params: EffectParams;
+};
+
+export type TextEffectSettings = {
+  effect: TextEffectId;
+  colorA: string;
+  colorB: string;
+  speed: number;
+  strength: number;
+  params: EffectParams;
+  /** Google Font family name; "" inherits the theme font. */
+  font: string;
+};
+
+export type ProfileAssets = {
+  avatarUrl: string;
+  decoration: DecorationSettings;
+  cursor: CursorSettings;
+  background: BackgroundSettings;
+  banner: BannerSettings;
+  audio: AudioSettings;
+  effects: {
+    background: BackgroundEffectSettings;
+    overlay: OverlayEffectSettings;
+    text: Record<TextEffectTarget, TextEffectSettings>;
+  };
+};
+
+export const DEFAULT_TEXT_EFFECT: TextEffectSettings = {
+  effect: "none",
+  colorA: "#ffcfa8",
+  colorB: "#a8e0ff",
+  speed: 3,
+  strength: 1,
+  params: defaultParamsFor(null),
+  font: "",
+};
+
+export const DEFAULT_PROFILE_ASSETS: ProfileAssets = {
+  avatarUrl: "",
+  decoration: {
+    style: "none",
+    color: "#a8e0ff",
+    size: 1,
+    spin: false,
+  },
+  cursor: {
+    style: "default",
+    color: "#a8e0ff",
+    size: 10,
+    trail: false,
+    trailLength: 5,
+    imageUrl: "",
+  },
+  background: {
+    style: "solid",
+    color: "#0b0d10",
+    from: "#0b0d10",
+    to: "#16233a",
+    imageUrl: "",
+    blur: 0,
+    dim: 0.25,
+    gradientAnim: "none",
+    angle: 160,
+  },
+  banner: {
+    enabled: true,
+    imageUrl: "",
+    height: 84,
+    opacity: 0.92,
+  },
+  audio: {
+    style: "none",
+    fileUrl: "",
+    coverUrl: "",
+    title: "",
+    artist: "",
+    lyrics: "",
+    autoLyrics: true,
+    cardOpacity: 0.92,
+    accentColor: "#f2c9dd",
+    size: 1,
+  },
+  effects: {
+    background: {
+      id: "none",
+      intensity: 50,
+      speed: 9,
+      color: "#a8e0ff",
+      params: defaultParamsFor(null),
+    },
+    overlay: {
+      id: "none",
+      opacity: 0.9,
+      scale: 1,
+      intensity: 50,
+      speed: 9,
+      color: "#ffffff",
+      params: defaultParamsFor(null),
+    },
+    text: {
+      alias: { ...DEFAULT_TEXT_EFFECT },
+      name: { ...DEFAULT_TEXT_EFFECT },
+      bio: { ...DEFAULT_TEXT_EFFECT },
+    },
+  },
+};
+
+export const DECORATIONS: { id: AvatarDecorationStyle; name: string; hint: string }[] = [
+  { id: "none", name: "None", hint: "Clean avatar" },
+  { id: "ring", name: "Orbit ring", hint: "Rotating ring" },
+  { id: "glow", name: "Glow", hint: "Coloured halo" },
+  { id: "stars", name: "Stars", hint: "Orbiting sparks" },
+  { id: "flame", name: "Flame", hint: "Flickering edge" },
+  { id: "blob", name: "Aura", hint: "Soft colour cloud" },
+];
+
+export const BACKGROUND_EFFECTS: { id: BackgroundEffectId; name: string; hint: string }[] = [
+  { id: "none", name: "None", hint: "No background motion" },
+  { id: "snowstorm", name: "Snowstorm", hint: "Heavy wind-blown snow with drifting white haze" },
+  { id: "stars", name: "Shooting Stars", hint: "Twinkling stars with streaking meteors" },
+  { id: "blur", name: "Blurred Background", hint: "Softens whatever is behind the card" },
+  { id: "night", name: "Night Time", hint: "Dark tint, twinkling stars, darker corners" },
+  { id: "tv", name: "Old TV", hint: "CRT static, scanlines and a rolling light bar" },
+  { id: "dither", name: "Dither", hint: "Retro 1-bit dot pattern in motion" },
+  { id: "fuzzy", name: "Fuzzy", hint: "Soft shimmering coloured grain" },
+  { id: "flash", name: "Flashlight", hint: "A warm light that follows the pointer" },
+  { id: "snow", name: "Snow", hint: "Calm snowfall in three depths" },
+  { id: "rain", name: "Rain", hint: "Slanted raindrops with tiny splashes" },
+  { id: "dust", name: "Particles", hint: "Glowing dust that dodges the pointer" },
+  { id: "leaf", name: "Leaf Fall", hint: "Autumn leaves that spin and sway as they fall" },
+];
+
+export const OVERLAY_EFFECTS: { id: OverlayEffectId; name: string; hint: string }[] =
+  BACKGROUND_EFFECTS;
+
+export const TEXT_EFFECTS: { id: TextEffectId; name: string; hint: string }[] = [
+  { id: "none", name: "None", hint: "Plain text" },
+  { id: "rgb", name: "RGB flow", hint: "Moving colour gradient" },
+  { id: "wave", name: "Wave", hint: "Letters rise and fall" },
+  { id: "typewriter", name: "Typewriter", hint: "Reveal letter by letter" },
+  { id: "glow", name: "Glow", hint: "Soft coloured halo" },
+  { id: "sparkle", name: "Sparkle", hint: "Tiny moving stars" },
+  { id: "glitch", name: "Glitch", hint: "Digital interference" },
+  { id: "neon", name: "Neon", hint: "Bright tube glow" },
+  { id: "bounce", name: "Bounce", hint: "Letters hop in sequence" },
+  { id: "fade", name: "Fade", hint: "Smooth pulse in and out" },
+  { id: "flicker", name: "Flicker", hint: "Broken neon flashing" },
+  { id: "shake", name: "Shake", hint: "Rapid vibration" },
+];
+
+export const AUDIO_STYLES: { id: AudioStyle; name: string; hint: string }[] = [
+  { id: "none", name: "None", hint: "No audio player shown" },
+  { id: "compact", name: "Compact", hint: "One row: cover, title, transport, progress" },
+  { id: "marquee", name: "Marquee", hint: "A slim strip, the title runs through it. No transport" },
+  { id: "lyrics", name: "Lyrics", hint: "Custom or auto-fetched lyrics that follow playback" },
+  { id: "vinyl", name: "Vinyl", hint: "Spinning record art beside the track info" },
+];
+
+export const TEXT_TARGETS: { id: TextEffectTarget; name: string }[] = [
+  { id: "alias", name: "Alias" },
+  { id: "name", name: "Display name" },
+  { id: "bio", name: "Bio" },
+];
+
+function numberIn(value: unknown, fallback: number, min: number, max: number): number {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.min(max, Math.max(min, parsed));
+}
+
+function boolIn(value: unknown, fallback: boolean): boolean {
+  return typeof value === "boolean" ? value : fallback;
+}
+
+function textIn(value: unknown, fallback: string, max: number): string {
+  return typeof value === "string" ? value.slice(0, max) : fallback;
+}
+
+function colorIn(value: unknown, fallback: string): string {
+  return typeof value === "string" && /^#[0-9a-f]{6}$/i.test(value) ? value : fallback;
+}
+
+function choiceIn<T extends string>(value: unknown, choices: readonly T[], fallback: T): T {
+  return choices.includes(value as T) ? (value as T) : fallback;
+}
+
+function loadTextEffect(value: unknown): TextEffectSettings {
+  const raw = (value ?? {}) as Partial<TextEffectSettings>;
+  const effect = choiceIn(
+    raw.effect,
+    TEXT_EFFECTS.map((e) => e.id),
+    DEFAULT_TEXT_EFFECT.effect,
+  );
+  return {
+    effect,
+    colorA: colorIn(raw.colorA, DEFAULT_TEXT_EFFECT.colorA),
+    colorB: colorIn(raw.colorB, DEFAULT_TEXT_EFFECT.colorB),
+    speed: numberIn(raw.speed, DEFAULT_TEXT_EFFECT.speed, 0.5, 12),
+    strength: numberIn(raw.strength, DEFAULT_TEXT_EFFECT.strength, 0.2, 3),
+    params: clampParamsFor(TEXT_EFFECT_PARAM[effect], raw.params),
+    font: textIn(raw.font, DEFAULT_TEXT_EFFECT.font, 60),
+  };
+}
+
+function loadAudio(value: unknown): AudioSettings {
+  const raw = (value ?? {}) as Partial<AudioSettings> & {
+    // Legacy fields from the removed Spotify source — read but dropped.
+    source?: unknown;
+    trackUrl?: unknown;
+  };
+  void raw.source;
+  void raw.trackUrl;
+  return {
+    style: choiceIn(
+      raw.style,
+      AUDIO_STYLES.map((item) => item.id),
+      DEFAULT_PROFILE_ASSETS.audio.style,
+    ),
+    fileUrl: textIn(raw.fileUrl, DEFAULT_PROFILE_ASSETS.audio.fileUrl, 8_500_000),
+    coverUrl: textIn(raw.coverUrl, "", 2_500_000),
+    title: textIn(raw.title, DEFAULT_PROFILE_ASSETS.audio.title, 80),
+    artist: textIn(raw.artist, DEFAULT_PROFILE_ASSETS.audio.artist, 80),
+    lyrics: textIn(raw.lyrics, "", 40_000),
+    autoLyrics: boolIn(raw.autoLyrics, DEFAULT_PROFILE_ASSETS.audio.autoLyrics),
+    cardOpacity: numberIn(raw.cardOpacity, DEFAULT_PROFILE_ASSETS.audio.cardOpacity, 0, 1),
+    accentColor: colorIn(raw.accentColor, DEFAULT_PROFILE_ASSETS.audio.accentColor),
+    size: numberIn(raw.size, DEFAULT_PROFILE_ASSETS.audio.size, 0.85, 1.25),
+  };
+}
+
+export function loadProfileAssets(input: unknown): ProfileAssets {
+  const raw = (input ?? {}) as Partial<ProfileAssets>;
+  const decoration = (raw.decoration ?? {}) as Partial<DecorationSettings>;
+  const cursor = (raw.cursor ?? {}) as Partial<CursorSettings>;
+  const background = (raw.background ?? {}) as Partial<BackgroundSettings>;
+  const banner = (raw.banner ?? {}) as Partial<BannerSettings>;
+  const effects = (raw.effects ?? {}) as Partial<ProfileAssets["effects"]>;
+  const backgroundEffect = (effects.background ?? {}) as Partial<BackgroundEffectSettings>;
+  const overlay = (effects.overlay ?? {}) as Partial<OverlayEffectSettings>;
+  const text = (effects.text ?? {}) as Partial<Record<TextEffectTarget, TextEffectSettings>>;
+  // Uploads are stored as compressed data URLs, so this field is no longer
+  // limited to the length of a normal https:// URL.
+  const cursorImage = textIn(cursor.imageUrl, "", 250_000);
+
+  return {
+    avatarUrl: textIn(raw.avatarUrl, "", 2_500_000),
+    decoration: {
+      style: choiceIn(
+        decoration.style,
+        DECORATIONS.map((item) => item.id),
+        DEFAULT_PROFILE_ASSETS.decoration.style,
+      ),
+      color: colorIn(decoration.color, DEFAULT_PROFILE_ASSETS.decoration.color),
+      size: numberIn(decoration.size, DEFAULT_PROFILE_ASSETS.decoration.size, 0.5, 1.8),
+      spin: boolIn(decoration.spin, DEFAULT_PROFILE_ASSETS.decoration.spin),
+    },
+    cursor: {
+      // The preset cursors were replaced by a single uploaded image. Migrate
+      // old saved presets to either the custom image or the system cursor.
+      style: cursorImage ? "custom" : "default",
+      color: colorIn(cursor.color, DEFAULT_PROFILE_ASSETS.cursor.color),
+      size: numberIn(cursor.size, DEFAULT_PROFILE_ASSETS.cursor.size, 4, 32),
+      trail: false,
+      trailLength: numberIn(cursor.trailLength, DEFAULT_PROFILE_ASSETS.cursor.trailLength, 1, 8),
+      imageUrl: cursorImage,
+    },
+    background: {
+      style: choiceIn(
+        background.style,
+        ["solid", "gradient", "image"] as const,
+        DEFAULT_PROFILE_ASSETS.background.style,
+      ),
+      color: colorIn(background.color, DEFAULT_PROFILE_ASSETS.background.color),
+      from: colorIn(background.from, DEFAULT_PROFILE_ASSETS.background.from),
+      to: colorIn(background.to, DEFAULT_PROFILE_ASSETS.background.to),
+      imageUrl: textIn(background.imageUrl, "", 2_500_000),
+      blur: numberIn(background.blur, DEFAULT_PROFILE_ASSETS.background.blur, 0, 30),
+      dim: numberIn(background.dim, DEFAULT_PROFILE_ASSETS.background.dim, 0, 0.85),
+    },
+    banner: {
+      enabled: boolIn(banner.enabled, DEFAULT_PROFILE_ASSETS.banner.enabled),
+      imageUrl: textIn(banner.imageUrl, "", 2_500_000),
+      height: numberIn(banner.height, DEFAULT_PROFILE_ASSETS.banner.height, 40, 220),
+      opacity: numberIn(banner.opacity, DEFAULT_PROFILE_ASSETS.banner.opacity, 0, 1),
+    },
+    audio: loadAudio(raw.audio),
+    effects: {
+      background: (() => {
+        const id = choiceIn(
+          backgroundEffect.id,
+          BACKGROUND_EFFECTS.map((item) => item.id),
+          DEFAULT_PROFILE_ASSETS.effects.background.id,
+        );
+        return {
+          id,
+          intensity: numberIn(
+            backgroundEffect.intensity,
+            DEFAULT_PROFILE_ASSETS.effects.background.intensity,
+            8,
+            100,
+          ),
+          speed: numberIn(
+            backgroundEffect.speed,
+            DEFAULT_PROFILE_ASSETS.effects.background.speed,
+            2,
+            24,
+          ),
+          color: colorIn(backgroundEffect.color, DEFAULT_PROFILE_ASSETS.effects.background.color),
+          params: clampParamsFor(BACKGROUND_EFFECT_PARAM[id], backgroundEffect.params),
+        };
+      })(),
+      overlay: (() => {
+        const id = choiceIn(
+          overlay.id,
+          OVERLAY_EFFECTS.map((item) => item.id),
+          DEFAULT_PROFILE_ASSETS.effects.overlay.id,
+        );
+        return {
+          id,
+          opacity: numberIn(overlay.opacity, DEFAULT_PROFILE_ASSETS.effects.overlay.opacity, 0, 1),
+          scale: numberIn(overlay.scale, DEFAULT_PROFILE_ASSETS.effects.overlay.scale, 0.5, 3),
+          intensity: numberIn(overlay.intensity, DEFAULT_PROFILE_ASSETS.effects.overlay.intensity, 0, 100),
+          speed: numberIn(overlay.speed, DEFAULT_PROFILE_ASSETS.effects.overlay.speed, 2, 24),
+          color: colorIn(overlay.color, DEFAULT_PROFILE_ASSETS.effects.overlay.color),
+          params: clampParamsFor(OVERLAY_EFFECT_PARAM[id], overlay.params),
+        };
+      })(),
+      text: {
+        alias: loadTextEffect(text.alias),
+        name: loadTextEffect(text.name),
+        bio: loadTextEffect(text.bio),
+      },
+    },
+  };
+}
