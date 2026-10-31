@@ -1007,141 +1007,153 @@ export function DashboardAssets({
               </div>
 
               <div className="asset-modal-body asset-modal-body--single">
-                <div className="lnk-field">
-                  <span>Audio file</span>
-                  <div className="audio-upload-row">
-                    <label className="audio-upload-btn">
-                      <ImageIcon size={12} />
-                      {audioBusy ? "Uploading…" : assets.audio.fileUrl ? "Replace file" : "Choose file"}
-                      <input
-                        type="file"
-                        accept="audio/*"
-                        style={{ display: "none" }}
-                        disabled={audioBusy}
-                        onChange={(event) => void handleAudioUpload(event.target.files?.[0])}
+                <div className="audio-manager-grid">
+                  <div className="audio-manager-col">
+                    <div className="audio-manager-box">
+                      <span className="audio-manager-box-title">Audio file</span>
+                      <div className="audio-upload-row">
+                        <label className="audio-upload-btn">
+                          <ImageIcon size={12} />
+                          {audioBusy ? "Uploading…" : assets.audio.fileUrl ? "Replace file" : "Choose file"}
+                          <input
+                            type="file"
+                            accept="audio/*"
+                            style={{ display: "none" }}
+                            disabled={audioBusy}
+                            onChange={(event) => void handleAudioUpload(event.target.files?.[0])}
+                          />
+                        </label>
+                        {assets.audio.fileUrl ? (
+                          <>
+                            <span className="audio-upload-name">Audio file attached</span>
+                            <button
+                              type="button"
+                              className="audio-upload-remove"
+                              onClick={() => updateAudio({ fileUrl: "" })}
+                              aria-label="Remove audio file"
+                            >
+                              <TrashIcon size={12} />
+                            </button>
+                          </>
+                        ) : (
+                          <span className="audio-upload-name">MP3, WAV, OGG or M4A — under 6&nbsp;MB</span>
+                        )}
+                      </div>
+                      {audioError ? (
+                        <small className="about-help" style={{ color: "#f87171" }}>
+                          {audioError}
+                        </small>
+                      ) : null}
+                    </div>
+
+                    <div className="audio-manager-box">
+                      <span className="audio-manager-box-title">Cover art</span>
+                      <ImageUpload
+                        value={assets.audio.coverUrl}
+                        onChange={(value) => updateAudio({ coverUrl: value })}
+                        label="cover art"
+                        hint="Shown in the player. Square image, compressed automatically."
+                        recommended="Square image · 600 × 600 recommended"
                       />
-                    </label>
-                    {assets.audio.fileUrl ? (
-                      <>
-                        <span className="audio-upload-name">Audio file attached</span>
+                    </div>
+                  </div>
+
+                  <div className="audio-manager-col">
+                    <div className="audio-manager-box">
+                      <span className="audio-manager-box-title">Track info</span>
+                      <div className="lnk-field-row2">
+                        <label className="lnk-field">
+                          <span>Title</span>
+                          <input
+                            value={assets.audio.title}
+                            onChange={(event) => updateAudio({ title: event.target.value })}
+                            placeholder="Track title"
+                          />
+                        </label>
+                        <label className="lnk-field">
+                          <span>Artist</span>
+                          <input
+                            value={assets.audio.artist}
+                            onChange={(event) => updateAudio({ artist: event.target.value })}
+                            placeholder="Artist name"
+                          />
+                        </label>
+                      </div>
+                    </div>
+
+                    <div className="audio-manager-box">
+                      <span className="audio-manager-box-title">Lyrics</span>
+                      <textarea
+                        className="audio-lyrics-input"
+                        value={assets.audio.lyrics}
+                        onChange={(event) => updateAudio({ lyrics: event.target.value })}
+                        placeholder={"Plain lines, or LRC with timestamps for sync:\n[00:12.50] first line\n[00:16.80] second line"}
+                        rows={5}
+                        spellCheck={false}
+                      />
+                      <div className="audio-upload-row">
+                        <label className="audio-upload-btn">
+                          <ImageIcon size={12} />
+                          Upload .lrc / .txt
+                          <input
+                            type="file"
+                            accept=".lrc,.txt,text/plain"
+                            style={{ display: "none" }}
+                            onChange={(event) => void handleLyricsUpload(event.target.files?.[0])}
+                          />
+                        </label>
+                        {assets.audio.lyrics ? (
+                          <button
+                            type="button"
+                            className="audio-upload-remove"
+                            onClick={() => updateAudio({ lyrics: "" })}
+                            aria-label="Clear lyrics"
+                          >
+                            <TrashIcon size={12} />
+                          </button>
+                        ) : null}
+                      </div>
+                      <label className="lnk-toggle" style={{ marginTop: 8 }}>
+                        <span>Auto-fetch lyrics when none are set above</span>
                         <button
                           type="button"
-                          className="audio-upload-remove"
-                          onClick={() => updateAudio({ fileUrl: "" })}
-                          aria-label="Remove audio file"
+                          role="switch"
+                          aria-checked={assets.audio.autoLyrics}
+                          className={`switch${assets.audio.autoLyrics ? " is-on" : ""}`}
+                          onClick={() => updateAudio({ autoLyrics: !assets.audio.autoLyrics })}
                         >
-                          <TrashIcon size={12} />
+                          <span />
                         </button>
-                      </>
-                    ) : (
-                      <span className="audio-upload-name">MP3, WAV, OGG or M4A — under 6&nbsp;MB</span>
-                    )}
+                      </label>
+                      <small className="about-help">
+                        Paste plain lyrics or LRC with [mm:ss.xx] timestamps to sync lines to playback.
+                      </small>
+                    </div>
                   </div>
-                  {audioError ? (
-                    <small className="about-help" style={{ color: "#f87171" }}>
-                      {audioError}
-                    </small>
-                  ) : null}
                 </div>
 
-                <div className="lnk-field">
-                  <span>Cover art</span>
-                  <ImageUpload
-                    value={assets.audio.coverUrl}
-                    onChange={(value) => updateAudio({ coverUrl: value })}
-                    label="cover art"
-                    hint="Shown in the player. Square image, compressed automatically."
-                    recommended="Square image · 600 × 600 recommended"
-                  />
-                </div>
-
-                <div className="lnk-field-row2">
-                  <label className="lnk-field">
-                    <span>Title</span>
-                    <input
-                      value={assets.audio.title}
-                      onChange={(event) => updateAudio({ title: event.target.value })}
-                      placeholder="Track title"
-                    />
-                  </label>
-                  <label className="lnk-field">
-                    <span>Artist</span>
-                    <input
-                      value={assets.audio.artist}
-                      onChange={(event) => updateAudio({ artist: event.target.value })}
-                      placeholder="Artist name"
-                    />
-                  </label>
-                </div>
-
-                <div className="effect-choice-grid">
-                  {AUDIO_STYLES.map((style) => (
-                    <button
-                      type="button"
-                      key={style.id}
-                      className={`effect-choice${assets.audio.style === style.id ? " is-active" : ""}`}
-                      aria-pressed={assets.audio.style === style.id}
-                      onClick={() => updateAudio({ style: style.id })}
-                    >
-                      <span className="effect-choice-preview">
-                        <AudioStyleThumb style={style.id} />
-                      </span>
-                      <span className="effect-choice-copy">
-                        <b>{style.name}</b>
-                        <small>{style.hint}</small>
-                      </span>
-                      {assets.audio.style === style.id ? <CheckIcon size={11} /> : null}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="lnk-field">
-                  <span>Lyrics</span>
-                  <textarea
-                    className="audio-lyrics-input"
-                    value={assets.audio.lyrics}
-                    onChange={(event) => updateAudio({ lyrics: event.target.value })}
-                    placeholder={"Plain lines, or LRC with timestamps for sync:\n[00:12.50] first line\n[00:16.80] second line"}
-                    rows={5}
-                    spellCheck={false}
-                  />
-                  <div className="audio-upload-row">
-                    <label className="audio-upload-btn">
-                      <ImageIcon size={12} />
-                      Upload .lrc / .txt
-                      <input
-                        type="file"
-                        accept=".lrc,.txt,text/plain"
-                        style={{ display: "none" }}
-                        onChange={(event) => void handleLyricsUpload(event.target.files?.[0])}
-                      />
-                    </label>
-                    {assets.audio.lyrics ? (
+                <div className="lnk-option-group">
+                  <span className="lnk-option-label">Style</span>
+                  <div className="effect-choice-grid">
+                    {AUDIO_STYLES.map((style) => (
                       <button
                         type="button"
-                        className="audio-upload-remove"
-                        onClick={() => updateAudio({ lyrics: "" })}
-                        aria-label="Clear lyrics"
+                        key={style.id}
+                        className={`effect-choice${assets.audio.style === style.id ? " is-active" : ""}`}
+                        aria-pressed={assets.audio.style === style.id}
+                        onClick={() => updateAudio({ style: style.id })}
                       >
-                        <TrashIcon size={12} />
+                        <span className="effect-choice-preview">
+                          <AudioStyleThumb style={style.id} />
+                        </span>
+                        <span className="effect-choice-copy">
+                          <b>{style.name}</b>
+                          <small>{style.hint}</small>
+                        </span>
+                        {assets.audio.style === style.id ? <CheckIcon size={11} /> : null}
                       </button>
-                    ) : null}
+                    ))}
                   </div>
-                  <label className="lnk-toggle" style={{ marginTop: 8 }}>
-                    <span>Auto-fetch lyrics when none are set above</span>
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={assets.audio.autoLyrics}
-                      className={`switch${assets.audio.autoLyrics ? " is-on" : ""}`}
-                      onClick={() => updateAudio({ autoLyrics: !assets.audio.autoLyrics })}
-                    >
-                      <span />
-                    </button>
-                  </label>
-                  <small className="about-help">
-                    Paste plain lyrics or LRC with [mm:ss.xx] timestamps to sync lines to playback.
-                  </small>
                 </div>
 
                 <div className="lnk-option-group">

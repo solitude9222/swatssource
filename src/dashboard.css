@@ -4243,3 +4243,67 @@ body:has(.dash) {
     grid-template-columns: 1fr;
   }
 }
+
+/* ── dashboard page-swap animation: every element rises in staggered ── */
+
+.dash-page {
+  display: grid;
+  gap: 12px;
+  animation: dashPageIn 0.32s var(--ease-out) both;
+}
+
+.dash-page > * {
+  animation: dashRise 0.46s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.dash-page > *:nth-child(1) { animation-delay: 0.02s; }
+.dash-page > *:nth-child(2) { animation-delay: 0.07s; }
+.dash-page > *:nth-child(3) { animation-delay: 0.12s; }
+.dash-page > *:nth-child(4) { animation-delay: 0.17s; }
+.dash-page > *:nth-child(5) { animation-delay: 0.22s; }
+.dash-page > *:nth-child(6) { animation-delay: 0.27s; }
+.dash-page > *:nth-child(n + 7) { animation-delay: 0.3s; }
+
+@keyframes dashPageIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes dashRise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dash-page,
+  .dash-page > * {
+    animation: none;
+  }
+}
+
+/* ── save button ─────────────────────────────────────────── */
+
+.dash-save {
+  min-width: 116px;
+  justify-content: center;
+}
+
+.dash-save.is-saved {
+  border-color: rgba(124, 224, 168, 0.5);
+  background: rgba(34, 197, 94, 0.16);
+  color: #b8f0cd;
+}
+
+.dash-save.is-saved:hover {
+  transform: none;
+}

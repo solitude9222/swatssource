@@ -3486,3 +3486,41 @@
 .font-modal .font-picker-pop {
   max-height: 46vh;
 }
+
+/* ── audio manager: uploads left, text right, styles below ── */
+
+.audio-manager-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+
+.audio-manager-col {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.audio-manager-box {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.audio-manager-box-title {
+  color: #a0aab2;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 760px) {
+  .audio-manager-grid {
+    grid-template-columns: 1fr;
+  }
+}

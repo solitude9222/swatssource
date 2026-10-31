@@ -40,6 +40,7 @@ import {
   LayoutIcon,
   LinkIcon,
   LogoutIcon,
+  SaveIcon,
   SettingsIcon,
   SignalIcon,
   ShieldIcon,
@@ -68,6 +69,8 @@ type DashboardProps = {
   onSaveWidgets: (store: WidgetStore) => void;
   onSaveBadges: (store: BadgeStore) => void;
   onSaveLinks: (store: LinkStore) => void;
+  /** Re-saves every dashboard store at once (top-bar Save button). */
+  onSaveAll: () => void;
   onSignIn: () => void;
   onSignUp: () => void;
   onSignOut: () => void;
@@ -110,12 +113,14 @@ export function Dashboard({
   onSaveWidgets,
   onSaveBadges,
   onSaveLinks,
+  onSaveAll,
   onSignIn,
   onSignUp,
   onSignOut,
 }: DashboardProps) {
   const [page, setPage] = useState<DashPage>("overview");
   const [copied, setCopied] = useState(false);
+  const [saveState, setSaveState] = useState<"idle" | "saved">("idle");
   const [groups, setGroups] = useState<NavGroups>(loadNavGroups);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -654,6 +659,18 @@ export function Dashboard({
             </a>
             <button
               type="button"
+              className={`btn btn-primary btn-sm dash-save${saveState === "saved" ? " is-saved" : ""}`}
+              onClick={() => {
+                onSaveAll();
+                setSaveState("saved");
+                window.setTimeout(() => setSaveState("idle"), 1800);
+              }}
+            >
+              {saveState === "saved" ? <CheckIcon size={13} /> : <SaveIcon size={13} />}
+              {saveState === "saved" ? "Saved" : "Save changes"}
+            </button>
+            <button
+              type="button"
               className="dash-icon-btn dash-top-signout"
               onClick={onSignOut}
               aria-label="Sign out"
@@ -663,6 +680,7 @@ export function Dashboard({
           </div>
         </header>
 
+        <div className="dash-page" key={page}>
         {page === "about" ? (
           <DashboardAbout user={user} about={about} widgets={widgets} onSave={onSaveAbout} />
         ) : page === "assets" ? (
@@ -898,6 +916,7 @@ export function Dashboard({
             </div>
           </>
         )}
+        </div>
 
         <footer className="dash-foot">
           <span>tourn.lol/{user.username}</span>

@@ -242,6 +242,15 @@ function Site() {
     [user],
   );
 
+  // Top-bar "Save changes" — re-persists every dashboard store at once.
+  const handleSaveAll = useCallback(() => {
+    if (!user) return;
+    saveAbout(user.id, about);
+    saveWidgetStore(user.id, widgets);
+    saveBadgeStore(user.id, badges);
+    saveLinkStore(user.id, profileLinks);
+  }, [user, about, widgets, badges, profileLinks]);
+
   return (
     <div className={`app${route === "dashboard" ? " app--dash" : " app--site"}`}>
       {route === "demo" ? null : <SiteBackdrop />}
@@ -281,6 +290,7 @@ function Site() {
           onSaveWidgets={handleSaveWidgets}
           onSaveBadges={handleSaveBadges}
           onSaveLinks={handleSaveLinks}
+          onSaveAll={handleSaveAll}
           profileLinks={profileLinks}
           onSignIn={() => setAuthMode("signin")}
           onSignUp={() => setAuthMode("signup")}

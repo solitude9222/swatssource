@@ -224,13 +224,42 @@ async function discordLive(
   const custom = presence ? customStatus(presence.activities) : null;
   const spotify = presence?.spotify ?? null;
 
+  // Elapsed time for the active activity ("Playing VALORANT · for 1h 23m").
+  const elapsed = (ms: number | undefined): string | null => {
+    if (!ms) return null;
+    const totalMinutes = Math.max(0, Math.floor((Date.now() - ms) / 60_000));
+    if (totalMinutes < 1) return null;
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    if (hours >= 24) {
+      const days = Math.floor(hours / 24);
+      return `for ${days}d ${hours % 24}h`;
+    }
+    return hours ? `for ${hours}h ${minutes}m` : `for ${minutes}m`;
+  };
+
+  // Where the account is active right now (desktop / mobile / web).
+  const platforms = presence
+    ? [
+        presence.active_on_discord_desktop ? "desktop" : null,
+        presence.active_on_discord_mobile ? "mobile" : null,
+        presence.active_on_discord_web ? "web" : null,
+      ].filter(Boolean)
+    : [];
+
+  const customText = custom?.trim() ?? null;
   const activity = spotify
-    ? `Listening to ${spotify.song}`
-    : custom || (game ? `Playing ${game.name}` : null);
+    ? `Listening to ${spotify.song}${elapsed(spotify.timestamps?.start) ? ` · ${elapsed(spotify.timestamps?.start)}` : ""}`
+    : game
+      ? `Playing ${game.name}${elapsed(game.timestamps?.start) ? ` · ${elapsed(game.timestamps?.start)}` : ""}`
+      : customText
+        ? customText
+        : null;
 
   const joined = snowflakeDate(id);
   const meta: string[] = [];
   if (widget.options.status !== false && status) meta.push(STATUS_LABELS[status]);
+  if (platforms.length && widget.options.status !== false) meta.push(platforms.join(" · "));
   if (activity) meta.push(activity);
   if (joined) meta.push(`Joined ${formatJoined(joined)}`);
 
