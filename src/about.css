@@ -2774,44 +2774,51 @@
   width: 100%;
 }
 
-/* ── /demo placeholder (no owner configured) + edit button ── */
+/* ── /demo claim prompt (no owner configured) + edit button ── */
 
-.demo-placeholder {
+.demo-claim {
+  position: relative;
+  z-index: 1;
   display: grid;
   justify-items: center;
-  gap: 10px;
+  gap: 14px;
   margin: auto;
-  max-width: 460px;
-  padding: 44px 26px;
-  border: 1px dashed rgba(255, 255, 255, 0.14);
-  border-radius: 22px;
-  background: rgba(255, 255, 255, 0.02);
+  padding: 30px 20px;
   text-align: center;
 }
 
-.demo-placeholder-icon {
-  display: grid;
-  place-items: center;
-  width: 46px;
-  height: 46px;
-  border-radius: 14px;
-  border: 1px solid rgba(143, 216, 255, 0.28);
-  background: rgba(56, 189, 248, 0.1);
-  color: #c9efff;
+.demo-claim-logo {
+  width: 72px;
+  height: 72px;
+  border-radius: 22px;
+  box-shadow: 0 24px 60px -22px rgba(56, 189, 248, 0.45), 0 8px 24px -12px #000;
 }
 
-.demo-placeholder h1 {
-  margin: 4px 0 0;
-  font-size: 20px;
-  letter-spacing: -0.03em;
-  color: var(--pv-text);
+.demo-claim-brand {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: #eaf3f8;
 }
 
-.demo-placeholder p {
-  margin: 0;
-  color: var(--pv-muted);
-  font-size: 12px;
-  line-height: 1.7;
+.demo-claim-brand span {
+  color: var(--ice, #a8e0ff);
+}
+
+.demo-claim-handle {
+  margin: 2px 0 0;
+  color: #90adbf;
+  font-size: 14.5px;
+}
+
+.demo-claim-handle b {
+  color: #eaf3f8;
+  font-weight: 700;
+}
+
+.demo-claim-btn {
+  margin-top: 8px;
+  padding-inline: 20px;
 }
 
 .demo-edit-btn {

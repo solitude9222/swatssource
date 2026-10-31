@@ -275,6 +275,10 @@ function Site() {
           widgets={widgets}
           badges={badges}
           links={profileLinks}
+          onSignUp={() => {
+            setAuthMode("signup");
+            if (window.location.hash !== "#/") window.location.hash = "#/";
+          }}
         />
       ) : route === "dashboard" ? (
         <Dashboard

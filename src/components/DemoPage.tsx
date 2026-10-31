@@ -5,7 +5,8 @@ import { EMPTY_WIDGET_STORE, loadWidgetStore, type WidgetStore } from "../lib/wi
 import { EMPTY_BADGE_STORE, loadBadgeStore, type BadgeStore } from "../lib/badges";
 import { EMPTY_LINK_STORE, loadLinkStore, type LinkStore } from "../lib/links";
 import { LinkerPreview } from "./LinkerPreview";
-import { BoltIcon, GridIcon } from "./Icons";
+import { SiteBackdrop } from "./Chrome";
+import { ArrowRight } from "./Icons";
 import "../about.css";
 
 type ProfileData = {
@@ -21,8 +22,9 @@ type ProfileData = {
  * - The owner account (VITE_OWNER_EMAIL) sees their live dashboard data.
  * - Any signed-in account previews its own public page.
  * - Visitors see the owner's profile row (Supabase) once it exists.
- * - With no owner configured there is no fake data: a clean placeholder
- *   explains what this page is.
+ * - With no owner configured, the home page's ambient background and logo
+ *   sit behind a simple "this handle isn't taken — sign up" prompt. No fake
+ *   data, ever.
  */
 export function DemoPage({
   user,
@@ -32,6 +34,7 @@ export function DemoPage({
   widgets,
   badges,
   links,
+  onSignUp,
 }: {
   user: Account | null;
   isOwner: boolean;
@@ -40,6 +43,7 @@ export function DemoPage({
   widgets: WidgetStore;
   badges: BadgeStore;
   links: LinkStore;
+  onSignUp: () => void;
 }) {
   const owner = (isOwner && user ? user : null) ?? user ?? first;
 
@@ -62,21 +66,27 @@ export function DemoPage({
   }, [owner, isOwner, user, about, widgets, badges, links]);
 
   if (!owner || !data) {
-    const handle = isOwner && user ? user.username : first?.username ?? "yourname";
     return (
       <section className="profile-page demo-page">
-        <div className="demo-placeholder">
-          <span className="demo-placeholder-icon" aria-hidden="true">
-            <BoltIcon size={20} />
+        <SiteBackdrop />
+        <div className="demo-claim">
+          <img className="demo-claim-logo" src="/logo.png" alt="" width={72} height={72} />
+          <span className="demo-claim-brand">
+            tourn<span>.</span>lol
           </span>
-          <span className="eyebrow eyebrow--sm">tourn.lol/demo</span>
-          <h1>The public link page lives here.</h1>
-          <p>
-            This is where the owner's real bio page renders — the same layout visitors see at
-            tourn.lol/{handle}. It appears automatically once the owner account is signed in and
-            Supabase is configured.
+          <p className="demo-claim-handle">
+            tourn.lol/<b>yourname</b> isn't taken.
           </p>
+          <button type="button" className="btn btn-primary demo-claim-btn" onClick={onSignUp}>
+            Sign up and claim it
+            <ArrowRight size={15} />
+          </button>
         </div>
+        {user ? (
+          <a className="demo-edit-btn" href="#/dashboard">
+            Edit this page
+          </a>
+        ) : null}
       </section>
     );
   }
@@ -93,7 +103,6 @@ export function DemoPage({
       />
       {user ? (
         <a className="demo-edit-btn" href="#/dashboard">
-          <GridIcon size={13} />
           Edit this page
         </a>
       ) : null}
