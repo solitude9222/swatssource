@@ -1,57 +1,136 @@
-# tourn.lol — full setup guide
+# tourn.lol — setup
 
-Every step, click by click. Follow top to bottom; each step ends with a
-"check" so you know it worked before moving on.
+**The short version first (4 steps, ~20 minutes). Deep details below.**
 
-**What you need:** a GitHub account, a Supabase account, a Discord account,
-and (later, for the backend) a Railway account. Everything here is free-tier
-friendly.
+Supabase **is** your Postgres — there is no separate database to install.
 
 ---
 
-## 0. Get the code running locally
+## ⚡ Short version
+
+### 1) Supabase — your database + login service (~5 min)
+
+1. <https://supabase.com> → Start your project → **New project**
+   (name `tourn`, **save the database password** it generates).
+2. **Settings → API** — copy three things:
+   - **Project URL** → `VITE_SUPABASE_URL`
+   - **anon public** key → `VITE_SUPABASE_ANON_KEY`
+   - **service_role** key → `SUPABASE_SERVICE_ROLE_KEY`
+3. **SQL Editor → New query** → paste the SQL from [step 1b](#1b-create-the-database-tables) → **Run**.
+4. **Authentication → Providers → Email** → ON (leave "Confirm email" ON).
+5. **Authentication → URL Configuration** → Site URL `http://127.0.0.1:5180`,
+   and add it to **Redirect URLs** too.
+
+### 2) Discord — the sign-up button + the code bot (~5 min)
+
+1. <https://discord.com/developers/applications> → **New Application** → `tourn.lol`.
+2. **OAuth2**: Client ID is already in `.env` (`1557279875423932467`).
+3. **OAuth2 → Reset Secret** → copy → `DISCORD_CLIENT_SECRET`.
+4. **OAuth2 → Redirects** → add exactly:
+   `https://<your-project-ref>.supabase.co/auth/v1/callback`
+5. **Bot → Reset Token** → copy → `DISCORD_BOT_TOKEN` (this is the
+   verification-codes bot — invite it with only *Send Direct Messages*).
+6. **Supabase → Authentication → Providers → Discord** → paste Client ID +
+   secret → enable.
+
+### 3) Railway — where ALL env vars live (~10 min)
+
+1. <https://railway.com> → New Project → Deploy from GitHub repo →
+   your backend repo → this gives you
+   `https://tourn-production.up.railway.app`.
+2. **Variables** → paste **everything** from the complete `.env` list
+   ([below](#-the-complete-env)) — public values AND secrets.
+3. Add the `/env.js` endpoint to the backend (copy-paste, [step 6](#6-add-the-envjs-endpoint-to-the-backend)) → deploy.
+4. ✅ **Check:** open `https://tourn-production.up.railway.app/env.js` in a
+   browser → you see `window.__ENV__ = {…}` with public values and **no
+   secrets**.
+
+### 4) Vercel — frontend with ZERO config (~2 min)
+
+1. <https://vercel.com> → Add New → Project → import `solitude9222/tourn`.
+2. Preset **Vite** → Deploy → **do not add any environment variables**.
+3. Done. `index.html` pulls the config from Railway's `/env.js` at runtime.
+   (Keep `FRONTEND_URL`/redirects in Supabase pointing at your real domain.)
+
+### 5) Make yourself the owner
+
+1. Home → **Claim your link** → Discord → authorize.
+2. Your Discord email = `VITE_OWNER_EMAIL` → you're the owner automatically
+   (or run: `update public.profiles set is_owner = true where username = '<handle>';`).
+3. **Settings → Security** → add email + choose a password.
+4. **Settings → Claims** → claim your alias → `tourn.lol/<alias>` is live.
+
+---
+
+# Deep details
+
+## Run it locally
 
 ```bash
 git clone https://github.com/solitude9222/tourn.git
 cd tourn
 npm install
-npm run dev        # opens on http://127.0.0.1:5180
+npm run dev     # http://127.0.0.1:5180
 ```
 
-`npm run dev` works with no configuration — you'll see the site, but sign-in
-is disabled until step 3. Typecheck/build whenever you want:
+Copy `.env.example` → `.env`, fill it in, **restart the dev server** (Vite
+reads env only at startup). Locally the frontend reads `.env` directly; in
+production it reads Railway's `/env.js` — same values, one source of truth.
+
+---
+
+## <a id="-the-complete-env"></a>📋 The complete `.env`
+
+One file, everything. `VITE_` = public, plain = secrets. Supabase **is**
+your Postgres.
 
 ```bash
-npm run build      # typecheck + production bundle in dist/
+# ───────── URLs ─────────
+FRONTEND_URL=https://tourn.lol
+BACKEND_URL=https://tourn-production.up.railway.app
+VITE_API_BASE_URL=https://tourn-production.up.railway.app
+
+# ───────── Supabase (auth + built-in Postgres) ─────────
+VITE_SUPABASE_URL=              # Settings → API → Project URL
+VITE_SUPABASE_ANON_KEY=         # Settings → API → anon public
+SUPABASE_SERVICE_ROLE_KEY=      # Settings → API → service_role (backend only!)
+DATABASE_URL=                   # Settings → Database → Connection string → URI
+
+# ───────── Owner / admin ─────────
+VITE_OWNER_EMAIL=               # your email → owner profile + /demo
+ADMIN_EMAIL=
+ADMIN_PASSWORD=
+
+# ───────── Discord ─────────
+VITE_DISCORD_CLIENT_ID=1557279875423932467
+DISCORD_CLIENT_SECRET=
+DISCORD_BOT_TOKEN=              # the verification-codes bot
+DISCORD_GUILD_ID=
+DISCORD_REDIRECT_URI=           # https://<ref>.supabase.co/auth/v1/callback
+
+# ───────── Spotify ─────────
+VITE_SPOTIFY_CLIENT_ID=b5e787041316466893ef7eabfb717e3a
+SPOTIFY_CLIENT_SECRET=
+
+# ───────── Security / sessions ─────────
+JWT_SECRET=                     # random 64+ chars (openssl rand -hex 32)
+VIEW_SECRET=
+
+# ───────── Payments (Premium checkout, later) ─────────
+VITE_STRIPE_PUBLISHABLE_KEY=
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+
+# ───────── Bot protection ─────────
+VITE_TURNSTILE_SITE_KEY=0x4AAAAAAFThWr36t2uJbW1e
+TURNSTILE_SECRET_KEY=
 ```
 
 ---
 
-## 1. Create the Supabase project
+## 1b. Create the database tables
 
-1. Go to <https://supabase.com> → **Start your project** → sign in.
-2. **New project**:
-   - Name: `tourn`
-   - Database password: generate one and **save it somewhere** (this is your
-     `DATABASE_URL` password later).
-   - Region: pick the one closest to your players (e.g. West EU / US East).
-3. Wait ~2 minutes for provisioning.
-
-### 1a. Grab your keys
-
-- Left sidebar → **Project Settings** (gear) → **API**.
-- Copy **Project URL** → this is `VITE_SUPABASE_URL`.
-- Copy **anon public** key (NOT the service_role!) → `VITE_SUPABASE_ANON_KEY`.
-- Also copy **service_role** if you plan to run the backend — it bypasses all
-  security, so it only ever goes into `.env` plain vars / Railway, never
-  `VITE_`, never the repo.
-
-✅ **Check:** you have three strings saved in a notepad.
-
-### 1b. Create the database tables
-
-- Left sidebar → **SQL Editor** → **New query**.
-- Paste this whole block and press **Run** (bottom-right):
+Supabase → **SQL Editor → New query** → paste → **Run**:
 
 ```sql
 create table if not exists public.profiles (
@@ -63,6 +142,7 @@ create table if not exists public.profiles (
   premium boolean not null default false,
   is_admin boolean not null default false,
   is_owner boolean not null default false,
+  discord_id text,
   created_at timestamptz not null default now()
 );
 
@@ -104,7 +184,13 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
 
--- view counters (public reads, anonymous increments are rate-limited client-side)
+-- remember each user's Discord id (the bot DMs them here)
+update public.profiles p
+set discord_id = i.id
+from auth.identities i
+where i.user_id = p.id and i.provider = 'discord';
+
+-- view counters
 create table if not exists public.profile_views (
   username text primary key,
   views bigint not null default 0
@@ -120,177 +206,8 @@ create policy "anyone can increment views"
 
 create policy "anyone can create a counter"
   on public.profile_views for insert with check (true);
-```
 
-✅ **Check:** SQL Editor → **Table Editor** → you see `profiles` and
-`profile_views`, and **Database → Replication** shows no errors. If the views
-SQL conflicts with an existing `supabase/migrations/0001_profile_views.sql`
-you already ran, skip that part.
-
-### 1c. Turn on the auth providers
-
-- **Authentication → Sign In / Providers → Email**: toggle **ON**, and leave
-  **Confirm email** ON (password sign-ins for accounts that add an email).
-- **Authentication → URL Configuration**:
-  - Site URL: `http://127.0.0.1:5180` for now (change to your domain at launch).
-  - **Redirect URLs** → add `http://127.0.0.1:5180` and your future
-    production domain.
-
----
-
-## 2. Create the Discord OAuth app
-
-1. Go to <https://discord.com/developers/applications> → **New Application**.
-   - Name: `tourn.lol` → Create.
-2. Left sidebar → **OAuth2**:
-   - Copy **Client ID** → `VITE_DISCORD_CLIENT_ID` (already filled in your
-     `.env` if you keep `1557279875423932467`).
-   - Click **Reset Secret**, copy it → `DISCORD_CLIENT_SECRET`.
-3. Under **Redirects**, click **Add Redirect** and paste EXACTLY:
-   ```
-   https://<your-project-ref>.supabase.co/auth/v1/callback
-   ```
-   (your project ref is the `abcd1234` part of your Supabase URL). Save
-   changes.
-4. Back in **Supabase → Authentication → Providers → Discord**:
-   - Toggle ON.
-   - Paste the Client ID and Client Secret → Save.
-
-✅ **Check:** Discord OAuth2 page shows the supabase callback redirect;
-Supabase Discord provider is enabled with both values saved.
-
----
-
-## 3. Fill in `.env` and restart
-
-Copy `.env.example` to `.env` and fill in the top block:
-
-```bash
-cp .env.example .env
-```
-
-```bash
-# REQUIRED
-VITE_SUPABASE_URL=https://<your-ref>.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJ...        # the long anon key
-VITE_OWNER_EMAIL=you@example.com     # the email of YOUR Discord account
-
-# SERVER-ONLY (fine to fill now; Railway needs them later)
-SUPABASE_SERVICE_ROLE_KEY=eyJ...     # the service_role key
-DISCORD_CLIENT_SECRET=...            # from step 2
-JWT_SECRET=<random 64 chars>
-DATABASE_URL=postgresql://postgres:<db-password>@db.<ref>.supabase.co:5432/postgres
-ADMIN_PASSWORD=<something long>
-```
-
-**One file, two audiences.** `.env` is gitignored. Vite only bundles the
-`VITE_`-prefixed vars; the plain ones are ignored by the frontend and exist
-for the backend (locally now, on Railway later).
-
-**How production gets its config (no host env vars!):** the backend serves a
-tiny public script at `/env.js` that exposes ONLY the whitelisted public
-values (Supabase URL, anon key, owner email, client ids). `index.html` loads
-it before the app bundle, so a static deploy on Vercel/Netlify needs **zero
-environment variables** — everything is configured in Railway. `.env` keeps
-working as the local-development fallback.
-
-**Restart the dev server** (Ctrl+C, `npm run dev`) — Vite reads env only at
-startup.
-
-✅ **Check:** open <http://127.0.0.1:5180> → click **Sign up** → the dialog
-shows "Sign up with Discord" with no "not configured" warning.
-
----
-
-## 4. First run — create your owner account
-
-1. On the home page click **Claim your link** → **Sign up with Discord**.
-2. Discord asks for permission → Authorize. You land back on the site,
-   signed in, and a `profiles` row was auto-created.
-3. Open **#/dashboard** — the rail should show **Settings** and your handle.
-4. **Make yourself owner** (one of):
-   - Your Discord email matches `VITE_OWNER_EMAIL` → done automatically.
-   - Or run in Supabase SQL editor:
-     ```sql
-     update public.profiles set is_owner = true where username = '<your-handle>';
-     ```
-5. **Settings → Security**: add your email + choose a password (leave
-   "current password" empty the first time). Now you can sign in either way.
-6. **Settings → Claims**: claim your alias → `tourn.lol/<alias>` becomes your
-   public link (`#/profile/<handle>`).
-7. Optional — grant yourself premium + admin:
-   ```sql
-   update public.profiles set premium = true, is_admin = true where username = '<your-handle>';
-   ```
-   Then sign out and back in to refresh the flags.
-
-✅ **Check:** the home hero card shows **your** profile, and `#/demo` renders
-your real public page with an "Edit this page" button.
-
----
-
-## 5. The Discord bot (verification codes for password/2FA)
-
-This is the bot that DMs 6-digit codes so a stolen browser session can't
-change your password, email, or 2FA.
-
-### 5a. Create the bot
-
-1. <https://discord.com/developers/applications> → **New Application** →
-   name it `tourn.lol verifier`.
-2. Left sidebar → **Bot**:
-   - Click **Reset Token** → copy it → `DISCORD_BOT_TOKEN`.
-   - **Privileged Gateway Intents**: leave all OFF (it only sends DMs, it
-     doesn't read servers).
-3. Left sidebar → **OAuth2 → URL Generator**:
-   - Scopes: ✅ `bot`
-   - Bot permissions: ✅ `Send Direct Messages`
-   - Copy the generated URL, open it, and add the bot to your personal
-     server (you need a server so you can DM with it; a private one is fine).
-     → that server's id is `DISCORD_GUILD_ID` (right-click server → Copy
-     Server ID; enable Developer Mode in Discord settings first).
-
-### 5b. Store each user's Discord id
-
-When a user signs in through Discord, Supabase metadata contains their
-provider id. Add a column and backfill:
-
-```sql
-alter table public.profiles add column if not exists discord_id text;
-
--- backfill from existing users (provider id lives in identities)
-update public.profiles p
-set discord_id = i.id
-from auth.identities i
-where i.user_id = p.id and i.provider = 'discord';
-```
-
-And keep it fresh on sign-in — the backend (or a small Supabase Edge
-Function) upserts `discord_id` from the session's identity on every login.
-
-### 5c. The code flow (backend endpoints to build in swatssource)
-
-```
-POST /api/security/request-code
-  auth: user's Supabase JWT
-  body: { action: "password" | "email" | "mfa" }
-  → generates a 6-digit code (crypto.randomInt), stores
-    bcrypt(code) + action + user_id + expires_at (10 min) in
-    verification_codes table, and the bot DMs:
-      "tourn.lol — your code is 123456. It expires in 10 minutes.
-       If you didn't request this, ignore it."
-
-POST /api/security/confirm-code
-  auth: user's Supabase JWT
-  body: { code }
-  → compares hash, checks expiry, marks used, returns ok.
-  → frontend then calls the Supabase admin API (service role) to apply
-    the password/email/MFA change on behalf of the user.
-```
-
-Table:
-
-```sql
+-- verification codes for the Discord bot (service role only — no public policies)
 create table if not exists public.verification_codes (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users on delete cascade,
@@ -300,120 +217,77 @@ create table if not exists public.verification_codes (
   used boolean not null default false,
   created_at timestamptz not null default now()
 );
+
 alter table public.verification_codes enable row level security;
--- no public policies on purpose: only the service role touches this table.
 ```
 
-Rules that keep this safe: codes are single-use, expire in 10 minutes,
-max 3 requests per user per hour, and the bot DM is the only delivery
-channel (never emails codes, never logs them).
-
-### 5d. Until the bot ships
-
-Settings → Security already uses the safe defaults: password changes
-re-verify the current password, and 2FA is a standard authenticator-app
-TOTP via Supabase MFA. The bot adds a second channel on top.
+✅ **Check:** Table Editor shows `profiles`, `profile_views`,
+`verification_codes`.
 
 ---
 
-## 6. Deploy the backend to Railway (this is where ALL env lives)
+## 6. Add the `/env.js` endpoint to the backend
 
-1. <https://railway.com> → **New Project** → **Deploy from GitHub repo** →
-   pick `solitude9222/swatssource` (the backend lives in its `backend/`).
-2. Service → **Variables** → add **every** var from your `.env` — both the
-   public ones (so `/env.js` can serve them) and the secrets:
-   - Public: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`,
-     `VITE_OWNER_EMAIL`, `VITE_DISCORD_CLIENT_ID`, `VITE_SPOTIFY_CLIENT_ID`
-   - Secrets: `SUPABASE_SERVICE_ROLE_KEY`, `DISCORD_CLIENT_SECRET`,
-     `DISCORD_BOT_TOKEN`, `DISCORD_GUILD_ID`, `JWT_SECRET`, `DATABASE_URL`,
-     `ADMIN_PASSWORD`, plus `STRIPE_*` / `TURNSTILE_SECRET_KEY` when you
-     wire those up.
-3. Add the public-env endpoint to the backend (Express example — this is
-   what `index.html` loads; whitelist only, never expose secrets):
+This is what the frontend loads — it serves **only** the whitelisted public
+values from Railway's env. Express example:
 
-   ```js
-   app.get("/env.js", (_req, res) => {
-     res.set("Content-Type", "application/javascript");
-     res.set("Cache-Control", "public, max-age=60");
-     res.send(
-       `window.__ENV__ = ${JSON.stringify({
-         VITE_SUPABASE_URL: process.env.VITE_SUPABASE_URL ?? "",
-         VITE_SUPABASE_ANON_KEY: process.env.VITE_SUPABASE_ANON_KEY ?? "",
-         VITE_OWNER_EMAIL: process.env.VITE_OWNER_EMAIL ?? "",
-         VITE_DISCORD_CLIENT_ID: process.env.VITE_DISCORD_CLIENT_ID ?? "",
-         VITE_SPOTIFY_CLIENT_ID: process.env.VITE_SPOTIFY_CLIENT_ID ?? "",
-       })};`,
-     );
-   });
-   ```
+```js
+app.get("/env.js", (_req, res) => {
+  res.set("Content-Type", "application/javascript");
+  res.set("Cache-Control", "public, max-age=60");
+  res.send(
+    `window.__ENV__ = ${JSON.stringify({
+      VITE_SUPABASE_URL: process.env.VITE_SUPABASE_URL ?? "",
+      VITE_SUPABASE_ANON_KEY: process.env.VITE_SUPABASE_ANON_KEY ?? "",
+      VITE_OWNER_EMAIL: process.env.VITE_OWNER_EMAIL ?? "",
+      VITE_DISCORD_CLIENT_ID: process.env.VITE_DISCORD_CLIENT_ID ?? "",
+      VITE_SPOTIFY_CLIENT_ID: process.env.VITE_SPOTIFY_CLIENT_ID ?? "",
+      VITE_TURNSTILE_SITE_KEY: process.env.VITE_TURNSTILE_SITE_KEY ?? "",
+      VITE_STRIPE_PUBLISHABLE_KEY: process.env.VITE_STRIPE_PUBLISHABLE_KEY ?? "",
+    })};`,
+  );
+});
+```
 
-4. Deploy → copy the public URL (e.g.
-   `https://swatssource-production.up.railway.app`). That exact URL is
-   already wired into `index.html`'s `<script src="…/env.js">` — if you
-   change it, update that one line.
-5. In the **frontend** `.env`, keep `VITE_API_BASE_URL` pointing at the same
-   URL for local dev.
+Never put a secret in this list — anything here is readable by every visitor.
 
-✅ **Check:** open `https://<backend>/env.js` in a browser → you see
-`window.__ENV__ = {…}` with the public values and NO secrets.
+The frontend already points at it:
+`index.html` → `<script src="https://tourn-production.up.railway.app/env.js">`.
+If your Railway URL ever changes, update that one line.
 
 ---
 
-## 7. Deploy the frontend (zero env vars — Railway provides everything)
+## 7. The Discord bot flow (verification codes)
 
-### Vercel
+The bot DMs a 6-digit code before any password / email / 2FA change, so a
+stolen browser session can't lock you out.
 
-1. <https://vercel.com> → **Add New** → **Project** → import
-   `solitude9222/tourn`.
-2. Framework preset: **Vite** (build `npm run build`, output `dist`).
-3. **Do NOT add any environment variables** — the build has no secrets, and
-   at runtime `index.html` pulls the public config from Railway's `/env.js`.
-4. Deploy.
+Backend endpoints to build in Railway:
 
-### Netlify (alternative — `_redirects` already in `public/`)
+```
+POST /api/security/request-code   { action: "password" | "email" | "mfa" }
+  → random 6-digit code → store hash in verification_codes (10 min expiry)
+  → bot DMs: "tourn.lol — your code is 123456. Expires in 10 minutes."
 
-Import the repo, build command `npm run build`, publish directory `dist`,
-**no environment variables**, deploy.
+POST /api/security/confirm-code   { code }
+  → compare hash, check expiry + single-use → ok
+  → then apply the change via the service-role key
+```
 
-### Final production steps
-
-- Supabase → **Authentication → URL Configuration**: set **Site URL** to your
-  production domain and add it to **Redirect URLs**.
-- Update `VITE_OWNER_EMAIL` **in Railway** (and locally) if your production
-  account email differs — `/env.js` re-serves it within a minute (60s cache).
-
-✅ **Check:** visit your domain → Sign up with Discord → land back signed in;
-`/demo` shows your page. If the auth dialog says "not configured", the
-`/env.js` script isn't reachable — check step 6's ✅ first.
+Rules: single-use codes, 10-minute expiry, max 3 requests per user per hour,
+DM-only delivery. Until the bot ships, Settings → Security already uses safe
+defaults (current-password re-verification + TOTP authenticator 2FA).
 
 ---
 
-## 8. Where things live (cheat sheet)
-
-| What | Where |
-| --- | --- |
-| Frontend code | `src/` (React 19 + Vite) |
-| Widget live data | `src/lib/widgetLive.ts` (public APIs + `/api/roblox`, `/api/steam-profile` dev proxies) |
-| Background effects engine | `src/lib/bgEffects.ts` (12 canvas effects) |
-| Audio player (upload-only) | `src/components/AudioPlayer.tsx` |
-| Auth | `src/lib/auth.tsx` — Discord sign-up only, email sign-in |
-| Settings page | `src/components/SettingsPage.tsx` |
-| Premium page | `#/premium` (`src/components/Pages.tsx`) |
-| Demo page | `/demo` (`src/components/DemoPage.tsx`) |
-| Supabase schema | SQL in step 1b (+ `supabase/migrations/`) |
-| Server secrets | Railway env only (never `VITE_`) |
-
----
-
-## 9. Troubleshooting
+## Troubleshooting
 
 | Symptom | Fix |
 | --- | --- |
-| "Sign-in isn't wired up yet" | `.env` missing/empty Supabase vars, or dev server not restarted after editing `.env`. |
-| `Invalid API key` in console | You pasted the `service_role` key into `VITE_SUPABASE_ANON_KEY` — use the **anon public** key. |
-| Discord login loops back signed-out | Redirect URL in Discord OAuth2 doesn't exactly match `https://<ref>.supabase.co/auth/v1/callback`, or the site URL isn't in Supabase → URL Configuration. |
-| Signed in but dashboard empty / no profile row | The SQL in 1b wasn't run, or the trigger failed — check Table Editor for your row; re-run the `handle_new_user` block. |
-| "That email doesn't match…" on password set | Leave **current password empty** the first time (Discord accounts have none yet). |
-| Roblox widget says "temporarily unreachable" | You're on a static host — the `/api/roblox` proxy only exists in `npm run dev` / `npm run preview`. Wire a serverless proxy for production. |
-| Spotify audio doesn't play | By design — the audio player is upload-only now. Upload an MP3 in Assets → Audio player. |
-| View counter stays 0 | The `profile_views` table/policies from 1b are missing. |
+| "Sign-in isn't wired up yet" | `/env.js` unreachable or Supabase vars missing in Railway. Check `https://tourn-production.up.railway.app/env.js` first. Locally: fill `.env` + restart. |
+| `Invalid API key` | You pasted `service_role` into `VITE_SUPABASE_ANON_KEY` — use the **anon public** key. |
+| Discord login loops back signed-out | Redirect URL in Discord OAuth2 ≠ `https://<ref>.supabase.co/auth/v1/callback`, or your domain is missing in Supabase → URL Configuration. |
+| Signed in but no dashboard/profile row | The SQL in 1b wasn't run (check Table Editor for your row). |
+| Password set fails with "current password incorrect" | Leave current password **empty** the first time (Discord accounts have none yet). |
+| Roblox widget "temporarily unreachable" | Static hosts have no `/api/roblox` proxy — it exists in `npm run dev` / `npm run preview`. |
+| View counter stays 0 | `profile_views` table/policies missing (run 1b). |

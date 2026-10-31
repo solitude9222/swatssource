@@ -455,7 +455,8 @@ function SecurityPanel({
     <div className="settings-security">
       {!configured ? (
         <p className="settings-note settings-note--warn">
-          Sign-in isn't configured on this deployment — add VITE_SUPABASE_URL and
+          Sign-in isn't configured on this deployment — the backend's /env.js isn't reachable or
+          the Supabase values aren't set in Railway. Locally: add VITE_SUPABASE_URL and
           VITE_SUPABASE_ANON_KEY to .env and restart. Passwords, MFA and session controls come
           alive once it is.
         </p>

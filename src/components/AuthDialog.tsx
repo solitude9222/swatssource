@@ -109,9 +109,11 @@ export function AuthDialog({
           {!configured ? (
             <div className="auth-demo">
               <p>
-                Sign-in isn't wired up on this deployment yet. Add{" "}
-                <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_ANON_KEY</code> to{" "}
-                <code>.env</code>, then restart the dev server.
+                Sign-in isn't wired up on this deployment yet. The backend's{" "}
+                <code>/env.js</code> isn't reachable, or the Supabase values aren't set in
+                Railway. Locally: fill <code>VITE_SUPABASE_URL</code> and{" "}
+                <code>VITE_SUPABASE_ANON_KEY</code> in <code>.env</code> and restart — full
+                steps in <b>SETUP.md</b>.
               </p>
             </div>
           ) : null}
