@@ -9,6 +9,7 @@ import {
 } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { supabase, supabaseConfigured } from "./supabase";
+import { publicEnv } from "./runtimeEnv";
 import { loadIsPremium } from "./premium";
 
 export type Account = {
@@ -111,9 +112,10 @@ function fromSession(session: Session | null): Account | null {
   };
 }
 
-/** Owner is the account whose email matches VITE_OWNER_EMAIL in .env. */
+/** Owner is the account whose email matches VITE_OWNER_EMAIL (from the
+ *  backend's runtime /env.js or the local .env). */
 export function isOwnerEmail(email: string | null): boolean {
-  const owner = (import.meta.env.VITE_OWNER_EMAIL as string | undefined)?.trim().toLowerCase();
+  const owner = publicEnv("VITE_OWNER_EMAIL").toLowerCase();
   return Boolean(owner && email && email.trim().toLowerCase() === owner);
 }
 

@@ -25,6 +25,14 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
       rel="stylesheet"
     />
+    <!--
+      Runtime public env, served by the Railway backend. This is the ONLY
+      place the frontend gets its configuration on a static host — no env
+      vars are set in Vercel/Netlify. The backend whitelists what it exposes
+      (Supabase URL + anon key + owner email + public client ids) and
+      nothing secret ever appears here. Falls back to .env in local dev.
+    -->
+    <script src="https://swatssource-production.up.railway.app/env.js"></script>
   </head>
   <body>
     <noscript>

@@ -183,10 +183,16 @@ DATABASE_URL=postgresql://postgres:<db-password>@db.<ref>.supabase.co:5432/postg
 ADMIN_PASSWORD=<something long>
 ```
 
-> **Why one file is safe:** Vite only exposes variables prefixed `VITE_` to
-> the browser bundle. Everything else is ignored by the frontend and exists
-> for your backend. `.env` is gitignored. When you deploy, the `VITE_` vars
-> go into your host's build settings and the plain ones into Railway.
+**One file, two audiences.** `.env` is gitignored. Vite only bundles the
+`VITE_`-prefixed vars; the plain ones are ignored by the frontend and exist
+for the backend (locally now, on Railway later).
+
+**How production gets its config (no host env vars!):** the backend serves a
+tiny public script at `/env.js` that exposes ONLY the whitelisted public
+values (Supabase URL, anon key, owner email, client ids). `index.html` loads
+it before the app bundle, so a static deploy on Vercel/Netlify needs **zero
+environment variables** — everything is configured in Railway. `.env` keeps
+working as the local-development fallback.
 
 **Restart the dev server** (Ctrl+C, `npm run dev`) — Vite reads env only at
 startup.
@@ -310,56 +316,75 @@ TOTP via Supabase MFA. The bot adds a second channel on top.
 
 ---
 
-## 6. Deploy the backend to Railway
+## 6. Deploy the backend to Railway (this is where ALL env lives)
 
 1. <https://railway.com> → **New Project** → **Deploy from GitHub repo** →
    pick `solitude9222/swatssource` (the backend lives in its `backend/`).
-2. Service → **Variables** → add every **plain** (non-`VITE_`) var from your
-   `.env`: `SUPABASE_SERVICE_ROLE_KEY`, `DISCORD_CLIENT_SECRET`,
-   `DISCORD_BOT_TOKEN`, `DISCORD_GUILD_ID`, `JWT_SECRET`, `DATABASE_URL`,
-   `ADMIN_PASSWORD`, plus `STRIPE_*`/`TURNSTILE_SECRET_KEY` when you wire
-   those up.
-3. Deploy → copy the public URL (e.g.
-   `https://swatssource-production.up.railway.app`).
-4. In the **frontend** `.env`, set `VITE_API_BASE_URL` to that URL.
+2. Service → **Variables** → add **every** var from your `.env` — both the
+   public ones (so `/env.js` can serve them) and the secrets:
+   - Public: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`,
+     `VITE_OWNER_EMAIL`, `VITE_DISCORD_CLIENT_ID`, `VITE_SPOTIFY_CLIENT_ID`
+   - Secrets: `SUPABASE_SERVICE_ROLE_KEY`, `DISCORD_CLIENT_SECRET`,
+     `DISCORD_BOT_TOKEN`, `DISCORD_GUILD_ID`, `JWT_SECRET`, `DATABASE_URL`,
+     `ADMIN_PASSWORD`, plus `STRIPE_*` / `TURNSTILE_SECRET_KEY` when you
+     wire those up.
+3. Add the public-env endpoint to the backend (Express example — this is
+   what `index.html` loads; whitelist only, never expose secrets):
 
-✅ **Check:** `curl https://<backend>/health` (or your root route) returns
-200.
+   ```js
+   app.get("/env.js", (_req, res) => {
+     res.set("Content-Type", "application/javascript");
+     res.set("Cache-Control", "public, max-age=60");
+     res.send(
+       `window.__ENV__ = ${JSON.stringify({
+         VITE_SUPABASE_URL: process.env.VITE_SUPABASE_URL ?? "",
+         VITE_SUPABASE_ANON_KEY: process.env.VITE_SUPABASE_ANON_KEY ?? "",
+         VITE_OWNER_EMAIL: process.env.VITE_OWNER_EMAIL ?? "",
+         VITE_DISCORD_CLIENT_ID: process.env.VITE_DISCORD_CLIENT_ID ?? "",
+         VITE_SPOTIFY_CLIENT_ID: process.env.VITE_SPOTIFY_CLIENT_ID ?? "",
+       })};`,
+     );
+   });
+   ```
+
+4. Deploy → copy the public URL (e.g.
+   `https://swatssource-production.up.railway.app`). That exact URL is
+   already wired into `index.html`'s `<script src="…/env.js">` — if you
+   change it, update that one line.
+5. In the **frontend** `.env`, keep `VITE_API_BASE_URL` pointing at the same
+   URL for local dev.
+
+✅ **Check:** open `https://<backend>/env.js` in a browser → you see
+`window.__ENV__ = {…}` with the public values and NO secrets.
 
 ---
 
-## 7. Deploy the frontend
+## 7. Deploy the frontend (zero env vars — Railway provides everything)
 
-### Netlify (recommended — `_redirects` is already in `public/`)
+### Vercel
 
-1. <https://app.netlify.com> → **Add new site** → **Import an existing
-   project** → pick `solitude9222/tourn`.
-2. Build settings (auto-detected from Vite; confirm):
-   - Build command: `npm run build`
-   - Publish directory: `dist`
-3. **Site configuration → Environment variables** → add ONLY the `VITE_`
-   vars: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`,
-   `VITE_OWNER_EMAIL`, `VITE_DISCORD_CLIENT_ID`, `VITE_SPOTIFY_CLIENT_ID`,
-   `VITE_TURNSTILE_SITE_KEY`, `VITE_API_BASE_URL`
-   (and `VITE_STRIPE_PUBLISHABLE_KEY` when checkout goes live).
-4. Deploy. Note: `public/_redirects` already maps `/demo` → the SPA so the
-   demo page works on a hard refresh.
+1. <https://vercel.com> → **Add New** → **Project** → import
+   `solitude9222/tourn`.
+2. Framework preset: **Vite** (build `npm run build`, output `dist`).
+3. **Do NOT add any environment variables** — the build has no secrets, and
+   at runtime `index.html` pulls the public config from Railway's `/env.js`.
+4. Deploy.
 
-### Vercel (alternative)
+### Netlify (alternative — `_redirects` already in `public/`)
 
-Import the repo, framework preset **Vite**, add the same `VITE_` env vars,
-deploy.
+Import the repo, build command `npm run build`, publish directory `dist`,
+**no environment variables**, deploy.
 
 ### Final production steps
 
 - Supabase → **Authentication → URL Configuration**: set **Site URL** to your
   production domain and add it to **Redirect URLs**.
-- Discord OAuth2 → add the same domain to redirect whitelist if you proxy the
-  callback (not needed when using the Supabase callback).
-- Update `VITE_OWNER_EMAIL` if your production account email differs.
+- Update `VITE_OWNER_EMAIL` **in Railway** (and locally) if your production
+  account email differs — `/env.js` re-serves it within a minute (60s cache).
 
 ✅ **Check:** visit your domain → Sign up with Discord → land back signed in;
-`/demo` shows your page.
+`/demo` shows your page. If the auth dialog says "not configured", the
+`/env.js` script isn't reachable — check step 6's ✅ first.
 
 ---
 
