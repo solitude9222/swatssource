@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "../lib/auth";
 import { getSiteStats, type SiteStats } from "../lib/siteStats";
-import { supabase } from "../lib/supabase";
+import { api } from "../lib/backend";
 import { formatJoined } from "../lib/format";
 import {
   ArrowUpRight,
@@ -38,23 +38,18 @@ export function AdminDashboard() {
   const [msg, setMsg] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    if (!supabase) {
-      setLoadError("Supabase isn't configured, so there's no directory to manage. Add the keys to .env.");
-      setRows([]);
-      return;
-    }
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("id, username, alias, alias2, avatar_url, premium, is_admin, created_at")
-      .order("created_at", { ascending: false })
-      .limit(300);
-    if (error) {
-      setLoadError(error.message);
+    const result = await api<{ profiles: AdminProfile[] }>("/api/admin/profiles");
+    if (!result.ok) {
+      setLoadError(
+        result.error === "Admins only."
+          ? "Your account isn't an admin on the backend, so there's no directory to manage."
+          : result.error,
+      );
       setRows([]);
       return;
     }
     setLoadError(null);
-    setRows((data ?? []) as AdminProfile[]);
+    setRows(result.data.profiles);
   }, []);
 
   useEffect(() => {
@@ -65,15 +60,17 @@ export function AdminDashboard() {
     void getSiteStats().then(setStats);
   }, []);
 
-  // Every admin action writes through a DB policy that checks
-  // is_current_admin() server-side — the UI hiding it is never the gate.
+  // Every admin action is checked server-side (requireAdmin on the backend)
+  // — the UI hiding it is never the gate.
   const patch = async (id: string, fields: Partial<AdminProfile>) => {
-    if (!supabase) return;
     setBusyId(id);
     setMsg(null);
-    const { error } = await supabase.from("profiles").update(fields).eq("id", id);
+    const result = await api<{ profile: AdminProfile }>(`/api/admin/profiles/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(fields),
+    });
     setBusyId(null);
-    if (error) setMsg(error.message);
+    if (!result.ok) setMsg(result.error);
     else void load();
   };
 
@@ -275,21 +272,21 @@ export function AdminDashboard() {
         </h2>
         <ul className="adm-notes">
           <li>
-            <CheckIcon size={12} /> Every write goes through a Supabase row-level policy that calls
-            <code> is_current_admin()</code> server-side — flipping anything here is rejected by the
-            database for a non-admin, even with the console open.
+            <CheckIcon size={12} /> Every write is checked server-side — the backend rejects
+            premium/admin changes from any account that isn't an admin, even with the console
+            open.
           </li>
           <li>
             <CheckIcon size={12} /> The admin <em>flag</em> lives in the same directory this page
             lists, so the state you see is the live permission set, not an env copy.
           </li>
           <li>
-            <CheckIcon size={12} /> "Kill other sessions" revokes every refresh token except this
-            browser's; stale stolen sessions die immediately.
+            <CheckIcon size={12} /> "Kill other sessions" bumps the account's token version; every
+            other device's cookie dies immediately.
           </li>
           <li>
-            <CheckIcon size={12} /> Two-factor (TOTP) enrollment lives in Settings → Security and is
-            checked by Supabase before sign-in completes{isPremiumUser || isOwner ? "" : " — admins are encouraged to turn it on"}.
+            <CheckIcon size={12} /> Two-factor (TOTP) enrollment lives in Settings → Security and
+            gates security-sensitive changes{isPremiumUser || isOwner ? "" : " — admins are encouraged to turn it on"}.
           </li>
           <li>
             <CheckIcon size={12} /> Self-protection: you can't remove your own admin flag; owner

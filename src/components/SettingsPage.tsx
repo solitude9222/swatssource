@@ -455,10 +455,9 @@ function SecurityPanel({
     <div className="settings-security">
       {!configured ? (
         <p className="settings-note settings-note--warn">
-          Sign-in isn't configured on this deployment — the backend's /env.js isn't reachable or
-          the Supabase values aren't set in Railway. Locally: add VITE_SUPABASE_URL and
-          VITE_SUPABASE_ANON_KEY to .env and restart. Passwords, MFA and session controls come
-          alive once it is.
+          Sign-in isn't wired up on this deployment — the backend's /env.js isn't reachable. Make
+          sure the Railway backend is running (see SETUP.md). Locally: run npm run server
+          alongside npm run dev. Passwords, MFA and session controls come alive once it is.
         </p>
       ) : null}
 
@@ -515,7 +514,7 @@ function SecurityPanel({
                 placeholder={user?.email ?? ""}
                 autoComplete="email"
               />
-              <small>Supabase sends a confirmation link to the new address before it switches over.</small>
+              <small>The backend updates your email immediately — it becomes a second sign-in method.</small>
             </label>
             <div className="settings-alias-actions">
               <button

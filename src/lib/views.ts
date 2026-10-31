@@ -1,14 +1,10 @@
 /* ---------------------------------------------------------------------------
-   Real profile view counts via Supabase. Falls back to a per-browser counter
-   in localStorage when Supabase isn't configured — it just won't be a shared,
-   cross-visitor number until Supabase is wired up
-   (see supabase/migrations/0001_profile_views.sql).
+   Real profile view counts, stored in Railway Postgres via the backend.
+   The browser still throttles to one view per visitor per handle per day so
+   refreshing can't inflate the number.
    --------------------------------------------------------------------------- */
-import { supabase } from "./supabase";
 
-function localKey(username: string): string {
-  return `tourn.lol/views/v1/${username.toLowerCase()}`;
-}
+import { api, post } from "./backend";
 
 function seenKey(username: string): string {
   return `tourn.lol/views-seen/v1/${username.toLowerCase()}`;
@@ -18,24 +14,13 @@ function seenKey(username: string): string {
 export async function getViewCount(username: string): Promise<number> {
   const handle = username.trim().toLowerCase();
   if (!handle) return 0;
-
-  if (!supabase) {
-    return Number(localStorage.getItem(localKey(handle))) || 0;
-  }
-
-  const { data, error } = await supabase
-    .from("profile_views")
-    .select("views")
-    .eq("username", handle)
-    .maybeSingle();
-  if (error || !data) return 0;
-  return Number(data.views) || 0;
+  const result = await api<{ views: number }>(`/api/views/${encodeURIComponent(handle)}`);
+  return result.ok ? Number(result.data.views) || 0 : 0;
 }
 
 /** Records one view for `username` — at most once per visitor per calendar
- *  day, tracked locally so refreshing the page can't inflate the count —
- *  and returns the updated total. Call this from the public profile route,
- *  not from the owner's own dashboard/preview. */
+ *  day — and returns the updated total. Call this from the public profile
+ *  route, not from the owner's own dashboard/preview. */
 export async function recordView(username: string): Promise<number> {
   const handle = username.trim().toLowerCase();
   if (!handle) return 0;
@@ -46,13 +31,6 @@ export async function recordView(username: string): Promise<number> {
   }
   localStorage.setItem(seenKey(handle), today);
 
-  if (!supabase) {
-    const next = (Number(localStorage.getItem(localKey(handle))) || 0) + 1;
-    localStorage.setItem(localKey(handle), String(next));
-    return next;
-  }
-
-  const { data, error } = await supabase.rpc("increment_profile_view", { p_username: handle });
-  if (error || typeof data !== "number") return getViewCount(handle);
-  return data;
+  const result = await post<{ views: number }>(`/api/views/${encodeURIComponent(handle)}`);
+  return result.ok ? Number(result.data.views) || 0 : getViewCount(handle);
 }

@@ -21,7 +21,7 @@ type ProfileData = {
  *
  * - The owner account (VITE_OWNER_EMAIL) sees their live dashboard data.
  * - Any signed-in account previews its own public page.
- * - Visitors see the owner's profile row (Supabase) once it exists.
+ * - Visitors see the owner's profile row (Railway Postgres) once it exists.
  * - With no owner configured, the home page's ambient background and logo
  *   sit behind a simple "this handle isn't taken — sign up" prompt. No fake
  *   data, ever.

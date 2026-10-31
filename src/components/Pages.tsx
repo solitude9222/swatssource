@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "../lib/supabase";
+import { api } from "../lib/backend";
 import { useAuth, type Account } from "../lib/auth";
 import { formatJoined } from "../lib/format";
 import { ArrowRight, BoltIcon, CheckIcon, ChevronIcon, ExternalIcon, TrophyIcon } from "./Icons";
@@ -12,28 +12,13 @@ export function LeaderboardPage({ onSignUp }: { onSignUp: () => void }) {
     let active = true;
 
     const load = async () => {
-      if (!supabase) {
-        if (active) {
-          setRows(first ? [first] : []);
-          setLoading(false);
-        }
-        return;
-      }
-      const { data } = await supabase
-        .from("profiles")
-        .select("id, username, avatar_url, created_at")
-        .order("created_at", { ascending: true })
-        .limit(25);
+      const result = await api<{ profiles: Account[] }>("/api/profiles?limit=25");
       if (!active) return;
-      setRows(
-        (data ?? []).map((row: Record<string, unknown>) => ({
-          id: String(row.id),
-          username: String(row.username),
-          email: null,
-          avatarUrl: row.avatar_url ? String(row.avatar_url) : null,
-          joinedAt: String(row.created_at),
-        })),
-      );
+      if (result.ok && result.data.profiles.length) {
+        setRows(result.data.profiles);
+      } else {
+        setRows(first ? [first] : []);
+      }
       setLoading(false);
     };
 

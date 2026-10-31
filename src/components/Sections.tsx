@@ -173,7 +173,7 @@ const FAQS = [
   },
   {
     q: "Do you send a verification email?",
-    a: "Yes — with Supabase configured, sign-up triggers a confirmation email automatically. The link returns to tourn.lol and activates the account. For production you point Supabase at your own SMTP provider so it comes from your domain.",
+    a: "Accounts are created with Discord, so there is nothing to verify at sign-up. If you add an email + password later (Settings - Security), the backend checks it is unique and it becomes a second way to sign in.",
   },
   {
     q: "Can I just use Discord to sign in?",

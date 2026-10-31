@@ -109,11 +109,10 @@ export function AuthDialog({
           {!configured ? (
             <div className="auth-demo">
               <p>
-                Sign-in isn't wired up on this deployment yet. The backend's{" "}
-                <code>/env.js</code> isn't reachable, or the Supabase values aren't set in
-                Railway. Locally: fill <code>VITE_SUPABASE_URL</code> and{" "}
-                <code>VITE_SUPABASE_ANON_KEY</code> in <code>.env</code> and restart — full
-                steps in <b>SETUP.md</b>.
+                Sign-in isn't wired up on this deployment — the backend at
+                /env.js isn't reachable. Make sure the Railway backend is running with its
+                /env.js endpoint (see SETUP.md). Locally: run npm run server alongside
+                npm run dev.
               </p>
             </div>
           ) : null}

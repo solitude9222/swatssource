@@ -7,8 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { Session } from "@supabase/supabase-js";
-import { supabase, supabaseConfigured } from "./supabase";
+import { api, apiBase, post } from "./backend";
 import { publicEnv } from "./runtimeEnv";
 import { loadIsPremium } from "./premium";
 
@@ -25,6 +24,8 @@ export type Account = {
   premium?: boolean;
   /** True when the profiles row is flaged is_admin OR the owner env matches. */
   isAdmin?: boolean;
+  /** Set by the backend when the account email matches the owner email. */
+  isOwner?: boolean;
 };
 
 type AuthResult = { error?: string; needsConfirmation?: boolean };
@@ -88,346 +89,166 @@ type AuthValue = {
   configured: boolean;
   /** Email + password sign-in for accounts that added a password. */
   signIn: (input: { email: string; password: string }) => Promise<AuthResult>;
-  /** Discord OAuth — the ONLY way to create an account. */
+  /** Discord OAuth — the ONLY way to create an account. Redirects the page. */
   signInWithDiscord: () => Promise<AuthResult>;
   signOut: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthValue | null>(null);
 
-function fromSession(session: Session | null): Account | null {
-  const user = session?.user;
-  if (!user) return null;
-  const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
-  const username =
-    String(meta.username ?? meta.user_name ?? meta.preferred_username ?? user.email?.split("@")[0] ?? "player");
-  const avatar =
-    typeof meta.avatar_url === "string" ? meta.avatar_url : typeof meta.picture === "string" ? meta.picture : null;
-  return {
-    id: user.id,
-    username,
-    email: user.email ?? null,
-    avatarUrl: avatar,
-    joinedAt: user.created_at ?? new Date().toISOString(),
-  };
-}
-
-/** Owner is the account whose email matches VITE_OWNER_EMAIL (from the
- *  backend's runtime /env.js or the local .env). */
+/** Owner is the account whose email matches VITE_OWNER_EMAIL. */
 export function isOwnerEmail(email: string | null): boolean {
   const owner = publicEnv("VITE_OWNER_EMAIL").toLowerCase();
   return Boolean(owner && email && email.trim().toLowerCase() === owner);
 }
 
-async function syncProfile(session: Session): Promise<void> {
-  const profile = fromSession(session);
-  if (!profile || !supabase) return;
-  try {
-    await supabase.from("profiles").upsert(
-      {
-        id: profile.id,
-        username: profile.username,
-        avatar_url: profile.avatarUrl,
-        is_owner: isOwnerEmail(profile.email),
-      },
-      { onConflict: "id" },
-    );
-  } catch {
-    /* the profiles table may not exist yet; auth still works */
-  }
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<Account | null>(null);
   const [first, setFirst] = useState<Account | null>(null);
-  const [alias, setAliasState] = useState<string | null>(null);
-  const [alias2, setAlias2State] = useState<string | null>(null);
-  const [ownPremium, setOwnPremium] = useState(false);
-  const [ownAdmin, setOwnAdmin] = useState(false);
-  const [loading, setLoading] = useState(supabaseConfigured);
+  const [loading, setLoading] = useState(true);
 
+  // Restore the session (JWT cookie) from the backend on load.
   useEffect(() => {
-    if (!supabase) {
-      setLoading(false);
-      return;
-    }
-
     let active = true;
-    void supabase.auth.getSession().then(({ data }) => {
+    void api<{ account: Account | null }>("/api/auth/me").then((result) => {
       if (!active) return;
-      setUser(fromSession(data.session));
+      setUser(result.ok ? result.data.account : null);
       setLoading(false);
     });
-
-    const { data: subscription } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(fromSession(session));
-      if (event === "SIGNED_IN" && session) void syncProfile(session);
-    });
-
     return () => {
       active = false;
-      subscription.subscription.unsubscribe();
     };
   }, []);
 
   const refreshFirst = useCallback(async () => {
-    if (!supabase) {
-      setFirst(null);
-      return;
-    }
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("id, username, alias, avatar_url, created_at")
-      .eq("is_owner", true)
-      .limit(1)
-      .maybeSingle();
-
-    if (!error && data) {
-      setFirst({
-        id: String(data.id),
-        username: String(data.username),
-        alias: data.alias ? String(data.alias) : null,
-        email: null,
-        avatarUrl: data.avatar_url ? String(data.avatar_url) : null,
-        joinedAt: String(data.created_at),
-      });
-    } else {
-      setFirst(null);
-    }
+    const result = await api<{ owner: Account | null }>("/api/profiles/owner");
+    setFirst(result.ok ? result.data.owner : null);
   }, []);
 
   useEffect(() => {
     void refreshFirst();
   }, [refreshFirst, user]);
 
-  // Load the signed-in user's own profile row: aliases, premium grant and
-  // the admin flag, all kept in single-row state.
-  useEffect(() => {
-    if (!supabase) return;
-    if (!user?.id) {
-      setAliasState(null);
-      setAlias2State(null);
-      setOwnPremium(false);
-      setOwnAdmin(false);
-      return;
-    }
-    let active = true;
-    void supabase
-      .from("profiles")
-      .select("alias, alias2, premium, is_admin")
-      .eq("id", user.id)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (!active) return;
-        setAliasState(data?.alias ? String(data.alias) : null);
-        setAlias2State(data?.alias2 ? String(data.alias2) : null);
-        setOwnPremium(Boolean(data?.premium));
-        setOwnAdmin(Boolean(data?.is_admin));
-      });
-    return () => {
-      active = false;
-    };
-  }, [user?.id]);
-
   const signIn = useCallback<AuthValue["signIn"]>(async ({ email, password }) => {
-    if (!supabase) {
-      return {
-        error:
-          "Sign-in isn't wired up yet — add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to .env, then restart the dev server.",
-      };
-    }
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) return { error: error.message };
-    setUser(fromSession(data.session));
+    const result = await post<{ account: Account }>("/api/auth/login", {
+      email: email.trim(),
+      password,
+    });
+    if (!result.ok) return { error: result.error };
+    setUser(result.data.account);
     return {};
   }, []);
 
   const signInWithDiscord = useCallback<AuthValue["signInWithDiscord"]>(async () => {
-    if (!supabase) {
-      return {
-        error:
-          "Discord sign-up isn't wired up yet — add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to .env, then restart the dev server.",
-      };
-    }
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "discord",
-      options: { redirectTo: window.location.origin },
-    });
-    return error ? { error: error.message } : {};
+    // Full-page redirect to the backend's Discord OAuth; the callback sends
+    // the browser back with a fresh session cookie.
+    window.location.href = `${apiBase()}/api/auth/discord`;
+    return {};
   }, []);
 
   const signOut = useCallback(async () => {
-    if (supabase) await supabase.auth.signOut();
+    await post("/api/auth/logout");
     setUser(null);
   }, []);
 
   const setAlias = useCallback<AuthValue["setAlias"]>(
     async (alias) => {
-      if (!supabase) return { error: "Claims need Supabase — add the keys to .env first." };
       if (!user) return { error: "Sign in to claim an alias." };
       const clean = normalizeHandle(alias);
       if (clean.length > 24) return { error: "Aliases must be 24 characters or fewer." };
       if (clean.length < 3) return { error: "Aliases need at least 3 characters." };
-      if (RESERVED_HANDLES.has(clean)) {
-        return { error: `"${clean}" is reserved by the site.` };
-      }
-
-      // First free claim, any account. Uniqueness is checked against the
-      // handle, both alias columns and the premium second-claim column.
-      const { data: taken, error: takenError } = await supabase
-        .from("profiles")
-        .select("username, alias, alias2")
-        .or(`username.eq.${clean},alias.eq.${clean},alias2.eq.${clean}`)
-        .neq("id", user.id)
-        .limit(1)
-        .maybeSingle();
-      if (!takenError && taken) {
-        return { error: `@${clean} is already claimed — try another.` };
-      }
-      const { error } = await supabase.from("profiles").update({ alias: clean || null }).eq("id", user.id);
-      if (!error) {
-        setAliasState(clean || null);
-        void refreshFirst();
-      }
-      return error ? { error: error.message } : {};
+      if (RESERVED_HANDLES.has(clean)) return { error: `"${clean}" is reserved by the site.` };
+      const result = await post<{ account: Account }>("/api/profile/alias", { alias: clean });
+      if (!result.ok) return { error: result.error };
+      setUser(result.data.account);
+      void refreshFirst();
+      return {};
     },
     [user, refreshFirst],
   );
 
   const setAlias2 = useCallback<AuthValue["setAlias2"]>(
     async (input) => {
-      if (!supabase) return { error: "Claims need Supabase — add the keys to .env first." };
       if (!user) return { error: "Sign in to claim an alias." };
       const clean = input ? normalizeHandle(input) : "";
-      if (!clean) {
-        // Clearing is always allowed.
-        setAlias2State(null);
-        const { error } = await supabase.from("profiles").update({ alias2: null }).eq("id", user.id);
-        return error ? { error: error.message } : {};
-      }
-      if (clean.length < 3) return { error: "Aliases need at least 3 characters." };
-      if (clean.length > 24) return { error: "Aliases must be 24 characters or fewer." };
-      if (RESERVED_HANDLES.has(clean) || clean === user.username) {
+      if (clean && RESERVED_HANDLES.has(clean)) {
         return { error: `"${clean}" is already taken.` };
       }
-      // Premium check uses the freshest state at write time because an admin
-      // grant may land while this account is signed in.
-      const premiumOk = Boolean(user.premium) || loadIsPremium(user.id);
-      if (!premiumOk) return { error: "A second alias is part of Premium." };
-
-      const { data: taken, error: takenError } = await supabase
-        .from("profiles")
-        .select("username, alias, alias2")
-        .or(`username.eq.${clean},alias.eq.${clean},alias2.eq.${clean}`)
-        .neq("id", user.id)
-        .limit(1)
-        .maybeSingle();
-      if (!takenError && taken) {
-        return { error: `@${clean} is already claimed — try another.` };
-      }
-      const { error } = await supabase.from("profiles").update({ alias2: clean }).eq("id", user.id);
-      if (!error) setAlias2State(clean);
-      return error ? { error: error.message } : {};
+      const result = await post<{ account: Account }>("/api/profile/alias2", { alias2: clean });
+      if (!result.ok) return { error: result.error };
+      setUser(result.data.account);
+      return {};
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [user],
   );
 
   const changePassword = useCallback<AuthValue["security"]["changePassword"]>(
     async ({ currentPassword, newPassword }) => {
-      if (!supabase || !user) return { error: "Sign in to manage your password." };
+      if (!user) return { error: "Sign in to manage your password." };
       if (newPassword.length < 8) return { error: "Use a password with at least 8 characters." };
-
-      // Accounts that already sign in with email + password must confirm the
-      // current one first. Discord-only accounts (no password yet) can set
-      // one directly — leave the current-password field empty.
-      if (currentPassword) {
-        if (!user.email) return { error: "This account signs in with Discord." };
-        const { error: reauth } = await supabase.auth.signInWithPassword({
-          email: user.email,
-          password: currentPassword,
-        });
-        if (reauth) return { error: "Your current password is incorrect." };
-      }
-
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
-      return error ? { error: error.message } : {};
+      const result = await post("/api/auth/password", { currentPassword, newPassword });
+      return result.ok ? {} : { error: result.error };
     },
     [user],
   );
 
   const changeEmail = useCallback<AuthValue["security"]["changeEmail"]>(
     async (email) => {
-      if (!supabase || !user) return { error: "Sign in to change your email." };
-      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return { error: "Enter a valid email address." };
-      const { error } = await supabase.auth.updateUser({ email });
-      // Supabase emails the new address for a confirmation click before the
-      // change actually lands.
-      return error ? { error: error.message } : { needsConfirmation: true };
+      if (!user) return { error: "Sign in to change your email." };
+      const result = await post("/api/auth/email", { email: email.trim() });
+      return result.ok ? {} : { error: result.error };
     },
     [user],
   );
 
   const signOutOthers = useCallback<AuthValue["security"]["signOutOthers"]>(async () => {
-    if (!supabase) return { error: "Sign-in isn't configured yet." };
-    const { error } = await supabase.auth.signOut({ scope: "others" });
-    return error ? { error: error.message } : {};
+    const result = await post("/api/auth/signout-others");
+    return result.ok ? {} : { error: result.error };
   }, []);
 
   const mfaFactors = useCallback<AuthValue["security"]["mfaFactors"]>(async () => {
-    if (!supabase) return { factors: [], error: "Sign-in isn't configured yet." };
-    const { data, error } = await supabase.auth.mfa.listFactors();
-    if (error) return { factors: [], error: error.message };
-    return {
-      factors: data.totp.map((factor) => ({ id: factor.id, createdAt: factor.created_at })),
-    };
+    const result = await api<{ factors: { id: string; createdAt: string }[] }>(
+      "/api/auth/mfa/factors",
+    );
+    return result.ok
+      ? { factors: result.data.factors ?? [] }
+      : { factors: [], error: result.error };
   }, []);
 
   const mfaEnroll = useCallback<AuthValue["security"]["mfaEnroll"]>(async () => {
-    if (!supabase) return { factorId: "", qr: "", secret: "", error: "Sign-in isn't configured yet." };
-    const { data, error } = await supabase.auth.mfa.enroll({ factorType: "totp", friendlyName: "tourn.lol" });
-    if (error) return { factorId: "", qr: "", secret: "", error: error.message };
-    return {
-      factorId: data.id,
-      qr: data.totp.qr_code,
-      secret: data.totp.secret,
-    };
+    const result = await post<{ factorId: string; qr: string; secret: string }>(
+      "/api/auth/mfa/enroll",
+    );
+    return result.ok
+      ? { factorId: result.data.factorId, qr: result.data.qr, secret: result.data.secret }
+      : { factorId: "", qr: "", secret: "", error: result.error };
   }, []);
 
   const mfaVerify = useCallback<AuthValue["security"]["mfaVerify"]>(
     async (factorId, code) => {
-      if (!supabase) return { error: "Sign-in isn't configured yet." };
-      const { data, error: challengeError } = await supabase.auth.mfa.challenge({ factorId });
-      if (challengeError) return { error: challengeError.message };
-      const { error } = await supabase.auth.mfa.verify({
-        factorId,
-        challengeId: data.id,
-        code: code.trim(),
-      });
-      return error ? { error: error.message } : {};
+      void factorId;
+      const result = await post("/api/auth/mfa/verify", { code });
+      return result.ok ? {} : { error: result.error };
     },
     [],
   );
 
   const mfaUnenroll = useCallback<AuthValue["security"]["mfaUnenroll"]>(
     async (factorId) => {
-      if (!supabase) return { error: "Sign-in isn't configured yet." };
-      const { error } = await supabase.auth.mfa.unenroll({ factorId });
-      return error ? { error: error.message } : {};
+      void factorId;
+      const result = await post("/api/auth/mfa/unenroll");
+      return result.ok ? {} : { error: result.error };
     },
     [],
   );
 
-  const isOwner = isOwnerEmail(user?.email ?? null);
-  const isPremiumUser = user ? ownPremium || loadIsPremium(user.id) : false;
-  const isAdmin = isOwner || ownAdmin;
+  const ownPremium = user ? Boolean(user.premium) || loadIsPremium(user.id) : false;
+  const isOwner = isOwnerEmail(user?.email ?? null) || Boolean(user?.isOwner);
+  const isAdmin = isOwner || Boolean(user?.isAdmin);
 
   const accountWithProfile = useMemo<Account | null>(
-    () =>
-      user
-        ? { ...user, alias, alias2, premium: isPremiumUser, isAdmin: isOwner || ownAdmin }
-        : null,
-    [user, alias, alias2, isPremiumUser, isOwner, ownAdmin],
+    () => (user ? { ...user, premium: ownPremium, isAdmin, isOwner } : null),
+    [user, ownPremium, isAdmin, isOwner],
   );
 
   const security = useMemo<AuthValue["security"]>(
@@ -441,12 +262,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       first,
       isOwner,
       isAdmin,
-      isPremiumUser,
+      isPremiumUser: ownPremium,
       setAlias,
       setAlias2,
       security,
       loading,
-      configured: supabaseConfigured,
+      configured: true,
       signIn,
       signInWithDiscord,
       signOut,
@@ -456,7 +277,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       first,
       isOwner,
       isAdmin,
-      isPremiumUser,
+      ownPremium,
       setAlias,
       setAlias2,
       security,
