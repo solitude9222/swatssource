@@ -365,7 +365,7 @@ app.get("/api/auth/discord/callback", async (req, res) => {
     const expectedState = req.cookies?.tourn_oauth;
     res.clearCookie("tourn_oauth", { path: "/" });
     if (!code || !state || state !== expectedState) {
-      return res.redirect(`${FRONTEND_URL}/#/profile?error=oauth_state`);
+      return res.redirect(`${FRONTEND_URL}/#/?error=oauth_state`);
     }
 
     const tokenRes = await fetch("https://discord.com/api/oauth2/token", {
@@ -379,13 +379,13 @@ app.get("/api/auth/discord/callback", async (req, res) => {
         redirect_uri: `${BACKEND_URL}/api/auth/discord/callback`,
       }),
     });
-    if (!tokenRes.ok) return res.redirect(`${FRONTEND_URL}/#/profile?error=discord_token`);
+    if (!tokenRes.ok) return res.redirect(`${FRONTEND_URL}/#/?error=discord_token`);
     const token = await tokenRes.json();
 
     const meRes = await fetch("https://discord.com/api/v10/users/@me", {
       headers: { Authorization: `Bearer ${token.access_token}` },
     });
-    if (!meRes.ok) return res.redirect(`${FRONTEND_URL}/#/profile?error=discord_profile`);
+    if (!meRes.ok) return res.redirect(`${FRONTEND_URL}/#/?error=discord_profile`);
     const me = await meRes.json();
 
     const discordId = String(me.id);
@@ -434,7 +434,7 @@ app.get("/api/auth/discord/callback", async (req, res) => {
     res.redirect(`${FRONTEND_URL}/#/dashboard`);
   } catch (error) {
     console.error("[discord callback]", error);
-    res.redirect(`${FRONTEND_URL}/#/profile?error=oauth_failed`);
+    res.redirect(`${FRONTEND_URL}/#/?error=oauth_failed`);
   }
 });
 

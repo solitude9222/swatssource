@@ -4,6 +4,29 @@ import { ArrowRight, CloseIcon, DiscordIcon } from "./Icons";
 
 export type AuthMode = "signin" | "signup";
 
+const OAUTH_ERRORS: Record<string, string> = {
+  oauth_state: "That sign-in link expired — hit the button again.",
+  discord_token: "Discord didn't accept the sign-in — try once more.",
+  discord_profile: "Couldn't read your Discord profile — allow email sharing on the consent screen.",
+  oauth_failed: "Discord sign-in failed. Check the Discord env vars on the Railway backend.",
+};
+
+function oauthErrorFromUrl(): string | null {
+  const fromHash = window.location.hash.match(/[?&]error=([^&]+)/);
+  const fromSearch = window.location.search.match(/[?&]error=([^&]+)/);
+  const raw = decodeURIComponent(fromHash?.[1] ?? fromSearch?.[1] ?? "");
+  return raw ? (OAUTH_ERRORS[raw] ?? "Sign-in failed — try again.") : null;
+}
+
+function clearOAuthError() {
+  if (/[?&]error=/.test(window.location.hash)) {
+    window.history.replaceState(null, "", window.location.hash.split("?")[0] || "#/");
+  }
+  if (/[?&]error=/.test(window.location.search)) {
+    window.history.replaceState(null, "", window.location.pathname);
+  }
+}
+
 export function AuthDialog({
   open,
   mode,
@@ -27,9 +50,11 @@ export function AuthDialog({
   useEffect(() => {
     if (!open) return;
     setBusy(null);
-    setError(null);
+    setError(oauthErrorFromUrl());
+    if (error) clearOAuthError();
     setNotice(null);
     setPassword("");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, mode]);
 
   useEffect(() => {
@@ -170,8 +195,10 @@ export function AuthDialog({
               {error ? <p className="auth-error">{error}</p> : null}
               {notice ? <p className="auth-notice">{notice}</p> : null}
               <p className="auth-note">
-                After your first Discord sign-in, open <b>Settings → Security</b> to add an email
-                and choose a password — from then on you can sign in either way.
+                One click — Discord sets up your account and handle for you.
+                <br />
+                Want a password too? Add one anytime in <b>Settings → Security</b> and you can
+                sign in without Discord.
               </p>
             </>
           )}
