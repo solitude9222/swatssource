@@ -10,12 +10,17 @@ Built with React 19 + Vite. Auth runs on Supabase (Discord OAuth + optional
 email/password), presence comes from Lanyard, and platform data is read from
 each platform's public API through same-origin proxies.
 
-## Run it
+## Setup
+
+**Read [`SETUP.md`](./SETUP.md)** — the full click-by-click guide: Supabase
+project + SQL, Discord OAuth, the combined `.env`, owner account, the Discord
+verification bot, Railway backend, and production deploy. Quick version:
 
 ```bash
+cp .env.example .env   # fill in VITE_SUPABASE_URL + ANON_KEY + OWNER_EMAIL
 npm install
-npm run dev     # http://127.0.0.1:5180
-npm run build   # typecheck + production bundle in dist/
+npm run dev            # http://127.0.0.1:5180
+npm run build          # typecheck + production bundle in dist/
 ```
 
 ## Accounts (real, no demo mode)
