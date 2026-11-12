@@ -788,3 +788,56 @@ body.dash-theme .stagger-children > * {
 
 
 
+
+/* ===========================================================================
+   tourn.lol landing page — border beams, bolts and chip rows
+   =========================================================================== */
+
+/* A thin light that orbits a border. The element must be positioned and carry
+   its own radius; the mask keeps the sweep on the 1px rim instead of flooding
+   the surface. */
+@keyframes sw-beam-spin { to { transform: rotate(360deg); } }
+
+.sw-beam { position: relative; }
+.sw-beam::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: conic-gradient(from 0deg, transparent 0deg, rgba(255,255,255,0.9) 34deg, rgba(116,160,248,0.55) 62deg, transparent 108deg, transparent 360deg);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    animation: sw-beam-spin 6s linear infinite;
+    pointer-events: none;
+}
+
+.sw-beam-slow::before { animation-duration: 9s; opacity: 0.75; }
+
+/* Three chip rows in the numbers strip. Rows 1 and 3 travel left, row 2 right,
+   so the band never reads as one wall of motion. */
+@keyframes sw-row-left { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-50%, 0, 0); } }
+@keyframes sw-row-right { from { transform: translate3d(-50%, 0, 0); } to { transform: translate3d(0, 0, 0); } }
+.sw-row-left { display: flex; width: max-content; animation: sw-row-left 46s linear infinite; }
+.sw-row-right { display: flex; width: max-content; animation: sw-row-right 58s linear infinite; }
+.sw-row-left:hover, .sw-row-right:hover { animation-play-state: paused; }
+
+/* A badge tile sharpens in as it scrolls into view. */
+.sw-badge-in {
+    animation: sw-badge-in 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes sw-badge-in {
+    from { opacity: 0; filter: blur(8px); transform: scale(0.92); }
+    to   { opacity: 1; filter: blur(0); transform: scale(1); }
+}
+
+/* Typewriter caret for the hero line. */
+@keyframes sw-caret { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+.sw-caret { animation: sw-caret 1s steps(1, end) infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+    .sw-beam::before { animation-duration: 18s; }
+    .sw-row-left, .sw-row-right { animation-duration: 160s; }
+}

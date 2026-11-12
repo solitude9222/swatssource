@@ -180,15 +180,34 @@ const getTechTagColor = (tag) => {
   return { bg: "bg-indigo-500/15", border: "border-indigo-500/30", text: "text-indigo-200", icon: "text-indigo-400" };
 };
 
-// Helper to format relative years ("Joined 9 years ago", "Joined 17 years ago")
+/* A join date, read without the timezone shift.
+
+   `new Date("2026-11-12")` is parsed as UTC midnight, so anywhere west of
+   Greenwich it lands on the previous local day — an account created today could
+   read "yesterday", and its year could be one behind on 1 January. Date-only
+   strings are therefore built as LOCAL midnight; a full timestamp is left
+   alone, because it already carries its own offset. */
+function parseJoinDate(dateValue) {
+  if (!dateValue) return null;
+  const raw = String(dateValue);
+  const d = /^\d{4}-\d{2}-\d{2}$/.test(raw) ? new Date(`${raw}T00:00:00`) : new Date(dateValue);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+// Helper to format relative tenure ("9 years ago", "today"); callers that want
+// the label prefix their own "Joined".
 function formatYearsAgo(dateValue) {
-  if (!dateValue) return "Joined recently";
-  const d = new Date(dateValue);
-  if (Number.isNaN(d.getTime())) return "Joined recently";
-  const year = d.getFullYear();
-  const years = Math.max(0, Math.floor((Date.now() - d.getTime()) / (365.25 * 86_400_000)));
-  if (years <= 0) return `Joined ${year}`;
-  return `Joined ${years} year${years === 1 ? "" : "s"} ago (${year})`;
+  const d = parseJoinDate(dateValue);
+  if (!d) return "recently";
+  const days = Math.max(0, Math.floor((Date.now() - d.getTime()) / 86_400_000));
+  if (days <= 0) return "today";
+  if (days < 30) return `${days} day${days === 1 ? "" : "s"} ago`;
+  if (days < 365) {
+    const months = Math.max(1, Math.floor(days / 30));
+    return `${months} month${months === 1 ? "" : "s"} ago`;
+  }
+  const years = Math.max(1, Math.floor(days / 365.25));
+  return `${years} year${years === 1 ? "" : "s"} ago`;
 }
 
 // Card surface & glow calculation
@@ -3403,7 +3422,7 @@ export function WidgetPill({ w, accent = "#b4bffa", ownerCreated, owner = "", p 
       href = data?.url || href;
     } else {
       title = data?.display_name || data?.username || w?.username || "Roblox User";
-      subtitle = data?.presence?.last_location ? `Playing ${data.presence.last_location}` : formatYearsAgo(data?.created_at || w?.created_at);
+      subtitle = data?.presence?.last_location ? `Playing ${data.presence.last_location}` : `Joined ${formatYearsAgo(data?.created_at || w?.created_at)}`;
       avatarUrl = data?.avatar || data?.headshot || "";
       href = data?.url || (w?.username ? `https://www.roblox.com/users/${w.username}` : "");
       isLive = !!data?.presence?.is_online;
@@ -3450,7 +3469,7 @@ export function WidgetPill({ w, accent = "#b4bffa", ownerCreated, owner = "", p 
     subtitle = `${tz} · ${curTime}`;
   } else if (type === "account-date" || type === "countdown") {
     title = w?.title || (type === "countdown" ? "Countdown" : "Account Age");
-    subtitle = formatYearsAgo(ownerCreated || data?.created_at || w?.date);
+    subtitle = `Joined ${formatYearsAgo(ownerCreated || data?.created_at || w?.date)}`;
   } else if (type === "games" || type === "interests") {
     title = w?.title || (w?.subtype === "music" ? "Music" : w?.subtype === "anime" ? "Anime" : "Interests");
     subtitle = w?.now_playing ? `Playing ${w.now_playing}` : (w?.games_list ? w.games_list.split(/[,\n]/)[0]?.trim() : "");

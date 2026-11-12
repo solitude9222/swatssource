@@ -9,13 +9,27 @@
    loads, and the animations don't work" report.
 
    Decorative motion is the product here (the same decision index.css and
-   effects.css document), so the tip owns its two entrances outright and nothing
-   can switch them off behind its back.
+   effects.css document), so the tip owns its entrances outright and nothing can
+   switch them off behind its back.
+
+   Three entrances are offered on the Editor's Tooltips panel:
+
+     • swipe — rises up into place (the default)
+     • blur  — rises out of a soft blur
+     • none  — no animation at all; the bubble simply appears
+
+   `sw-tip-fade` stays for profiles saved when "Fade" was an option: dropping
+   the keyframes would leave those bubbles with no entrance.
 */
 
-@keyframes sw-tip-in {
-  from { opacity: 0; transform: translate3d(0, 10px, 0) scale(0.94); filter: blur(2px); }
-  to   { opacity: 1; transform: translate3d(0, 0, 0) scale(1); filter: blur(0px); }
+@keyframes sw-tip-swipe {
+  from { opacity: 0; transform: translate3d(0, 14px, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes sw-tip-blur {
+  from { opacity: 0; transform: translate3d(0, 9px, 0) scale(0.97); filter: blur(6px); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0) scale(1); filter: blur(0); }
 }
 
 @keyframes sw-tip-fade {
@@ -23,10 +37,12 @@
   to   { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
 }
 
-.tip-in-slide { animation: sw-tip-in 0.24s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.tip-in-swipe { animation: sw-tip-swipe 0.26s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.tip-in-blur  { animation: sw-tip-blur 0.3s cubic-bezier(0.16, 1, 0.3, 1) both; }
 .tip-in-fade  { animation: sw-tip-fade 0.22s cubic-bezier(0.16, 1, 0.3, 1) both; }
 
 /* Reduced motion drops the travel but keeps a short fade */
 @media (prefers-reduced-motion: reduce) {
-  .tip-in-slide { animation: sw-tip-fade 0.16s ease-out both; }
+  .tip-in-swipe,
+  .tip-in-blur { animation: sw-tip-fade 0.16s ease-out both; }
 }

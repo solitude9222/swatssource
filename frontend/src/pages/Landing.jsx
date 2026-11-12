@@ -1,44 +1,59 @@
 import { Navbar } from "@/components/landing/Navbar";
-import AnnouncementBanner from "@/components/AnnouncementBanner";
 import { Hero } from "@/components/landing/Hero";
-import { StatsCounters } from "@/components/landing/StatsCounters";
-import { FeaturesCustomizer } from "@/components/landing/FeaturesCustomizer";
-import { WidgetShowcase } from "@/components/landing/WidgetShowcase";
-import { PlatformsShowcase } from "@/components/landing/PlatformsShowcase";
+import { HomeWidgets } from "@/components/landing/HomeWidgets";
+import { HomeAudio } from "@/components/landing/HomeAudio";
+import { HomeBadges } from "@/components/landing/HomeBadges";
+import { HomeProfiles } from "@/components/landing/HomeProfiles";
+import { HomeNumbers } from "@/components/landing/HomeNumbers";
+import { UserCarousel } from "@/components/landing/UserCarousel";
 import { FAQ } from "@/components/landing/FAQ";
+import { HomeCta } from "@/components/landing/HomeCta";
 import { Footer } from "@/components/landing/Footer";
+
+/* The landing page, rebuilt to the tourn.lol reference.
+
+   Order is the argument: the wordmark and the demo card, then what a page is
+   made of (widgets, audio, badges), then what other pages look like, then the
+   numbers, the people, the questions and one last claim field.
+
+   The blue palette is scoped to this page: the rest of the site keeps its violet
+   brand, and every `brand-*` class below resolves through the CSS variables set
+   on the wrapper, so the nav, pills and buttons all move together. The old grid
+   overlay and grain texture are gone — the hero's own bolt field carries the
+   background. */
+
+const BLUE_BRAND = {
+  "--brand-50": "238 242 255",
+  "--brand-100": "214 225 255",
+  "--brand-200": "169 194 255",
+  "--brand-300": "116 160 248",
+  "--brand-400": "116 160 248",
+  "--brand-500": "57 101 230",
+  "--brand-600": "47 85 201",
+  "--brand-700": "39 57 124",
+  "--brand-800": "26 38 84",
+  "--brand-900": "16 24 54",
+  "--brand-950": "9 13 30",
+};
 
 export default function Landing() {
   return (
-    <div className="min-h-screen bg-[#050506] text-zinc-100 grain relative" data-testid="landing-page">
-      {/* Page glow: black, with a kiss of pink at the top and nothing below it.
-          The page used to carry a second, page-long vertical wash that tinted
-          every section down to the footer; it is gone, and this layer is capped
-          at a fixed height so the brand colour can only ever touch the top of
-          the page — below it the background is plain dark. */}
-      <div
-        aria-hidden="true"
-        data-testid="page-glow"
-        className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[46rem]"
-        style={{
-          background:
-            "radial-gradient(120% 100% at 50% -18%, rgba(180, 191, 250,0.40) 0%, rgba(180, 191, 250,0.17) 32%, rgba(180, 191, 250,0.05) 60%, rgba(180, 191, 250,0) 100%)",
-        }}
-      />
+    <div
+      className="min-h-screen bg-[#09080b] text-zinc-100 relative overflow-x-hidden"
+      style={BLUE_BRAND}
+      data-testid="landing-page"
+    >
       <Navbar />
       <main className="relative z-10">
-        {/* Site-wide announcements, under the floating navbar and above the hero
-            so they are read before the marketing copy. The negative bottom margin
-            cancels part of the hero's own top padding, which was tuned for a page
-            with nothing above it — otherwise a single banner would leave a
-            double-height gap. */}
-        <AnnouncementBanner className="mx-auto -mb-16 max-w-4xl space-y-2 px-3 pt-20 sm:-mb-20 sm:pt-24" />
         <Hero />
-        <StatsCounters />
-        <FeaturesCustomizer />
-        <WidgetShowcase />
-        <PlatformsShowcase />
+        <HomeWidgets />
+        <HomeAudio />
+        <HomeBadges />
+        <HomeProfiles />
+        <HomeNumbers />
+        <UserCarousel />
         <FAQ />
+        <HomeCta />
       </main>
       <Footer />
     </div>

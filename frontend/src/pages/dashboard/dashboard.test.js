@@ -861,7 +861,7 @@ describe("the tooltip & display panel", () => {
     for (const id of ["classic", "glass", "ice"]) {
       expect(container.querySelector(`[data-testid="tooltip-style-${id}"]`)).toBeTruthy();
     }
-    for (const id of ["slide", "fade", "none"]) {
+    for (const id of ["swipe", "blur", "none"]) {
       expect(container.querySelector(`[data-testid="tooltip-animation-${id}"]`)).toBeTruthy();
     }
     for (const id of ["sm", "md", "lg"]) {

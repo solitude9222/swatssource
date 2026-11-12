@@ -1,62 +1,92 @@
 import { Link } from "react-router-dom";
+import { ChevronDown, Globe } from "lucide-react";
+import { FaDiscord } from "react-icons/fa6";
 import { Logo } from "./Navbar";
-import { CONTACT_EMAIL } from "@/lib/api";
 
-const COLS = [
-  { title: "Product", links: [["Features", "/!/home"], ["Premium", "/!/pricing"], ["Docs", "/!/docs"]] },
+/* The footer, to the reference: wordmark + tagline, a language control, two
+   short link columns, the community card, then the legal row. */
+
+const COLUMNS = [
   {
-    title: "Legal",
+    title: "INFORMAL",
     links: [
-      ["Terms of Service", "/!/legal#legal-terms-of-service"],
-      ["Privacy Policy", "/!/legal#legal-privacy-policy"],
-      ["Refund Policy", "/!/legal#legal-refund-policy"],
-      ["DMCA", "/!/legal#legal-dmca-content"],
+      ["Pricing", "/!/pricing"],
+      ["Team", "/!/docs"],
+      ["Leaderboard", "/!/ranked"],
     ],
   },
-  { title: "Community", links: [["Discord", "https://discord.gg/a9uwptuepD"], ["Docs", "/!/docs"], ["Contact", `mailto:${CONTACT_EMAIL}`]] },
+  {
+    title: "RESOURCES",
+    links: [
+      ["Help Center", "/!/docs"],
+      ["Redeem Code", "/!/dashboard"],
+    ],
+  },
 ];
 
 export const Footer = () => (
-  <footer data-testid="site-footer" className="relative mt-10 border-t border-white/5 px-4 pt-14 pb-8 overflow-hidden">
-    <div className="pointer-events-none absolute -bottom-24 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-brand-700/6 blur-[130px] rounded-full" />
-    <div className="relative max-w-6xl mx-auto">
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-10">
+  <footer data-testid="site-footer" className="relative border-t border-[#1f1f1f] px-4 pb-10 pt-14">
+    <div className="mx-auto max-w-[1150px]">
+      <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,0.8fr)_minmax(0,0.8fr)_minmax(0,1fr)]">
         <div>
-          <Logo />
-          <p className="mt-4 text-sm text-zinc-500 max-w-xs">The #1 home for your digital identity. Build a page the whole internet remembers.</p>
-          <Link
-            to="/!/pricing"
-            className="mt-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs font-semibold text-zinc-300 transition hover:border-brand-400/30 hover:text-white"
+          <Logo compact />
+          <p className="mt-4 max-w-[280px] text-[13px] leading-relaxed text-[#9fa2af]">
+            The modern solution for your personal biolink website. Simple, fast, and fully customizable.
+          </p>
+
+          <button
+            type="button"
+            className="mt-5 inline-flex items-center gap-2 rounded-[10px] border border-[#1f1f1f] bg-[#111111] px-3 py-2 text-[12px] font-semibold text-[#9fa2af]"
+            aria-label="Language"
           >
-            <span className="h-1.5 w-1.5 rounded-full bg-brand-400" /> Go Premium
-          </Link>
+            <Globe className="h-3.5 w-3.5" />
+            English
+            <ChevronDown className="h-3.5 w-3.5" />
+          </button>
         </div>
-        {COLS.map((c) => (
-          <div key={c.title}>
-            <div className="text-xs font-mono2 uppercase tracking-wider text-zinc-500 mb-4">{c.title}</div>
-            <ul className="space-y-2.5">
-              {c.links.map(([label, to]) => (
+
+        {COLUMNS.map((col) => (
+          <div key={col.title}>
+            <div className="font-mono2 text-[10px] font-bold uppercase tracking-[0.22em] text-[#4c5568]">{col.title}</div>
+            <ul className="mt-4 space-y-3">
+              {col.links.map(([label, to]) => (
                 <li key={label}>
-                  {to.startsWith("http") ? (
-                    <a href={to} target="_blank" rel="noreferrer" className="text-sm text-zinc-400 hover:text-zinc-100 transition">{label}</a>
-                  ) : (
-                    <Link to={to} className="text-sm text-zinc-400 hover:text-zinc-100 transition">{label}</Link>
-                  )}
+                  <Link to={to} className="text-[13px] font-medium text-[#9fa2af] transition-colors hover:text-white">
+                    {label}
+                  </Link>
                 </li>
               ))}
             </ul>
           </div>
         ))}
+
+        <div className="rounded-[16px] border border-[#1f1f1f] bg-[#111111] p-4">
+          <div className="text-[13px] font-bold text-white">Join our community</div>
+          <p className="mt-1.5 text-[11px] leading-relaxed text-[#9fa2af]">
+            Connect with other creators, and stay updated with the latest features.
+          </p>
+          <a
+            href="https://discord.gg/a9uwptuepD"
+            target="_blank"
+            rel="noreferrer"
+            className="mt-3 inline-flex items-center gap-2 rounded-[10px] border border-[#1f1f1f] bg-[#151515] px-3 py-2 text-[12px] font-semibold text-white transition-colors hover:border-[#27397c]"
+          >
+            <FaDiscord className="h-4 w-4 text-[#8ea1ff]" />
+            Discord Server
+          </a>
+        </div>
       </div>
 
-      <div className="mt-14 relative select-none">
-        <div className="font-display font-black text-[18vw] leading-none text-center bg-gradient-to-b from-zinc-800/80 to-transparent bg-clip-text text-transparent">tourn.lol</div>
-      </div>
-
-      <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-zinc-600">
-        <span>© {new Date().getFullYear()} tourn.lol — All rights reserved.</span>
-        <a href={`mailto:${CONTACT_EMAIL}`} className="font-mono2 hover:text-zinc-300 transition">{CONTACT_EMAIL}</a>
+      <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-[#1f1f1f] pt-6 text-[11px] text-[#5e7191] sm:flex-row">
+        <span>© {new Date().getFullYear()} tourn.lol. All rights reserved.</span>
+        <div className="flex items-center gap-4">
+          <Link to="/!/legal#legal-terms-of-service" className="transition-colors hover:text-white">Terms</Link>
+          <Link to="/!/legal#legal-privacy-policy" className="transition-colors hover:text-white">Privacy</Link>
+          <Link to="/!/legal" className="transition-colors hover:text-white">Cookies</Link>
+        </div>
       </div>
     </div>
   </footer>
 );
+
+export default Footer;

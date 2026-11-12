@@ -12,7 +12,10 @@ import { BackgroundEffect } from "@/components/BackgroundEffect";
 import { OverlayEffect } from "@/components/OverlayEffect";
 import { CardEffect } from "@/components/CardEffect";
 import { FxText } from "@/components/FxText";
-import { TOOLTIP_STYLES, TOOLTIP_ANIMATIONS, TOOLTIP_SIZES } from "@/components/FxTooltip";
+import {
+  TOOLTIP_STYLES, TOOLTIP_ANIMATIONS, TOOLTIP_SIZES,
+  resolveTooltipStyle, resolveTooltipAnimation,
+} from "@/components/FxTooltip";
 import {
   TEXT_EFFECTS, OVERLAYS, CURSOR_EFFECTS, BACKGROUND_EFFECTS, CARD_EFFECTS,
 } from "@/constants/effects";
@@ -1863,6 +1866,67 @@ export default function Editor() {
                   />
                 </label>
               </Section>
+
+              {/* One look, one entrance and one size for every hover label on
+                  the card. The switches below decide which things carry a tip
+                  at all — the badges, the link cards and the avatar's UID. */}
+              <Section title="Tooltips" hint="Look, entrance and size for every hover label">
+                <div className="space-y-4">
+                  <div>
+                    <label className="mb-2 block text-xs font-semibold text-zinc-300">Look</label>
+                    <ChipGrid
+                      testid="tooltip-style"
+                      cols={3}
+                      value={resolveTooltipStyle(p.tooltip_style)}
+                      onChange={(v) => set("tooltip_style", v)}
+                      options={TOOLTIP_STYLES}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-xs font-semibold text-zinc-300">Entrance</label>
+                    <ChipGrid
+                      testid="tooltip-animation"
+                      cols={3}
+                      value={resolveTooltipAnimation(p.tooltip_anim)}
+                      onChange={(v) => set("tooltip_anim", v)}
+                      options={TOOLTIP_ANIMATIONS}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-xs font-semibold text-zinc-300">Size</label>
+                    <ChipGrid
+                      testid="tooltip-size"
+                      cols={3}
+                      value={p.tooltip_size || "md"}
+                      onChange={(v) => set("tooltip_size", v)}
+                      options={TOOLTIP_SIZES}
+                    />
+                  </div>
+
+                  <div className="space-y-2 border-t border-[#1f1f1f] pt-4">
+                    <ToggleRow
+                      testid="badge-tooltips-toggle"
+                      label="Badge tooltips"
+                      checked={p.badge_tooltips !== false}
+                      onCheckedChange={(v) => set("badge_tooltips", v)}
+                    />
+                    <ToggleRow
+                      testid="link-tooltips-toggle"
+                      label="Link tooltips"
+                      checked={p.link_tooltips !== false}
+                      onCheckedChange={(v) => set("link_tooltips", v)}
+                    />
+                    <ToggleRow
+                      testid="avatar-uid-tooltip-toggle"
+                      label="Avatar UID tooltip"
+                      checked={p.avatar_uid_tooltip !== false}
+                      onCheckedChange={(v) => set("avatar_uid_tooltip", v)}
+                    />
+                  </div>
+                </div>
+              </Section>
             </>
           )}
 
@@ -2419,21 +2483,30 @@ export default function Editor() {
                     <Switch
                       data-testid="tilt-toggle"
                       className={SWITCH_CLASS}
-                      checked={p.tilt !== false}
-                      onCheckedChange={(v) => set("tilt", v)}
+                      checked={(p.card_tilt ?? p.tilt) !== false}
+                      onCheckedChange={(v) => set("card_tilt", v)}
                     />
                   </div>
 
-                  {p.tilt !== false && (
+                  {(p.card_tilt ?? p.tilt) !== false && (
+                    <>
                     <SliderRow
                       testid="tilt-strength"
                       label="3D Tilt Intensity"
-                      value={Number(p.tilt_strength ?? 15)}
+                      value={Number(p.tilt_strength ?? 12)}
                       min={5}
                       max={40}
                       suffix="Â°"
                       onChange={(v) => set("tilt_strength", v)}
                     />
+                    <ToggleRow
+                      testid="tilt-cards-toggle"
+                      label="Tilt audio & widget cards too"
+                      hint="each stacked card follows the pointer"
+                      checked={p.tilt_cards === true}
+                      onCheckedChange={(v) => set("tilt_cards", v)}
+                    />
+                    </>
                   )}
                 </div>
               </Section>

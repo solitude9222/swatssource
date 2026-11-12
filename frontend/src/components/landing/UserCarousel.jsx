@@ -1,52 +1,56 @@
-import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import Marquee from "react-fast-marquee";
-import { BadgeCheck } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { api, fileUrl } from "@/lib/api";
 
-const FeaturedUserCard = ({ u }) => {
-  const navigate = useNavigate();
+/* The featured-users band, rebuilt as three chip rows.
+
+   Each row travels the opposite way to the one above it, so the strip reads as
+   a moving wall of people rather than a single conveyor. The rows are
+   decorative and duplicate their cards for a seamless loop; the single
+   accessible copy is the visually hidden list underneath. */
+
+const UserChip = ({ u }) => {
   const avatarSrc = fileUrl(u.avatar);
+  return (
+    <Link
+      to={`/${u.username}`}
+      data-testid={`showcase-card-${u.username}`}
+      className="mx-1.5 flex h-[97px] w-[105px] shrink-0 flex-col items-center justify-center gap-2 rounded-[14px] border border-[#1f1f1f] bg-[#121212] transition-colors hover:border-[#27397c]"
+    >
+      <span className="relative h-[42px] w-[42px] overflow-hidden rounded-full border border-white/10">
+        {avatarSrc ? (
+          <img src={avatarSrc} alt="" className="h-full w-full object-cover" />
+        ) : (
+          <span className="flex h-full w-full items-center justify-center bg-[#1a1a1a] text-[12px] font-bold text-[#9fa2af]">
+            {(u.display_name || u.username || "?")[0]?.toUpperCase()}
+          </span>
+        )}
+      </span>
+      <span className="max-w-[88px] truncate text-[11px] font-medium text-[#9f9f9f]">@{u.username}</span>
+    </Link>
+  );
+};
+
+const SkeletonChip = ({ i }) => (
+  <div className="mx-1.5 h-[97px] w-[105px] shrink-0 animate-pulse rounded-[14px] border border-[#1f1f1f] bg-[#121212]" aria-hidden="true" style={{ animationDelay: `${i * 90}ms` }} />
+);
+
+const Row = ({ users, direction, loaded }) => {
+  const content = loaded ? (
+    users.map((u, i) => <UserChip key={`${u.id || u.username}-${i}`} u={u} />)
+  ) : (
+    Array.from({ length: 8 }).map((_, i) => <SkeletonChip key={i} i={i} />)
+  );
 
   return (
-    <div
-      data-testid={`showcase-card-${u.username}`}
-      onClick={() => navigate(`/${u.username}`)}
-      className="relative px-6 py-3 cursor-pointer group flex items-center gap-3.5 border-r border-white/10 shrink-0 transition hover:bg-white/[0.02]"
-    >
-      {/* NO GLOW - NO BOX BACKGROUND */}
-      <div className="relative w-11 h-11 rounded-full overflow-hidden shrink-0 border border-white/15">
-        {avatarSrc ? (
-          <img src={avatarSrc} alt={u.display_name} className="w-full h-full rounded-full object-cover" />
-        ) : (
-          <div className="w-full h-full rounded-full bg-zinc-900 flex items-center justify-center font-bold text-zinc-300 text-xs">
-            {(u.display_name || u.username || "?")[0]?.toUpperCase()}
-          </div>
-        )}
-      </div>
-
-      <div className="min-w-0 text-left">
-        <div className="flex items-center gap-1.5 text-xs font-bold text-zinc-100 group-hover:text-brand-300 transition truncate">
-          {u.display_name || u.username}
-          {u.verified && <BadgeCheck className="w-3.5 h-3.5 text-brand-400 shrink-0" />}
-        </div>
-        <div className="text-[11px] text-zinc-400 font-mono2 truncate mt-0.5">
-          @{u.username}
-        </div>
+    <div className="overflow-hidden [mask-image:linear-gradient(90deg,transparent,#000_6%,#000_94%,transparent)]">
+      <div className={direction === "right" ? "sw-row-right" : "sw-row-left"} aria-hidden="true">
+        {content}
+        {content}
       </div>
     </div>
   );
 };
-
-const SkeletonCard = ({ i }) => (
-  <div className="flex items-center gap-3.5 border-r border-white/10 px-6 py-3 shrink-0" aria-hidden="true">
-    <div className="h-11 w-11 shrink-0 rounded-full bg-white/[0.06] animate-pulse" />
-    <div className="space-y-2 text-left">
-      <div className="h-2.5 rounded-full bg-white/[0.06] animate-pulse" style={{ width: 70 + (i % 3) * 22 }} />
-      <div className="h-2 rounded-full bg-white/[0.04] animate-pulse" style={{ width: 48 + (i % 2) * 18 }} />
-    </div>
-  </div>
-);
 
 export const UserCarousel = () => {
   const [users, setUsers] = useState([]);
@@ -59,21 +63,11 @@ export const UserCarousel = () => {
       .finally(() => setLoaded(true));
   }, []);
 
-  // Only real accounts are ever shown. This used to fall back to five invented,
-  // "verified" profiles (koniwtfs, 5fovtraceboss, ...) whenever the showcase feed was
-  // empty, so the landing page advertised people who did not exist and every card
-  // linked to a 404.
-  //
-  // The section used to vanish in that case, which left a hole in the middle of the
-  // landing page while the feed was still loading (looked half-empty). It now holds
-  // its space with placeholder cards and, when the feed is genuinely empty, says so
-  // instead of inventing people.
   if (loaded && !users.length) {
     return (
-      <section data-testid="infinite-user-carousel" className="py-12 overflow-hidden border-t border-b border-white/10">
-        <div className="text-center px-4">
-          <h2 className="font-display text-2xl sm:text-4xl font-black text-zinc-100">have a look at our featured users:</h2>
-          <p className="mt-3 text-xs sm:text-sm text-zinc-400">
+      <section data-testid="infinite-user-carousel" className="relative overflow-hidden px-4 py-16">
+        <div className="text-center">
+          <p className="text-[13px] text-[#9fa2af]">
             Nobody has been featured yet — claim your tourn.lol handle and you could be first.
           </p>
         </div>
@@ -81,49 +75,21 @@ export const UserCarousel = () => {
     );
   }
 
-  if (!loaded) {
-    return (
-      <section data-testid="infinite-user-carousel" className="py-12 overflow-hidden border-t border-b border-white/10">
-        <div className="text-center mb-8 px-4">
-          <h2 className="font-display text-2xl sm:text-4xl font-black text-zinc-100">have a look at our featured users:</h2>
-          <p className="mt-2 text-xs sm:text-sm text-zinc-400">Discover creators and power users who built their page with tourn.lol</p>
-        </div>
-        <div className="[mask-image:linear-gradient(90deg,transparent,#000_8%,#000_92%,transparent)]">
-          <div className="flex">
-            {[0, 1, 2, 3, 4, 5].map((i) => <SkeletonCard key={i} i={i} />)}
-          </div>
-        </div>
-      </section>
-    );
-  }
+  // Three rows, dealt round-robin so no row is a leftover dump.
+  const rows = [[], [], []];
+  users.forEach((u, i) => rows[i % 3].push(u));
 
   return (
-    <section data-testid="infinite-user-carousel" className="py-12 overflow-hidden border-t border-b border-white/10">
-      <div className="text-center mb-8 px-4">
-        <h2 className="font-display text-2xl sm:text-4xl font-black text-zinc-100">
-          have a look at our featured users:
-        </h2>
-        <p className="mt-2 text-xs sm:text-sm text-zinc-400">Discover creators and power users who built their page with tourn.lol</p>
-      </div>
+    <section data-testid="infinite-user-carousel" className="relative space-y-3 overflow-hidden py-10">
+      {[0, 1, 2].map((r) => (
+        <Row
+          key={r}
+          users={rows[r].length ? rows[r] : users}
+          direction={r === 1 ? "right" : "left"}
+          loaded={loaded}
+        />
+      ))}
 
-      {/* ONE SINGLE HORIZONTAL LINE - THIN GREY LINE BETWEEN EACH USER - NO GLOW
-
-          The moving row is decorative. react-fast-marquee already draws its
-          children twice to loop seamlessly, and this used to hand it the roster
-          three times as well — six copies of every member, each of them a click
-          target, so the tab order and the screen-reader output named people over
-          and over. The marquee is handed the list once and marked decorative; the
-          single accessible copy is the visually hidden list underneath it. */}
-      <div
-        aria-hidden="true"
-        className="[mask-image:linear-gradient(90deg,transparent,#000_8%,#000_92%,transparent)]"
-      >
-        <Marquee speed={38} gradient={false} pauseOnHover>
-          {users.map((u) => (
-            <FeaturedUserCard key={u.id || u.username} u={u} />
-          ))}
-        </Marquee>
-      </div>
       <ul className="sr-only" data-testid="showcase-user-list">
         {users.map((u) => (
           <li key={u.id || u.username}>
@@ -134,3 +100,5 @@ export const UserCarousel = () => {
     </section>
   );
 };
+
+export default UserCarousel;

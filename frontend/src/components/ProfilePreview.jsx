@@ -35,6 +35,56 @@ export const compactCount = (n) => {
   return `${(v / 1000000).toFixed(1).replace(/\.0$/, "")}m`;
 };
 
+/* Optional tilt for the cards that ride along with the profile.
+
+   The main card follows the pointer (that is the card tilt), but the audio and
+   widget cards sitting on top of it used to stay perfectly flat, so the stack
+   read as one sheet of glass. With `tilt_cards` on, each of them gets a smaller
+   tilt of its own, so the stack moves in the same gesture at its own depth. Off
+   unless the profile asks for it, so nothing changes on existing cards. */
+function ChildTilt({ enabled, strength = 8, className = "", style, children }) {
+  const ref = useRef(null);
+  const frame = useRef(0);
+  useEffect(() => () => cancelAnimationFrame(frame.current), []);
+
+  const reset = () => {
+    cancelAnimationFrame(frame.current);
+    const el = ref.current;
+    if (!el) return;
+    el.style.transition = "transform 620ms cubic-bezier(0.16, 1, 0.3, 1)";
+    el.style.transform = "";
+  };
+
+  const move = (e) => {
+    if (!enabled) return;
+    // Touch scrolls; rotating a card under a finger fights that gesture.
+    if (e.pointerType === "touch") return;
+    const el = ref.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    if (!r.width || !r.height) return;
+    const rx = ((e.clientY - r.top - r.height / 2) / (r.height / 2)) * -strength;
+    const ry = ((e.clientX - r.left - r.width / 2) / (r.width / 2)) * strength;
+    cancelAnimationFrame(frame.current);
+    frame.current = requestAnimationFrame(() => {
+      el.style.transition = "transform 70ms ease-out";
+      el.style.transform = `perspective(900px) rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg)`;
+    });
+  };
+
+  return (
+    <div
+      ref={ref}
+      className={className}
+      style={enabled ? { transformStyle: "preserve-3d", ...style } : style}
+      onMouseMove={enabled ? move : undefined}
+      onMouseLeave={enabled ? reset : undefined}
+    >
+      {children}
+    </div>
+  );
+}
+
 // 0 is a real position, not "no time": a track that has just started used to
 // read "--:--" for its first second while the total duration sat beside it.
 const fmtTime = (secs) => {
@@ -48,7 +98,12 @@ const fmtTime = (secs) => {
    one — a chip reading "Joined Invalid Date" is worse than no chip. */
 export const joinedLabel = (created_at) => {
   if (!created_at) return "";
-  const d = new Date(created_at);
+  // A date-only value ("2026-11-12") is UTC midnight to `new Date`, which is
+  // the previous day — and, on 1 January, the previous YEAR — for everyone west
+  // of Greenwich. Build those as local midnight so the month/year on the card
+  // matches the day the account was made.
+  const raw = String(created_at);
+  const d = /^\d{4}-\d{2}-\d{2}$/.test(raw) ? new Date(`${raw}T00:00:00`) : new Date(created_at);
   if (Number.isNaN(d.getTime())) return "";
   return d.toLocaleDateString(undefined, { month: "long", year: "numeric" });
 };
@@ -1709,7 +1764,9 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
   // re-rasterise the card on the first frames of every gesture. Read straight off
   // `p` here: `tiltEnabled` is derived further down, and every hook in this
   // component has to run before the `if (!data) return null` below.
-  const tiltWanted = p.card_tilt !== false;
+  // `tilt` is the field the editor used to write; honour it too so a card saved
+  // with tilt switched off stays off rather than silently spinning again.
+  const tiltWanted = (p.card_tilt ?? p.tilt) !== false;
   useEffect(() => {
     const card = cardRef.current;
     if (!card || !tiltWanted) return undefined;
@@ -1762,7 +1819,11 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
   const avatarPosY = Number(p.avatar_pos_y ?? 50);
   // Tilt defaults ON so existing profiles keep behaving exactly as before, but
   // the editor's "3D Card tilt" checkbox can now actually turn it off.
-  const tiltEnabled = p.card_tilt !== false;
+  const tiltEnabled = (p.card_tilt ?? p.tilt) !== false;
+  // The stacked audio and widget cards tilt with it only when the owner asks:
+  // each gets a smaller tilt of its own, scaled off the card's intensity.
+  const childTilt = p.tilt_cards === true;
+  const childTiltStrength = Math.max(4, Math.round((Number(p.tilt_strength) || 12) * 0.7));
   // A profile saved on a layout that no longer exists renders as Minimal, so a
   // deleted layout can never leave somebody's page blank.
   const layout = resolveLayout(p.layout);
@@ -1847,7 +1908,9 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
     tilting.current = false;
     const card = cardRef.current;
     if (card) {
-      card.style.transition = "transform 500ms cubic-bezier(0.22, 1, 0.36, 1)";
+      // A longer, softer return than the lean itself: letting go of the card should
+    // ease back into place instead of snapping the moment the pointer leaves.
+    card.style.transition = "transform 720ms cubic-bezier(0.16, 1, 0.3, 1)";
     }
     paint(0, 0, 50, 50);
   };
@@ -2212,6 +2275,18 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
     <WidgetCard {...props} profileRadius={Number(p.card_radius ?? 24)} profile={p} />
   );
 
+  // Handed to the Slideshow layout, which draws its own widget grid. The
+  // wrapper has to carry the span, because it is the grid's direct child now.
+  const TiltWidgetCard = (props) => (
+    <ChildTilt
+      enabled={childTilt}
+      strength={childTiltStrength}
+      className={Number(props.w?.span ?? 2) === 2 ? "sm:col-span-2" : ""}
+    >
+      <RadiusWidgetCard {...props} />
+    </ChildTilt>
+  );
+
   const linkMode = (l) => l.mode || p.link_global_mode || "card";
   const iconLinks = links.filter((l) => linkMode(l) === "icon");
   const cardLinks = links.filter((l) => linkMode(l) === "card");
@@ -2301,13 +2376,19 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
             const full = !widgetsStacked && Number(w.span ?? 2) === 2;
             const entrance = revealAnimation(5, i);
             return (
-              <div key={i} className={`${full ? "sm:col-span-2" : ""} ${entrance.className}`} style={entrance.style}>
+              <ChildTilt
+                key={i}
+                enabled={childTilt}
+                strength={childTiltStrength}
+                className={`${full ? "sm:col-span-2" : ""} ${entrance.className}`}
+                style={entrance.style}
+              >
                 {pill ? (
                   <WidgetPill w={w} accent={accent} ownerCreated={data.created_at} owner={data.username} p={p} />
                 ) : (
                   <WidgetCard w={w} accent={accent} ownerCreated={data.created_at} owner={data.username} profileRadius={Number(p.card_radius ?? 24)} profile={p} />
                 )}
-              </div>
+              </ChildTilt>
             );
           })}
         </div>
@@ -2337,15 +2418,16 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
     pinnedPlayer || cornerStyle || tracks.length === 0 ? null : (
       <div data-block="audio" className={`space-y-2.5 ${revealAnimation(7).className}`} style={revealAnimation(7).style}>
         {tracks.map((t, i) => (
-          <TrackCardPreview
-            key={`${t.url || t.audio_url || t.title || "track"}-${i}`}
-            track={t}
-            style={p.track_style}
-            accent={accent}
-            volume={trackVolume}
-            autoPlay={autoPlayAudio && i === 0 && !embedded}
-            profile={p}
-          />
+          <ChildTilt key={`${t.url || t.audio_url || t.title || "track"}-${i}`} enabled={childTilt} strength={childTiltStrength}>
+            <TrackCardPreview
+              track={t}
+              style={p.track_style}
+              accent={accent}
+              volume={trackVolume}
+              autoPlay={autoPlayAudio && i === 0 && !embedded}
+              profile={p}
+            />
+          </ChildTilt>
         ))}
       </div>
     )
@@ -2466,7 +2548,7 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
         AvatarBlock={AvatarBlock}
         Badges={Badges}
         LinksSection={LinksSection}
-        WidgetCard={RadiusWidgetCard}
+        WidgetCard={TiltWidgetCard}
         AudioBlock={AudioBlock}
         MetaLine={MetaLine}
         BgLayers={BgLayers}

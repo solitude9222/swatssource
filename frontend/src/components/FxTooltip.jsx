@@ -30,7 +30,10 @@ import "./tooltips.css";
      • glass   — frosted translucent card.
      • ice     — cold translucent blue with a frosted rim.
 
-   Entrance: slide (up into place), fade, or none.
+   Entrance: swipe (up into place), blur (rises out of a blur), or pop (the
+   bubble simply appears, no motion). Saved profiles that still carry the old
+   "slide" or "fade" ids resolve to one of these rather than falling back to
+   the default, so no card loses its chosen entrance.
    --------------------------------------------------------------------------- */
 
 export const TOOLTIP_STYLES = [
@@ -40,9 +43,9 @@ export const TOOLTIP_STYLES = [
 ];
 
 export const TOOLTIP_ANIMATIONS = [
-  { id: "slide", label: "Slide" },
-  { id: "fade", label: "Fade" },
-  { id: "none", label: "None" },
+  { id: "swipe", label: "Swipe up" },
+  { id: "blur", label: "Blur up" },
+  { id: "none", label: "Pop in" },
 ];
 
 export const TOOLTIP_SIZES = [
@@ -52,7 +55,7 @@ export const TOOLTIP_SIZES = [
 ];
 
 export const DEFAULT_TOOLTIP_STYLE = "classic";
-export const DEFAULT_TOOLTIP_ANIMATION = "slide";
+export const DEFAULT_TOOLTIP_ANIMATION = "swipe";
 
 /* The four looks a profile could save per tip before there was one global look.
    They still resolve — an old profile must not render a bubble with no styling
@@ -71,15 +74,23 @@ export const resolveTooltipStyle = (...candidates) => {
   return DEFAULT_TOOLTIP_STYLE;
 };
 
-export const resolveTooltipAnimation = (value) =>
-  TOOLTIP_ANIMATIONS.some((a) => a.id === value) ? value : DEFAULT_TOOLTIP_ANIMATION;
+/* Entrance ids an older profile can still carry. "slide" was renamed to
+   "swipe"; "fade" is no longer offered in the editor but still renders, because
+   a saved card must not lose its animation when the option list changes. */
+const LEGACY_ANIMATIONS = { slide: "swipe", fade: "fade" };
+
+export const resolveTooltipAnimation = (value) => {
+  const id = LEGACY_ANIMATIONS[value] || value;
+  if (id === "fade") return "fade";
+  return TOOLTIP_ANIMATIONS.some((a) => a.id === id) ? id : DEFAULT_TOOLTIP_ANIMATION;
+};
 
 // Text sizes per tip size. Applied to the label itself rather than a scale
 // transform, so the bubble stays crisp and the padding scales with it.
 const TEXT_SIZE = {
   sm: "text-[10px]",
   md: "text-[11px]",
-  lg: "text-[13px]",
+  lg: "text-[12px]",
 };
 
 /* The entrance is the tip's own (see tooltips.css), not the shared
@@ -90,15 +101,19 @@ const TEXT_SIZE = {
    place with no animation whatsoever — which is exactly how "the tooltip just
    pops up as soon as it loads and the animations don't work" reads. */
 const ENTRANCE = {
-  slide: "tip-in-slide",
+  swipe: "tip-in-swipe",
+  blur: "tip-in-blur",
   fade: "tip-in-fade",
   none: "",
 };
 
+/* Trim padding on purpose: the bubbles read as thick, padded pills next to the
+   dense cards they label. `leading-none` keeps the box one text-line tall, so
+   the padding is the whole of the bubble's height. */
 const PAD = {
-  sm: "px-2 py-0.5",
-  md: "px-2.5 py-1",
-  lg: "px-3 py-1.5",
+  sm: "px-1.5 py-px",
+  md: "px-2 py-0.5",
+  lg: "px-2.5 py-1",
 };
 
 /* A tip must not pop the instant a moving cursor grazes a card: the tiniest
@@ -236,7 +251,7 @@ function TipBubble({ x, y, label, style, accent, size = "md", anim }) {
     look === "glass" ? (
       <span
         data-tip-style="glass"
-        className={`block whitespace-nowrap rounded-xl border bg-white/10 font-semibold text-white shadow-[0_12px_36px_rgba(0,0,0,0.6)] backdrop-blur-2xl ${pad} ${scale} ${entrance}`}
+        className={`block whitespace-nowrap rounded-lg border bg-white/10 font-medium leading-none text-white shadow-[0_12px_36px_rgba(0,0,0,0.6)] backdrop-blur-2xl ${pad} ${scale} ${entrance}`}
         style={{
           borderColor: accent ? `${accent}66` : "rgba(255,255,255,0.22)",
           boxShadow: accent
@@ -249,7 +264,7 @@ function TipBubble({ x, y, label, style, accent, size = "md", anim }) {
     ) : look === "ice" ? (
       <span
         data-tip-style="ice"
-        className={`block whitespace-nowrap rounded-xl border font-semibold text-white backdrop-blur-xl ${pad} ${scale} ${entrance}`}
+        className={`block whitespace-nowrap rounded-lg border font-medium leading-none text-white backdrop-blur-xl ${pad} ${scale} ${entrance}`}
         style={{
           background: "linear-gradient(160deg, rgba(214,240,255,0.25), rgba(122,180,255,0.15))",
           borderColor: "rgba(190,230,255,0.6)",
@@ -260,7 +275,7 @@ function TipBubble({ x, y, label, style, accent, size = "md", anim }) {
       </span>
     ) : (
       // classic: black, the label, nothing else — no border, no glow, no tail.
-      <span data-tip-style="classic" className={`block whitespace-nowrap rounded-lg bg-black font-semibold text-white shadow-xl ${pad} ${scale} ${entrance}`}>
+      <span data-tip-style="classic" className={`block whitespace-nowrap rounded-md bg-black font-medium leading-none text-white shadow-md ${pad} ${scale} ${entrance}`}>
         {label}
       </span>
     );
@@ -271,7 +286,7 @@ function TipBubble({ x, y, label, style, accent, size = "md", anim }) {
       className="pointer-events-none fixed z-[9999] block"
       style={{
         left: clampedX,
-        top: y - 6,
+        top: y - 5,
         transform: flipBelow ? "translate(-50%, 12px)" : "translate(-50%, -100%)",
         maxWidth: 280,
         fontFamily: "var(--profile-font-display, inherit)",

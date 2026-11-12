@@ -223,14 +223,16 @@ it("gives every tip the entrance the profile picked", async () => {
     return tip().firstElementChild.className;
   };
 
-  expect(TOOLTIP_ANIMATIONS.map((a) => a.id)).toEqual(["slide", "fade", "none"]);
+  expect(TOOLTIP_ANIMATIONS.map((a) => a.id)).toEqual(["swipe", "blur", "none"]);
   // The tip's own keyframes (components/tooltips.css), not the shared
   // animate-in bundle another plugin can redefine.
-  expect(await entrance("slide")).toContain("tip-in-slide");
-  const fade = await entrance("fade");
-  expect(fade).toContain("tip-in-fade");
-  expect(fade).not.toContain("tip-in-slide");
+  expect(await entrance("swipe")).toContain("tip-in-swipe");
+  const blur = await entrance("blur");
+  expect(blur).toContain("tip-in-blur");
+  expect(blur).not.toContain("tip-in-swipe");
   expect(await entrance("none")).not.toContain("tip-in-");
+  // A card saved when the entrance was called "slide" still swipes up.
+  expect(await entrance("slide")).toContain("tip-in-swipe");
 });
 
 // Laying a card out under a resting cursor makes the browser report a hover
@@ -242,10 +244,12 @@ it("gives every tip the entrance the profile picked", async () => {
 // tooltips").
 it("keeps its own entrance keyframes", () => {
   const css = fs.readFileSync(path.join(__dirname, "tooltips.css"), "utf8");
-  expect(css).toMatch(/@keyframes sw-tip-in/);
+  expect(css).toMatch(/@keyframes sw-tip-swipe/);
+  expect(css).toMatch(/@keyframes sw-tip-blur/);
+  // Kept for profiles saved when "Fade" was still offered.
   expect(css).toMatch(/@keyframes sw-tip-fade/);
-  expect(css).toMatch(/\.tip-in-slide\s*\{[^}]*animation:\s*sw-tip-in/);
-  expect(css).toMatch(/\.tip-in-fade\s*\{[^}]*animation:\s*sw-tip-fade/);
+  expect(css).toMatch(/\.tip-in-swipe\s*\{[^}]*animation:\s*sw-tip-swipe/);
+  expect(css).toMatch(/\.tip-in-blur\s*\{[^}]*animation:\s*sw-tip-blur/);
 });
 
 it("ignores the hover a page gets from a cursor that never moved", async () => {
