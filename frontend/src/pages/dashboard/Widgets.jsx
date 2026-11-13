@@ -1229,8 +1229,37 @@ export default function Widgets() {
                   placeholder="e.g. America/New_York, Europe/London, Asia/Tokyo"
                   className="w-full px-4 py-2.5 rounded-xl bg-[#0d0d0d] border border-[#2a2a2e] text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-[#b4bffa]"
                 />
-                <p className="text-[11px] text-zinc-500">Renders a realistic analog clock and digital time live.</p>
+                <p className="text-[11px] text-zinc-500">Renders a live analog clock. Pick the face below.</p>
               </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-zinc-200">Clock Style</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {["classic", "minimal", "neon", "glass"].map((id) => {
+                    const active = (editingWidget.widget.clock_style || "classic") === id;
+                    return (
+                      <button
+                        key={id}
+                        type="button"
+                        onClick={() => patchEditingWidget({ clock_style: id })}
+                        className={`px-3 py-2 rounded-xl border text-[11px] font-semibold capitalize transition ${active ? "border-[#b4bffa] bg-[#b4bffa]/10 text-white" : "border-[#2a2a2e] bg-[#0d0d0d] text-zinc-400 hover:text-white"}`}
+                      >
+                        {id}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <label className="flex items-center gap-2 text-xs font-medium text-zinc-300">
+                <input
+                  type="checkbox"
+                  checked={editingWidget.widget.show_digital !== false}
+                  onChange={(e) => patchEditingWidget({ show_digital: e.target.checked })}
+                  className="accent-[#b4bffa]"
+                />
+                Show digital time beside the dial
+              </label>
             </div>
           ) : (
             <div className="space-y-4">

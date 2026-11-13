@@ -2219,7 +2219,9 @@ function TimezoneClock({ w, accent }) {
   const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
-    const timer = setInterval(() => setNow(new Date()), 1000);
+    // A sweep second hand, so the dial ticks like a real watch instead of
+    // jumping once a second.
+    const timer = setInterval(() => setNow(new Date()), 250);
     return () => clearInterval(timer);
   }, []);
 
@@ -2247,7 +2249,7 @@ function TimezoneClock({ w, accent }) {
 
     const twelveHour = hours % 12 || 12;
     ampm = hours >= 12 ? "PM" : "AM";
-    timeStr = `${String(twelveHour).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    timeStr = `${String(twelveHour).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
     dateStr = now.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: tz });
   } catch {
     hours = now.getHours();
@@ -2255,78 +2257,162 @@ function TimezoneClock({ w, accent }) {
     seconds = now.getSeconds();
     const twelveHour = hours % 12 || 12;
     ampm = hours >= 12 ? "PM" : "AM";
-    timeStr = `${String(twelveHour).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    timeStr = `${String(twelveHour).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
     dateStr = now.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" });
   }
 
-  // Realistic watch angles
-  const secondDeg = seconds * 6;
+  const clockStyle = ["classic", "minimal", "neon", "glass"].includes(w.clock_style) ? w.clock_style : "classic";
+  const showDigital = w.show_digital !== false;
+  const showDate = w.show_date !== false;
+  const accentColor = accent || "#b4bffa";
+
+  // Every style paints the same dial, it just changes the finish: a steel watch
+  // face, a bare outline, an accent neon ring, or frosted glass.
+  const DIALS = {
+    classic: {
+      background: "radial-gradient(circle at 32% 24%, #262832 0%, #101117 58%, #08090d 100%)",
+      border: "1px solid rgba(255,255,255,0.20)",
+      boxShadow: "0 6px 22px rgba(0,0,0,0.65), inset 0 1px 2px rgba(255,255,255,0.18)",
+      hand: "#f4f4f5",
+      minute: "#e4e4e7",
+      tick: "rgba(255,255,255,0.85)",
+      tickMinor: "rgba(255,255,255,0.35)",
+      numerals: true,
+    },
+    minimal: {
+      background: "transparent",
+      border: "1px solid rgba(255,255,255,0.14)",
+      boxShadow: "none",
+      hand: "#fafafa",
+      minute: "#d4d4d8",
+      tick: "rgba(255,255,255,0.75)",
+      tickMinor: "rgba(255,255,255,0.14)",
+      numerals: false,
+    },
+    neon: {
+      background: "radial-gradient(circle at 50% 50%, #0b0b14 0%, #05050a 72%)",
+      border: `1px solid ${accentColor}`,
+      boxShadow: `0 0 20px ${accentColor}66, inset 0 0 16px ${accentColor}22`,
+      hand: "#ffffff",
+      minute: "#ffffff",
+      tick: accentColor,
+      tickMinor: `${accentColor}55`,
+      numerals: false,
+    },
+    glass: {
+      background: "rgba(255,255,255,0.07)",
+      border: "1px solid rgba(255,255,255,0.28)",
+      boxShadow: "inset 0 1px 4px rgba(255,255,255,0.28), 0 8px 24px rgba(0,0,0,0.35)",
+      hand: "#ffffff",
+      minute: "rgba(255,255,255,0.85)",
+      tick: "rgba(255,255,255,0.8)",
+      tickMinor: "rgba(255,255,255,0.25)",
+      numerals: false,
+      blur: "blur(8px)",
+    },
+  };
+  const dial = DIALS[clockStyle];
+
+  // Milliseconds keep the second hand sweeping rather than stuttering.
+  const secondDeg = (seconds + (now.getMilliseconds() || 0) / 1000) * 6;
   const minuteDeg = minutes * 6 + seconds * 0.1;
   const hourDeg = (hours % 12) * 30 + minutes * 0.5;
 
+  // One tick per hour, plus a short one at every five minute mark. Positions are
+  // computed on the 100x100 dial grid so they always line up with the rim.
+  const ticks = [];
+  for (let i = 0; i < 60; i += 1) {
+    const major = i % 5 === 0;
+    const angle = (i * 6 * Math.PI) / 180;
+    const outer = 45;
+    const inner = major ? 39 : 42;
+    ticks.push(
+      <line
+        key={i}
+        x1={50 + Math.sin(angle) * inner}
+        y1={50 - Math.cos(angle) * inner}
+        x2={50 + Math.sin(angle) * outer}
+        y2={50 - Math.cos(angle) * outer}
+        stroke={major ? dial.tick : dial.tickMinor}
+        strokeWidth={major ? 1.6 : 0.7}
+        strokeLinecap="round"
+      />
+    );
+  }
+
   return (
-    <div className="flex items-center gap-4 py-1.5">
-      {/* Realistic Analog Clock Dial */}
-      <div className="relative w-16 h-16 shrink-0 rounded-full border-2 border-white/20 bg-gradient-to-br from-[#181920] to-[#090a0f] shadow-[0_4px_16px_rgba(0,0,0,0.6),inset_0_1px_3px_rgba(255,255,255,0.2)] flex items-center justify-center">
-        {/* Dial Hour Markers */}
-        <div className="absolute inset-1 rounded-full pointer-events-none">
-          <span className="absolute top-1 left-1/2 -translate-x-1/2 w-0.5 h-1.5 bg-white/80 rounded-full" />
-          <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-0.5 h-1.5 bg-white/80 rounded-full" />
-          <span className="absolute left-1 top-1/2 -translate-y-1/2 w-1.5 h-0.5 bg-white/80 rounded-full" />
-          <span className="absolute right-1 top-1/2 -translate-y-1/2 w-1.5 h-0.5 bg-white/80 rounded-full" />
-        </div>
+    <div className="flex items-center gap-3.5 py-1">
+      {/* The dial: a real clock face, drawn once and driven by the live angles. */}
+      <div
+        className="relative shrink-0 rounded-full"
+        style={{
+          width: 84,
+          height: 84,
+          background: dial.background,
+          border: dial.border,
+          boxShadow: dial.boxShadow,
+          backdropFilter: dial.blur,
+          WebkitBackdropFilter: dial.blur,
+        }}
+      >
+        <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full">
+          {ticks}
 
-        {/* Hour Hand */}
-        <div
-          className="absolute w-1 h-4 bg-white rounded-full origin-bottom shadow-sm"
-          style={{
-            bottom: "50%",
-            left: "calc(50% - 2px)",
-            transform: `rotate(${hourDeg}deg)`,
-          }}
-        />
-
-        {/* Minute Hand */}
-        <div
-          className="absolute w-0.5 h-6 bg-zinc-300 rounded-full origin-bottom shadow-sm"
-          style={{
-            bottom: "50%",
-            left: "calc(50% - 1px)",
-            transform: `rotate(${minuteDeg}deg)`,
-          }}
-        />
-
-        {/* Second Hand */}
-        <div
-          className="absolute w-0.5 h-7 rounded-full origin-bottom shadow-sm"
-          style={{
-            bottom: "50%",
-            left: "calc(50% - 1px)",
-            backgroundColor: accent || "#ef4444",
-            transform: `rotate(${secondDeg}deg)`,
-            boxShadow: `0 0 6px ${accent || "#ef4444"}`,
-          }}
-        />
-
-        {/* Center Pivot Jewel */}
-        <div
-          className="absolute w-2 h-2 rounded-full border border-white/40 shadow-sm z-10"
-          style={{ backgroundColor: accent || "#ef4444" }}
-        />
+          {/* Hour hand */}
+          <line
+            x1="50"
+            y1="56"
+            x2="50"
+            y2="31"
+            stroke={dial.hand}
+            strokeWidth="4"
+            strokeLinecap="round"
+            transform={`rotate(${hourDeg} 50 50)`}
+          />
+          {/* Minute hand */}
+          <line
+            x1="50"
+            y1="57"
+            x2="50"
+            y2="21"
+            stroke={dial.minute}
+            strokeWidth="2.6"
+            strokeLinecap="round"
+            transform={`rotate(${minuteDeg} 50 50)`}
+          />
+          {/* Second hand, in the profile accent */}
+          <line
+            x1="50"
+            y1="60"
+            x2="50"
+            y2="17"
+            stroke={accentColor}
+            strokeWidth="1.1"
+            strokeLinecap="round"
+            transform={`rotate(${secondDeg} 50 50)`}
+            style={{ filter: `drop-shadow(0 0 3px ${accentColor})` }}
+          />
+          {/* Hub */}
+          <circle cx="50" cy="50" r="3.2" fill={dial.hand} />
+          <circle cx="50" cy="50" r="1.5" fill={accentColor} />
+        </svg>
       </div>
 
-      {/* Digital Time & Location Readout */}
-      <div className="min-w-0 flex-1 flex flex-col justify-center text-left">
-        <div className="flex items-baseline gap-1.5">
-          <span className="font-mono text-xl sm:text-2xl font-black text-white tracking-wider drop-shadow-sm">
-            {timeStr}
-          </span>
-          <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{ampm}</span>
+      {/* Readout beside the dial */}
+      {showDigital && (
+        <div className="min-w-0 flex-1 flex flex-col justify-center text-left">
+          <div className="flex items-baseline gap-1.5">
+            <span className="font-mono text-xl sm:text-2xl font-black text-white tracking-wider drop-shadow-sm">
+              {timeStr}
+            </span>
+            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{ampm}</span>
+          </div>
+          <div className="text-xs text-zinc-300 font-medium truncate mt-0.5">
+            {tz.replace(/_/g, " ")}
+            {showDate && <> · <span className="text-zinc-400">{dateStr}</span></>}
+          </div>
         </div>
-        <div className="text-xs text-zinc-300 font-medium truncate mt-0.5">
-          {tz.replace(/_/g, " ")} · <span className="text-zinc-400">{dateStr}</span>
-        </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -2686,7 +2772,7 @@ function GamesCard({ w, accent }) {
           <p className="text-[10px] text-zinc-500">Add {subtype === "mixed" ? "interests" : subtype} in widget settings</p>
         </div>
       ) : (
-        <div className={`grid gap-1.5 ${entries.length <= 3 ? "grid-cols-3" : "grid-cols-3 sm:grid-cols-4"}`}>
+        <div className={`grid gap-1.5 ${entries.length <= 3 ? "grid-cols-3" : "grid-cols-4 sm:grid-cols-5"}`}>
           {entries.map((item, i) => {
             const isActive = nowPlaying && nowPlaying.toLowerCase().includes(item.name.toLowerCase());
             return (
@@ -2811,7 +2897,7 @@ function ProjectsCard({ w, accent, profile }) {
     return (
       <span
         key={idx}
-        className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#111216] border border-white/10 text-xs font-medium text-white shadow-sm hover:border-white/25 hover:scale-105 transition-all cursor-default"
+        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#111216] border border-white/10 text-[10px] font-medium text-white shadow-sm hover:border-white/25 hover:scale-105 transition-all cursor-default"
       >
         <span className="flex items-center justify-center shrink-0">{icon}</span>
         <span className="tracking-wide">{tag}</span>
@@ -2822,10 +2908,10 @@ function ProjectsCard({ w, accent, profile }) {
   const hasContent = tagsRaw.trim().length > 0 || desc;
 
   return (
-    <div className="flex flex-col gap-3 py-1 text-left select-none">
+    <div className="flex flex-col gap-2 py-0.5 text-left select-none">
       {/* STACK Main Heading matching reference image */}
       <div className="flex items-center justify-between">
-        <h3 className="font-mono2 text-xs font-bold tracking-widest text-zinc-300 uppercase">
+        <h3 className="font-mono2 text-[11px] font-bold tracking-widest text-zinc-300 uppercase">
           {title}
         </h3>
         {href && (

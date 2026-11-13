@@ -107,6 +107,18 @@ export const CARD_STYLE_PRESETS = {
     card_transparent: false,
     card_glow: true,
   },
+  slideshow: {
+    card_style: "slideshow",
+    card_fill_color: "#0b0c11",
+    card_fill_alpha: 58,
+    card_blur: 30,
+    card_outline_alpha: 18,
+    card_radius: 32,
+    card_background: true,
+    card_bg_enabled: true,
+    card_transparent: false,
+    card_glow: true,
+  },
   transparent: {
     card_style: "transparent",
     card_fill_color: "#000000",
@@ -1571,6 +1583,7 @@ export default function Editor() {
                         // read as a real example, not just a word.
                         const previews = {
                           classic: { background: "rgba(19,19,22,0.92)", border: "1px solid rgba(255,255,255,0.12)" },
+                          slideshow: { background: "rgba(11,12,17,0.82)", border: "1px solid rgba(255,255,255,0.16)", backdropFilter: "blur(4px)" },
                           frosted: { background: "rgba(255,255,255,0.10)", border: "1px solid rgba(255,255,255,0.28)", backdropFilter: "blur(3px)" },
                           "frosted-soft": { background: "rgba(255,255,255,0.055)", border: "1px solid rgba(255,255,255,0.16)" },
                           outlined: { background: "transparent", border: `1.5px solid ${accentColor}` },

@@ -1410,7 +1410,7 @@ function SlideshowView({
     // `scrollToSlide` closes over `sections`, so it carries the slide count too.
   }, [scrollToSlide]);
 
-  const slideH = embedded ? "h-[580px]" : "h-screen min-h-screen";
+  const slideH = embedded ? "min-h-[580px]" : "min-h-screen";
 
   // The slides are cards too. The header used to be bare text over the artwork,
   // and the About Me panel painted its own hard-coded dark plate while every
@@ -1489,7 +1489,7 @@ function SlideshowView({
       {/* Slide 1: Profile Header (PFP centered, names below, badges next to name) */}
       <section
         id="profile-header"
-        className={`relative flex ${slideH} w-full snap-start shrink-0 flex-col items-center justify-center p-4 sm:p-8 text-center select-none`}
+        className={`relative flex ${slideH} w-full snap-start shrink-0 flex-col items-center justify-center px-4 py-16 sm:px-8 sm:py-20 text-center select-none`}
       >
         <div
           ref={cardRef}
@@ -1587,7 +1587,7 @@ function SlideshowView({
       {/* Slide 2: About Me (Side-by-side: bio & info on left, widgets on right) */}
       <section
         id="about-me"
-        className={`relative flex ${slideH} w-full snap-start shrink-0 flex-col items-center justify-center p-4 sm:p-8 select-none`}
+        className={`relative flex ${slideH} w-full snap-start shrink-0 flex-col items-center justify-center px-4 py-16 sm:px-8 sm:py-20 select-none`}
       >
         <div className="z-10 w-full max-w-5xl sm:max-w-6xl mx-auto my-auto py-2">
           <div
@@ -1671,7 +1671,7 @@ function SlideshowView({
       {(links.length > 0 || embedded) && (
         <section
           id="links"
-          className={`relative flex ${slideH} w-full snap-start shrink-0 flex-col items-center justify-center p-6 sm:p-10 text-center select-none`}
+          className={`relative flex ${slideH} w-full snap-start shrink-0 flex-col items-center justify-center px-6 py-16 sm:px-10 sm:py-20 text-center select-none`}
         >
           <div
             data-testid="slideshow-links-card"
@@ -2196,7 +2196,7 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
     return (
       <div
         data-testid="profile-meta"
-        className={`flex flex-wrap items-center gap-x-4 gap-y-1.5 font-mono2 text-[11px] text-zinc-400 ${justify} ${revealAnimation(8).className}`}
+        className={`flex flex-nowrap items-center gap-x-2.5 overflow-hidden whitespace-nowrap font-mono2 text-[11px] text-zinc-400 ${justify} ${revealAnimation(8).className}`}
         style={revealAnimation(8).style}
       >
         <div
@@ -2204,10 +2204,15 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
             ? "inline-flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 rounded-2xl border border-white/10 bg-black/30 px-3.5 py-2"
             : "contents"}
         >
-          {items.map((it) => (
-            <span key={it.key} data-testid={it.testid} className={metaStyle === "pills" ? pill : chip}>
-              {it.icon}
-              {it.text}
+          {items.map((it, index) => (
+            <span key={it.key} className="inline-flex items-center gap-x-2.5 shrink-0">
+              {index > 0 && metaStyle === "divider" && (
+                <span aria-hidden="true" className="text-white/25 select-none">|</span>
+              )}
+              <span data-testid={it.testid} className={metaStyle === "pills" ? pill : chip}>
+                {it.icon}
+                {it.text}
+              </span>
             </span>
           ))}
         </div>
@@ -2361,8 +2366,16 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
   // split: hoarding columns while shrinking would keep the card taller than
   // the screen, and a dense profile reads better stacked in one column anyway.
   const widgetsStacked = false;
-  const WidgetsBlock = ({ pill = false, className = "" }) => (
-    widgets.length > 0 ? (
+  // Interests / Anime / Projects are the profile's showcase "sections": they draw
+// full-size cover art and stack cards, so they only render in the Slideshow
+// layout, where a slide exists for them. Every other layout keeps its compact
+// widgets and drops these entirely instead of squeezing them into the card.
+const sectionWidgets = layout === "slideshow"
+  ? widgets
+  : widgets.filter((w) => !["games", "interests", "projects"].includes(String(w?.type || "").toLowerCase()));
+
+const WidgetsBlock = ({ pill = false, className = "" }) => (
+    sectionWidgets.length > 0 ? (
       <WidgetProfileContext.Provider value={p}>
         <div
           data-block="widgets"
@@ -2372,7 +2385,7 @@ export const ProfilePreview = ({ data, embedded = false, backgroundAudio = false
             pill ? "gap-2" : "gap-2.5"
           } ${className}`}
         >
-          {widgets.map((w, i) => {
+          {sectionWidgets.map((w, i) => {
             const full = !widgetsStacked && Number(w.span ?? 2) === 2;
             const entrance = revealAnimation(5, i);
             return (

@@ -4,6 +4,7 @@ import { api, fileUrl } from "@/lib/api";
 import { buildCrosshairCursor, crosshairSettings } from "@/lib/crosshair";
 import { useProfileViewTracker } from "@/lib/viewTracker";
 import { ProfilePreview, viewsInCorner, compactCount } from "@/components/ProfilePreview";
+import { resolveLayout } from "@/constants/layouts";
 import { CursorEffect } from "@/components/CursorEffect";
 import { CustomCursor } from "@/components/CustomCursor";
 import { Eye } from "lucide-react";
@@ -11,12 +12,20 @@ import { fontStackOf, ensureFontsLoaded } from "@/constants/fonts";
 
 // Where a moved view counter sits. The four corners are the page's, not the
 // card's, so it stays put whatever the card is doing.
-const CORNER_CLASS = {
-  tl: "left-4 top-4",
-  tr: "right-4 top-4",
-  bl: "left-4 bottom-4",
-  br: "right-4 bottom-4",
+// The width each layout gives its card. A moved view counter used to be `fixed`
+// to the browser window, so on any screen wider than the card it drifted away
+// from the card's corner; now it sits in the same column as the card and pins
+// to that column's edge.
+const CARD_COLUMN = {
+  minimal: "max-w-[680px]",
+  floating: "max-w-[660px]",
+  banner: "max-w-3xl",
+  split: "max-w-5xl",
+  bento: "max-w-4xl",
+  compact: "max-w-md",
+  slideshow: "max-w-3xl",
 };
+
 
 export default function PublicProfile() {
   const { alias } = useParams();
@@ -341,14 +350,19 @@ export default function PublicProfile() {
       {/* A moved view counter: the four corners are the page's, and "hidden"
           draws it nowhere at all (the card drops it from its meta line too). */}
       {viewsInCorner(p.views_position) && views != null && (
-        <div
-          data-testid="views-corner"
-          className={`fixed z-20 flex items-center gap-1.5 rounded-full border border-white/10 bg-black/50 px-3 py-1.5 font-mono2 text-[11px] text-zinc-300 backdrop-blur ${CORNER_CLASS[p.views_position]}`}
-        >
-          <Eye className="h-3.5 w-3.5" />
-          {compactCount(views)}
+        <div className={`fixed inset-x-0 z-30 flex justify-center px-4 sm:px-6 pointer-events-none ${p.views_position === "tl" || p.views_position === "tr" ? "top-4" : "bottom-4"}`}>
+          <div className={`flex w-full ${CARD_COLUMN[resolveLayout(p.layout)] || "max-w-3xl"} ${p.views_position === "tr" || p.views_position === "br" ? "justify-end" : "justify-start"}`}>
+            <div
+              data-testid="views-corner"
+              className="pointer-events-auto flex items-center gap-1.5 rounded-full border border-white/10 bg-black/50 px-3 py-1.5 font-mono2 text-[11px] text-zinc-300 backdrop-blur"
+            >
+              <Eye className="h-3.5 w-3.5" />
+              {compactCount(views)}
+            </div>
+          </div>
         </div>
       )}
+
 
       {p.hide_footer !== true && (
         <a
